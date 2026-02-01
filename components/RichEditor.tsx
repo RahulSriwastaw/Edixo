@@ -4,7 +4,7 @@ import {
   AlignLeft, AlignCenter, AlignRight, AlignJustify,
   Link2, Unlink, Image as ImageIcon, Code, Quote,
   Subscript, Superscript, Table, Type, Palette,
-  Undo, Redo, Eraser, Eye, Code2, ChevronDown, Maximize2, Minimize2
+  Undo, Redo, Eraser, Eye, ChevronDown, Maximize2, Minimize2
 } from 'lucide-react';
 
 export interface RichEditorProps {
@@ -22,8 +22,6 @@ export const RichEditor: React.FC<RichEditorProps> = React.memo(({ label, value,
   const fileInputRef = useRef<HTMLInputElement>(null);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const [showSourceCode, setShowSourceCode] = useState(false);
-  const [sourceCodeValue, setSourceCodeValue] = useState('');
   const [showColorPicker, setShowColorPicker] = useState<'text' | 'bg' | null>(null);
   const [showFontSize, setShowFontSize] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
@@ -107,17 +105,44 @@ export const RichEditor: React.FC<RichEditorProps> = React.memo(({ label, value,
     }
   }, [exec]);
 
-  const toggleSourceCode = useCallback(() => {
-    if (!showSourceCode) {
-      setSourceCodeValue(editorRef.current?.innerHTML || '');
-    } else {
+  // Toggle code block - switch between <pre> and normal text
+  const toggleCodeBlock = useCallback(() => {
+    const selection = window.getSelection();
+    if (!selection || !selection.rangeCount) return;
+
+    const range = selection.getRangeAt(0);
+    const parentElement = selection.anchorNode?.parentElement;
+    const preElement = parentElement?.closest('pre');
+
+    if (preElement) {
+      // We're in a code block - convert HTML code to rendered HTML
+      const htmlCode = preElement.textContent || '';
+
+      // Create a temporary div to parse the HTML
+      const tempDiv = document.createElement('div');
+      tempDiv.innerHTML = htmlCode;
+
+      // Replace the pre element with the parsed content
+      preElement.replaceWith(tempDiv);
+
+      // Restore selection at the end
+      const newRange = document.createRange();
+      newRange.selectNodeContents(tempDiv);
+      newRange.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(newRange);
+
+      // Trigger change
       if (editorRef.current) {
-        editorRef.current.innerHTML = sourceCodeValue;
-        onChange(sourceCodeValue);
+        onChange(editorRef.current.innerHTML);
       }
+    } else {
+      // Not in code block - apply code formatting
+      exec('formatBlock', '<pre>');
     }
-    setShowSourceCode(!showSourceCode);
-  }, [showSourceCode, sourceCodeValue, onChange]);
+  }, [exec, onChange]);
+
+  // Source code toggle removed for better UX
 
   const checkStyles = useCallback(() => {
     setActiveStyles({
@@ -138,16 +163,16 @@ export const RichEditor: React.FC<RichEditorProps> = React.memo(({ label, value,
   }, [value]);
 
   useEffect(() => {
-    if (editorRef.current && editorRef.current.innerHTML !== value && !showSourceCode && !isExpanded) {
+    if (editorRef.current && editorRef.current.innerHTML !== value && !isExpanded) {
       editorRef.current.innerHTML = value || '';
     }
-  }, [value, showSourceCode, isExpanded]);
+  }, [value, isExpanded]);
 
   useEffect(() => {
-    if (expandedEditorRef.current && isExpanded && !showSourceCode) {
+    if (expandedEditorRef.current && isExpanded) {
       expandedEditorRef.current.innerHTML = expandedContent || '';
     }
-  }, [isExpanded, expandedContent, showSourceCode]);
+  }, [isExpanded, expandedContent]);
 
   const handleExpand = () => {
     // Capture current content before expanding
@@ -230,7 +255,7 @@ export const RichEditor: React.FC<RichEditorProps> = React.memo(({ label, value,
   function renderEditor(isFullscreen: boolean) {
     return (
       <div className={`bg-white rounded-xl border border-slate-200 shadow-sm focus-within:border-primary/40 focus-within:ring-2 focus-within:ring-primary/5 transition-all overflow-hidden relative ${isFullscreen ? 'h-full flex flex-col' : ''} `}>
-        {!showSourceCode && (
+        {
           <div className="px-1.5 py-1 bg-slate-50 border-b border-slate-100 flex flex-wrap items-center gap-0.5 relative z-10">
             {/* Text Styling */}
             <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded p-0.5">
@@ -325,28 +350,19 @@ export const RichEditor: React.FC<RichEditorProps> = React.memo(({ label, value,
             {/* Blocks */}
             <div className="flex items-center gap-0.5 bg-white border border-slate-200 rounded p-0.5">
               <button onMouseDown={(e) => { e.preventDefault(); exec('formatBlock', '<blockquote>'); }} className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all" title="Quote"><Quote size={14} /></button>
-              <button onMouseDown={(e) => { e.preventDefault(); exec('formatBlock', '<pre>'); }} className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all" title="Code"><Code size={14} /></button>
+              <button onMouseDown={(e) => { e.preventDefault(); toggleCodeBlock(); }} className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all" title="Code Block (Toggle)"><Code size={14} /></button>
             </div>
 
             <div className="ml-auto flex items-center gap-0.5">
               {!isFullscreen && (
                 <button onClick={handleExpand} className="p-0.5 rounded text-slate-400 hover:text-primary hover:bg-primary/10 transition-all" title="Expand"><Maximize2 size={14} /></button>
               )}
-              <button onClick={toggleSourceCode} className={`p-0.5 rounded transition-all ${showSourceCode ? 'bg-primary text-white' : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100'}`} title="Source Code"><Code2 size={14} /></button>
             </div>
           </div>
-        )}
+        }
 
         <div className={`relative ${isFullscreen ? 'flex-1 overflow-hidden' : ''}`}>
-          {showSourceCode ? (
-            <textarea
-              className={`w-full px-3 py-2 outline-none font-mono text-[11px] text-slate-700 bg-slate-50 resize-none ${isFullscreen ? 'h-full' : ''}`}
-              style={isFullscreen ? {} : { minHeight }}
-              value={sourceCodeValue}
-              onChange={(e) => setSourceCodeValue(e.target.value)}
-              spellCheck={false}
-            />
-          ) : (
+          {
             <div
               ref={isFullscreen ? expandedEditorRef : editorRef}
               contentEditable
@@ -357,7 +373,7 @@ export const RichEditor: React.FC<RichEditorProps> = React.memo(({ label, value,
               onKeyUp={() => checkStyles()}
               onMouseUp={() => checkStyles()}
             />
-          )}
+          }
           <input
             type="file"
             ref={fileInputRef}
