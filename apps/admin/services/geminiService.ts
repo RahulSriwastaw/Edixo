@@ -693,5 +693,36 @@ export const geminiService = {
       console.error("Extraction failed", e);
       throw e;
     }
+  },
+  
+  refineContent: async (content: string, instruction: string): Promise<string> => {
+    const prompt = `
+      Act as an expert educational content editor.
+      
+      Your task is to REFINE the following content based on this instruction: "${instruction}"
+      
+      Content to Refine:
+      """
+      ${content}
+      """
+      
+      Rules:
+      1. Return ONLY the refined content. No conversational text.
+      2. Maintain the original HTML structure if present, unless the instruction is to change formatting.
+      3. Improve clarity, grammar, and flow.
+      4. Ensure mathematical formulas (LaTeX) are preserved and corrected if needed.
+    `;
+
+    try {
+        const ai = getAI();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: prompt
+        });
+        return response.text?.trim() || content;
+    } catch (e) {
+        console.error("Content refinement failed", e);
+        throw e;
+    }
   }
 };

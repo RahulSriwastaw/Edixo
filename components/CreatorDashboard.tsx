@@ -31,6 +31,7 @@ if (typeof window !== 'undefined') {
 interface CreatorDashboardProps {
   onLaunchPresentation?: (setId: string) => void;
   onLaunchPDF?: (setId: string) => void;
+  onLaunchRefine?: (questionId: string) => void;
 }
 
 const SUBJECTS = [
@@ -251,7 +252,7 @@ const CascadingSelector: React.FC<CascadingSelectorProps> = ({ library, onSelect
   );
 };
 
-export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPresentation, onLaunchPDF }) => {
+export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPresentation, onLaunchPDF, onLaunchRefine }) => {
   const [activeTab, setActiveTab] = useState<'generate' | 'library' | 'sets' | 'answer' | 'book'>('library');
   const [viewLanguage, setViewLanguage] = useState<'English' | 'Hindi' | 'Bilingual'>('Bilingual');
 
@@ -1161,31 +1162,42 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
                 {filteredLibrary.map(q => {
                   const isSelected = selectedIds.includes(q.id);
                   return (
-                    <div
-                      key={q.id}
-                      onClick={() => toggleSelect(q.id)}
-                      className={`group bg-white rounded-lg border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden flex flex-col cursor-pointer ${isSelected ? 'ring-2 ring-primary/20 bg-primary/5 border-primary/20' : ''}`}
-                    >
-                      {/* Selection Vector */}
-                      <div className={`w-3 group-hover:w-4 transition-all duration-500 ${q.subject === 'Mathematics' ? 'bg-primary' : q.subject === 'Science' ? 'bg-success' : q.subject === 'Current Affairs' ? 'bg-error' : 'bg-slate-200'}`} />
+                    <div key={q.id} className="bg-white p-2 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all group relative mb-2">
+                      <div className="flex items-start gap-2">
+                        {/* Status Indicator / Select Checkbox */}
+                        <div className="pt-1 select-none">
+                          <label className="relative flex items-center justify-center w-4 h-4 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="peer appearance-none w-4 h-4 border-2 border-slate-200 rounded text-primary focus:ring-0 checked:bg-primary checked:border-primary transition-all"
+                              checked={isSelected}
+                              onChange={() => toggleSelect(q.id)}
+                            />
+                            <Check className="absolute w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" strokeWidth={3} />
+                          </label>
+                        </div>
 
-                      <div className="flex-1 p-4 md:p-6">
-                        <div className="p-2 flex flex-col h-full">
-                          {/* Selection & Meta Header */}
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <div className={`w-6 h-6 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-primary border-primary text-white' : 'bg-slate-50 border-slate-200 text-transparent'}`}>
-                                <Check size={14} strokeWidth={3} />
-                              </div>
-                              <div className="flex gap-1.5">
-                                <span className="px-2 py-0.5 bg-slate-100 rounded text-[9px] font-bold text-slate-500 uppercase tracking-tight">{q.subject}</span>
-                                <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-tight ${q.difficulty === 'Hard' ? 'bg-error/10 text-error' : q.difficulty === 'Medium' ? 'bg-warning/10 text-warning' : 'bg-success/10 text-success'}`}>{q.difficulty}</span>
-                              </div>
+                        {/* Card Body */}
+                        <div className="flex-1 min-w-0">
+                          {/* Header Line */}
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">{q.subject?.substring(0, 12)}</span>
+                              <span className={`px-1.5 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider border ${q.difficulty === 'Easy' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                q.difficulty === 'Medium' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                  'bg-rose-50 text-rose-600 border-rose-100'
+                                }`}>
+                                {q.difficulty}
+                              </span>
                             </div>
-
-                            <div className="flex gap-1.5">
-                              <button onClick={(e) => { e.stopPropagation(); setReportQuestion(q); }} className="w-7 h-7 rounded-md bg-slate-50 border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-warning/10 hover:text-warning hover:border-warning/30 transition-all" title="Report Issue"><AlertCircle size={14} /></button>
-                              <button onClick={(e) => { e.stopPropagation(); setEditingQuestion(q); setIsEditingGenerated(false); }} className="w-7 h-7 rounded-md bg-slate-50 border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-all" title="Edit Question"><Edit3 size={14} /></button>
+                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={(e) => { e.stopPropagation(); if (onLaunchRefine) onLaunchRefine(q.id); }}
+                                className="w-6 h-6 rounded-md bg-slate-50 text-slate-400 border border-slate-200 flex items-center justify-center hover:bg-white hover:text-primary hover:border-primary/30 transition-all"
+                                title="Edit Question"
+                              >
+                                <Edit3 size={12} />
+                              </button>
                               <button
                                 onClick={async (e) => {
                                   e.stopPropagation();
@@ -1194,30 +1206,30 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
                                     refreshLibrary();
                                   }
                                 }}
-                                className="w-7 h-7 rounded-md bg-red-50 border border-red-200 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white hover:border-red-500 transition-all"
+                                className="w-6 h-6 rounded-md bg-slate-50 text-slate-400 border border-slate-200 flex items-center justify-center hover:bg-white hover:text-error hover:border-error/30 transition-all"
                                 title="Delete Question"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={12} />
                               </button>
                             </div>
                           </div>
 
                           {/* Question Content */}
-                          <div className="flex-1 space-y-3 min-w-0">
+                          <div className="flex-1 space-y-2 min-w-0">
                             <div>
-                              <div className="text-[13px] font-bold text-slate-900 leading-snug line-clamp-3 prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: q.question_eng }} />
-                              {q.question_hin && <div className="text-[11px] font-medium text-slate-400 italic line-clamp-1 mt-1" dangerouslySetInnerHTML={{ __html: q.question_hin }} />}
+                              <div className="text-[10px] font-bold text-slate-900 leading-tight line-clamp-3 prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: q.question_eng }} />
+                              {q.question_hin && <div className="text-[9px] font-medium text-slate-400 italic line-clamp-1 mt-0.5" dangerouslySetInnerHTML={{ __html: q.question_hin }} />}
                             </div>
 
-                            <div className="grid grid-cols-1 gap-1.5">
+                            <div className="grid grid-cols-1 gap-1">
                               {[q.option1_eng, q.option2_eng, q.option3_eng, q.option4_eng].map((opt, oi) => {
                                 const isCorrect = parseInt(q.answer) === oi + 1;
                                 return (
-                                  <div key={oi} className={`px-3 py-1.5 rounded-md border transition-all flex items-center gap-3 ${isCorrect ? 'bg-success/5 border-success/20 text-success' : 'bg-slate-50 border-transparent text-slate-500'}`}>
-                                    <div className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-black shrink-0 ${isCorrect ? 'bg-success text-white' : 'bg-white text-slate-300 border border-slate-200'}`}>
+                                  <div key={oi} className={`px-2 py-1 rounded-md border transition-all flex items-center gap-2 ${isCorrect ? 'bg-success/5 border-success/20 text-success' : 'bg-slate-50 border-transparent text-slate-500'}`}>
+                                    <div className={`w-4 h-4 rounded flex items-center justify-center text-[8px] font-black shrink-0 ${isCorrect ? 'bg-success text-white' : 'bg-white text-slate-300 border border-slate-200'}`}>
                                       {String.fromCharCode(65 + oi)}
                                     </div>
-                                    <div className="text-[11px] font-bold truncate" dangerouslySetInnerHTML={{ __html: opt }} />
+                                    <div className="text-[9px] font-bold truncate" dangerouslySetInnerHTML={{ __html: opt }} />
                                   </div>
                                 );
                               })}
@@ -1225,21 +1237,21 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
                           </div>
 
                           {/* Footer Metadata */}
-                          <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="flex items-center gap-1.5">
-                                <Clock size={12} className="text-slate-300" />
-                                <span className="text-[9px] font-bold text-slate-400 uppercase">{q.createdDate ? new Date(q.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Old'}</span>
+                          <div className="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-1">
+                                <Clock size={10} className="text-slate-300" />
+                                <span className="text-[8px] font-bold text-slate-400 uppercase">{q.createdDate ? new Date(q.createdDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Old'}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-300">
-                                <BarChart3 size={12} />
-                                <span className="text-[9px] font-bold uppercase">{q.usageCount || 0} Uses</span>
+                              <div className="flex items-center gap-1 text-slate-300">
+                                <BarChart3 size={10} />
+                                <span className="text-[8px] font-bold uppercase">{q.usageCount || 0} Uses</span>
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1.5">
-                              {q.solution_eng && <span title="Verified Logic"><BookOpen size={12} className="text-success" /></span>}
-                              {q.id.startsWith('q_') && <span title="AI Synthesis"><Sparkles size={12} className="text-primary" /></span>}
+                            <div className="flex items-center gap-1">
+                              {q.solution_eng && <span title="Verified Logic"><BookOpen size={10} className="text-success" /></span>}
+                              {/* Remove AI synthesis icon if not needed or make smaller */}
                             </div>
                           </div>
                         </div>
@@ -1485,14 +1497,15 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
                         {generatedQuestions.map((q, i) => (
                           <div key={q.id || i} className="bg-white p-3 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-all group relative">
                             <button
-                              onClick={() => { setEditingQuestion(q); setIsEditingGenerated(true); }}
-                              className="absolute top-2 right-2 w-6 h-6 bg-slate-50 text-slate-400 rounded-md border border-slate-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-primary hover:border-primary/30"
-                              title="Edit"
+                              onClick={() => { if (onLaunchRefine) onLaunchRefine(q.id); }}
+                              className="absolute top-2 right-2 w-5 h-5 bg-slate-50 text-slate-400 rounded-md border border-slate-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-white hover:text-primary hover:border-primary/30"
+                              title="Edit in Studio"
                             >
                               <Edit3 size={10} />
                             </button>
 
-                            <div className="mb-3 pr-6">
+
+                            <div className="mb-2 pr-6">
                               <span className="inline-block text-[8px] font-black text-primary uppercase tracking-widest mb-1.5 opacity-50">#{i + 1}</span>
                               {(viewLanguage === 'English' || viewLanguage === 'Bilingual') && (
                                 outputFormat === 'html' ? (
@@ -2268,298 +2281,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
       }
 
       {
-        editingQuestion && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-2 animate-in fade-in duration-300">
-            <div className="bg-white w-full max-w-[98vw] h-[92vh] rounded-lg shadow-2xl flex flex-col overflow-hidden border border-slate-200 animate-in zoom-in-95 duration-300">
-              {/* Studio Header (Compact) */}
-              <div className="px-4 py-2 border-b border-slate-200 flex items-center justify-between bg-white shrink-0 h-14">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-indigo-50 text-primary rounded-lg flex items-center justify-center border border-indigo-100/50 shadow-sm">
-                    <Edit3 size={16} />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight leading-none">Refinement Studio</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Asset Optimization</p>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-3">
-                  {/* Language Toggle */}
-                  <div className="flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
-                    <button
-                      onClick={() => setEditingLang('eng')}
-                      className={`px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-md transition-all ${editingLang === 'eng' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      English
-                    </button>
-                    <button
-                      onClick={() => setEditingLang('hin')}
-                      className={`px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-md transition-all ${editingLang === 'hin' ? 'bg-white text-primary shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                    >
-                      Hindi
-                    </button>
-                  </div>
-
-                  <div className="h-6 w-px bg-slate-200" />
-
-                  <button
-                    onClick={() => { setEditingQuestion(null); setIsEditingGenerated(false); }}
-                    className="w-8 h-8 rounded-md bg-slate-100 text-slate-400 hover:bg-error hover:text-white transition-all flex items-center justify-center border border-slate-200"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              </div>
-
-              {/* SPLIT STUDIO LAYOUT (3-Column Professional) */}
-              <div className="flex flex-1 overflow-hidden bg-white">
-                <div className="grid grid-cols-12 w-full h-full divide-x divide-slate-200">
-
-                  {/* COLUMN 1: QUESTION VECTOR (30% -> span-4) */}
-                  <div className="col-span-12 lg:col-span-4 flex flex-col h-full bg-white overflow-y-auto custom-scrollbar relative">
-                    <div className="px-4 py-3 border-b border-slate-100 bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="bg-indigo-100 text-indigo-700 p-1 rounded-md"><FileJson size={14} /></span>
-                        <div>
-                          <h4 className="text-[10px] font-black text-slate-700 uppercase tracking-widest leading-none">Master Vector</h4>
-                          <p className="text-[9px] font-bold text-slate-400 mt-0.5">Primary Asset Content</p>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex-1 p-4 flex flex-col">
-                      <RichEditor
-                        key={`editor-question-${editingLang}`}
-                        label="Question Content"
-                        value={editingLang === 'eng' ? editingQuestion.question_eng : editingQuestion.question_hin}
-                        onChange={(val) => setEditingQuestion({ ...editingQuestion, [editingLang === 'eng' ? 'question_eng' : 'question_hin']: val })}
-                        minHeight="300px"
-                        className="shadow-sm border-slate-200 flex-1 h-full"
-                        placeholder="Type your question content here..."
-                      />
-                    </div>
-                  </div>
-
-                  {/* COLUMN 2: ANSWER & LOGIC (45% -> span-5) */}
-                  <div className="col-span-12 lg:col-span-5 flex flex-col h-full bg-slate-50/50 overflow-y-auto custom-scrollbar">
-                    <div className="px-4 py-3 border-b border-slate-200 bg-white sticky top-0 z-10 flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="bg-emerald-100 text-emerald-700 p-1 rounded-md"><Layers size={14} /></span>
-                        <div>
-                          <h4 className="text-[10px] font-black text-slate-700 uppercase tracking-widest leading-none">Logic & Key</h4>
-                          <p className="text-[9px] font-bold text-slate-400 mt-0.5">Response Matrix</p>
-                        </div>
-                      </div>
-
-                      {/* Quick Correct Selector */}
-                      <div className="flex items-center gap-2 bg-slate-100 p-1 rounded-lg border border-slate-200">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-1">Correct:</span>
-                        {[1, 2, 3, 4].map(i => (
-                          <button
-                            key={i}
-                            onClick={() => setEditingQuestion({ ...editingQuestion, answer: i.toString() })}
-                            className={`w-5 h-5 rounded flex items-center justify-center text-[9px] font-black transition-all ${editingQuestion.answer === i.toString() ? 'bg-success text-white shadow-sm' : 'text-slate-400 hover:bg-slate-200 hover:text-slate-600'}`}
-                          >
-                            {String.fromCharCode(64 + i)}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="p-4 space-y-6">
-                      {/* Options Section */}
-                      <div className="space-y-3">
-                        <div className="space-y-3">
-                          {[1, 2, 3, 4, 5].map(i => {
-                            const field = `option${i}_${editingLang}` as keyof Question;
-                            if (i === 5 && !(editingQuestion as any).option5_eng && !(editingQuestion as any).option5_hin) return null;
-                            const isCorrect = editingQuestion.answer === i.toString();
-
-                            return (
-                              <div key={i} className={`flex gap-3 items-start group transition-all ${isCorrect ? 'opacity-100' : 'opacity-80 hover:opacity-100'}`}>
-
-                                {/* Option Label/Indicator */}
-                                <div
-                                  className={`mt-2 w-6 h-6 shrink-0 rounded flex items-center justify-center text-[10px] font-black border transition-all cursor-pointer ${isCorrect ? 'bg-success text-white border-success ring-2 ring-success/20' : 'bg-white text-slate-400 border-slate-200 group-hover:border-slate-300'}`}
-                                  onClick={() => setEditingQuestion({ ...editingQuestion, answer: i.toString() })}
-                                >
-                                  {String.fromCharCode(64 + i)}
-                                </div>
-
-                                <div className="flex-1 min-w-0">
-                                  <RichEditor
-                                    key={`editor-option-${i}-${editingLang}`}
-                                    value={(editingQuestion as any)[field] || ''}
-                                    onChange={(val) => setEditingQuestion({ ...editingQuestion, [field]: val } as any)}
-                                    minHeight="60px"
-                                    className={`transition-all ${isCorrect ? 'border-success/40 shadow-sm' : 'border-slate-200'}`}
-                                    placeholder={`Option ${String.fromCharCode(64 + i)}...`}
-                                  />
-                                </div>
-                              </div>
-                            );
-                          })}
-
-                          {/* Add Option 5 Button */}
-                          {!(editingQuestion as any).option5_eng && (
-                            <button
-                              onClick={() => setEditingQuestion({ ...editingQuestion, option5_eng: 'None of the above', option5_hin: 'इनमें से कोई नहीं' } as any)}
-                              className="ml-9 h-8 px-4 border border-dashed border-slate-300 rounded-lg text-slate-400 hover:border-primary hover:text-primary hover:bg-white transition-all text-[10px] font-bold uppercase tracking-wider flex items-center gap-2"
-                            >
-                              <Plus size={12} /> Add Option E
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="h-px bg-slate-200/60" />
-
-                      {/* Explanation Section */}
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 mb-1">
-                          <div className="p-1 bg-amber-50 text-amber-600 rounded">
-                            <Lightbulb size={12} />
-                          </div>
-                          <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Analytical Synthesis (Explanation)</span>
-                        </div>
-                        <RichEditor
-                          key={`editor-solution-${editingLang}`}
-                          value={editingLang === 'eng' ? editingQuestion.solution_eng : editingQuestion.solution_hin}
-                          onChange={(val) => setEditingQuestion({ ...editingQuestion, [editingLang === 'eng' ? 'solution_eng' : 'solution_hin']: val })}
-                          minHeight="180px"
-                          className="bg-amber-50/30 border-amber-100"
-                          placeholder="Explain the logic behind the solution..."
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* COLUMN 3: METADATA (25% -> span-3) */}
-                  <div className="col-span-12 lg:col-span-3 h-full bg-white overflow-y-auto custom-scrollbar">
-                    <div className="p-3 border-b border-slate-100 bg-slate-50/50 h-14 flex items-center sticky top-0 z-10">
-                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                        <Database size={12} /> Configuration
-                      </h4>
-                    </div>
-
-                    <div className="p-4 space-y-5">
-                      {/* Primary Metadata */}
-                      {[
-                        { label: 'Subject', value: editingQuestion.subject, options: SUBJECTS, key: 'subject' },
-                        { label: 'Type', value: editingQuestion.type, options: ['MCQ', 'TrueFalse', 'ShortAnswer', 'FillBlanks'], key: 'type' },
-                        { label: 'Difficulty', value: editingQuestion.difficulty, options: ['Easy', 'Medium', 'Hard', 'Expert'], key: 'difficulty' },
-                        { label: 'Language', value: editingQuestion.language, options: LANGUAGES, key: 'language' }
-                      ].map(field => (
-                        <div key={field.label} className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{field.label}</label>
-                          <div className="relative group">
-                            <select
-                              className="w-full h-8 bg-slate-50 border border-slate-200 rounded-md px-2.5 font-bold text-[10px] text-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none appearance-none cursor-pointer hover:bg-slate-100"
-                              value={field.value}
-                              onChange={e => setEditingQuestion({ ...editingQuestion, [field.key]: e.target.value } as any)}
-                            >
-                              {field.options.map(o => <option key={o} value={o}>{o}</option>)}
-                            </select>
-                            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none group-hover:text-slate-600" size={12} />
-                          </div>
-                        </div>
-                      ))}
-
-                      <div className="h-px bg-slate-100" />
-
-                      {/* Autocomplete Fields */}
-                      {[
-                        { label: 'Exam', value: editingQuestion.exam || '', placeholder: 'Target Exam...', key: 'exam', options: uniqueExams },
-                        { label: 'Year', value: editingQuestion.year || '', placeholder: 'Year...', key: 'year', options: uniqueYears },
-                        { label: 'Topic', value: editingQuestion.topic || '', placeholder: 'Topic...', key: 'topic', options: uniqueTopics },
-                        { label: 'Chapter', value: editingQuestion.chapter || '', placeholder: 'Chapter...', key: 'chapter', options: uniqueChapters },
-                      ].map(field => (
-                        <div key={field.label} className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest flex items-center justify-between">
-                            {field.label}
-                          </label>
-                          <div className="relative group">
-                            <input
-                              type="text"
-                              list={`datalist-${field.key}`}
-                              className="w-full h-8 bg-slate-50 border border-slate-200 rounded-md px-2.5 pr-6 font-bold text-[10px] text-slate-700 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none placeholder:text-slate-300"
-                              value={field.value}
-                              onChange={e => setEditingQuestion({ ...editingQuestion, [field.key]: e.target.value })}
-                              placeholder={field.placeholder}
-                            />
-                            <datalist id={`datalist-${field.key}`}>
-                              {field.options.map(opt => (
-                                <option key={opt} value={opt} />
-                              ))}
-                            </datalist>
-                          </div>
-                        </div>
-                      ))}
-
-                      <div className="h-px bg-slate-100" />
-
-                      {/* Video & Tags */}
-                      <div className="space-y-3">
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Video Solution</label>
-                          <input
-                            type="url"
-                            className="w-full h-8 bg-slate-50 border border-slate-200 rounded-md px-2.5 font-bold text-[10px] text-slate-700 focus:border-primary outline-none"
-                            value={editingQuestion.video || ''}
-                            onChange={e => setEditingQuestion({ ...editingQuestion, video: e.target.value })}
-                            placeholder="https://..."
-                          />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Search Tags</label>
-                          <textarea
-                            className="w-full h-20 bg-slate-50 border border-slate-200 rounded-md px-2.5 py-2 font-bold text-[10px] text-slate-700 focus:border-primary outline-none resize-none leading-relaxed"
-                            value={editingQuestion.tags?.join(', ') || ''}
-                            onChange={e => setEditingQuestion({ ...editingQuestion, tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) })}
-                            placeholder="Tags..."
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                </div>
-              </div>
-
-              {/* Studio Action Dock (Compact) */}
-              <div className="px-6 py-3 bg-white border-t border-slate-200 flex items-center justify-between shrink-0 h-14">
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                    <div>
-                      <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest block leading-none mb-0.5">Status</span>
-                      <span className="text-[10px] font-black text-slate-800 uppercase tracking-tight">Ready</span>
-                    </div>
-                  </div>
-                  <div className="w-px h-6 bg-slate-200" />
-                  <div className="flex flex-col">
-                    <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-0.5">Answer</span>
-                    <span className="text-sm font-black text-primary uppercase">Opt.0{editingQuestion.answer}</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => { setEditingQuestion(null); setIsEditingGenerated(false); }}
-                    className="h-9 px-6 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-all"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSaveEdit}
-                    className="h-9 px-6 bg-slate-900 text-white rounded-md font-black uppercase tracking-wider shadow-sm hover:bg-primary transition-all flex items-center gap-2 text-[10px]"
-                  >
-                    <Save size={12} /> {isEditingGenerated ? 'Sync Asset' : 'Save'}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
       }
       {
         showBulkModal && (

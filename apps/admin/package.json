@@ -1,0 +1,50 @@
+{
+  "name": "@repo/admin",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@repo/auth": "*",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
+    "@google/genai": "^1.38.0",
+    "@google/generative-ai": "^0.24.1",
+    "@react-pdf/renderer": "^4.3.2",
+    "@supabase/supabase-js": "^2.45.0",
+    "@types/papaparse": "^5.5.2",
+    "@types/uuid": "^10.0.0",
+    "docx": "^9.5.1",
+    "html2canvas": "^1.4.1",
+    "immer": "^11.1.3",
+    "jspdf": "^4.0.0",
+    "jspdf-autotable": "^5.0.7",
+    "konva": "^10.2.0",
+    "lucide-react": "^0.562.0",
+    "mammoth": "^1.11.0",
+    "papaparse": "^5.5.3",
+    "pdfjs-dist": "^5.4.530",
+    "perfect-freehand": "^1.2.2",
+    "pg": "^8.17.1",
+    "pptxgenjs": "^4.0.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-konva": "^19.2.1",
+    "react-markdown": "^10.1.0",
+    "replicate": "^1.4.0",
+    "uuid": "^13.0.0",
+    "xlsx": "^0.18.5",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

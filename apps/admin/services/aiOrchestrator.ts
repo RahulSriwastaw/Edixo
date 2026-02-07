@@ -108,5 +108,15 @@ export const aiOrchestrator = {
         }
         // Fallback to Gemini for book chapters
         return await geminiService.generateBookChapter(chapterTitle, sections, audience);
+    },
+
+    refineContent: async (content: string, instruction: string, modelConfig?: AIModelConfig): Promise<string> => {
+        const config = modelConfig || availableModels[0];
+
+        if (config.provider === 'gemini') {
+            return await geminiService.refineContent(content, instruction);
+        }
+        // Fallback to Gemini
+        return await geminiService.refineContent(content, instruction);
     }
 };

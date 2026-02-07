@@ -5,6 +5,7 @@ import { StudentView } from './components/StudentView';
 import { ToolsDashboard } from './components/Tools/ToolsDashboard';
 import { BuilderLayout } from './components/PaperBuilder/BuilderLayout';
 import { PDFStudio } from './components/PDFStudio';
+import { RefinementStudio } from './components/RefinementStudio';
 import { Button } from './components/Button';
 import {
   Layers, Presentation, Sparkles, Zap, ShieldCheck,
@@ -26,14 +27,16 @@ const App: React.FC = () => {
     if (viewParam === 'pdf' && setIdParam) return { view: 'pdf' as const, setId: setIdParam };
     if (viewParam === 'tools') return { view: 'tools' as const, setId: null };
     if (viewParam === 'paper-builder') return { view: 'paper-builder' as const, setId: null };
+    if (viewParam === 'paper-builder') return { view: 'paper-builder' as const, setId: null };
     if (viewParam === 'ppt-generator') return { view: 'ppt-generator' as const, setId: null };
+    if (viewParam === 'refinement-studio') return { view: 'refinement-studio' as const, setId: setIdParam || null };
 
     return { view: 'landing' as const, setId: null };
   };
 
   const initial = getInitialState();
   const defaultView = initial.view;
-  const [view, setView] = useState<'landing' | 'creator' | 'teacher' | 'student' | 'pdf' | 'tools' | 'paper-builder' | 'ppt-generator'>(defaultView);
+  const [view, setView] = useState<'landing' | 'creator' | 'teacher' | 'student' | 'pdf' | 'tools' | 'paper-builder' | 'ppt-generator' | 'refinement-studio'>(defaultView);
   const [presentationSetId, setPresentationSetId] = useState<string | null>(initial.setId);
 
   // Handle Browser Back/Forward buttons
@@ -63,7 +66,7 @@ const App: React.FC = () => {
     updateUrl('teacher', setId);
   };
 
-  const handleNavigate = (newView: 'landing' | 'creator' | 'teacher' | 'student' | 'pdf' | 'tools' | 'paper-builder' | 'ppt-generator', id?: string) => {
+  const handleNavigate = (newView: 'landing' | 'creator' | 'teacher' | 'student' | 'pdf' | 'tools' | 'paper-builder' | 'ppt-generator' | 'refinement-studio', id?: string) => {
     setView(newView);
     updateUrl(newView, id);
     setPresentationSetId(id || null);
@@ -74,6 +77,7 @@ const App: React.FC = () => {
       <CreatorDashboard
         onLaunchPresentation={handleLaunchPresentation}
         onLaunchPDF={(setId) => handleNavigate('pdf', setId)}
+        onLaunchRefine={(qId) => handleNavigate('refinement-studio', qId)}
       />
     );
   }
@@ -124,6 +128,15 @@ const App: React.FC = () => {
       <ToolsDashboard
         onExit={() => handleNavigate('landing')}
         initialTool="ppt-generator"
+      />
+    );
+  }
+
+  if (view === 'refinement-studio') {
+    return (
+      <RefinementStudio
+        questionId={presentationSetId || undefined}
+        onExit={() => handleNavigate('creator')}
       />
     );
   }
