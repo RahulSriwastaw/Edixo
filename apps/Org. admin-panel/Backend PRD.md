@@ -119,6 +119,19 @@ CREATE TABLE organizations (
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+#### 4.1.1.1 organization_domains
+```sql
+CREATE TABLE organization_domains (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
+    domain_name VARCHAR(255) UNIQUE NOT NULL,
+    is_primary BOOLEAN DEFAULT false,
+    status VARCHAR(20) DEFAULT 'active' CHECK (status IN ('active', 'pending', 'inactive')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+```
 ```
 
 #### 4.1.2 users (Teachers & Admins)
@@ -653,7 +666,12 @@ public/
 - HTTPS only (TLS 1.3)
 - API rate limiting: 100 req/min per IP
 
-### 9.4 Whiteboard Security
+### 9.4 Organization Identification Logic
+- **Mobile Apps (Student/Whiteboard)**: 
+  - `org_id` → Resolves via Supabase Auth (JWT custom claims / user_metadata).
+- **Public Website / Landing Pages**: 
+  - `org_id` → Resolves via `organization_domains` lookup using requested `HOST/DOMAIN`.
+  - **Rule**: Frontend kabhi bhi `org_id` parameter pass nahi karega.
 - Set access requires both: Valid JWT + Correct Password
 - No direct database queries from whiteboard
 - All sensitive logic via Edge Functions

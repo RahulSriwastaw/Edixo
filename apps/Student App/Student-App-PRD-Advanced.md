@@ -55,6 +55,7 @@ Guest Mode:
 Authorization:
 - Student role enforced
 - Org-based content isolation via backend
+- **Identification**: `org_id` resolves via Supabase Auth (JWT claims).
 
 ---------------------------------------------------------------
 

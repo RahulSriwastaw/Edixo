@@ -197,6 +197,21 @@ UX Rules:
 
 ---------------------------------------------------------------
 
+8. REQUEST RESOLUTION FLOW
+-------------------------
+1. Request arrives (e.g., coach-x.com)
+2. `organization_domains` table lookup
+3. Resolve `org_id`
+4. Load organization-specific content (Logo, Theme, Courses)
+
+9. HOSTING & DEPLOYMENT
+----------------------
+- Single Site Deployment (Vercel/Netlify)
+- Wildcard/Multi-domain SSL support
+- Zero manual hosting per org
+
+---------------------------------------------------------------
+
 8. NON-FUNCTIONAL REQUIREMENTS
 -------------------------------
 Performance:

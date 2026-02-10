@@ -23,6 +23,18 @@ Platform ka focus:
 
 --------------------------------------------------------------------
 
+2. PLATFORM ARCHITECTURE PRINCIPLES
+----------------------------------
+System-wide global rules:
+
+- **Backend**: SINGLE (Supabase)
+- **Database**: SINGLE
+- **Website Codebase**: SINGLE
+- **Organizations**: MULTIPLE
+- **Domains**: MULTIPLE
+
+**Rule**: Har organization ki apni website aur custom domain support hogi. Ek hi deployment multiple domains ko serve karega.
+
 2. PLATFORM MODULES (HIGH LEVEL)
 --------------------------------
 Platform 5 major modules me divided hoga:
@@ -31,7 +43,7 @@ Platform 5 major modules me divided hoga:
 2. Organization Admin Panel (Org-level management)
 3. Teaching + Mock Test App (Students)
 4. Whiteboard App (Desktop / Mobile)
-5. Public Website (Marketing + Blogs + Tools)
+5. Public Website (Multi-tenant Marketing + Blogs)
 
 --------------------------------------------------------------------
 
@@ -152,17 +164,19 @@ Key Users:
 
 --------------------------------------------------------------------
 
-8. MODULE 5 – PUBLIC WEBSITE
+4.5 PUBLIC WEBSITE (Multi-tenant)
 ----------------------------
 Purpose:
-Marketing + SEO + tools + downloads.
+Marketing + SEO + tools + downloads for specific organizations.
 
 Core Features:
-- SEO pages
-- Blogs (write access: super_admin only)
-- Free & paid educational tools
-- Whiteboard app download links
-- Public course listings (optional)
+- SEO pages (Domain dependent)
+- Blogs (Platform-global or Org-specific)
+- Request resolution based on DOMAIN/HOST
+- Lead generation per organization
+
+Important Rule:
+Frontend org_id send nahi karega, backend DOMAIN se resolve karega.
 
 Key Users:
 - guest

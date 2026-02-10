@@ -61,6 +61,10 @@ Features:
   - No. of teachers
   - No. of courses
   - Whiteboard access (yes/no)
+- **Domain Management**:
+  - Add / Verify custom domains
+  - Activate / Deactivate domains
+  - Set Primary domain
 
 Data Entities:
 - organizations
