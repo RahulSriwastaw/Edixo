@@ -1,0 +1,24 @@
+{
+  "tech_stack": [
+    "TypeScript",
+    "React",
+    "Tailwind CSS",
+    "Lucide React"
+  ],
+  "features": [
+    {
+      "name": "Bilingual Refinement Studio",
+      "description": "Refinement Studio now correctly manages bilingual content (English/Hindi) by forcing editor remounts when switching languages. This prevents content persistence issues where English text would remain when switching to Hindi mode. The Studio includes a 3-column layout for Question, Answers/Logic, and Metadata.",
+      "files": [
+        "components/CreatorDashboard.tsx"
+      ]
+    },
+    {
+      "name": "Advanced Rich Text Editor",
+      "description": "Enhanced Rich Text Editor with professional features: Undo/Redo history stack, Math Symbol insertion, Font Size control, Text/Background Color pickers, Code View (HTML source editing) with formatting, and improved Toolbar layout.",
+      "files": [
+        "components/RichEditor.tsx"
+      ]
+    }
+  ]
+}

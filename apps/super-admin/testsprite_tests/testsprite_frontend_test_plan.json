@@ -1,0 +1,258 @@
+[
+  {
+    "id": "TC001",
+    "title": "Bilingual Refinement Studio Language Switch",
+    "description": "Verify that switching languages in the Bilingual Refinement Studio forces editor remounts and clears the previously shown content, preventing content persistence across English and Hindi modes.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the Bilingual Refinement Studio in English mode."
+      },
+      {
+        "type": "action",
+        "description": "Enter sample question content in English."
+      },
+      {
+        "type": "action",
+        "description": "Switch the editor language to Hindi."
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the English content is cleared and Hindi mode editor is empty."
+      },
+      {
+        "type": "action",
+        "description": "Enter sample question content in Hindi."
+      },
+      {
+        "type": "action",
+        "description": "Switch back to English."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that Hindi content is cleared and English editor is empty or shows previously saved English content correctly after editor remount."
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Bilingual Refinement Studio 3-Column Layout Verification",
+    "description": "Verify the presence and correct layout of the 3 columns for Question, Answers/Logic, and Metadata in the Bilingual Refinement Studio.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the Bilingual Refinement Studio."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that three columns labelled Question, Answers/Logic, and Metadata are visible and properly aligned."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that content can be entered and scrolled independently in each column."
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Undo/Redo Functionality in Rich Text Editor",
+    "description": "Verify that the Undo and Redo stacks function correctly allowing users to revert and restore their editing changes consistently.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the Advanced Rich Text Editor."
+      },
+      {
+        "type": "action",
+        "description": "Enter some text content."
+      },
+      {
+        "type": "action",
+        "description": "Make several edits by adding, deleting, and formatting text."
+      },
+      {
+        "type": "action",
+        "description": "Trigger Undo multiple times."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that text reverts step by step correctly to previous states."
+      },
+      {
+        "type": "action",
+        "description": "Trigger Redo multiple times."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that undone changes are restored step by step correctly."
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Math Symbol Insertion in Rich Text Editor",
+    "description": "Verify that the Math Symbol insertion tool correctly inserts appropriate mathematical symbols into the editor at cursor position.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the Advanced Rich Text Editor in a question creation form."
+      },
+      {
+        "type": "action",
+        "description": "Place cursor inside the editor text area."
+      },
+      {
+        "type": "action",
+        "description": "Select and insert various mathematical symbols (e.g., ∑, ∫, √, π) from the Math Symbol insertion tool."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that each selected symbol is inserted at the correct cursor position within the text."
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Font Size Control in Rich Text Editor",
+    "description": "Verify that changing font size via the Font Size control updates the selected text accordingly and persists upon saving.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Enter a sample paragraph into the Advanced Rich Text Editor."
+      },
+      {
+        "type": "action",
+        "description": "Select a portion of the text."
+      },
+      {
+        "type": "action",
+        "description": "Change font size using the Font Size control to various sizes (small, medium, large)."
+      },
+      {
+        "type": "assertion",
+        "description": "Check that the font size of the selected text changes immediately as per selection."
+      },
+      {
+        "type": "action",
+        "description": "Save changes and reload the editor."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that the font size changes persist after reload."
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Text and Background Color Pickers Functionality",
+    "description": "Validate that text color and background color pickers update the selected text style accurately in real-time and persist on save.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Input text into the Advanced Rich Text Editor."
+      },
+      {
+        "type": "action",
+        "description": "Select a section of the text."
+      },
+      {
+        "type": "action",
+        "description": "Change the text color using the text color picker."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected text color updates immediately."
+      },
+      {
+        "type": "action",
+        "description": "Change the background color of the selected text using the background color picker."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the background color updates immediately."
+      },
+      {
+        "type": "action",
+        "description": "Save changes and reload editor."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure the selected colors persist after reload."
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Code View (HTML Source) Editing and Formatting",
+    "description": "Ensure Code View toggle enables source HTML editing with proper syntax formatting and changes are reflected when switching back to visual editor.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the Advanced Rich Text Editor."
+      },
+      {
+        "type": "action",
+        "description": "Enter some formatted content (text with bold, color, and math symbols)."
+      },
+      {
+        "type": "action",
+        "description": "Toggle to Code View to edit HTML source."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify displayed HTML source is correctly formatted and represents the visual content."
+      },
+      {
+        "type": "action",
+        "description": "Edit the HTML source code, such as changing tags or content."
+      },
+      {
+        "type": "action",
+        "description": "Toggle back to visual editor mode."
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm the visual editor reflects the updated source content properly."
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Toolbar Layout and Accessibility in Rich Text Editor",
+    "description": "Check that the toolbar is intuitively laid out with all controls accessible, properly labeled, and keyboard navigable.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open the Advanced Rich Text Editor."
+      },
+      {
+        "type": "assertion",
+        "description": "Verify all expected toolbar buttons and controls are visible and correctly labeled with tooltips."
+      },
+      {
+        "type": "action",
+        "description": "Navigate toolbar using keyboard (Tab and arrow keys)."
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure focus moves appropriately and controls are operable via keyboard only."
+      }
+    ]
+  }
+]

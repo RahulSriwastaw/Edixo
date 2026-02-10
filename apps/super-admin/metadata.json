@@ -1,0 +1,7 @@
+{
+  "name": "Q-Bank Pro",
+  "description": "An AI-powered question bank and teaching platform for creators and educators. Features question generation, set management, and a professional presentation mode.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

@@ -1,0 +1,45 @@
+[
+    {
+        "id": "1",
+        "name": "Admin Dashboard",
+        "steps": [
+            "Login as Org Admin",
+            "Verify Dashboard Access",
+            "Check Quick Actions"
+        ]
+    },
+    {
+        "id": "2",
+        "name": "Teacher Management",
+        "steps": [
+            "Navigate to Teachers Tab",
+            "Verify Teacher List Loading",
+            "Click Add Teacher",
+            "Fill Teacher Form",
+            "Verify Teacher Creation Alert"
+        ]
+    },
+    {
+        "id": "3",
+        "name": "Course Management",
+        "steps": [
+            "Navigate to Courses Tab",
+            "Verify Course List Loading",
+            "Click Create Course",
+            "Fill Course Form",
+            "Toggle Publish Switch",
+            "Verify Course Creation"
+        ]
+    },
+    {
+        "id": "4",
+        "name": "Whiteboard Sets",
+        "steps": [
+            "Navigate to Sets Tab",
+            "Verify Sets List Loading",
+            "Click New Set",
+            "Fill Set Details (ID, Password)",
+            "Verify Set Creation"
+        ]
+    }
+]
