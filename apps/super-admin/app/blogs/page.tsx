@@ -5,20 +5,7 @@ import { FileText, Plus, Search, Filter, Loader2, Eye, Edit, Trash2, Calendar, T
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import BlogEditor from '../../components/blogs/BlogEditor';
 import { supabase } from '../../lib/supabase';
-
-interface Blog {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  status: string;
-  category: string;
-  tags: string[];
-  view_count: number;
-  published_at: string;
-  created_at: string;
-  author_id: string;
-}
+import { Blog } from '../../components/types';
 
 export default function BlogsPage() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
@@ -88,17 +75,17 @@ export default function BlogsPage() {
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-10">
+        <header className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Blogs & SEO</h1>
-            <p className="text-slate-500 mt-2">Manage public website content and SEO settings.</p>
+            <h1 className="text-xl font-bold text-slate-900">Blogs & SEO</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Manage website content and SEO</p>
           </div>
           <button
             onClick={() => {
               setSelectedBlog(null);
               setIsEditorOpen(true);
             }}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-lg shadow-indigo-200"
+            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors shadow-md text-sm"
           >
             <Plus size={20} />
             New Blog Post
@@ -109,30 +96,30 @@ export default function BlogsPage() {
         <div className="grid grid-cols-4 gap-4 mb-8">
           <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
             <p className="text-slate-500 text-sm font-medium mb-1">Total Posts</p>
-            <p className="text-3xl font-bold text-slate-900">{blogs.length}</p>
+            <p className="text-xl font-bold text-slate-900">{blogs.length}</p>
           </div>
           <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
             <p className="text-slate-500 text-sm font-medium mb-1">Published</p>
-            <p className="text-3xl font-bold text-emerald-600">
+            <p className="text-xl font-bold text-emerald-600">
               {blogs.filter(b => b.status === 'published').length}
             </p>
           </div>
           <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
             <p className="text-slate-500 text-sm font-medium mb-1">Drafts</p>
-            <p className="text-3xl font-bold text-amber-600">
+            <p className="text-xl font-bold text-amber-600">
               {blogs.filter(b => b.status === 'draft').length}
             </p>
           </div>
           <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200">
             <p className="text-slate-500 text-sm font-medium mb-1">Total Views</p>
-            <p className="text-3xl font-bold text-blue-600">
+            <p className="text-xl font-bold text-blue-600">
               {blogs.reduce((sum, b) => sum + (b.view_count || 0), 0)}
             </p>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-8">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-5">
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
@@ -159,19 +146,19 @@ export default function BlogsPage() {
 
         {/* Blog List */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-indigo-600" size={40} />
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-orange-500" size={32} />
           </div>
         ) : (
           <div className="space-y-4">
             {blogs.length === 0 ? (
-              <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center">
+              <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center">
                 <FileText className="mx-auto text-slate-300 mb-4" size={48} />
                 <h3 className="text-lg font-bold text-slate-900">No blog posts found</h3>
                 <p className="text-slate-500 mb-6">Get started by creating your first blog post.</p>
                 <button
                   onClick={() => setIsEditorOpen(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium inline-flex items-center gap-2 transition-colors"
+                  className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-2 transition-colors"
                 >
                   <Plus size={18} />
                   Create Blog Post
@@ -181,7 +168,7 @@ export default function BlogsPage() {
               blogs.map((blog) => (
                 <div
                   key={blog.id}
-                  className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
+                  className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -195,7 +182,7 @@ export default function BlogsPage() {
                       <div className="flex items-center gap-6 text-sm text-slate-500">
                         <span className="flex items-center gap-1.5">
                           <Calendar size={14} />
-                          {new Date(blog.created_at).toLocaleDateString()}
+                          {blog.created_at ? new Date(blog.created_at).toLocaleDateString() : 'N/A'}
                         </span>
                         {blog.category && (
                           <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded-md text-xs font-medium">
@@ -223,7 +210,7 @@ export default function BlogsPage() {
                           setSelectedBlog(blog);
                           setIsEditorOpen(true);
                         }}
-                        className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                        className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
                         title="Edit Blog"
                       >
                         <Edit size={20} />

@@ -80,7 +80,7 @@ export default function DashboardScreen() {
                         title="Total Teachers"
                         count="12"
                         icon={Users}
-                        gradient={['#4f46e5', '#6366f1']}
+                        gradient={['#FF5A1F', '#F97316']}
                     />
                     <StatCard
                         title="Active Courses"
@@ -108,7 +108,7 @@ export default function DashboardScreen() {
                     <QuickAction
                         title="Add New Teacher"
                         icon={Plus}
-                        color="#4f46e5"
+                        color="#FF5A1F"
                         onPress={() => navigation.navigate('AddTeacher')}
                     />
                     <QuickAction
@@ -182,12 +182,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         borderWidth: 2,
-        borderColor: '#e0e7ff',
+        borderColor: '#FFF7ED',
     },
     avatarText: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#4f46e5',
+        color: '#FF5A1F',
     },
     sectionTitle: {
         fontSize: 18,
@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
     statCardWrapper: {
         width: (width - 48 - 16) / 2,
         borderRadius: 20,
-        shadowColor: '#4f46e5',
+        shadowColor: '#FF5A1F',
         shadowOffset: { width: 0, height: 10 },
         shadowOpacity: 0.15,
         shadowRadius: 20,
@@ -291,3 +291,4 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
 });
+

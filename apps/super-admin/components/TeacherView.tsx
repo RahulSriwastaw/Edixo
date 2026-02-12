@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { storageService } from '../services/storageService';
+import { storageService } from './services/storageService';
 import { QuestionSet, Question } from '../types';
 import { Button } from './Button';
 import { SmartBoard } from './SmartBoard';

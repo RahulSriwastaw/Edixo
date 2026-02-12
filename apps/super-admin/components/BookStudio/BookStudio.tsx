@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Book, PenTool, Search, Layout, Save, Download, ChevronRight, Settings, Sparkles, BookOpen, Loader2 } from 'lucide-react';
-import { getSubjectConfig } from '../../config/subjectConfig';
+import { getSubjectConfig } from '../config/subjectConfig';
 import { ResearchPanel } from './ResearchPanel';
-import { aiOrchestrator, availableModels } from '../../services/aiOrchestrator';
+import { aiOrchestrator, availableModels } from '../services/aiOrchestrator';
 import { MarkdownEditor } from './MarkdownEditor';
 
 interface BookConfig {

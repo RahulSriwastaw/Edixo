@@ -280,6 +280,308 @@ Phase 2 (Growth):
 - SEO traffic via public website
 - Single backend supporting all modules
 
+
+====================================================================
+ADD-ON SECTION – DESIGN SYSTEM & UI/UX ARCHITECTURE
+(MERGE INTO EXISTING MASTER PRD – DO NOT CREATE NEW PRD FILE)
+====================================================================
+
+IMPORTANT INSTRUCTION
+---------------------
+Is section ko EXISTING MASTER PRD ke andar add kiya jayega.
+Ye platform ke sabhi modules (Super Admin, Org Admin,
+Student App, Whiteboard, Public Website) par apply hoga.
+
+Ye document design consistency, UI library selection,
+responsiveness aur branding define karta hai.
+
+====================================================================
+
+1. DESIGN PHILOSOPHY
+--------------------
+Platform ka design:
+
+- Professional
+- Clean
+- Compact
+- SaaS-grade
+- Performance optimized
+- Consistent across all modules
+
+Primary goals:
+- Multi-device responsive
+- Minimal clutter
+- Clear information hierarchy
+- Scalable component system
+- Brand-consistent UI
+
+====================================================================
+
+2. GLOBAL COLOR SYSTEM (PROFESSIONAL)
+--------------------------------------
+
+Primary Brand Color:
+#FF5A1F (Professional SaaS Orange)
+
+Secondary Accent:
+#F97316
+
+Background:
+#F9FAFB
+
+Card Background:
+#FFFFFF
+
+Border Color:
+#E5E7EB
+
+Muted Text:
+#6B7280
+
+Success:
+#16A34A
+
+Warning:
+#F59E0B
+
+Error:
+#DC2626
+
+Dark Mode (Future Ready):
+Background: #0F172A
+Card: #1E293B
+Text: #F1F5F9
+
+All modules must follow this unified design token system.
+
+====================================================================
+
+3. TYPOGRAPHY SYSTEM
+--------------------
+
+Primary Font:
+Inter (preferred)
+Fallback: Poppins
+
+Heading Scale:
+H1 – 28px Bold
+H2 – 22px Semibold
+H3 – 18px Semibold
+Body – 14px Regular
+Caption – 12px Muted
+
+Spacing System:
+Base spacing unit: 4px
+Common spacing:
+8px / 12px / 16px / 24px / 32px
+
+Border Radius:
+Cards: 16px
+Buttons: 12px
+Inputs: 10px
+
+Shadow:
+Soft SaaS shadow (shadow-md equivalent)
+
+====================================================================
+
+4. UI LIBRARY STACK (ALL PROJECTS)
+-----------------------------------
+
+Frontend Web (Super Admin, Org Admin, Website):
+- Next.js (App Router)
+- Tailwind CSS
+- shadcn/ui
+- Lucide React Icons
+- Framer Motion
+- Recharts (analytics)
+- React Hook Form (forms)
+- Zod (validation)
+
+Mobile App (Student App):
+- Flutter (Android-first)
+- Material 3 customized with brand theme
+- Supabase SDK
+- Responsive layout builder
+
+Whiteboard (Native):
+- Flutter (Desktop + Android)
+- CustomPainter canvas
+- Skia rendering
+- Supabase SDK
+
+Backend:
+- Supabase (Auth + DB + RLS + Edge Functions)
+
+No mixed UI frameworks allowed.
+Consistency mandatory.
+
+====================================================================
+
+5. RESPONSIVE DESIGN REQUIREMENTS
+----------------------------------
+
+Platform MUST be fully responsive across:
+
+- Desktop (>=1280px)
+- Laptop (1024px)
+- Tablet (768px)
+- Mobile (<=480px)
+- Windows Desktop App
+- Android Tablet
+- Android Phone
+
+Rules:
+
+Desktop:
+- Sidebar fixed (240px)
+- 3-column card grid
+
+Tablet:
+- Sidebar collapsible
+- 2-column layout
+
+Mobile:
+- Drawer sidebar
+- 1-column layout
+- Larger touch targets (min 44px height)
+
+Windows Whiteboard:
+- Fullscreen-first
+- Toolbar floating
+- Keyboard shortcuts enabled
+
+Mobile Whiteboard:
+- Touch optimized
+- Stylus support
+- Larger control buttons
+
+====================================================================
+
+6. COMPONENT ARCHITECTURE
+--------------------------
+
+All UI must use reusable components:
+
+- Sidebar
+- Header
+- Card
+- Modal
+- Drawer
+- Data Table
+- Form Field
+- Badge
+- Tabs
+- Pagination
+- Toast Notification
+
+No inline styling allowed.
+All components must follow design tokens.
+
+====================================================================
+
+7. UX PRINCIPLES
+----------------
+
+- Clear navigation hierarchy
+- No visual clutter
+- Consistent spacing
+- Soft micro-animations (200ms)
+- Loading states for all async calls
+- Empty states defined
+- Error states defined
+- Confirm dialogs for destructive actions
+
+====================================================================
+
+8. DASHBOARD UI STANDARD
+-------------------------
+
+All dashboards (Super Admin + Org Admin):
+
+- Page title + subtitle
+- Action buttons right aligned
+- Card-based summary widgets
+- Chart area (optional)
+- Data tables with:
+    - Search
+    - Filters
+    - Pagination
+    - Status badges
+
+====================================================================
+
+9. WHITEBOARD UI STANDARD
+-------------------------
+
+- Minimal interface
+- Floating toolbar
+- Fullscreen default
+- No popups during teaching
+- High contrast controls
+- Quick access shortcuts
+
+====================================================================
+
+10. WEBSITE UI STANDARD
+------------------------
+
+- SEO optimized
+- Mobile-first
+- Clean typography
+- CTA-driven layout
+- Fast load (<2 sec)
+- Lighthouse score 85+
+
+====================================================================
+
+11. PERFORMANCE REQUIREMENTS
+-----------------------------
+
+Web:
+- First Contentful Paint < 2s
+- Lazy loading images
+- Code splitting enabled
+
+Mobile:
+- App launch < 2s
+- Optimized assets
+- Offline cache where needed
+
+Whiteboard:
+- 60 FPS drawing
+- No lag
+
+====================================================================
+
+12. ACCESSIBILITY REQUIREMENTS
+-------------------------------
+
+- Contrast ratio compliant
+- Keyboard navigation
+- ARIA roles
+- Screen reader support (web)
+
+====================================================================
+
+13. MERGE INSTRUCTION
+---------------------
+
+This design section must be merged into:
+
+✔ MASTER PRD – under “Platform Standards”
+✔ Super Admin PRD – under “UI/UX”
+✔ Org Admin PRD – under “UI/UX”
+✔ Student App PRD – under “Design System”
+✔ Whiteboard PRD – under “UI Standards”
+✔ Public Website PRD – under “Design & SEO Standards”
+
+No separate design PRD file to be maintained.
+
+====================================================================
+END OF DESIGN SYSTEM ADD-ON
+====================================================================
+
 ====================================================================
 END OF MASTER PRD
 ====================================================================

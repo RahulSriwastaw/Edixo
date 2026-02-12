@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { geminiService } from '../services/geminiService';
-import { aiOrchestrator, availableModels, AIModelConfig } from '../services/aiOrchestrator';
+import { geminiService } from './services/geminiService';
+import { aiOrchestrator, availableModels, AIModelConfig } from './services/aiOrchestrator';
 import { Sparkles, Copy, Check, RefreshCw, BookOpen, AlertCircle, ChevronDown } from 'lucide-react';
 
 export const AnswerGenerator: React.FC = () => {

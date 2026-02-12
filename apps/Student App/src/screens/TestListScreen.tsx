@@ -69,7 +69,7 @@ export default function TestListScreen() {
     >
       <View style={styles.testCardMain}>
         <View style={[styles.iconBox, { backgroundColor: isDark ? '#1e293b' : '#f1f5f9' }]}>
-          <FileText size={20} color="#4f46e5" />
+          <FileText size={20} color="#FF5A1F" />
         </View>
         <View style={styles.testInfo}>
           <Text style={[styles.testTitle, isDark && styles.textLight]}>{item.title}</Text>
@@ -93,7 +93,7 @@ export default function TestListScreen() {
       </View>
       <View style={styles.testCardAction}>
         <Text style={styles.startCta}>Start Test</Text>
-        <Play size={16} color="#4f46e5" fill="#4f46e5" />
+        <Play size={16} color="#FF5A1F" fill="#FF5A1F" />
       </View>
     </TouchableOpacity>
   );
@@ -112,7 +112,7 @@ export default function TestListScreen() {
 
       {loading ? (
         <View style={styles.center}>
-          <ActivityIndicator size="large" color="#4f46e5" />
+          <ActivityIndicator size="large" color="#FF5A1F" />
         </View>
       ) : (
         <FlatList
@@ -158,7 +158,8 @@ const styles = StyleSheet.create({
   diffAdv: { backgroundColor: '#fee2e2' },
   diffText: { fontSize: 10, fontWeight: '700', color: '#475569' },
   testCardAction: { paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#f8fafc', borderTopWidth: 1, borderTopColor: '#f1f5f9', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  startCta: { fontSize: 13, fontWeight: '700', color: '#4f46e5' },
+  startCta: { fontSize: 13, fontWeight: '700', color: '#FF5A1F' },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', marginTop: 100 },
   emptyText: { fontSize: 16, color: '#94a3b8', marginTop: 16, fontWeight: '500' }
 });
+

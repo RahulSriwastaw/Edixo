@@ -152,7 +152,6 @@ ORDER BY table_name;
 SELECT * FROM public.users WHERE role = 'super_admin';
 ```
 
-Agar super admin user dikhe, to aap tayaar hain! ✅
 
 ### Step 6: Login Karein
 
@@ -186,6 +185,396 @@ Password: Admin@123
 **Login nahi ho raha**
 - Verify karein: `SELECT * FROM users WHERE email = 'admin@qbank.com'`
 - Check karein role: `super_admin` hai
+====================================================================
+ORGANIZATION ADMIN PANEL – EXTENDED ENTERPRISE PRD
+(MERGE INTO EXISTING ORG ADMIN PRD – DO NOT CREATE SEPARATE FILE)
+====================================================================
+
+IMPORTANT INSTRUCTION
+---------------------
+Ye document EXISTING "Organization Admin Panel PRD" ka
+EXTENDED VERSION hai.
+
+Is document ke saare sections:
+- Original Org Admin PRD me ADD kiye jayenge
+- Backend PRD me relevant parts merge honge
+- Domain Add-on PRD ke rules follow karenge
+
+Isko alag product ya alag PRD file na banaya jaye.
+
+====================================================================
+
+1. OVERALL PURPOSE (EXTENDED)
+-----------------------------
+Organization Admin Panel ek FULL BUSINESS CONTROL SYSTEM hoga
+jahan coaching/institute apna:
+
+- Academic Structure
+- Course Management
+- Teachers
+- Students
+- Live Events
+- Promotions
+- Doubt Management
+- OMR Exams
+- Quiz Builder
+- Banner System
+- Blog (if enabled)
+- Domain visibility
+
+sab manage karega.
+
+====================================================================
+
+2. DASHBOARD MODULE
+-------------------
+(Reference: Dashboard screenshot page 1 & 2)
+
+Features:
+- Total Students
+- Active Courses
+- Total Enrollments
+- Content Items count
+- Registration analytics (daily/weekly/monthly)
+- Hourly registration graph
+- Monthly performance (revenue + enrollments)
+- Popular courses chart
+- Recent activity feed
+- Key insights panel:
+    - Avg daily registrations
+    - Peak day
+    - Growth rate
+
+Performance Rule:
+- Real-time or near real-time data
+- Cached analytics allowed
+
+====================================================================
+
+3. CONTENT MANAGEMENT SYSTEM
+----------------------------
+(Reference: Content screen)
+
+Submodules:
+- Course Content
+- Ebooks
+- Videos
+- PDFs
+- Online Tests
+- Import content
+- Folder structure
+- Drag & drop support
+
+Rules:
+- File upload limits enforced
+- Content tied to specific course
+- Content access controlled via enrollments
+
+====================================================================
+
+4. COURSE MANAGEMENT SYSTEM
+----------------------------
+(Reference: Course Management screen)
+
+4.1 Course Types:
+- Regular Course
+- Ebook Course
+- Free Video Course
+- Free Notes Course
+- Free Test Course
+
+4.2 Basic Course Info:
+- Stream selection
+- Course name
+- Strikeout price
+- Selling price
+- Product ID
+- WhatsApp group link
+- Description (rich text)
+- Intro video ID
+- Feature toggles:
+    - Live
+    - Video
+    - Notes
+    - Panel PDF
+    - Topper
+    - Test
+
+4.3 Media Upload:
+- Course thumbnail
+- Time table image
+- Batch info PDF
+
+4.4 Packages:
+- Student packages
+- Upgrade packages
+- Multiple pricing tiers
+
+Rule:
+- Package-based access control
+- License limit enforced
+
+====================================================================
+
+5. SUPER STREAM & STREAM MANAGEMENT
+------------------------------------
+(Reference: Super Stream & Stream screens)
+
+Structure:
+Super Stream → Stream → Course
+
+Features:
+- Create Super Stream
+- Create Stream under Super Stream
+- Stream image upload
+- Stream description
+- Course association count
+
+Purpose:
+- Academic categorization
+- SEO alignment
+- App navigation clarity
+
+====================================================================
+
+6. BANNER MANAGEMENT SYSTEM
+----------------------------
+(Reference: Banner screen page 1)
+
+Features:
+- Add Banner
+- Banner type
+- Linked course
+- Redirect link
+- Publish / Draft
+- Status filter
+- Search
+- Pagination
+
+Rules:
+- Max banner limit per org
+- Scheduled banner support (future)
+
+====================================================================
+
+7. LIVE EVENT SYSTEM
+--------------------
+(Reference: Add Live Event)
+
+Features:
+- Free / Paid event
+- Video source selection
+- Publish / Draft
+- Select courses
+- Event name
+- Description
+- Stream link
+- Banner upload
+- Viewer count tracking
+
+Rules:
+- YouTube/Vimeo support
+- Event tied to course access
+- Expiry control
+
+====================================================================
+
+8. PROMOTION MANAGEMENT
+-----------------------
+(Reference: Promotion screen)
+
+Features:
+- Promo code
+- Linked course
+- Promo value
+- Discount type (flat / %)
+- Valid from / to
+- Quantity
+- Usage count
+- Status
+
+Rules:
+- Auto-expire
+- Usage limit
+- Conflict validation
+
+====================================================================
+
+9. TEACHER MANAGEMENT
+---------------------
+(Reference: Teacher screen)
+
+Features:
+- Add teacher
+- Assign courses
+- Revenue share %
+- Account ID
+- Activate / deactivate
+
+Advanced:
+- Teacher earnings report (future)
+
+====================================================================
+
+10. TOP STUDENT / TOP TEACHER MODULE
+-------------------------------------
+(Reference: Add Top Student / Add Top Teacher)
+
+Features:
+- Name
+- Profile image
+- Description / About
+- Stream association
+- Video link (optional)
+
+Purpose:
+- Website showcase
+- Marketing
+
+====================================================================
+
+11. OMR SHEET BUILDER
+---------------------
+(Reference: OMR screen)
+
+Features:
+- Exam key
+- Exam title
+- Description
+- Number of questions
+- Question type
+- Answer options
+- Timer
+- Marks for correct
+- Negative marking
+- Duration
+- Buffer time
+- Start date/time
+- Publish / Unpublish
+- Generate OMR sheet + Answer key
+
+Rules:
+- Auto PDF generation
+- Exam scheduling
+
+====================================================================
+
+12. QUIZ BUILDER
+----------------
+(Reference: Quiz screen)
+
+Features:
+- Quiz category
+- Quiz name
+- Duration
+- Category distribution
+- Advanced mode toggle
+- Negative marking toggle
+- Instant solution toggle
+- Multiple question categories
+
+====================================================================
+
+13. COURSE DOUBT MANAGEMENT
+----------------------------
+(Reference: Course Doubt screen)
+
+Features:
+- Total doubts count
+- Unique doubts
+- Resolving count
+- Closed count
+- Course-wise doubt display
+- Ticket management
+
+Future:
+- Chat-style thread
+- File attachments
+
+====================================================================
+
+14. BLOG MANAGEMENT (IF ENABLED BY SUPER ADMIN)
+------------------------------------------------
+(Reference: Blog screen)
+
+Features:
+- Single blog page per org (optional)
+- Edit content
+- Preview
+- Permanent link
+- Rich text support
+
+Rule:
+- Can be disabled by Super Admin
+- Domain-based rendering
+
+====================================================================
+
+15. DOMAIN VISIBILITY (MERGED FROM DOMAIN ADD-ON PRD)
+-----------------------------------------------------
+Org Admin:
+- View connected domains
+- View status
+- Cannot edit domains
+
+Super Admin:
+- Full control
+
+====================================================================
+
+16. SETTINGS MODULE
+-------------------
+Features:
+- App branding
+- Logo upload
+- Theme color
+- Contact info
+- WhatsApp support
+- Social links
+- Terms & privacy (org-level optional)
+
+====================================================================
+
+17. SECURITY & ACCESS CONTROL
+-----------------------------
+- Role-based permissions
+- Teacher restricted access
+- Org-bound RLS
+- Activity logs (future)
+- Data isolation mandatory
+
+====================================================================
+
+18. PERFORMANCE REQUIREMENTS
+----------------------------
+- Page load < 2 seconds
+- File upload progress tracking
+- Large content pagination
+- Server-side filtering
+
+====================================================================
+
+19. OUT OF SCOPE
+----------------
+- Platform-level configuration
+- Domain mapping edit
+- Backend direct access
+- Global feature flags
+
+====================================================================
+
+20. SUCCESS CRITERIA
+-------------------
+- Org Admin fully independent
+- No Super Admin daily dependency
+- App + Website auto reflect updates
+- No cross-org data leak
+- Scalable to 1000+ orgs
+
+====================================================================
+END OF EXTENDED ORGANIZATION ADMIN PRD
+(MERGE INTO ORIGINAL PRD – DO NOT DUPLICATE FILE)
+====================================================================
 
 ---
 

@@ -305,9 +305,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   const uniqueYears = useMemo(() => Array.from(new Set(library.map(q => q.year).filter(Boolean))).sort().reverse(), [library]);
   const uniqueDates = useMemo(() => Array.from(new Set(library.map(q => q.date || q.createdDate?.split('T')[0]).filter(Boolean))).sort().reverse(), [library]);
   const uniqueChapters = useMemo(() => Array.from(new Set(library.map(q => q.chapter).filter(Boolean))).sort(), [library]);
-  const uniqueTopics = useMemo(() => Array.from(new Set(library.map(q => q.topic).filter(Boolean))).sort(), [library]);
-  const uniqueSections = useMemo(() => Array.from(new Set(library.map(q => q.section).filter(Boolean))).sort(), [library]);
-  const uniqueCollections = useMemo(() => Array.from(new Set(library.map(q => q.collection).filter(Boolean))).sort(), [library]);
+  const uniqueTopics = useMemo(() => Array.from(new Set(library.map(q => q.topic).filter((t): t is string => !!t))).sort(), [library]);
+  const uniqueSections = useMemo(() => Array.from(new Set(library.map(q => q.section).filter((s): s is string => !!s))).sort(), [library]);
+  const uniqueCollections = useMemo(() => Array.from(new Set(library.map(q => q.collection).filter((c): c is string => !!c))).sort(), [library]);
   const uniquePreviousOf = useMemo(() => Array.from(new Set(library.map(q => q.previous_of).filter(Boolean))).sort(), [library]);
   const uniqueTags = useMemo(() => {
     const tagSet = new Set<string>();

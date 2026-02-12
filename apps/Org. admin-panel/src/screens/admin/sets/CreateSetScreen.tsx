@@ -135,7 +135,7 @@ export default function CreateSetScreen() {
                 <View style={styles.formGroup}>
                     <Text style={styles.label}>Teaching Content (PDF/PPT)</Text>
                     <TouchableOpacity style={styles.uploadButton} onPress={pickFile}>
-                        <Upload color="#4f46e5" size={20} />
+                        <Upload color="#FF5A1F" size={20} />
                         <Text style={styles.uploadText}>
                             {formData.file ? formData.file.name : 'Select File'}
                         </Text>
@@ -147,8 +147,8 @@ export default function CreateSetScreen() {
                     <Switch
                         value={formData.isActive}
                         onValueChange={v => setFormData({ ...formData, isActive: v })}
-                        trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
-                        thumbColor={formData.isActive ? '#4f46e5' : '#f1f5f9'}
+                        trackColor={{ false: '#e2e8f0', true: '#FFF7ED' }}
+                        thumbColor={formData.isActive ? '#FF5A1F' : '#f1f5f9'}
                     />
                 </View>
 
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     },
     uploadButton: {
         borderWidth: 1,
-        borderColor: '#4f46e5',
+        borderColor: '#FF5A1F',
         borderStyle: 'dashed',
         borderRadius: 8,
         padding: 16,
@@ -223,10 +223,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         gap: 8,
-        backgroundColor: '#eef2ff',
+        backgroundColor: '#FFF7ED',
     },
     uploadText: {
-        color: '#4f46e5',
+        color: '#FF5A1F',
         fontWeight: '500',
     },
     row: {
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     submitButton: {
-        backgroundColor: '#4f46e5',
+        backgroundColor: '#FF5A1F',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -254,3 +254,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 });
+

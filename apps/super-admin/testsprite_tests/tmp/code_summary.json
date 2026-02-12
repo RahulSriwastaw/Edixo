@@ -1,23 +1,58 @@
 {
   "tech_stack": [
     "TypeScript",
-    "React",
+    "Next.js 14",
     "Tailwind CSS",
-    "Lucide React"
+    "Supabase",
+    "Framer Motion",
+    "Lucide React",
+    "Google Generative AI (Gemini)",
+    "PapaParse",
+    "XLSX"
   ],
   "features": [
     {
-      "name": "Bilingual Refinement Studio",
-      "description": "Refinement Studio now correctly manages bilingual content (English/Hindi) by forcing editor remounts when switching languages. This prevents content persistence issues where English text would remain when switching to Hindi mode. The Studio includes a 3-column layout for Question, Answers/Logic, and Metadata.",
+      "name": "SaaS Admin Dashboard",
+      "description": "Professional admin dashboard with collapsible sidebar, sticky header, and responsive card grid for managing organizations and content.",
       "files": [
-        "components/CreatorDashboard.tsx"
+        "app/saas-dashboard/layout.tsx",
+        "app/saas-dashboard/page.tsx",
+        "components/saas/Sidebar.tsx",
+        "components/saas/Header.tsx",
+        "components/saas/OrganizationSwitcher.tsx"
       ]
     },
     {
-      "name": "Advanced Rich Text Editor",
-      "description": "Enhanced Rich Text Editor with professional features: Undo/Redo history stack, Math Symbol insertion, Font Size control, Text/Background Color pickers, Code View (HTML source editing) with formatting, and improved Toolbar layout.",
+      "name": "QBank Creator Dashboard",
+      "description": "Advanced interface for creating and managing question banks, including AI generation, bulk upload, and smart filtering.",
       "files": [
-        "components/RichEditor.tsx"
+        "app/qbank/page.tsx",
+        "components/qbank/CreatorDashboard.tsx",
+        "components/qbank/QuestionGeneration/InputPanel.tsx"
+      ]
+    },
+    {
+      "name": "Gemini AI Integration",
+      "description": "Service for generating educational content and questions using Google's Gemini AI models.",
+      "files": [
+        "components/services/geminiService.ts",
+        "components/services/aiOrchestrator.ts"
+      ]
+    },
+    {
+      "name": "Bulk Content Upload",
+      "description": "Service and UI for importing large datasets from CSV, Excel, and JSON files.",
+      "files": [
+        "components/services/bulkUploadService.ts",
+        "components/qbank/BulkUploadModal.tsx"
+      ]
+    },
+    {
+      "name": "Markdown Editor",
+      "description": "Rich text editor with live preview for creating chapter content and notes.",
+      "files": [
+        "components/qbank/BookStudio/MarkdownEditor.tsx",
+        "components/BookStudio/MarkdownEditor.tsx"
       ]
     }
   ]

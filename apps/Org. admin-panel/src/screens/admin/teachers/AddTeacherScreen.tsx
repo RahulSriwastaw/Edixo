@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
     },
     submitButton: {
-        backgroundColor: '#4f46e5',
+        backgroundColor: '#FF5A1F',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -191,3 +191,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 });
+

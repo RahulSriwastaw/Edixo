@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { geminiService } from '../services/geminiService';
-import { aiOrchestrator, availableModels, AIModelConfig } from '../services/aiOrchestrator';
+import { geminiService } from './services/geminiService';
+import { aiOrchestrator, availableModels, AIModelConfig } from './services/aiOrchestrator';
 import { Book, Layers, Sparkles, Download, ChevronRight, CheckCircle, RefreshCw, ChevronDown } from 'lucide-react';
 import { jsPDF } from "jspdf";
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import {
   BarChart3, Building2, Users, BookOpen, FileText,
   TrendingUp, TrendingDown, Activity, Globe, Shield,
-  Loader2, RefreshCw, Calendar
+  Loader2, RefreshCw, Calendar, Download
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { supabase } from '../../lib/supabase';
@@ -36,9 +36,9 @@ interface StatCardProps {
 
 function StatCard({ title, value, subtitle, icon, trend, trendValue, bgColor, iconColor }: StatCardProps) {
   return (
-    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-12 h-12 ${bgColor} rounded-xl flex items-center justify-center`}>
+    <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md transition-shadow">
+      <div className="flex items-start justify-between mb-2">
+        <div className={`w-10 h-10 ${bgColor} rounded-lg flex items-center justify-center`}>
           <span className={iconColor}>{icon}</span>
         </div>
         {trend && trendValue && (
@@ -49,8 +49,8 @@ function StatCard({ title, value, subtitle, icon, trend, trendValue, bgColor, ic
           </div>
         )}
       </div>
-      <h3 className="text-3xl font-bold text-slate-900 mb-1">{value}</h3>
-      <p className="text-sm text-slate-500">{title}</p>
+      <h3 className="text-xl font-bold text-slate-900 mb-0.5">{value}</h3>
+      <p className="text-xs text-slate-500">{title}</p>
       {subtitle && <p className="text-xs text-slate-400 mt-1">{subtitle}</p>}
     </div>
   );
@@ -139,10 +139,10 @@ export default function AnalyticsPage() {
     <DashboardLayout>
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <header className="flex justify-between items-center mb-10">
+        <header className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Platform Analytics</h1>
-            <p className="text-slate-500 mt-2">Real-time platform statistics and insights</p>
+            <h1 className="text-xl font-bold text-slate-900">Platform Analytics</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Real-time platform statistics</p>
           </div>
           <div className="flex items-center gap-4">
             {lastUpdated && (
@@ -184,7 +184,7 @@ export default function AnalyticsPage() {
             <button
               onClick={fetchStats}
               disabled={loading}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium flex items-center gap-2 transition-colors disabled:opacity-50"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors disabled:opacity-50 text-sm"
             >
               <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
               Refresh
@@ -193,15 +193,15 @@ export default function AnalyticsPage() {
         </header>
 
         {loading && !stats ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-indigo-600" size={40} />
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-orange-500" size={32} />
           </div>
         ) : stats ? (
           <>
             {/* Platform Overview */}
-            <section className="mb-10">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                <Activity size={20} className="text-indigo-600" />
+            <section className="mb-6">
+              <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
+                <Activity size={20} className="text-orange-600" />
                 Platform Overview
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -217,7 +217,7 @@ export default function AnalyticsPage() {
                   title="Total Users"
                   value={stats.totalUsers}
                   subtitle="Admins, Teachers across all orgs"
-                  icon={<Users size={24} />}
+                  icon={<Users size={20} />}
                   bgColor="bg-blue-100"
                   iconColor="text-blue-600"
                 />
@@ -225,7 +225,7 @@ export default function AnalyticsPage() {
                   title="Total Students"
                   value={stats.totalStudents}
                   subtitle="Enrolled students platform-wide"
-                  icon={<Shield size={24} />}
+                  icon={<Shield size={20} />}
                   bgColor="bg-emerald-100"
                   iconColor="text-emerald-600"
                 />
@@ -233,7 +233,7 @@ export default function AnalyticsPage() {
                   title="Total Courses"
                   value={stats.totalCourses}
                   subtitle="Courses created by all orgs"
-                  icon={<BookOpen size={24} />}
+                  icon={<BookOpen size={20} />}
                   bgColor="bg-orange-100"
                   iconColor="text-orange-600"
                 />
@@ -241,20 +241,20 @@ export default function AnalyticsPage() {
             </section>
 
             {/* Organization Breakdown */}
-            <section className="mb-10">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <section className="mb-6">
+              <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
                 <Building2 size={20} className="text-purple-600" />
                 Organization Status
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-slate-600">Active</span>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700">
                       {stats.totalOrganizations ? Math.round((stats.activeOrganizations / stats.totalOrganizations) * 100) : 0}%
                     </span>
                   </div>
-                  <div className="text-3xl font-bold text-emerald-600">{stats.activeOrganizations}</div>
+                  <div className="text-xl font-bold text-emerald-600">{stats.activeOrganizations}</div>
                   <div className="w-full h-2 bg-slate-100 rounded-full mt-4">
                     <div
                       className="h-2 bg-emerald-500 rounded-full transition-all"
@@ -263,14 +263,14 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-slate-600">Suspended</span>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700">
                       {stats.totalOrganizations ? Math.round((stats.suspendedOrganizations / stats.totalOrganizations) * 100) : 0}%
                     </span>
                   </div>
-                  <div className="text-3xl font-bold text-red-600">{stats.suspendedOrganizations}</div>
+                  <div className="text-xl font-bold text-red-600">{stats.suspendedOrganizations}</div>
                   <div className="w-full h-2 bg-slate-100 rounded-full mt-4">
                     <div
                       className="h-2 bg-red-500 rounded-full transition-all"
@@ -279,14 +279,14 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
-                  <div className="flex items-center justify-between mb-4">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+                  <div className="flex items-center justify-between mb-2">
                     <span className="text-sm font-medium text-slate-600">Trial/Other</span>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-700">
                       {stats.totalOrganizations ? Math.round(((stats.totalOrganizations - stats.activeOrganizations - stats.suspendedOrganizations) / stats.totalOrganizations) * 100) : 0}%
                     </span>
                   </div>
-                  <div className="text-3xl font-bold text-amber-600">
+                  <div className="text-xl font-bold text-amber-600">
                     {stats.totalOrganizations - stats.activeOrganizations - stats.suspendedOrganizations}
                   </div>
                   <div className="w-full h-2 bg-slate-100 rounded-full mt-4">
@@ -300,8 +300,8 @@ export default function AnalyticsPage() {
             </section>
 
             {/* User Breakdown */}
-            <section className="mb-10">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <section className="mb-6">
+              <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
                 <Users size={20} className="text-blue-600" />
                 User Role Distribution
               </h2>
@@ -310,7 +310,7 @@ export default function AnalyticsPage() {
                   title="Super Admins"
                   value={stats.superAdmins}
                   subtitle="Platform administrators"
-                  icon={<Shield size={24} />}
+                  icon={<Shield size={20} />}
                   bgColor="bg-purple-100"
                   iconColor="text-purple-600"
                 />
@@ -326,7 +326,7 @@ export default function AnalyticsPage() {
                   title="Teachers"
                   value={stats.teachers}
                   subtitle="Content creators"
-                  icon={<Users size={24} />}
+                  icon={<Users size={20} />}
                   bgColor="bg-green-100"
                   iconColor="text-green-600"
                 />
@@ -334,16 +334,16 @@ export default function AnalyticsPage() {
             </section>
 
             {/* Content Stats */}
-            <section className="mb-10">
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <section className="mb-6">
+              <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
                 <FileText size={20} className="text-orange-600" />
                 Content Statistics
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-indigo-100 rounded-xl flex items-center justify-center">
-                      <FileText size={28} className="text-indigo-600" />
+                      <FileText size={28} className="text-orange-600" />
                     </div>
                     <div>
                       <h3 className="text-2xl font-bold text-slate-900">{stats.totalBlogs}</h3>
@@ -378,7 +378,7 @@ export default function AnalyticsPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200">
+                <div className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
                   <div className="flex items-center gap-4">
                     <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
                       <BookOpen size={28} className="text-orange-600" />
@@ -399,46 +399,46 @@ export default function AnalyticsPage() {
 
             {/* Quick Actions */}
             <section>
-              <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <h2 className="text-base font-bold text-slate-900 mb-3 flex items-center gap-2">
                 <Globe size={20} className="text-green-600" />
                 Quick Actions
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={() => window.location.href = '/organizations'}
-                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md hover:border-indigo-200 transition-all text-left group"
+                  className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md hover:border-orange-200 transition-all text-left group"
                 >
-                  <Building2 size={24} className="text-purple-600 mb-3" />
-                  <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Manage Organizations</h3>
-                  <p className="text-sm text-slate-500 mt-1">View and control all organizations</p>
+                  <Building2 size={20} className="text-orange-600 mb-2" />
+                  <h3 className="font-bold text-sm text-slate-900 group-hover:text-orange-600 transition-colors">Manage Organizations</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">View and control organizations</p>
                 </button>
                 <button
                   onClick={() => window.location.href = '/users'}
-                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md hover:border-indigo-200 transition-all text-left group"
+                  className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md hover:border-orange-200 transition-all text-left group"
                 >
-                  <Users size={24} className="text-blue-600 mb-3" />
-                  <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Manage Users</h3>
-                  <p className="text-sm text-slate-500 mt-1">View and manage platform users</p>
+                  <Users size={20} className="text-orange-600 mb-2" />
+                  <h3 className="font-bold text-sm text-slate-900 group-hover:text-orange-600 transition-colors">Manage Users</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">View and manage users</p>
                 </button>
                 <button
                   onClick={() => window.location.href = '/blogs'}
-                  className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200 hover:shadow-md hover:border-indigo-200 transition-all text-left group"
+                  className="bg-white rounded-xl p-4 shadow-sm border border-slate-200 hover:shadow-md hover:border-orange-200 transition-all text-left group"
                 >
-                  <FileText size={24} className="text-indigo-600 mb-3" />
-                  <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">Manage Blogs</h3>
-                  <p className="text-sm text-slate-500 mt-1">Create and publish blog content</p>
+                  <FileText size={20} className="text-orange-600 mb-2" />
+                  <h3 className="font-bold text-sm text-slate-900 group-hover:text-orange-600 transition-colors">Manage Blogs</h3>
+                  <p className="text-xs text-slate-500 mt-0.5">Create and publish content</p>
                 </button>
               </div>
             </section>
           </>
         ) : (
-          <div className="bg-white p-12 rounded-2xl shadow-sm border border-slate-200 text-center">
-            <BarChart3 className="mx-auto text-slate-300 mb-4" size={48} />
-            <h2 className="text-xl font-bold text-slate-900 mb-2">Unable to Load Analytics</h2>
-            <p className="text-slate-500 mb-4">There was an error loading the platform statistics.</p>
+          <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200 text-center">
+            <BarChart3 className="mx-auto text-slate-300 mb-3" size={40} />
+            <h2 className="text-base font-bold text-slate-900 mb-1.5">Unable to Load Analytics</h2>
+            <p className="text-slate-500 text-sm mb-3">Error loading platform statistics.</p>
             <button
               onClick={fetchStats}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium inline-flex items-center gap-2 transition-colors"
+              className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg font-medium text-sm inline-flex items-center gap-2 transition-colors"
             >
               <RefreshCw size={18} />
               Try Again

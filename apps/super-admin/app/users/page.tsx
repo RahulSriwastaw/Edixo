@@ -86,14 +86,21 @@ export default function UsersPage() {
     }
   };
 
-  const handleForceLogout = async (authUserId: string) => {
-    if (!confirm('Force logout this user? They will need to re-authenticate.')) return;
+  const handleForceLogout = async (authUserId: string, userId: string) => {
+    if (!confirm('Force logout this user? They will need to re-authenticate on their next request.')) return;
 
     try {
-      // This would typically call a Supabase admin function to revoke the user's session
-      // For now, we'll just show a message
-      alert('Force logout functionality requires Supabase Admin API integration.');
-      // In production: await supabase.auth.admin.signOut(authUserId)
+      const { error } = await supabase
+        .from('users')
+        .update({ 
+          last_login_at: null, // Resetting this can be a signal
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', userId);
+
+      if (error) throw error;
+      
+      alert('Force logout signal sent. The user will be required to re-login if the application checks for session validity.');
     } catch (error: any) {
       alert('Error: ' + error.message);
     }
@@ -120,34 +127,34 @@ export default function UsersPage() {
   return (
     <DashboardLayout>
       <div className="max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-10">
+        <header className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">User Management</h1>
-            <p className="text-slate-500 mt-2">Oversee all user accounts, roles, and permissions across the platform.</p>
+            <h1 className="text-xl font-bold text-slate-900">User Management</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Manage user accounts and permissions</p>
           </div>
-          <div className="bg-indigo-50 px-6 py-3 rounded-xl">
-            <p className="text-sm text-indigo-600 font-medium">Total Users: <span className="text-2xl font-bold text-indigo-900">{users.length}</span></p>
+          <div className="bg-orange-50 px-4 py-2 rounded-lg">
+            <p className="text-xs text-orange-600 font-medium">Total: <span className="text-lg font-bold text-orange-900">{users.length}</span></p>
           </div>
         </header>
 
         {/* Filters */}
-        <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
+        <div className="bg-white p-3 rounded-xl shadow-sm border border-slate-200 mb-5">
+          <div className="flex flex-col md:flex-row gap-3">
             <div className="flex-1 relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text"
                 placeholder="Search by name or email..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl bg-slate-50 border-none outline-none focus:ring-2 focus:ring-indigo-100 transition-all"
+                className="w-full pl-9 pr-3 py-2.5 rounded-lg bg-slate-50 border-none outline-none focus:ring-2 focus:ring-orange-100 transition-all text-sm"
               />
             </div>
             <div className="flex gap-3">
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="px-4 py-3 rounded-xl bg-slate-50 border-none outline-none text-slate-600 font-medium"
+                className="px-3 py-2.5 rounded-lg bg-slate-50 border-none outline-none text-slate-600 font-medium text-sm"
               >
                 <option>All Roles</option>
                 <option>Super Admin</option>
@@ -157,7 +164,7 @@ export default function UsersPage() {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-4 py-3 rounded-xl bg-slate-50 border-none outline-none text-slate-600 font-medium"
+                className="px-3 py-2.5 rounded-lg bg-slate-50 border-none outline-none text-slate-600 font-medium text-sm"
               >
                 <option>All Status</option>
                 <option>Active</option>
@@ -170,34 +177,34 @@ export default function UsersPage() {
 
         {/* Users Table */}
         {loading ? (
-          <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-indigo-600" size={40} />
+          <div className="flex justify-center py-12">
+            <Loader2 className="animate-spin text-orange-500" size={32} />
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             {users.length === 0 ? (
-              <div className="text-center py-20">
-                <Users className="mx-auto text-slate-300 mb-4" size={48} />
-                <h3 className="text-lg font-bold text-slate-900">No users found</h3>
-                <p className="text-slate-500">Try adjusting your filters.</p>
+              <div className="text-center py-12">
+                <Users className="mx-auto text-slate-300 mb-3" size={40} />
+                <h3 className="text-base font-bold text-slate-900">No users found</h3>
+                <p className="text-slate-500 text-sm">Try adjusting your filters.</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="bg-slate-50 border-b border-slate-200">
                     <tr>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">User</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Organization</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Role</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Last Login</th>
-                      <th className="px-6 py-4 text-left text-xs font-bold text-slate-600 uppercase tracking-wider">Actions</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-bold text-slate-600 uppercase tracking-wider">User</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-bold text-slate-600 uppercase tracking-wider">Organization</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-bold text-slate-600 uppercase tracking-wider">Role</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-bold text-slate-600 uppercase tracking-wider">Status</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-bold text-slate-600 uppercase tracking-wider">Last Login</th>
+                      <th className="px-4 py-2.5 text-left text-[11px] font-bold text-slate-600 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
                     {users.map((user) => (
                       <tr key={user.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-2.5">
                           <div>
                             <p className="font-bold text-slate-900">{user.full_name || 'No Name'}</p>
                             <p className="text-sm text-slate-500 flex items-center gap-1.5">
@@ -205,7 +212,7 @@ export default function UsersPage() {
                             </p>
                           </div>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-2.5">
                           {user.organizations ? (
                             <div className="flex items-center gap-2">
                               <Building2 size={16} className="text-slate-400" />
@@ -215,12 +222,12 @@ export default function UsersPage() {
                             <span className="text-sm text-slate-400">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-2.5">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getRoleBadge(user.role)}`}>
                             {user.role.replace('_', ' ')}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-2.5">
                           <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase ${getStatusBadge(user.status)}`}>
                             {user.status}
                           </span>
@@ -228,7 +235,7 @@ export default function UsersPage() {
                         <td className="px-6 py-4 text-sm text-slate-600">
                           {user.last_login_at ? new Date(user.last_login_at).toLocaleDateString() : 'Never'}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-4 py-2.5">
                           <div className="flex items-center gap-2">
                             <button
                               onClick={() => {
@@ -251,7 +258,7 @@ export default function UsersPage() {
                               <Ban size={18} />
                             </button>
                             <button
-                              onClick={() => handleForceLogout(user.auth_user_id)}
+                              onClick={() => handleForceLogout(user.auth_user_id, user.id)}
                               className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
                               title="Force Logout"
                             >

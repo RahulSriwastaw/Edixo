@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Building2, Users, BookOpen, Calendar, Shield, AlertTriangle, Key } from 'lucide-react';
+import { X, Building2, Users, BookOpen, Calendar, Shield, AlertTriangle, Key, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
 
 interface Organization {
@@ -115,7 +116,9 @@ export default function OrgDetailsModal({ isOpen, onClose, organization }: OrgDe
                         </div>
                         <div>
                             <h2 className="text-lg font-bold text-slate-900">{organization.name}</h2>
-                            <p className="text-sm text-slate-500">{organization.slug}.qbank.com</p>
+                            <p className="text-sm text-slate-500">
+                                {(organization.settings as any)?.custom_domain || `${organization.slug}.qbank.com`}
+                            </p>
                         </div>
                     </div>
                     <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
@@ -160,7 +163,16 @@ export default function OrgDetailsModal({ isOpen, onClose, organization }: OrgDe
 
                     {/* Statistics */}
                     <div>
-                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Statistics</h3>
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Statistics</h3>
+                            <Link
+                                href={`/organizations/${organization.id}`}
+                                className="text-xs font-bold text-indigo-600 hover:text-indigo-700 flex items-center gap-1.5 bg-indigo-50 px-3 py-1.5 rounded-lg transition-colors"
+                            >
+                                <ExternalLink size={14} />
+                                Browse Org Data (Read-only)
+                            </Link>
+                        </div>
                         <div className="grid grid-cols-3 gap-4">
                             <div className="bg-blue-50 p-5 rounded-xl">
                                 <Users className="text-blue-600 mb-3" size={24} />

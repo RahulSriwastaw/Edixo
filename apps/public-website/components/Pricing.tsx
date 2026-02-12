@@ -65,10 +65,10 @@ export function Pricing() {
           {plans.map((plan, index) => (
             <div 
               key={index} 
-              className={`relative p-8 rounded-2xl border ${plan.popular ? 'border-blue-600 shadow-xl scale-105 z-10' : 'border-gray-200 shadow-sm hover:shadow-md'} bg-white transition-all`}
+              className={`relative p-8 rounded-2xl border ${plan.popular ? 'border-primary shadow-xl scale-105 z-10' : 'border-gray-200 shadow-sm hover:shadow-md'} bg-white transition-all`}
             >
               {plan.popular && (
-                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-blue-600 text-white px-4 py-1 rounded-full text-sm font-semibold">
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-primary text-white px-4 py-1 rounded-full text-sm font-semibold">
                   Most Popular
                 </div>
               )}
@@ -90,7 +90,7 @@ export function Pricing() {
                 href="/signup" 
                 className={`block w-full py-3 text-center rounded-xl font-semibold transition-colors ${
                   plan.popular 
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                    ? 'bg-primary text-white hover:bg-primary-hover' 
                     : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
                 }`}
               >
@@ -103,3 +103,4 @@ export function Pricing() {
     </section>
   );
 }
+

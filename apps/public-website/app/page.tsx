@@ -1,6 +1,7 @@
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
+import FeatureShowcase from "@/components/FeatureShowcase";
 import { Pricing } from "@/components/Pricing";
 import { Footer } from "@/components/Footer";
 
@@ -9,9 +10,11 @@ export default function Page() {
     <main className="min-h-screen bg-white">
       <Navbar />
       <Hero />
+      <FeatureShowcase />
       <Features />
       <Pricing />
       <Footer />
     </main>
   );
 }
+

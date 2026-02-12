@@ -148,8 +148,8 @@ export default function CreateCourseScreen() {
                     <Switch
                         value={formData.isPublished}
                         onValueChange={v => setFormData({ ...formData, isPublished: v })}
-                        trackColor={{ false: '#e2e8f0', true: '#c7d2fe' }}
-                        thumbColor={formData.isPublished ? '#4f46e5' : '#f1f5f9'}
+                        trackColor={{ false: '#e2e8f0', true: '#FFF7ED' }}
+                        thumbColor={formData.isPublished ? '#FF5A1F' : '#f1f5f9'}
                     />
                 </View>
 
@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     submitButton: {
-        backgroundColor: '#4f46e5',
+        backgroundColor: '#FF5A1F',
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
@@ -267,3 +267,4 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
 });
+

@@ -23,7 +23,7 @@ export default function RootTabs() {
           paddingBottom: 8,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: '#4f46e5',
+        tabBarActiveTintColor: '#FF5A1F',
         tabBarInactiveTintColor: isDark ? '#94a3b8' : '#64748b',
         tabBarIcon: ({ focused, color, size }: { focused: boolean; color: string; size: number }) => {
           let iconName: any;
@@ -53,3 +53,4 @@ export default function RootTabs() {
     </Tab.Navigator>
   );
 }
+

@@ -132,7 +132,11 @@ INSERT INTO feature_flags (name, key, description, enabled, critical) VALUES
     ('Mock Tests', 'mock_tests', 'Enable or disable mock test functionality for students', true, false),
     ('Paid Courses', 'paid_courses', 'Enable or disable paid course purchases and enrollments', true, true),
     ('AI Question Generator', 'ai_question_generator', 'Enable or disable AI-powered question generation tools', false, false),
-    ('Public Tools', 'public_tools', 'Enable or disable public educational tools on website', true, false)
+    ('Public Tools', 'public_tools', 'Enable or disable public educational tools on website', true, false),
+    ('Tool: Image to Text', 'tool_image_to_text', 'Convert images containing text into editable digital text', true, false),
+    ('Tool: PDF to Word', 'tool_pdf_to_word', 'Convert PDF documents into editable Microsoft Word files', true, false),
+    ('Tool: Math Solver', 'tool_math_solver', 'Step-by-step solutions for complex mathematical problems', true, false),
+    ('Tool: Translator', 'tool_translator', 'Multi-language translation tool for educational content', true, false)
 ON CONFLICT (key) DO NOTHING;
 
 -- ================================================

@@ -8,7 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BookOpen, Trophy, Activity, ChevronRight, Clock } from 'lucide-react-native';
 
 const MOCK_ENROLLED_COURSES = [
-  { id: '1', title: 'JEE Advanced Physics', progress: 45, color: ['#4f46e5', '#818cf8'] },
+  { id: '1', title: 'JEE Advanced Physics', progress: 45, color: ['#FF5A1F', '#F97316'] },
   { id: '2', title: 'Organic Chemistry Masterclass', progress: 12, color: ['#059669', '#34d399'] },
   { id: '3', title: 'Mathematics: Calculus', progress: 78, color: ['#db2777', '#f472b6'] },
 ];
@@ -62,7 +62,7 @@ export default function HomeScreen() {
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <StatCard title="Tests Taken" value={stats.level * 5} icon={BookOpen} color="#4f46e5" />
+          <StatCard title="Tests Taken" value={stats.level * 5} icon={BookOpen} color="#FF5A1F" />
           <StatCard title="Avg Score" value="78%" icon={Activity} color="#059669" />
           <StatCard title="XP Earned" value={stats.xp} icon={Trophy} color="#db2777" />
         </View>
@@ -163,14 +163,14 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
   },
   profileText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#4f46e5',
+    color: '#FF5A1F',
   },
   statsRow: {
     flexDirection: 'row',
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   seeAll: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#4f46e5',
+    color: '#FF5A1F',
   },
   coursesList: {
     paddingRight: 20,
@@ -299,3 +299,4 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
+

@@ -1,19 +1,6 @@
 {
   "status": "commited",
   "type": "frontend",
-  "scope": "diff",
-  "localEndpoint": "http://localhost:3000",
-  "executionArgs": {
-    "projectName": "Q_Bank",
-    "projectPath": "c:\\Users\\kumar\\Desktop\\Code\\Q_Bank",
-    "testIds": [
-      "TC001",
-      "TC008"
-    ],
-    "additionalInstruction": "Focus on verifying that the RichEditor component correctly unmounts and remounts when the language toggle (English/Hindi) is clicked in the Refinement Studio overlay. Ensure that the content displayed in the editor matches the selected language data.",
-    "envs": {
-      "API_KEY": "sk-user-ngg2ZmfKY_46vwigniG0hBFmQGmJ0Pw94f_GNdVcg-2om6bP7OjILDnYKDKi0wJpUFW1mhrQNUWB-NrXiqQubIAm2_Dtf0-kreWdIuxwT5LAD0SnvnGWksYctXyYxtw61f0"
-    }
-  },
-  "proxy": "http://954c136c-d10e-4513-b658-99b839ca03db:k1fFug7hu3SCFRzKRjG4ZVI7UUFVPrS5@tun.testsprite.com:8080"
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3002"
 }

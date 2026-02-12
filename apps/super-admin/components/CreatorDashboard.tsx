@@ -16,10 +16,10 @@ import { BookStudio } from './BookStudio/BookStudio';
 import { AdvancedFilterPanel } from './AdvancedFilterPanel';
 import { SubjectSpecificPanel } from './SubjectSpecificPanel';
 import { SetWizard } from './SetWizard';
-import { storageService } from '../services/storageService';
-import { geminiService, CURRENT_AFFAIRS_CATEGORIES } from '../services/geminiService';
-import { aiOrchestrator, availableModels, AIModelConfig } from '../services/aiOrchestrator';
-import { Question, QuestionSet, Difficulty, QuestionType, GenerateParams } from '../types';
+import { storageService } from './services/storageService';
+import { geminiService, CURRENT_AFFAIRS_CATEGORIES } from './services/geminiService';
+import { aiOrchestrator, availableModels, AIModelConfig } from './services/aiOrchestrator';
+import { Question, QuestionSet, Difficulty, QuestionType, GenerateParams } from './types';
 import { BulkUploadModal } from './BulkUploadModal';
 import { Button } from './Button';
 
@@ -305,9 +305,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   const uniqueYears = useMemo(() => Array.from(new Set(library.map(q => q.year).filter(Boolean))).sort().reverse(), [library]);
   const uniqueDates = useMemo(() => Array.from(new Set(library.map(q => q.date || q.createdDate?.split('T')[0]).filter(Boolean))).sort().reverse(), [library]);
   const uniqueChapters = useMemo(() => Array.from(new Set(library.map(q => q.chapter).filter(Boolean))).sort(), [library]);
-  const uniqueTopics = useMemo(() => Array.from(new Set(library.map(q => q.topic).filter(Boolean))).sort(), [library]);
-  const uniqueSections = useMemo(() => Array.from(new Set(library.map(q => q.section).filter(Boolean))).sort(), [library]);
-  const uniqueCollections = useMemo(() => Array.from(new Set(library.map(q => q.collection).filter(Boolean))).sort(), [library]);
+  const uniqueTopics = useMemo(() => Array.from(new Set(library.map(q => q.topic).filter((t): t is string => !!t))).sort(), [library]);
+  const uniqueSections = useMemo(() => Array.from(new Set(library.map(q => q.section).filter((s): s is string => !!s))).sort(), [library]);
+  const uniqueCollections = useMemo(() => Array.from(new Set(library.map(q => q.collection).filter((c): c is string => !!c))).sort(), [library]);
   const uniquePreviousOf = useMemo(() => Array.from(new Set(library.map(q => q.previous_of).filter(Boolean))).sort(), [library]);
   const uniqueTags = useMemo(() => {
     const tagSet = new Set<string>();
@@ -1757,8 +1757,8 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
                             <span className="text-2xl font-black text-primary leading-none">{editingSet.questionIds?.length || 0}</span>
                           </div>
                           <div className="w-px h-8 bg-slate-100" />
-                          <div className="w-10 h-10 bg-slate-900 rounded-md flex items-center justify-center text-white">
-                            <Layers size={20} />
+                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center text-[10px] text-white">
+                            {editingSet.questionIds?.length || 0}
                           </div>
                         </div>
                       </div>

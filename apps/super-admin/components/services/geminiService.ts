@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GenerateParams, Question } from '../types';
 
 // Helper to convert File to Base64 for Gemini
@@ -22,11 +22,11 @@ const fileToPart = (file: File): Promise<any> => {
   });
 };
 
-let aiInstance: GoogleGenAI | null = null;
+let aiInstance: GoogleGenerativeAI | null = null;
 const getAI = () => {
   if (!aiInstance) {
     const key = process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'dummy_key';
-    aiInstance = new GoogleGenAI({ apiKey: key });
+    aiInstance = new GoogleGenerativeAI(key);
   }
   return aiInstance;
 };
@@ -294,63 +294,16 @@ export const geminiService = {
         try {
           console.log(`Attempting generation with model: ${modelName}`);
 
-          const response = await ai.models.generateContent({
+          const model = ai.getGenerativeModel({ 
             model: modelName,
-            contents: contentParts,
-            config: {
+            generationConfig: {
               responseMimeType: "application/json",
-              responseSchema: {
-                type: "ARRAY" as any,
-                items: {
-                  type: "OBJECT" as any,
-                  properties: {
-                    question_eng: { type: "STRING" as any },
-                    question_hin: { type: "STRING" as any },
-                    option1_eng: { type: "STRING" as any },
-                    option1_hin: { type: "STRING" as any },
-                    option2_eng: { type: "STRING" as any },
-                    option2_hin: { type: "STRING" as any },
-                    option3_eng: { type: "STRING" as any },
-                    option3_hin: { type: "STRING" as any },
-                    option4_eng: { type: "STRING" as any },
-                    option4_hin: { type: "STRING" as any },
-                    option5_eng: { type: "STRING" as any },
-                    option5_hin: { type: "STRING" as any },
-                    answer: { type: "STRING" as any },
-                    solution_eng: { type: "STRING" as any },
-                    solution_hin: { type: "STRING" as any },
-                    exam: { type: "STRING" as any },
-                    year: { type: "STRING" as any },
-                    section: { type: "STRING" as any },
-                    chapter: { type: "STRING" as any },
-                    sources: {
-                      type: "ARRAY" as any,
-                      items: {
-                        type: "OBJECT" as any,
-                        properties: {
-                          title: { type: "STRING" as any },
-                          uri: { type: "STRING" as any },
-                          credibility: { type: "STRING" as any }
-                        }
-                      }
-                    }
-                  },
-                  required: [
-                    "question_eng", "question_hin",
-                    "option1_eng", "option1_hin",
-                    "option2_eng", "option2_hin",
-                    "option3_eng", "option3_hin",
-                    "option4_eng", "option4_hin",
-                    "answer",
-                    "solution_eng", "solution_hin",
-                    "exam", "year"
-                  ]
-                }
-              }
             }
           });
 
-          responseText = response.text || "";
+          const result = await model.generateContent(contentParts);
+          const response = await result.response;
+          responseText = response.text();
 
           // If successful, break the loop
           if (responseText) break;
@@ -405,11 +358,10 @@ export const geminiService = {
   summarizeExplanation: async (text: string): Promise<string> => {
     try {
       const ai = getAI();
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Summarize this in one short sentence: "${text}"`
-      });
-      return (response.text || "").trim() || text;
+      const model = ai.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+      const result = await model.generateContent(`Summarize this in one short sentence: "${text}"`);
+      const response = await result.response;
+      return response.text().trim() || text;
     } catch (err) {
       console.error(err);
       return text;
@@ -420,16 +372,15 @@ export const geminiService = {
     if (subject === 'Current Affairs') return CURRENT_AFFAIRS_CATEGORIES;
     try {
       const ai = getAI();
-      const response = await ai.models.generateContent({
+      const model = ai.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
-        contents: `List 10 popular chapters for competitive exams in ${subject}. JSON array of strings only.`,
-        config: {
+        generationConfig: {
           responseMimeType: "application/json",
-          responseSchema: { type: "ARRAY" as any, items: { type: "STRING" as any } }
         }
       });
-
-      return JSON.parse(response.text || "[]") as string[];
+      const result = await model.generateContent(`List 10 popular chapters for competitive exams in ${subject}. JSON array of strings only.`);
+      const response = await result.response;
+      return JSON.parse(response.text() || "[]") as string[];
     } catch (err) {
       console.error(err);
       return [];
@@ -453,22 +404,24 @@ export const geminiService = {
 
     try {
       const ai = getAI();
-      const response = await ai.models.generateContent({
+      const model = ai.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
-        contents: prompt,
-        config: { responseMimeType: "application/json" }
+        generationConfig: { responseMimeType: "application/json" }
       });
-      return JSON.parse(response.text || "{}");
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return JSON.parse(response.text() || "{}");
     } catch (e) {
       console.warn("gemini-3-flash-preview failed for answer, trying fallback", e);
       try {
         const ai = getAI();
-        const response = await ai.models.generateContent({
+        const model = ai.getGenerativeModel({ 
           model: 'gemini-2.0-flash-exp',
-          contents: prompt,
-          config: { responseMimeType: "application/json" }
+          generationConfig: { responseMimeType: "application/json" }
         });
-        return JSON.parse(response.text || "{}");
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return JSON.parse(response.text() || "{}");
       } catch (e2) {
         console.error("Answer gen failed on fallback", e2);
         throw e2;
@@ -497,12 +450,13 @@ export const geminiService = {
     `;
     try {
       const ai = getAI();
-      const response = await ai.models.generateContent({
+      const model = ai.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
-        contents: prompt,
-        config: { responseMimeType: "application/json" }
+        generationConfig: { responseMimeType: "application/json" }
       });
-      return JSON.parse(response.text || "{}");
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return JSON.parse(response.text() || "{}");
     } catch (e) {
       console.error("Book structure gen failed", e);
       throw e;
@@ -519,11 +473,10 @@ export const geminiService = {
     `;
     try {
       const ai = getAI();
-      const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt
-      });
-      return response.text || "";
+      const model = ai.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text() || "";
     } catch (e) {
       console.error("Chapter content gen failed", e);
       throw e;
@@ -564,12 +517,13 @@ export const geminiService = {
 
     try {
       const ai = getAI();
-      const response = await ai.models.generateContent({
+      const model = ai.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
-        contents: prompt,
-        config: { responseMimeType: "application/json" }
+        generationConfig: { responseMimeType: "application/json" }
       });
-      return JSON.parse(response.text || "{}");
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return JSON.parse(response.text() || "{}");
     } catch (e) {
       console.error("Proofreading failed", e);
       throw e;
@@ -638,56 +592,16 @@ export const geminiService = {
       }
 
       const ai = getAI();
-      const response = await ai.models.generateContent({
+      const model = ai.getGenerativeModel({ 
         model: 'gemini-3-flash-preview',
-        contents: contentParts,
-        config: {
+        generationConfig: {
           responseMimeType: "application/json",
-          responseSchema: {
-            type: "ARRAY" as any,
-            items: {
-              type: "OBJECT" as any,
-              properties: {
-                type: { type: "STRING" as any },
-                question_eng: { type: "STRING" as any },
-                question_hin: { type: "STRING" as any },
-                option1_eng: { type: "STRING" as any },
-                option1_hin: { type: "STRING" as any },
-                option2_eng: { type: "STRING" as any },
-                option2_hin: { type: "STRING" as any },
-                option3_eng: { type: "STRING" as any },
-                option3_hin: { type: "STRING" as any },
-                option4_eng: { type: "STRING" as any },
-                option4_hin: { type: "STRING" as any },
-                answer: { type: "STRING" as any },
-                answer_text: { type: "STRING" as any },
-                solution_eng: { type: "STRING" as any },
-                solution_hin: { type: "STRING" as any },
-                subject: { type: "STRING" as any },
-                topic: { type: "STRING" as any },
-                difficulty: { type: "STRING" as any },
-                marks: { type: "NUMBER" as any }
-              },
-              required: ["question_eng", "type"]
-            }
-          }
         }
       });
 
-      const cleanText = (response.text || "").replace(/```json/g, '').replace(/```/g, '').trim();
-      const rawQuestions = JSON.parse(cleanText || "[]") as any[];
-
-      return rawQuestions.map((q: any) => ({
-        ...q,
-        id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        question_unique_id: `q_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
-        type: q.type || 'MCQ',
-        answer_text: q.answer_text,
-        language: (q.question_hin || q.option1_hin) ? 'Bilingual' : 'English',
-        createdDate: new Date().toISOString(),
-        tags: ["Extracted", q.subject || 'General'].filter(Boolean),
-        collection: 'Imported Content'
-      }));
+      const result = await model.generateContent(contentParts);
+      const response = await result.response;
+      return JSON.parse(response.text() || "[]") as Question[];
 
     } catch (e) {
       console.error("Extraction failed", e);
@@ -715,11 +629,10 @@ export const geminiService = {
 
     try {
         const ai = getAI();
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: prompt
-        });
-        return response.text?.trim() || content;
+        const model = ai.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        return response.text()?.trim() || content;
     } catch (e) {
         console.error("Content refinement failed", e);
         throw e;

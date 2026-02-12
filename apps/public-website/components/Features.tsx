@@ -12,7 +12,7 @@ const features = [
     title: "Organization Admin",
     description: "Complete control over your institute. Manage students, teachers, fees, and branding from a single dashboard.",
     icon: LayoutDashboard,
-    color: "bg-blue-100 text-blue-600",
+    color: "bg-primary-light text-primary",
   },
   {
     title: "Student Learning App",
@@ -74,3 +74,4 @@ export function Features() {
     </section>
   );
 }
+

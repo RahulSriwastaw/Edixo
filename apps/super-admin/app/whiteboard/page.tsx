@@ -171,7 +171,7 @@ export default function WhiteboardPage() {
           </div>
           <button
             onClick={() => setShowForm(!showForm)}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-lg shadow-indigo-200"
+            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-medium flex items-center gap-2 transition-colors shadow-lg"
           >
             <Plus size={20} />
             Add New Version
@@ -192,7 +192,7 @@ export default function WhiteboardPage() {
                     required
                     value={formData.platform}
                     onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   >
                     <option value="windows">Windows</option>
                     <option value="android">Android</option>
@@ -206,7 +206,7 @@ export default function WhiteboardPage() {
                     type="text"
                     value={formData.version}
                     onChange={(e) => setFormData({ ...formData, version: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     placeholder="e.g. v1.0.0"
                   />
                 </div>
@@ -219,7 +219,7 @@ export default function WhiteboardPage() {
                   type="url"
                   value={formData.download_url}
                   onChange={(e) => setFormData({ ...formData, download_url: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   placeholder="https://..."
                 />
               </div>
@@ -230,7 +230,7 @@ export default function WhiteboardPage() {
                     type="checkbox"
                     checked={formData.is_active}
                     onChange={(e) => setFormData({ ...formData, is_active: e.target.checked })}
-                    className="w-5 h-5 rounded border-slate-300 text-indigo-600 focus:ring-2 focus:ring-indigo-200"
+                    className="w-5 h-5 rounded border-slate-300 text-primary focus:ring-2 focus:ring-primary/20"
                   />
                   <span className="text-sm font-medium text-slate-700">Active</span>
                 </label>
@@ -257,7 +257,7 @@ export default function WhiteboardPage() {
                 <button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-medium shadow-lg shadow-indigo-200 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="px-6 py-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl font-medium shadow-lg transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {saving ? 'Saving...' : editingId ? 'Update Version' : 'Add Version'}
                 </button>
@@ -269,7 +269,7 @@ export default function WhiteboardPage() {
         {/* Versions List */}
         {loading ? (
           <div className="flex justify-center py-20">
-            <Loader2 className="animate-spin text-indigo-600" size={40} />
+            <Loader2 className="animate-spin text-primary" size={40} />
           </div>
         ) : (
           <div className="space-y-4">
@@ -281,8 +281,8 @@ export default function WhiteboardPage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-4">
                     <div className={`w-14 h-14 rounded-2xl flex items-center justify-center ${version.platform === 'windows'
-                        ? 'bg-blue-100 text-blue-600'
-                        : 'bg-green-100 text-green-600'
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-green-100 text-green-600'
                       }`}>
                       {getPlatformIcon(version.platform)}
                     </div>
@@ -313,7 +313,7 @@ export default function WhiteboardPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEdit(version)}
-                      className="p-2 text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                      className="p-2 text-primary hover:bg-primary-light rounded-lg transition-colors"
                       title="Edit Version"
                     >
                       <Edit size={20} />
@@ -337,7 +337,7 @@ export default function WhiteboardPage() {
                 <p className="text-slate-500 mb-6">Add your first whiteboard app version.</p>
                 <button
                   onClick={() => setShowForm(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-medium inline-flex items-center gap-2 transition-colors"
+                  className="bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-xl font-medium inline-flex items-center gap-2 transition-colors"
                 >
                   <Plus size={18} />
                   Add Version

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    /* Font handled by next/font */
     line-height: 1.5;
     font-weight: 400;
 
@@ -16,6 +16,7 @@
 }
 
 @keyframes pulse {
+
     0%,
     100% {
         opacity: 0.6;

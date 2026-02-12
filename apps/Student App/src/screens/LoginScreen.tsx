@@ -37,7 +37,7 @@ export default function LoginScreen() {
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={['#4f46e5', '#818cf8', '#c7d2fe']}
+        colors={['#FFF7ED', '#FFF7ED', '#F9FAFB']}
         style={styles.background}
       />
 
@@ -49,7 +49,7 @@ export default function LoginScreen() {
           <View style={styles.card}>
             <View style={styles.header}>
               <View style={styles.iconContainer}>
-                <User size={32} color="#4f46e5" />
+                <User size={32} color="#FF5A1F" />
               </View>
               <Text style={styles.title}>Student Login</Text>
               <Text style={styles.subtitle}>Welcome back to your learning journey</Text>
@@ -93,7 +93,7 @@ export default function LoginScreen() {
                 disabled={loading}
               >
                 <LinearGradient
-                  colors={['#4f46e5', '#4338ca']}
+                  colors={['#FF5A1F', '#E84E18']}
                   style={styles.gradientButton}
                   start={{ x: 0, y: 0 }}
                   end={{ x: 1, y: 0 }}
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#e0e7ff',
+    backgroundColor: '#FFF7ED',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 12,
-    shadowColor: '#4f46e5',
+    shadowColor: '#FF5A1F',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 10,
@@ -245,6 +245,7 @@ const styles = StyleSheet.create({
   signupText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#4f46e5',
+    color: '#FF5A1F',
   },
 });
+

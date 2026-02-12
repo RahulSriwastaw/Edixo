@@ -101,8 +101,8 @@ export default function TestsScreen() {
             title="Chapter Tests"
             desc="Topic-specific assessments to master each chapter"
             category="chapter"
-            bg="#eef2ff"
-            text="#4f46e5"
+            bg="#FFF7ED"
+            text="#FF5A1F"
             icon="book-outline"
           />
           <Card
@@ -142,3 +142,4 @@ export default function TestsScreen() {
     </View>
   );
 }
+

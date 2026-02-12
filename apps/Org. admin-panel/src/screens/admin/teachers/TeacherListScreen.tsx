@@ -45,10 +45,10 @@ export default function TeacherListScreen({ navigation }: any) {
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <LinearGradient
-                    colors={['#e0e7ff', '#c7d2fe']}
+                    colors={['#FFF7ED', '#FFF7ED']}
                     style={styles.avatar}
                 >
-                    <User color="#4f46e5" size={24} />
+                    <User color="#FF5A1F" size={24} />
                 </LinearGradient>
                 <View style={styles.cardInfo}>
                     <Text style={styles.name}>{item.email.split('@')[0]}</Text>
@@ -95,7 +95,7 @@ export default function TeacherListScreen({ navigation }: any) {
 
             {loading ? (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#4f46e5" />
+                    <ActivityIndicator size="large" color="#FF5A1F" />
                 </View>
             ) : (
                 <FlatList
@@ -145,14 +145,14 @@ const styles = StyleSheet.create({
         color: '#0f172a',
     },
     addButton: {
-        backgroundColor: '#4f46e5',
+        backgroundColor: '#FF5A1F',
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        shadowColor: '#4f46e5',
+        shadowColor: '#FF5A1F',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
@@ -265,3 +265,4 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
 });
+

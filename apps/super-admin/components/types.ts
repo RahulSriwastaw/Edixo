@@ -94,8 +94,6 @@ export interface TableStructure {
     bordered?: boolean;
     striped?: boolean;
   };
-}
-
 export interface QuestionSet {
   setId: string;
   name: string;
@@ -243,4 +241,24 @@ export interface PreviewRow extends Partial<QuestionMaster> {
   isValid: boolean;
   errors: string[];
   originalData: any;
+}
+
+export interface Blog {
+  id: string;
+  title: string;
+  slug: string;
+  excerpt: string;
+  content: string;
+  featured_image_url?: string;
+  status: string;
+  category: string;
+  tags: string[];
+  view_count?: number;
+  published_at?: string;
+  created_at?: string;
+  author_id?: string;
+  seo_meta?: {
+    meta_title?: string;
+    meta_description?: string;
+  };
 }

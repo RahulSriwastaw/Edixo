@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Sparkles, BookOpen, Globe, FileText, ChevronRight, Loader2 } from 'lucide-react';
-import { aiOrchestrator, availableModels } from '../../services/aiOrchestrator';
+import { aiOrchestrator, availableModels } from '../services/aiOrchestrator';
 
 interface ResearchPanelProps {
     onAddToOutline: (content: string) => void;

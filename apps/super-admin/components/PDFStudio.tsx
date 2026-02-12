@@ -5,8 +5,8 @@ import {
     ShieldCheck, Sparkles, Calendar, Clock
 } from 'lucide-react';
 import { Button } from './Button';
-import { pdfGeneratorService, PDFConfig } from '../services/pdfGeneratorService';
-import { storageService } from '../services/storageService';
+import { pdfGeneratorService, PDFConfig } from './services/pdfGeneratorService';
+import { storageService } from './services/storageService';
 import { QuestionSet, Question } from '../types';
 import { PPTStudio } from './PPTStudio';
 

@@ -35,7 +35,7 @@ export default function ContentScreen() {
                     </View>
                 ) : (
                     <View style={styles.premiumDoc}>
-                        <FileText size={64} color="#4f46e5" />
+                        <FileText size={64} color="#FF5A1F" />
                         <Text style={[styles.placeholderText, { color: '#475569' }]}>Preview of {content.title}</Text>
                         <TouchableOpacity style={styles.expandBtn}>
                             <Text style={styles.expandBtnText}>Open Full Screen</Text>
@@ -53,7 +53,7 @@ export default function ContentScreen() {
 
                 <View style={[styles.downloadCard, isDark && styles.cardDark]}>
                     <View style={styles.fileIconBox}>
-                        <FileText size={20} color="#4f46e5" />
+                        <FileText size={20} color="#FF5A1F" />
                     </View>
                     <View style={styles.downloadInfo}>
                         <Text style={[styles.downloadTitle, isDark && styles.textLight]}>Lesson Notes.pdf</Text>
@@ -77,9 +77,9 @@ const styles = StyleSheet.create({
     contentView: { width: '100%', aspectRatio: 16 / 9, backgroundColor: '#000' },
     premiumPlayer: { flex: 1, backgroundColor: '#1e293b', justifyContent: 'center', alignItems: 'center' },
     videoOverlay: { width: 100, height: 100, borderRadius: 50, backgroundColor: 'rgba(79, 70, 229, 0.4)', justifyContent: 'center', alignItems: 'center' },
-    progressBarStub: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: '#4f46e5', width: '30%' },
+    progressBarStub: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 4, backgroundColor: '#FF5A1F', width: '30%' },
     premiumDoc: { flex: 1, backgroundColor: '#f1f5f9', justifyContent: 'center', alignItems: 'center', gap: 12 },
-    expandBtn: { backgroundColor: '#4f46e5', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, marginTop: 10 },
+    expandBtn: { backgroundColor: '#FF5A1F', paddingHorizontal: 20, paddingVertical: 10, borderRadius: 12, marginTop: 10 },
     expandBtnText: { color: '#fff', fontWeight: '700' },
     placeholderText: { color: '#fff', fontSize: 16, fontWeight: '600' },
     details: { padding: 24 },
@@ -91,5 +91,6 @@ const styles = StyleSheet.create({
     downloadInfo: { flex: 1, marginLeft: 16 },
     downloadTitle: { fontSize: 15, fontWeight: '700', color: '#1e293b' },
     downloadSize: { fontSize: 13, color: '#94a3b8', marginTop: 2 },
-    downloadBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#4f46e5', alignItems: 'center', justifyContent: 'center' }
+    downloadBtn: { width: 44, height: 44, borderRadius: 14, backgroundColor: '#FF5A1F', alignItems: 'center', justifyContent: 'center' }
 });
+

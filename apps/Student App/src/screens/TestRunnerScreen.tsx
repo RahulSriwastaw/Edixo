@@ -93,7 +93,7 @@ export default function TestRunnerScreen() {
   if (!started) {
     return (
       <View style={[styles.container, isDark && styles.containerDark]}>
-        <LinearGradient colors={['#4f46e5', '#818cf8']} style={styles.introHeader}>
+        <LinearGradient colors={['#FF5A1F', '#F97316']} style={styles.introHeader}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <ChevronLeft color="#fff" size={28} />
           </TouchableOpacity>
@@ -105,8 +105,8 @@ export default function TestRunnerScreen() {
         <View style={styles.introContent}>
           <View style={[styles.infoCard, isDark && styles.infoCardDark]}>
             <View style={styles.infoRow}>
-              <View style={[styles.infoIcon, { backgroundColor: '#eef2ff' }]}>
-                <Trophy color="#4f46e5" size={20} />
+              <View style={[styles.infoIcon, { backgroundColor: '#FFF7ED' }]}>
+                <Trophy color="#FF5A1F" size={20} />
               </View>
               <View>
                 <Text style={[styles.infoLabel, isDark && styles.textLight]}>{questions.length} Questions</Text>
@@ -125,7 +125,7 @@ export default function TestRunnerScreen() {
           </View>
 
           <TouchableOpacity style={styles.startBtn} onPress={() => setStarted(true)}>
-            <LinearGradient colors={['#4f46e5', '#4338ca']} style={styles.startGradient}>
+            <LinearGradient colors={['#FF5A1F', '#E84E18']} style={styles.startGradient}>
               <Text style={styles.startBtnText}>Begin Assessment</Text>
               <ChevronRight color="#fff" size={20} />
             </LinearGradient>
@@ -154,7 +154,7 @@ export default function TestRunnerScreen() {
               </View>
               <View style={styles.resStatDivider} />
               <View style={styles.resStatItem}>
-                <Text style={[styles.resStatVal, { color: '#4f46e5' }]}>+{50 + score * 5}</Text>
+                <Text style={[styles.resStatVal, { color: '#FF5A1F' }]}>+{50 + score * 5}</Text>
                 <Text style={styles.resStatLabel}>XP Earned</Text>
               </View>
               <View style={styles.resStatDivider} />
@@ -279,7 +279,7 @@ export default function TestRunnerScreen() {
               onPress={() => setCurrent(c => Math.max(0, c - 1))}
               disabled={current === 0}
             >
-              <ChevronLeft color={current === 0 ? '#cbd5e1' : '#4f46e5'} size={24} />
+              <ChevronLeft color={current === 0 ? '#cbd5e1' : '#FF5A1F'} size={24} />
             </TouchableOpacity>
 
             <TouchableOpacity
@@ -287,7 +287,7 @@ export default function TestRunnerScreen() {
               onPress={() => setCurrent(c => Math.min(questions.length - 1, c + 1))}
               disabled={current === questions.length - 1}
             >
-              <ChevronRight color={current === questions.length - 1 ? '#cbd5e1' : '#4f46e5'} size={24} />
+              <ChevronRight color={current === questions.length - 1 ? '#cbd5e1' : '#FF5A1F'} size={24} />
             </TouchableOpacity>
           </View>
         </View>
@@ -352,25 +352,25 @@ const styles = StyleSheet.create({
   closeBtn: { padding: 8 },
   timerContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#f1f5f9', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   timerText: { fontSize: 15, fontWeight: '700', color: '#1e293b' },
-  submitTopBtn: { backgroundColor: '#4f46e5', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
+  submitTopBtn: { backgroundColor: '#FF5A1F', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 12 },
   submitTopText: { color: '#fff', fontWeight: '700', fontSize: 14 },
   progressContainer: { paddingHorizontal: 24, paddingTop: 16 },
   progressLabelRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8 },
   progressLabel: { fontSize: 12, fontWeight: '600', color: '#64748b' },
   progressBar: { height: 6, backgroundColor: '#e2e8f0', borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%', backgroundColor: '#4f46e5', borderRadius: 3 },
+  progressFill: { height: '100%', backgroundColor: '#FF5A1F', borderRadius: 3 },
   runnerContent: { padding: 24 },
   qCard: { backgroundColor: '#fff', padding: 24, borderRadius: 24, marginBottom: 24, elevation: 2 },
   qText: { fontSize: 18, fontWeight: '700', color: '#1e293b', lineHeight: 28 },
   optionsContainer: { gap: 12 },
   optBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 18, borderRadius: 16, borderWidth: 1, borderColor: '#e2e8f0' },
   optBtnDark: { backgroundColor: '#1e293b', borderColor: '#334155' },
-  optBtnActive: { borderColor: '#4f46e5', backgroundColor: '#eef2ff' },
+  optBtnActive: { borderColor: '#FF5A1F', backgroundColor: '#FFF7ED' },
   radio: { width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: '#cbd5e1', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-  radioActive: { borderColor: '#4f46e5' },
-  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#4f46e5' },
+  radioActive: { borderColor: '#FF5A1F' },
+  radioInner: { width: 12, height: 12, borderRadius: 6, backgroundColor: '#FF5A1F' },
   optText: { fontSize: 16, color: '#475569', fontWeight: '500', flex: 1 },
-  optTextActive: { color: '#4f46e5', fontWeight: '700' },
+  optTextActive: { color: '#FF5A1F', fontWeight: '700' },
   navRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 32 },
   navBtn: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, borderWidth: 1, borderColor: '#e2e8f0' },
   navBtnText: { fontSize: 14, fontWeight: '600' },
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
   palItemDark: { backgroundColor: '#1e293b', borderColor: '#334155' },
   palItemAns: { backgroundColor: '#059669', borderColor: '#059669' },
   palItemMarked: { borderColor: '#f59e0b', borderWidth: 2 },
-  palItemCur: { backgroundColor: '#4f46e5', borderColor: '#4f46e5' },
+  palItemCur: { backgroundColor: '#FF5A1F', borderColor: '#FF5A1F' },
   palText: { fontSize: 14, fontWeight: '700', color: '#64748b' },
   resultContent: { paddingBottom: 40 },
   resultCard: { marginBottom: 32, overflow: 'hidden', borderRadius: 32, backgroundColor: '#fff', elevation: 4 },
@@ -402,6 +402,7 @@ const styles = StyleSheet.create({
   anaRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 4 },
   anaIndicator: { width: 8, height: 8, borderRadius: 4 },
   anaText: { fontSize: 14, fontWeight: '600' },
-  footerBtn: { margin: 24, backgroundColor: '#4f46e5', paddingVertical: 18, borderRadius: 16, alignItems: 'center' },
+  footerBtn: { margin: 24, backgroundColor: '#FF5A1F', paddingVertical: 18, borderRadius: 16, alignItems: 'center' },
   footerBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' }
 });
+

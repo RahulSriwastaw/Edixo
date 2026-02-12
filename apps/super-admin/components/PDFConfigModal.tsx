@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, Download, FileText, Settings2, Palette, Eye, Bold, Check, RefreshCw } from 'lucide-react';
 import { Button } from './Button';
-import { PDFConfig, pdfGeneratorService } from '../services/pdfGeneratorService';
+import { PDFConfig, pdfGeneratorService } from './services/pdfGeneratorService';
 import { QuestionSet, Question } from '../types';
 
 interface PDFConfigModalProps {

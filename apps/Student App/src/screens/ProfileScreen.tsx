@@ -43,7 +43,7 @@ export default function ProfileScreen() {
         <Switch
           value={value}
           onValueChange={onPress}
-          trackColor={{ false: '#e2e8f0', true: '#4f46e5' }}
+          trackColor={{ false: '#e2e8f0', true: '#FF5A1F' }}
         />
       ) : (
         <ChevronRight size={20} color="#94a3b8" />
@@ -57,7 +57,7 @@ export default function ProfileScreen() {
         {/* Profile Header */}
         <View style={[styles.header, isDark && styles.headerDark]}>
           <View style={styles.avatarContainer}>
-            <LinearGradient colors={['#4f46e5', '#818cf8']} style={styles.avatar}>
+            <LinearGradient colors={['#FF5A1F', '#F97316']} style={styles.avatar}>
               <Text style={styles.avatarText}>
                 {user?.email?.charAt(0).toUpperCase() || 'S'}
               </Text>
@@ -86,7 +86,7 @@ export default function ProfileScreen() {
         {/* Account Settings */}
         <Text style={styles.sectionTitle}>Account Settings</Text>
         <View style={styles.group}>
-          <SettingItem icon={User} title="Edit Profile" color="#4f46e5" />
+          <SettingItem icon={User} title="Edit Profile" color="#FF5A1F" />
           <SettingItem icon={Mail} title="Email Notifications" color="#059669" />
           <SettingItem icon={Shield} title="Privacy & Security" color="#7c3aed" />
         </View>

@@ -99,9 +99,9 @@ export default function VideosScreen() {
         
         <View style={{ gap: 12 }}>
           <Text style={styles.sectionTitle}>Categories</Text>
-          <View style={[styles.categoryCard, { backgroundColor: isDark ? '#1e1b4b' : '#eef2ff' }]}>
-            <Text style={[styles.cardTitle, { color: isDark ? '#c7d2fe' : '#3730a3' }]}>Concept Building</Text>
-            <Text style={[styles.cardDesc, { color: isDark ? '#a5b4fc' : '#4f46e5' }]}>Theory videos with bookmarks</Text>
+          <View style={[styles.categoryCard, { backgroundColor: isDark ? '#1e1b4b' : '#FFF7ED' }]}>
+            <Text style={[styles.cardTitle, { color: isDark ? '#FFF7ED' : '#3730a3' }]}>Concept Building</Text>
+            <Text style={[styles.cardDesc, { color: isDark ? '#FF5A1F' : '#FF5A1F' }]}>Theory videos with bookmarks</Text>
           </View>
           <View style={[styles.categoryCard, { backgroundColor: isDark ? '#172554' : '#eff6ff' }]}>
             <Text style={[styles.cardTitle, { color: isDark ? '#bfdbfe' : '#1e40af' }]}>Problem Solving</Text>
@@ -130,3 +130,4 @@ export default function VideosScreen() {
     </View>
   );
 }
+

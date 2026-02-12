@@ -6,8 +6,8 @@ import {
 import { RichEditor } from './RichEditor';
 import { Button } from './Button';
 import { Question, Difficulty, QuestionType } from '../types';
-import { storageService } from '../services/storageService';
-import { aiOrchestrator, availableModels } from '../services/aiOrchestrator';
+import { storageService } from './services/storageService';
+import { aiOrchestrator, availableModels } from './services/aiOrchestrator';
 
 interface RefinementStudioProps {
     questionId?: string;

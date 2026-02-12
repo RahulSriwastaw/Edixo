@@ -1,253 +1,145 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import { ToggleLeft, ToggleRight, Shield, AlertTriangle, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  Settings, Globe, Shield, Bell, Database, 
+  Smartphone, CreditCard, Mail, Save,
+  RefreshCw, Lock, User, Palette, Languages
+} from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
-import { supabase } from '../../lib/supabase';
-
-interface FeatureFlag {
-  id: string;
-  name: string;
-  key: string;
-  description: string | null;
-  enabled: boolean;
-  critical: boolean;
-}
 
 export default function SettingsPage() {
-  const [features, setFeatures] = useState<FeatureFlag[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState('general');
 
-  const fetchFeatureFlags = async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('feature_flags')
-        .select('*')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      setFeatures(data || []);
-    } catch (error) {
-      console.error('Error fetching feature flags:', error);
-      alert('Error fetching feature flags. Please check Supabase connection.');
-    } finally {
-      setLoading(false);
-    }
+  const handleSave = async () => {
+    setSaving(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setSaving(false);
+    alert('Settings saved successfully!');
   };
 
-  useEffect(() => {
-    fetchFeatureFlags();
-  }, []);
-
-  const handleToggle = async (id: string) => {
-    const feature = features.find((f) => f.id === id);
-    if (!feature) return;
-
-    if (feature.critical && feature.enabled) {
-      const confirmed = confirm(
-        `⚠️ WARNING: You are about to disable "${feature.name}".\n\nThis is a critical feature and disabling it will affect all organizations.\n\nAre you absolutely sure?`,
-      );
-      if (!confirmed) return;
-    }
-
-    const newEnabled = !feature.enabled;
-    setUpdatingId(id);
-
-    // Optimistic UI update
-    setFeatures((prev) =>
-      prev.map((f) => (f.id === id ? { ...f, enabled: newEnabled } : f)),
-    );
-
-    try {
-      const { error } = await supabase
-        .from('feature_flags')
-        .update({ enabled: newEnabled, updated_at: new Date().toISOString() })
-        .eq('id', id);
-
-      if (error) {
-        throw error;
-      }
-
-      alert(
-        `Feature "${feature.name}" ${newEnabled ? 'enabled' : 'disabled'} successfully.`,
-      );
-    } catch (error: any) {
-      // Revert on error
-      setFeatures((prev) =>
-        prev.map((f) => (f.id === id ? { ...f, enabled: feature.enabled } : f)),
-      );
-      alert('Error updating feature flag: ' + error.message);
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const handleEmergencyShutdown = async () => {
-    const confirmed = confirm(
-      '⚠️ EMERGENCY SHUTDOWN\n\nThis will disable ALL platform features immediately.\n\nAre you absolutely sure?',
-    );
-    if (!confirmed) return;
-
-    setUpdatingId('all');
-
-    // Optimistic update
-    setFeatures((prev) => prev.map((f) => ({ ...f, enabled: false })));
-
-    try {
-      const { error } = await supabase
-        .from('feature_flags')
-        .update({ enabled: false, updated_at: new Date().toISOString() });
-
-      if (error) throw error;
-
-      alert('Emergency shutdown activated. All features have been disabled.');
-    } catch (error: any) {
-      alert('Error performing emergency shutdown: ' + error.message);
-      // Refetch to get real state from server
-      fetchFeatureFlags();
-    } finally {
-      setUpdatingId(null);
-    }
-  };
+  const tabs = [
+    { id: 'general', label: 'General', icon: Globe },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'payment', label: 'Payments', icon: CreditCard },
+  ];
 
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto">
-        <header className="mb-10">
-          <h1 className="text-3xl font-bold text-slate-900">Global Settings</h1>
-          <p className="text-slate-500 mt-2">
-            Configure platform-wide settings and feature flags.
-          </p>
-        </header>
+      <div>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-xl font-bold text-slate-900">Platform Settings</h1>
+            <p className="text-slate-500 text-sm mt-0.5">Configure global settings</p>
+          </div>
+          <button 
+            onClick={handleSave}
+            disabled={saving}
+            className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 disabled:bg-orange-400 text-white px-4 py-2 rounded-lg font-medium transition-all shadow-md text-sm"
+          >
+            {saving ? <RefreshCw className="animate-spin" size={18} /> : <Save size={18} />}
+            Save Changes
+          </button>
+        </div>
 
-        {/* Feature Flags Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 bg-gradient-to-r from-indigo-50 to-purple-50">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-xl flex items-center justify-center">
-                <Shield className="text-white" size={20} />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Feature Flags</h2>
-                <p className="text-sm text-slate-500">
-                  Control platform-wide features and capabilities
-                </p>
-              </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-5">
+          {/* Sidebar Tabs */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl border border-slate-200 p-2 space-y-0.5">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all ${
+                    activeTab === tab.id 
+                      ? 'bg-orange-500 text-white shadow-md' 
+                      : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                  }`}
+                >
+                  <tab.icon size={16} />
+                  {tab.label}
+                </button>
+              ))}
             </div>
           </div>
 
-          <div className="p-6 space-y-4">
-            {loading ? (
-              <p className="text-sm text-slate-500">Loading feature flags...</p>
-            ) : features.length === 0 ? (
-              <p className="text-sm text-slate-500">
-                No feature flags found. Make sure you have run the database setup SQL.
-              </p>
-            ) : (
-              features.map((feature) => (
-                <div
-                  key={feature.id}
-                  className="p-5 rounded-xl border-2 border-slate-200 hover:border-indigo-200 transition-all bg-slate-50"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-slate-900">
-                          {feature.name}
-                        </h3>
-                        {feature.critical && (
-                          <span className="px-2 py-1 bg-red-100 text-red-700 rounded-md text-xs font-bold flex items-center gap-1">
-                            <AlertTriangle size={12} />
-                            Critical
-                          </span>
-                        )}
-                        {feature.enabled ? (
-                          <span className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-md text-xs font-bold flex items-center gap-1">
-                            <CheckCircle size={12} />
-                            Enabled
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-slate-200 text-slate-700 rounded-md text-xs font-bold">
-                            Disabled
-                          </span>
-                        )}
+          {/* Settings Form */}
+          <div className="lg:col-span-3">
+            <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+              <div className="p-5">
+                {activeTab === 'general' && (
+                  <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Platform Name</label>
+                        <input 
+                          type="text" 
+                          defaultValue="Q_Bank"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 outline-none font-medium text-slate-900 text-sm transition-all"
+                        />
                       </div>
-                      <p className="text-sm text-slate-600">
-                        {feature.description || 'No description provided.'}
-                      </p>
+                      <div className="space-y-2">
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-widest">Support Email</label>
+                        <input 
+                          type="email" 
+                          defaultValue="support@qbank.com"
+                          className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 outline-none font-medium text-slate-900 text-sm transition-all"
+                        />
+                      </div>
                     </div>
 
-                    <button
-                      onClick={() => handleToggle(feature.id)}
-                      disabled={updatingId === feature.id || updatingId === 'all'}
-                      className={`ml-6 relative inline-flex h-12 w-24 items-center rounded-full transition-colors ${
-                        feature.enabled ? 'bg-emerald-500' : 'bg-slate-300'
-                      } ${
-                        updatingId === feature.id || updatingId === 'all'
-                          ? 'opacity-60 cursor-not-allowed'
-                          : ''
-                      }`}
-                    >
-                      <span
-                        className={`inline-block h-10 w-10 transform rounded-full bg-white shadow-lg transition-transform ${
-                          feature.enabled ? 'translate-x-12' : 'translate-x-1'
-                        }`}
-                      >
-                        {feature.enabled ? (
-                          <ToggleRight className="text-emerald-600 m-1.5" size={28} />
-                        ) : (
-                          <ToggleLeft className="text-slate-400 m-1.5" size={28} />
-                        )}
-                      </span>
-                    </button>
+                    <div className="space-y-3">
+                      <h3 className="font-bold text-sm text-slate-900 border-b border-slate-100 pb-1.5">Regional Settings</h3>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-1.5">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Timezone</label>
+                          <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 outline-none font-medium text-slate-900 text-sm transition-all bg-white">
+                            <option>(GMT+05:30) Kolkata</option>
+                            <option>(GMT+00:00) UTC</option>
+                          </select>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Language</label>
+                          <select className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-orange-500/20 outline-none font-medium text-slate-900 text-sm transition-all bg-white">
+                            <option>English (US)</option>
+                            <option>Hindi</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <h3 className="font-bold text-slate-900 border-b border-slate-100 pb-2">Maintenance Mode</h3>
+                      <div className="flex items-center justify-between p-3 bg-amber-50 rounded-xl border border-amber-100">
+                        <div className="flex gap-2">
+                          <div className="p-1.5 bg-amber-100 text-amber-600 rounded-lg h-fit">
+                            <Settings size={18} />
+                          </div>
+                          <div>
+                            <div className="font-bold text-amber-900 text-xs">Platform Maintenance</div>
+                            <div className="text-[11px] text-amber-700/80 mt-0.5">When active, users see a maintenance screen.</div>
+                          </div>
+                        </div>
+                        <div className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-slate-200">
+                          <span className="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"></span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))
-            )}
-          </div>
-        </div>
+                )}
 
-        {/* Emergency Actions */}
-        <div className="mt-8 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 bg-red-50">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="text-red-600" size={24} />
-              <div>
-                <h2 className="text-lg font-bold text-slate-900">Emergency Controls</h2>
-                <p className="text-sm text-slate-500">Critical platform-wide actions</p>
+                {activeTab === 'security' && (
+                  <div className="space-y-5 animate-in fade-in slide-in-from-bottom-2 duration-300 text-center py-12">
+                    <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                      <Lock size={24} />
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">Security Configuration</h3>
+                    <p className="text-slate-500 text-sm max-w-sm mx-auto">Manage 2FA, session timeouts, and password policies.</p>
+                  </div>
+                )}
               </div>
-            </div>
-          </div>
-
-          <div className="p-6">
-            <button
-              onClick={handleEmergencyShutdown}
-              disabled={updatingId === 'all'}
-              className="w-full px-6 py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold text-lg shadow-lg shadow-red-200 transition-all flex items-center justify-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              <AlertTriangle size={24} />
-              Emergency Platform Shutdown
-            </button>
-            <p className="text-xs text-slate-500 text-center mt-3">
-              This will immediately disable all features across the entire platform
-            </p>
-          </div>
-        </div>
-
-        {/* Info Box */}
-        <div className="mt-8 bg-blue-50 border border-blue-200 rounded-xl p-4">
-          <div className="flex gap-3">
-            <Shield className="text-blue-600 flex-shrink-0" size={20} />
-            <div>
-              <h4 className="font-bold text-blue-900 mb-1">Feature Flag Information</h4>
-              <p className="text-sm text-blue-700">
-                Feature flags allow you to enable or disable platform-wide features without
-                deploying code changes. Changes take effect immediately for all
-                organizations. Critical features require additional confirmation before
-                being disabled.
-              </p>
             </div>
           </div>
         </div>

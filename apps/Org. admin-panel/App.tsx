@@ -10,7 +10,18 @@ import LoginScreen from './src/screens/auth/LoginScreen';
 
 function AppShell() {
   const { theme, session, loading } = useAppContext();
-  const themed = theme === 'dark' ? DarkTheme : DefaultTheme;
+  const themed = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: '#FF5A1F',
+      background: '#F9FAFB',
+      card: '#FFFFFF',
+      text: '#111827',
+      border: '#E5E7EB',
+      notification: '#F97316',
+    },
+  };
 
   if (loading) {
     return null; // Or a splash screen

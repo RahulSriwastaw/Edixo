@@ -34,7 +34,7 @@ export default function CourseDetailScreen() {
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 {/* Header Image/Card */}
                 <View style={styles.imageContainer}>
-                    <LinearGradient colors={['#4f46e5', '#818cf8']} style={styles.gradientHeader}>
+                    <LinearGradient colors={['#FF5A1F', '#F97316']} style={styles.gradientHeader}>
                         <BookOpen size={80} color="rgba(255,255,255,0.3)" />
                     </LinearGradient>
                     <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -52,11 +52,11 @@ export default function CourseDetailScreen() {
                     {/* Quick Stats */}
                     <View style={styles.statsRow}>
                         <View style={styles.statItem}>
-                            <PlayCircle size={18} color="#4f46e5" />
+                            <PlayCircle size={18} color="#FF5A1F" />
                             <Text style={styles.statText}>{course.lessons} Lessons</Text>
                         </View>
                         <View style={styles.statItem}>
-                            <Clock size={18} color="#4f46e5" />
+                            <Clock size={18} color="#FF5A1F" />
                             <Text style={styles.statText}>{course.duration}</Text>
                         </View>
                         <View style={styles.statItem}>
@@ -91,7 +91,7 @@ export default function CourseDetailScreen() {
                     <Text style={[styles.priceValue, isDark && styles.textLight]}>{course.price}</Text>
                 </View>
                 <TouchableOpacity style={styles.enrollBtn}>
-                    <LinearGradient colors={['#4f46e5', '#4338ca']} style={styles.enrollGradient}>
+                    <LinearGradient colors={['#FF5A1F', '#E84E18']} style={styles.enrollGradient}>
                         <Text style={styles.enrollBtnText}>Start Learning</Text>
                     </LinearGradient>
                 </TouchableOpacity>
@@ -120,8 +120,8 @@ const styles = StyleSheet.create({
     description: { fontSize: 15, color: '#64748b', lineHeight: 24, marginBottom: 24 },
     moduleCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', padding: 16, borderRadius: 16, marginBottom: 12, borderWidth: 1, borderColor: '#f1f5f9' },
     cardDark: { backgroundColor: '#1e293b', borderColor: '#334155' },
-    moduleNumber: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#eef2ff', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
-    moduleNumberText: { color: '#4f46e5', fontWeight: '800', fontSize: 14 },
+    moduleNumber: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#FFF7ED', alignItems: 'center', justifyContent: 'center', marginRight: 16 },
+    moduleNumberText: { color: '#FF5A1F', fontWeight: '800', fontSize: 14 },
     moduleInfo: { flex: 1 },
     moduleTitle: { fontSize: 16, fontWeight: '700', color: '#1e293b', marginBottom: 2 },
     moduleLessons: { fontSize: 13, color: '#64748b' },
@@ -133,3 +133,4 @@ const styles = StyleSheet.create({
     enrollGradient: { paddingVertical: 16, alignItems: 'center' },
     enrollBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' }
 });
+

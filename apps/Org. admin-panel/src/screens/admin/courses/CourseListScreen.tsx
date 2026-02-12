@@ -108,7 +108,7 @@ export default function CourseListScreen() {
 
             {loading ? (
                 <View style={styles.center}>
-                    <ActivityIndicator size="large" color="#4f46e5" />
+                    <ActivityIndicator size="large" color="#FF5A1F" />
                 </View>
             ) : (
                 <FlatList
@@ -157,14 +157,14 @@ const styles = StyleSheet.create({
         color: '#0f172a',
     },
     addButton: {
-        backgroundColor: '#4f46e5',
+        backgroundColor: '#FF5A1F',
         paddingHorizontal: 16,
         paddingVertical: 10,
         borderRadius: 20,
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-        shadowColor: '#4f46e5',
+        shadowColor: '#FF5A1F',
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.2,
         shadowRadius: 8,
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     coursePrice: {
         fontSize: 18,
         fontWeight: '700',
-        color: '#4f46e5',
+        color: '#FF5A1F',
         marginBottom: 16,
     },
     divider: {
@@ -294,3 +294,4 @@ const styles = StyleSheet.create({
         lineHeight: 20,
     },
 });
+

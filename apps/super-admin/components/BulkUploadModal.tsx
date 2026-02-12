@@ -1,7 +1,7 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Upload, FileUp, AlertTriangle, CheckCircle, Save, X, FileSpreadsheet, AlertCircle } from 'lucide-react';
-import { bulkUploadService } from '../services/bulkUploadService';
-import { PreviewRow } from '../types';
+import { bulkUploadService } from './services/bulkUploadService';
+import { PreviewRow } from './types';
 import { Button } from './Button';
 
 interface BulkUploadModalProps {

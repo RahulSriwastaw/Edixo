@@ -27,7 +27,7 @@ function AdminTabs() {
                     paddingBottom: 8,
                     paddingTop: 8,
                 },
-                tabBarActiveTintColor: '#4f46e5',
+                tabBarActiveTintColor: '#FF5A1F',
                 tabBarInactiveTintColor: '#64748b',
             }}
         >
@@ -78,3 +78,4 @@ export default function AdminNavigator() {
         </Stack.Navigator>
     );
 }
+

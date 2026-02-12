@@ -16,7 +16,18 @@ const Stack = createNativeStackNavigator();
 
 function AppShell() {
   const { theme, session, isLoading } = useAppContext();
-  const themed = theme === 'dark' ? DarkTheme : DefaultTheme;
+  const themed = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: '#FF5A1F',
+      background: '#F9FAFB',
+      card: '#FFFFFF',
+      text: '#111827',
+      border: '#E5E7EB',
+      notification: '#F97316',
+    },
+  };
 
   if (isLoading) {
     return (

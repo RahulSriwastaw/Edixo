@@ -3,22 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Loader2, Eye, FileText, Tag, Link as LinkIcon } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-
-interface Blog {
-    id: string;
-    title: string;
-    slug: string;
-    excerpt: string;
-    content: string;
-    featured_image_url?: string;
-    status: string;
-    category: string;
-    tags: string[];
-    seo_meta: {
-        meta_title?: string;
-        meta_description?: string;
-    };
-}
+import { Blog } from '../types';
 
 interface BlogEditorProps {
     isOpen: boolean;

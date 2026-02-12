@@ -33,7 +33,7 @@ export default function CourseListScreen() {
             onPress={() => navigation.navigate('CourseDetail', { course: item })}
         >
             <View style={styles.cardIconContainer}>
-                <BookOpen size={24} color="#4f46e5" />
+                <BookOpen size={24} color="#FF5A1F" />
             </View>
             <View style={styles.cardContent}>
                 <View style={styles.cardHeader}>
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 12,
-        backgroundColor: '#e0e7ff',
+        backgroundColor: '#FFF7ED',
         alignItems: 'center',
         justifyContent: 'center',
     },
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     enrollCta: {
         fontSize: 13,
         fontWeight: '700',
-        color: '#4f46e5',
+        color: '#FF5A1F',
     },
     categoryContainer: {
         maxHeight: 45,
@@ -295,8 +295,8 @@ const styles = StyleSheet.create({
         borderColor: '#334155',
     },
     categoryBtnActive: {
-        backgroundColor: '#4f46e5',
-        borderColor: '#4f46e5',
+        backgroundColor: '#FF5A1F',
+        borderColor: '#FF5A1F',
     },
     categoryBtnText: {
         fontSize: 13,
@@ -307,3 +307,4 @@ const styles = StyleSheet.create({
         color: '#fff',
     },
 });
+
