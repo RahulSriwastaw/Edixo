@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import HomeScreen from '../screens/HomeScreen';
 import CourseListScreen from '../screens/courses/CourseListScreen';
 import TestsScreen from '../screens/TestsScreen';
+import StudyMaterialsScreen from '../screens/StudyMaterialsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -36,6 +37,8 @@ export default function RootTabs() {
             iconName = focused ? 'document-text' : 'document-text-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
+          } else if (route.name === 'Library') {
+            iconName = focused ? 'library' : 'library-outline';
           }
 
           return <Ionicons name={iconName} size={size} color={color} />;
@@ -49,6 +52,7 @@ export default function RootTabs() {
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="Courses" component={CourseListScreen} />
       <Tab.Screen name="Tests" component={TestsScreen} />
+      <Tab.Screen name="Library" component={StudyMaterialsScreen} />
       <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
   );

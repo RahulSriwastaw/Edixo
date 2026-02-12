@@ -3,7 +3,7 @@ import './App.css';
 import { SmartBoard } from './components/SmartBoard';
 import { ImportQuestionsModal } from './components/ImportQuestionsModal';
 import { Question } from './types';
-import { Download } from 'lucide-react';
+import { Download, Cast } from 'lucide-react';
 
 // Sample questions for demo
 const sampleQuestions: Question[] = [
@@ -44,6 +44,7 @@ const sampleQuestions: Question[] = [
 function App() {
     const [showBoard, setShowBoard] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
+    const [broadcastMode, setBroadcastMode] = useState(false);
     const [questions, setQuestions] = useState<Question[]>(sampleQuestions);
 
     const handleImportQuestions = (importedQuestions: Question[]) => {
@@ -58,6 +59,7 @@ function App() {
                 initialIdx={0}
                 setName="Whiteboard Session"
                 onExit={() => setShowBoard(false)}
+                broadcastMode={broadcastMode}
             />
         );
     }
@@ -79,6 +81,18 @@ function App() {
                             className="start-button"
                         >
                             Launch with Demo Questions
+                        </button>
+
+                        <button
+                            onClick={() => {
+                                setBroadcastMode(true);
+                                setShowBoard(true);
+                            }}
+                            className="broadcast-button"
+                            style={{ backgroundColor: '#7C3AED', color: 'white', marginLeft: 10 }}
+                        >
+                            <Cast size={18} />
+                            Start Broadcast Mode
                         </button>
 
                         <button

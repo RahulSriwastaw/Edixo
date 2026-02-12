@@ -1,18 +1,36 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Radio, Plus, Search, Filter, Loader2, 
+import {
+  Radio, Plus, Search, Filter, Loader2,
   Play, Calendar, Users, Clock, Zap,
   Settings, Monitor, Share2, MessageSquare,
   ChevronRight, AlertCircle
 } from 'lucide-react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { supabase } from '../../lib/supabase';
+import Link from 'next/link';
 
 export default function SuperStreamPage() {
   const [activeStreams, setActiveStreams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const killAllStreams = async () => {
+    if (!confirm('EMERGENCY: Are you sure you want to TERMINATE ALL active live streams immediately?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('live_streams')
+        .update({ status: 'ended', ended_at: new Date().toISOString() })
+        .eq('status', 'live');
+
+      if (error) throw error;
+      alert('All active streams have been terminated.');
+      window.location.reload();
+    } catch (error: any) {
+      alert('Error terminating streams: ' + error.message);
+    }
+  };
 
   useEffect(() => {
     const fetchSuperStreams = async () => {
@@ -20,10 +38,10 @@ export default function SuperStreamPage() {
       try {
         // Fetching streams across all organizations for super admin view
         const { data, error } = await supabase
-          .from('streams')
+          .from('live_streams')
           .select('*, organizations(name)')
           .eq('status', 'live')
-          .order('viewer_count', { ascending: false });
+          .order('started_at', { ascending: false });
 
         if (error && error.code !== 'PGRST116') throw error;
         setActiveStreams(data || []);
@@ -51,10 +69,12 @@ export default function SuperStreamPage() {
             <p className="text-slate-500">Global monitoring and management of all active streams.</p>
           </div>
           <div className="flex gap-3">
-            <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition-all">
-              <Settings size={18} />
-              Global Settings
-            </button>
+            <Link href="/streaming">
+              <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2.5 rounded-xl font-medium hover:bg-slate-50 transition-all">
+                <Settings size={18} />
+                Global Settings
+              </button>
+            </Link>
             <button className="flex items-center gap-2 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm shadow-orange-200">
               <Plus size={18} />
               New Multi-Stream
@@ -69,9 +89,9 @@ export default function SuperStreamPage() {
             <div className="bg-slate-900 rounded-2xl aspect-video relative overflow-hidden group border border-slate-800 shadow-2xl">
               {activeStreams.length > 0 ? (
                 <>
-                  <img 
-                    src={activeStreams[0].thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'} 
-                    alt="Main Stream" 
+                  <img
+                    src={activeStreams[0].thumbnail_url || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=800&auto=format&fit=crop&q=60'}
+                    alt="Main Stream"
                     className="w-full h-full object-cover opacity-60"
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -139,7 +159,10 @@ export default function SuperStreamPage() {
                 <div className="font-bold text-slate-900 text-sm">Optimize</div>
                 <div className="text-xs text-slate-500">CDN Routing</div>
               </button>
-              <button className="p-4 bg-white rounded-2xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50 transition-all group text-left">
+              <button
+                onClick={killAllStreams}
+                className="p-4 bg-white rounded-2xl border border-slate-200 hover:border-rose-500 hover:bg-rose-50 transition-all group text-left"
+              >
                 <div className="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center text-rose-600 group-hover:bg-rose-100 mb-3">
                   <AlertCircle size={20} />
                 </div>

@@ -5,7 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAppContext } from '../context/AppContext';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { BookOpen, Trophy, Activity, ChevronRight, Clock } from 'lucide-react-native';
+import { BookOpen, Trophy, Activity, ChevronRight, Clock, PlayCircle } from 'lucide-react-native';
+import { supabase } from '../lib/supabase';
+import { COLORS } from '../constants/colors';
 
 const MOCK_ENROLLED_COURSES = [
   { id: '1', title: 'JEE Advanced Physics', progress: 45, color: ['#FF5A1F', '#F97316'] },
@@ -21,9 +23,34 @@ export default function HomeScreen() {
 
   const onRefresh = React.useCallback(() => {
     setRefreshing(true);
-    // Simulate fetch
+    fetchLiveStreams();
     setTimeout(() => setRefreshing(false), 1500);
   }, []);
+
+  const [liveStreams, setLiveStreams] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchLiveStreams();
+  }, []);
+
+  const fetchLiveStreams = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('live_streams')
+        .select(`
+          *,
+          teacher:users!live_streams_teacher_id_fkey (full_name)
+        `)
+        .eq('status', 'live')
+        .limit(5);
+
+      if (!error && data) {
+        setLiveStreams(data);
+      }
+    } catch (error) {
+      console.error('Error fetching live streams on home:', error);
+    }
+  };
 
   const StatCard = ({ title, value, icon: Icon, color }: any) => (
     <View style={[styles.statCard, isDark && styles.statCardDark]}>
@@ -66,6 +93,57 @@ export default function HomeScreen() {
           <StatCard title="Avg Score" value="78%" icon={Activity} color="#059669" />
           <StatCard title="XP Earned" value={stats.xp} icon={Trophy} color="#db2777" />
         </View>
+
+        {/* Live Classes (Dynamic) */}
+        {liveStreams.length > 0 && (
+          <>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, isDark && styles.textLight]}>Live Now</Text>
+              <TouchableOpacity onPress={() => navigation.navigate('LiveClasses')}>
+                <Text style={styles.seeAll}>Join Class</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.liveList}>
+              {liveStreams.map((stream) => (
+                <TouchableOpacity
+                  key={stream.id}
+                  style={styles.liveCard}
+                  onPress={() => navigation.navigate('LivePlayer', {
+                    streamId: stream.id,
+                    streamUrl: stream.playback_url,
+                    title: stream.title
+                  })}
+                >
+                  <LinearGradient
+                    colors={['#FF5A1F', '#F97316']}
+                    style={styles.liveGradient}
+                  >
+                    <View style={styles.liveHeader}>
+                      <View style={styles.liveBadge}>
+                        <View style={styles.pulseDot} />
+                        <Text style={styles.liveText}>LIVE</Text>
+                      </View>
+                      <View style={styles.viewerBadge}>
+                        <Activity size={10} color="#FFF" />
+                        <Text style={styles.viewerText}>{stream.viewers || 0}</Text>
+                      </View>
+                    </View>
+
+                    <View>
+                      <Text style={styles.liveStreamTitle} numberOfLines={1}>{stream.title}</Text>
+                      <Text style={styles.liveTeacherName}>{stream.teacher?.full_name}</Text>
+                    </View>
+
+                    <View style={styles.playbtnRow}>
+                      <PlayCircle size={24} color="#FFF" />
+                    </View>
+                  </LinearGradient>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </>
+        )}
 
         {/* Continue Learning */}
         <View style={styles.sectionHeader}>
@@ -297,6 +375,75 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#64748b',
     marginTop: 2,
+  },
+  liveList: {
+    paddingRight: 20,
+    marginBottom: 24,
+    gap: 16,
+  },
+  liveCard: {
+    width: 220,
+    height: 150,
+    borderRadius: 20,
+    overflow: 'hidden',
+    elevation: 4,
+    shadowColor: '#FF5A1F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+  },
+  liveGradient: {
+    flex: 1,
+    padding: 16,
+    justifyContent: 'space-between',
+  },
+  liveHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  liveBadge: {
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  pulseDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: '#FFF',
+  },
+  liveText: {
+    color: '#FFF',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  viewerBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  viewerText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  liveStreamTitle: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 2,
+  },
+  liveTeacherName: {
+    color: 'rgba(255,255,255,0.8)',
+    fontSize: 12,
+  },
+  playbtnRow: {
+    alignItems: 'flex-end',
   },
 });
 

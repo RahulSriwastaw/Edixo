@@ -22,6 +22,7 @@ interface BoardToolbarProps {
   onToggleExplanation: () => void;
   hasExplanationSlide: boolean;
   onClear?: () => void;
+  broadcastMode?: boolean;
 }
 
 export const BoardToolbar: React.FC<BoardToolbarProps> = ({
@@ -32,7 +33,8 @@ export const BoardToolbar: React.FC<BoardToolbarProps> = ({
   dragHandlers,
   onToggleExplanation,
   hasExplanationSlide,
-  onClear
+  onClear,
+  broadcastMode = false
 }) => {
   const { tool, setTool, eraserMode, setEraserMode, color, setColor, size, setSize, eraserSize, setEraserSize, undo, redo, clear, history, redoStack, activePanel, setActivePanel } = useBoardStore();
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -138,6 +140,12 @@ export const BoardToolbar: React.FC<BoardToolbarProps> = ({
     reader.readAsDataURL(file);
     e.target.value = '';
   };
+
+  useEffect(() => {
+    if (broadcastMode) {
+      setIsCollapsed(true);
+    }
+  }, [broadcastMode]);
 
   if (isCollapsed) {
     return (

@@ -14,10 +14,19 @@ import {
     Maximize,
     Minimize,
     Users,
-    Wifi
+    Wifi,
+    Signal,
+    Activity,
+    Clock,
+    Presentation
 } from 'lucide-react-native';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../lib/supabase';
 import { COLORS } from '../../constants/colors';
+import LiveChat from '../../components/live/LiveChat';
+import PollOverlay from '../../components/live/PollOverlay';
+import AnnotationLayer from '../../components/live/AnnotationLayer';
+import WhiteboardPlayer from '../../components/live/WhiteboardPlayer';
+import { Edit2 } from 'lucide-react-native';
 
 const { width, height } = Dimensions.get('window');
 
@@ -32,14 +41,21 @@ interface LivePlayerScreenProps {
     navigation: any;
 }
 
-export default function LivePlayerScreen({ route, navigation }: LivePlayerScreenProps) {
+export default function LivePlayerScreen({ route, navigation }: any) {
     const { streamId, streamUrl, title } = route.params;
     const videoRef = useRef<Video>(null);
 
     const [viewers, setViewers] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isBuffering, setIsBuffering] = useState(true);
+    const [quality, setQuality] = useState<'excellent' | 'good' | 'fair' | 'poor'>('excellent');
+    const [bitrate, setBitrate] = useState(0); // in kbps
+    const [latency, setLatency] = useState(0); // in ms
+    const [showStats, setShowStats] = useState(false);
     const [studentId, setStudentId] = useState<string | null>(null);
+    const [studentName, setStudentName] = useState('');
+    const [showAnnotations, setShowAnnotations] = useState(false);
+    const [showWhiteboard, setShowWhiteboard] = useState(false);
 
     useEffect(() => {
         // Track viewer join
@@ -48,11 +64,30 @@ export default function LivePlayerScreen({ route, navigation }: LivePlayerScreen
         // Fetch viewer count periodically
         const interval = setInterval(fetchViewerCount, 5000);
 
+        // Simulate quality monitoring
+        const qualityInterval = setInterval(monitorQuality, 3000);
+
         return () => {
             clearInterval(interval);
+            clearInterval(qualityInterval);
             trackViewerLeave();
         };
     }, []);
+
+    const monitorQuality = () => {
+        // In a real app, this would come from the player engine (e.g. Agora SDK)
+        // Here we simulate based on buffering state and random variations
+        if (isBuffering) {
+            setQuality('poor');
+            setBitrate(prev => Math.max(0, prev - 500));
+        } else {
+            const baseBitrate = 2500; // 2.5 Mbps
+            const variation = Math.random() * 400 - 200;
+            setBitrate(Math.floor(baseBitrate + variation));
+            setQuality('excellent');
+            setLatency(Math.floor(Math.random() * 50 + 20)); // 20-70ms
+        }
+    };
 
     const trackViewerJoin = async () => {
         try {
@@ -68,6 +103,15 @@ export default function LivePlayerScreen({ route, navigation }: LivePlayerScreen
 
             if (student) {
                 setStudentId(student.id);
+
+                // Fetch student name from users table
+                const { data: userRecord } = await supabase
+                    .from('users')
+                    .select('full_name')
+                    .eq('auth_user_id', user.id)
+                    .single();
+
+                if (userRecord) setStudentName(userRecord.full_name);
 
                 // Track viewer join
                 await supabase
@@ -133,15 +177,28 @@ export default function LivePlayerScreen({ route, navigation }: LivePlayerScreen
                 <Video
                     ref={videoRef}
                     source={{ uri: streamUrl }}
-                    style={styles.video}
+                    style={[styles.video, showWhiteboard && { opacity: 0 }]}
                     useNativeControls
                     resizeMode={ResizeMode.CONTAIN}
                     isLooping={false}
                     shouldPlay
                     onLoadStart={() => setIsBuffering(true)}
                     onLoad={() => setIsBuffering(false)}
-                    onBuffer={({ isBuffering }) => setIsBuffering(isBuffering)}
+                    onPlaybackStatusUpdate={status => {
+                        if (!status.isLoaded) {
+                            setIsBuffering(true);
+                        } else {
+                            setIsBuffering(status.isBuffering);
+                        }
+                    }}
                 />
+
+                <WhiteboardPlayer
+                    streamId={streamId}
+                    visible={showWhiteboard}
+                />
+
+                <AnnotationLayer visible={showAnnotations} />
 
                 {isBuffering && (
                     <View style={styles.bufferingOverlay}>
@@ -161,6 +218,34 @@ export default function LivePlayerScreen({ route, navigation }: LivePlayerScreen
                     <Users size={14} color="#FFF" />
                     <Text style={styles.viewersText}>{viewers}</Text>
                 </View>
+
+                {/* Quality Indicator */}
+                <TouchableOpacity
+                    style={styles.qualityIndicator}
+                    onPress={() => setShowStats(!showStats)}
+                >
+                    <Signal
+                        size={14}
+                        color={quality === 'excellent' ? COLORS.success : quality === 'poor' ? COLORS.error : '#EAB308'}
+                    />
+                    <Text style={styles.viewersText}>{quality.toUpperCase()}</Text>
+                </TouchableOpacity>
+
+                {/* Extended Stats Overlay */}
+                {showStats && (
+                    <View style={styles.statsOverlay}>
+                        <View style={styles.statRow}>
+                            <Activity size={12} color="#AAA" />
+                            <Text style={styles.statLabel}>Bitrate:</Text>
+                            <Text style={styles.statValue}>{(bitrate / 1024).toFixed(1)} Mbps</Text>
+                        </View>
+                        <View style={styles.statRow}>
+                            <Clock size={12} color="#AAA" />
+                            <Text style={styles.statLabel}>Latency:</Text>
+                            <Text style={styles.statValue}>{latency} ms</Text>
+                        </View>
+                    </View>
+                )}
 
                 {/* Top Controls */}
                 {!isFullscreen && (
@@ -183,35 +268,66 @@ export default function LivePlayerScreen({ route, navigation }: LivePlayerScreen
                         <Maximize size={24} color="#FFF" />
                     )}
                 </TouchableOpacity>
+
+                {/* Whiteboard Mode Toggle */}
+                <TouchableOpacity
+                    style={[
+                        styles.whiteboardToggle,
+                        showWhiteboard && { backgroundColor: COLORS.primary }
+                    ]}
+                    onPress={() => setShowWhiteboard(!showWhiteboard)}
+                >
+                    <Presentation size={20} color="#FFF" />
+                </TouchableOpacity>
+
+                {/* Annotation Toggle */}
+                <TouchableOpacity
+                    style={[
+                        styles.annotationToggle,
+                        showAnnotations && { backgroundColor: COLORS.primary }
+                    ]}
+                    onPress={() => setShowAnnotations(!showAnnotations)}
+                >
+                    <Edit2 size={24} color="#FFF" />
+                </TouchableOpacity>
             </View>
 
             {/* Stream Info (hidden in fullscreen) */}
             {!isFullscreen && (
                 <View style={styles.streamInfo}>
                     <View style={styles.streamHeader}>
+                        <View style={{ flex: 1, marginRight: 10 }}>
+                            <Text style={styles.streamTitle} numberOfLines={1}>{title}</Text>
+                            <View style={styles.statItem}>
+                                <Users size={14} color={COLORS.textMuted} />
+                                <Text style={styles.statText}>{viewers} watching</Text>
+                            </View>
+                        </View>
                         <View style={styles.qualityBadge}>
                             <Wifi size={14} color={COLORS.success} />
                             <Text style={styles.qualityText}>HD</Text>
                         </View>
                     </View>
 
-                    <Text style={styles.streamTitle}>{title}</Text>
-
-                    <View style={styles.streamStats}>
-                        <View style={styles.statItem}>
-                            <Users size={16} color={COLORS.textSecondary} />
-                            <Text style={styles.statText}>{viewers} watching now</Text>
-                        </View>
-                    </View>
-
-                    {/* Stream Description */}
-                    <View style={styles.descriptionBox}>
-                        <Text style={styles.descriptionTitle}>About this live class</Text>
-                        <Text style={styles.descriptionText}>
-                            You're watching a live class. Questions? Use the chat to interact with your teacher.
-                        </Text>
+                    {/* Chat Section */}
+                    <View style={styles.chatContainer}>
+                        {studentId && (
+                            <LiveChat
+                                streamId={streamId}
+                                studentId={studentId}
+                                studentName={studentName}
+                            />
+                        )}
                     </View>
                 </View>
+            )}
+
+            {/* Poll Overlay for Students */}
+            {studentId && (
+                <PollOverlay
+                    streamId={streamId}
+                    studentId={studentId}
+                />
             )}
         </View>
     );
@@ -291,6 +407,43 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
     },
+    qualityIndicator: {
+        position: 'absolute',
+        top: 16,
+        right: 80,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        gap: 6,
+    },
+    statsOverlay: {
+        position: 'absolute',
+        top: 55,
+        right: 16,
+        backgroundColor: 'rgba(0,0,0,0.85)',
+        padding: 12,
+        borderRadius: 12,
+        minWidth: 150,
+        gap: 8,
+    },
+    statRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+    },
+    statLabel: {
+        color: '#AAA',
+        fontSize: 11,
+        flex: 1,
+    },
+    statValue: {
+        color: '#FFF',
+        fontSize: 11,
+        fontWeight: '700',
+    },
     backButton: {
         position: 'absolute',
         top: 60,
@@ -359,7 +512,7 @@ const styles = StyleSheet.create({
     },
     statText: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: COLORS.textMuted,
         fontWeight: '600',
     },
     descriptionBox: {
@@ -375,7 +528,37 @@ const styles = StyleSheet.create({
     },
     descriptionText: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: COLORS.textMuted,
         lineHeight: 20,
+    },
+    chatContainer: {
+        flex: 1,
+        backgroundColor: '#F9FAFB',
+        borderRadius: 12,
+        overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: '#E5E7EB',
+    },
+    annotationToggle: {
+        position: 'absolute',
+        bottom: 16,
+        left: 16,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    whiteboardToggle: {
+        position: 'absolute',
+        bottom: 16,
+        left: 64,
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

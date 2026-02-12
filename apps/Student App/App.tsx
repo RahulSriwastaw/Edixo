@@ -11,6 +11,9 @@ import LoginScreen from './src/screens/LoginScreen';
 import SignupScreen from './src/screens/SignupScreen';
 import CourseDetailScreen from './src/screens/courses/CourseDetailScreen';
 import ContentScreen from './src/screens/ContentScreen';
+import LiveClassesScreen from './src/screens/live/LiveClassesScreen';
+import LivePlayerScreen from './src/screens/live/LivePlayerScreen';
+import StudyMaterialsScreen from './src/screens/StudyMaterialsScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -49,6 +52,9 @@ function AppShell() {
             <Stack.Screen name="Leaderboard" component={LeaderboardScreen} />
             <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
             <Stack.Screen name="Content" component={ContentScreen} />
+            <Stack.Screen name="LiveClasses" component={LiveClassesScreen} />
+            <Stack.Screen name="LivePlayer" component={LivePlayerScreen} />
+            <Stack.Screen name="StudyMaterials" component={StudyMaterialsScreen} />
           </>
         ) : (
           <>

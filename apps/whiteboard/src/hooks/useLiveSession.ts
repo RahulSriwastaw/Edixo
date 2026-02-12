@@ -5,7 +5,7 @@ import { useBoardStore } from '../components/SmartBoard/store';
 import { Stroke } from '../components/SmartBoard/types';
 
 export const useLiveSession = (sessionId: string | undefined, isHost: boolean = true) => {
-    const { addStroke, updateStroke, clear, setStrokes } = useBoardStore();
+    const { addStroke, updateStroke, clear } = useBoardStore();
     const channelRef = useRef<any>(null);
 
     useEffect(() => {
@@ -72,5 +72,23 @@ export const useLiveSession = (sessionId: string | undefined, isHost: boolean = 
         });
     };
 
-    return { broadcastStroke, broadcastUpdate, broadcastClear };
+    const broadcastSlideChange = (index: number) => {
+        if (!channelRef.current) return;
+        channelRef.current.send({
+            type: 'broadcast',
+            event: 'slide_change',
+            payload: { index }
+        });
+    };
+
+    const broadcastSessionConfig = (config: { setId?: string; setName?: string }) => {
+        if (!channelRef.current) return;
+        channelRef.current.send({
+            type: 'broadcast',
+            event: 'session_config',
+            payload: config
+        });
+    };
+
+    return { broadcastStroke, broadcastUpdate, broadcastClear, broadcastSlideChange, broadcastSessionConfig };
 };

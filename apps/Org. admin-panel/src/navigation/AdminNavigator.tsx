@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { View, Text } from 'react-native';
-import { LayoutDashboard, Users, BookOpen, Presentation } from 'lucide-react-native';
+import { LayoutDashboard, Users, BookOpen, Presentation, FolderOpen } from 'lucide-react-native';
 
 // Screens
 import DashboardScreen from '../screens/admin/DashboardScreen';
@@ -12,6 +12,7 @@ import CourseListScreen from '../screens/admin/courses/CourseListScreen';
 import CreateCourseScreen from '../screens/admin/courses/CreateCourseScreen';
 import SetsListScreen from '../screens/admin/sets/SetsListScreen';
 import CreateSetScreen from '../screens/admin/sets/CreateSetScreen';
+import MaterialManagementScreen from '../screens/admin/MaterialManagementScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -61,6 +62,14 @@ function AdminTabs() {
                 options={{
                     tabBarLabel: 'Whiteboard',
                     tabBarIcon: ({ color, size }) => <Presentation size={size} color={color} />,
+                }}
+            />
+            <Tab.Screen
+                name="Materials"
+                component={MaterialManagementScreen}
+                options={{
+                    tabBarLabel: 'Materials',
+                    tabBarIcon: ({ color, size }) => <FolderOpen size={size} color={color} />,
                 }}
             />
         </Tab.Navigator>

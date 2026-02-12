@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  FileText, Plus, Search, Filter, Loader2, 
+import {
+  FileText, Plus, Search, Filter, Loader2,
   Video, FileDown, ExternalLink, MoreVertical,
   Trash2, Edit2, CheckCircle2, XCircle, Clock
 } from 'lucide-react';
@@ -69,6 +69,33 @@ export default function ContentPage() {
     fetchContent();
   }, [typeFilter, search]);
 
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this content?')) return;
+    try {
+      const { error } = await supabase.from('content').delete().eq('id', id);
+      if (error) throw error;
+      setContent(content.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      alert('Error deleting content');
+    }
+  };
+
+  const toggleStatus = async (item: ContentItem) => {
+    try {
+      const { error } = await supabase
+        .from('content')
+        .update({ is_active: !item.is_active })
+        .eq('id', item.id);
+
+      if (error) throw error;
+      setContent(content.map(c => c.id === item.id ? { ...c, is_active: !c.is_active } : c));
+    } catch (error) {
+      console.error('Error toggling status:', error);
+      alert('Error updating status');
+    }
+  };
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'video': return <Video size={20} className="text-rose-500" />;
@@ -86,7 +113,7 @@ export default function ContentPage() {
             <h1 className="text-xl font-bold text-slate-900">Content Management</h1>
             <p className="text-slate-500 text-sm mt-0.5">Manage videos, notes, and materials</p>
           </div>
-          <Link 
+          <Link
             href="/content/add"
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-xl font-medium transition-all shadow-sm shadow-indigo-200"
           >
@@ -139,7 +166,7 @@ export default function ContentPage() {
             <p className="text-slate-500 max-w-sm mx-auto mb-8">
               Start by adding your first educational material to the platform.
             </p>
-            <Link 
+            <Link
               href="/content/add"
               className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold transition-all"
             >
@@ -171,10 +198,16 @@ export default function ContentPage() {
                       {item.title}
                     </h3>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg">
+                      <Link
+                        href={`/content/edit/${item.id}`}
+                        className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg"
+                      >
                         <Edit2 size={16} />
-                      </button>
-                      <button className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg">
+                      </Link>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg"
+                      >
                         <Trash2 size={16} />
                       </button>
                     </div>
@@ -187,11 +220,14 @@ export default function ContentPage() {
                       <Clock size={14} />
                       {new Date(item.created_at).toLocaleDateString()}
                     </div>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                      item.is_active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-100 text-slate-500'
-                    }`}>
+                    <button
+                      onClick={() => toggleStatus(item)}
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase transition-colors ${item.is_active ? 'bg-emerald-50 text-emerald-600 hover:bg-rose-50 hover:text-rose-600' : 'bg-slate-100 text-slate-500 hover:bg-emerald-50 hover:text-emerald-600'
+                        }`}
+                      title={item.is_active ? 'Click to Deactivate' : 'Click to Activate'}
+                    >
                       {item.is_active ? 'Active' : 'Draft'}
-                    </span>
+                    </button>
                   </div>
                 </div>
               </div>

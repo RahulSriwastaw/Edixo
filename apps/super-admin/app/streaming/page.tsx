@@ -62,16 +62,15 @@ export default function StreamingPage() {
     const fetchConfig = async () => {
         setLoading(true);
         try {
-            // In production, fetch from settings table
-            // For now, use default config
-            setConfig({
-                provider: 'agora',
-                rtmp_base_url: 'rtmp://stream.qbank.com/live',
-                max_concurrent_streams: 10,
-                max_viewers_per_stream: 500,
-                enable_recording: true,
-                enable_analytics: true,
-            });
+            const { data, error } = await supabase
+                .from('streaming_config')
+                .select('*')
+                .maybeSingle();
+
+            if (error) throw error;
+            if (data) {
+                setConfig(data);
+            }
         } catch (error) {
             console.error('Error fetching config:', error);
         } finally {
@@ -103,10 +102,17 @@ export default function StreamingPage() {
     const handleSave = async () => {
         setSaving(true);
         try {
-            // In production, save to database
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            const { error } = await supabase
+                .from('streaming_config')
+                .upsert({
+                    ...config,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'id' });
+
+            if (error) throw error;
             alert('Stream configuration saved successfully!');
         } catch (error: any) {
+            console.error('Error saving config:', error);
             alert('Error saving configuration: ' + error.message);
         } finally {
             setSaving(false);
@@ -196,8 +202,8 @@ export default function StreamingPage() {
                                         key={provider.value}
                                         onClick={() => setConfig({ ...config, provider: provider.value as any })}
                                         className={`p-4 rounded-xl border-2 transition-all text-left ${config.provider === provider.value
-                                                ? 'border-primary bg-primary-light'
-                                                : 'border-slate-200 hover:border-slate-300'
+                                            ? 'border-primary bg-primary-light'
+                                            : 'border-slate-200 hover:border-slate-300'
                                             }`}
                                     >
                                         <div className="flex items-center gap-2 mb-1">

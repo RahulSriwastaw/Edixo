@@ -14,7 +14,7 @@ import {
     Clock,
     Play
 } from 'lucide-react-native';
-import { supabase } from '../../config/supabase';
+import { supabase } from '../../lib/supabase';
 import { COLORS } from '../../constants/colors';
 
 interface LiveStream {
@@ -130,14 +130,14 @@ export default function LiveClassesScreen({ navigation }: any) {
 
                 <View style={styles.streamMeta}>
                     <View style={styles.metaItem}>
-                        <Calendar size={14} color={COLORS.textSecondary} />
+                        <Calendar size={14} color={COLORS.textMuted} />
                         <Text style={styles.metaText}>
                             {new Date(item.status === 'live' ? item.started_at! : item.scheduled_at)
                                 .toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                         </Text>
                     </View>
                     <View style={styles.metaItem}>
-                        <Clock size={14} color={COLORS.textSecondary} />
+                        <Clock size={14} color={COLORS.textMuted} />
                         <Text style={styles.metaText}>
                             {new Date(item.status === 'live' ? item.started_at! : item.scheduled_at)
                                 .toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -198,7 +198,7 @@ export default function LiveClassesScreen({ navigation }: any) {
                 contentContainerStyle={styles.listContent}
                 ListEmptyComponent={
                     <View style={styles.emptyState}>
-                        <Radio size={48} color={COLORS.textSecondary} />
+                        <Radio size={48} color={COLORS.textMuted} />
                         <Text style={styles.emptyTitle}>
                             {activeTab === 'live' ? 'No Live Classes' : 'No Scheduled Classes'}
                         </Text>
@@ -232,7 +232,7 @@ const styles = StyleSheet.create({
     },
     headerSubtitle: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: COLORS.textMuted,
         marginTop: 4,
     },
     tabs: {
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
     tabText: {
         fontSize: 14,
         fontWeight: '600',
-        color: COLORS.textSecondary,
+        color: COLORS.textMuted,
     },
     activeTabText: {
         color: COLORS.primary,
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     },
     metaText: {
         fontSize: 12,
-        color: COLORS.textSecondary,
+        color: COLORS.textMuted,
     },
     joinButton: {
         flexDirection: 'row',
@@ -386,7 +386,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 14,
-        color: COLORS.textSecondary,
+        color: COLORS.textMuted,
         textAlign: 'center',
     },
 });

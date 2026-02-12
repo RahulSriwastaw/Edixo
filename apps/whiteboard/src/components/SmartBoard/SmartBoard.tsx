@@ -5,10 +5,9 @@ import { useBoardStore } from './store';
 import { useDraggable } from './useDraggable';
 import { useResizable } from './useResizable';
 import { Question } from '../../types';
-import { Clock, Presentation, Maximize, CheckCircle, ArrowLeft, Upload, Loader2, Eye, EyeOff, BookOpen, X, Hourglass, Settings, Play, Pause, RotateCcw, ChevronUp, ChevronDown } from 'lucide-react';
-import { jsPDF } from 'jspdf';
+import { Clock, Presentation, Maximize, CheckCircle, ArrowLeft, BookOpen, X, Hourglass, Settings, Play, Pause, ChevronUp, ChevronDown } from 'lucide-react';
 import html2canvas from 'html2canvas';
-import { storageService } from '../../services/storageService';
+
 import { ClassNotesModal } from './ClassNotesModal';
 import { CalculatorPanel } from './CalculatorPanel';
 import { useLiveSession } from '../../hooks/useLiveSession';
@@ -19,6 +18,7 @@ interface SmartBoardProps {
     setName?: string;
     setId?: string;
     onExit: () => void;
+    broadcastMode?: boolean;
 }
 
 
@@ -31,7 +31,8 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
     initialIdx = 0,
     setName = 'Live Session',
     setId,
-    onExit
+    onExit,
+    broadcastMode = false
 }) => {
     // Initialize slides: Map each question to a 'question' slide initially
     const [slides, setSlides] = useState<Slide[]>(() =>
@@ -43,7 +44,6 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
     const [showAns, setShowAns] = useState(false);
     const [showSolution, setShowSolution] = useState(false);
     const [langMode, setLangMode] = useState<'both' | 'eng' | 'hin'>('both');
-    const [isUploading, setIsUploading] = useState(false);
 
     // Countdown Timer State
     const [solveTimer, setSolveTimer] = useState<number | null>(null);
@@ -54,12 +54,12 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
     const [showClassNotes, setShowClassNotes] = useState(false);
     const [isHeaderVisible, setIsHeaderVisible] = useState(true);
     // showCalculator replaced by store.activePanel === 'calculator'
-    
+
     const sessionId = setId || 'demo-session';
-    const { broadcastStroke, broadcastClear, broadcastUpdate } = useLiveSession(sessionId, true);
+    const { broadcastStroke, broadcastClear, broadcastUpdate, broadcastSlideChange, broadcastSessionConfig } = useLiveSession(sessionId, true);
 
     const {
-        setStrokes, strokes, clear,
+        strokes,
         questionStyle, setQuestionStyle,
         boardBackgroundColor, boardBackgroundImage, boardOpacity, tool,
         saveSlideStrokes, loadSlideStrokes, saveSlideImage,
@@ -91,7 +91,7 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
         (pos) => setQuestionStyle({ position: pos })
     );
 
-    const { size, isResizing, resizeHandlers, initResize } = useResizable(
+    const { size, resizeHandlers, initResize } = useResizable(
         questionStyle.dimensions,
         (newSize) => setQuestionStyle({ dimensions: newSize })
     );
@@ -151,6 +151,8 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
     // Initial Load
     useEffect(() => {
         loadSlideStrokes(initialIdx);
+        // Broadcast session config on mount to sync students
+        broadcastSessionConfig({ setId, setName });
     }, []);
 
     // Toggle Solution Slide Logic
@@ -232,6 +234,7 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
             saveSlideStrokes(currentIdx, strokes);
             const nextIdx = currentIdx + 1;
             setCurrentIdx(nextIdx);
+            broadcastSlideChange(nextIdx);
             loadSlideStrokes(nextIdx);
             // Reset local view states for new slide
             setShowAns(false);
@@ -245,6 +248,7 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
             saveSlideStrokes(currentIdx, strokes);
             const prevIdx = currentIdx - 1;
             setCurrentIdx(prevIdx);
+            broadcastSlideChange(prevIdx);
             loadSlideStrokes(prevIdx);
             setShowAns(false);
             setShowSolution(false);
@@ -275,11 +279,12 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
             />
 
             {/* Top Bar */}
-            <header className={`smartboard-ui absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-6 z-50 bg-[#0A0C10]/90 backdrop-blur-md border-b border-white/5 transition-transform duration-300 ease-in-out ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}`}>
+            <header className={`smartboard-ui absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-6 z-50 bg-[#0A0C10]/90 backdrop-blur-md border-b border-white/5 transition-all duration-300 ease-in-out ${isHeaderVisible && !broadcastMode ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}`}>
                 {/* Fold Toggle Tab */}
                 <div
                     onClick={() => setIsHeaderVisible(!isHeaderVisible)}
                     className="absolute -bottom-5 left-1/2 -translate-x-1/2 w-16 h-5 bg-[#0A0C10]/90 backdrop-blur-md rounded-b-lg border-b border-x border-white/10 flex items-center justify-center cursor-pointer hover:bg-white/10 transition-colors z-50 shadow-sm group"
+                    style={{ display: broadcastMode ? 'none' : 'flex' }}
                     title={isHeaderVisible ? "Fold Menu (Hide)" : "Unfold Menu (Show)"}
                 >
                     {isHeaderVisible ? (
@@ -628,14 +633,14 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
                                     <h1
                                         className="drop-shadow-lg"
                                         style={{ fontSize: '1.5em', color: 'inherit', fontWeight: 'inherit', lineHeight: questionStyle.lineHeight }}
-                                        dangerouslySetInnerHTML={{ __html: currentQuestion.question_eng }}
+                                        dangerouslySetInnerHTML={{ __html: currentQuestion.question_eng || '' }}
                                     />
                                 )}
                                 {(langMode === 'both' || langMode === 'hin') && (
                                     <h2
                                         className="drop-shadow-md mt-2"
                                         style={{ fontSize: '1.25em', color: 'inherit', opacity: 0.9, fontFamily: 'inherit', fontWeight: 'inherit', lineHeight: questionStyle.lineHeight }}
-                                        dangerouslySetInnerHTML={{ __html: currentQuestion.question_hin }}
+                                        dangerouslySetInnerHTML={{ __html: currentQuestion.question_hin || '' }}
                                     />
                                 )}
                             </div>
@@ -674,10 +679,10 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
                                                 </div>
                                                 <div className="space-y-0.5 min-w-0 flex-1">
                                                     {(langMode === 'both' || langMode === 'eng') && (
-                                                        <div className={`font-medium ${show ? 'text-emerald-100' : 'text-inherit'}`} style={{ fontSize: '0.9em', lineHeight: questionStyle.lineHeight }} dangerouslySetInnerHTML={{ __html: opt.e }} />
+                                                        <div className={`font-medium ${show ? 'text-emerald-100' : 'text-inherit'}`} style={{ fontSize: '0.9em', lineHeight: questionStyle.lineHeight }} dangerouslySetInnerHTML={{ __html: opt.e || '' }} />
                                                     )}
                                                     {(langMode === 'both' || langMode === 'hin') && (
-                                                        <div className={`${show ? 'text-emerald-200/70' : 'text-inherit opacity-70'}`} style={{ fontSize: '0.8em', lineHeight: questionStyle.lineHeight }} dangerouslySetInnerHTML={{ __html: opt.h }} />
+                                                        <div className={`${show ? 'text-emerald-200/70' : 'text-inherit opacity-70'}`} style={{ fontSize: '0.8em', lineHeight: questionStyle.lineHeight }} dangerouslySetInnerHTML={{ __html: opt.h || '' }} />
                                                     )}
                                                 </div>
                                             </div>
@@ -773,7 +778,7 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
             < BoardCanvas width={window.innerWidth} height={window.innerHeight} onStrokeAdd={broadcastStroke} onStrokeUpdate={broadcastUpdate} />
 
             {/* Toolbar - Movable */}
-            < div className="smartboard-ui fixed z-40" style={{ transform: `translate(${toolbarPos.x}px, ${toolbarPos.y}px)`, left: 0, top: 0 }}>
+            < div className={`smartboard-ui fixed z-40 transition-opacity duration-300 ${broadcastMode ? 'hover:opacity-100 opacity-20' : 'opacity-100'}`} style={{ transform: `translate(${toolbarPos.x}px, ${toolbarPos.y}px)`, left: 0, top: 0 }}>
                 <BoardToolbar
                     currentSlide={currentIdx}
                     totalSlides={questions.length || 1}
@@ -783,6 +788,7 @@ export const SmartBoard: React.FC<SmartBoardProps> = ({
                     onToggleExplanation={toggleSolutionSlide}
                     hasExplanationSlide={hasNextSlideSolution}
                     onClear={broadcastClear}
+                    broadcastMode={broadcastMode}
                 />
             </div >
 
