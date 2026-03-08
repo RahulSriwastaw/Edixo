@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -159,7 +161,8 @@ const mockComments: Comment[] = [
 ];
 
 export default function CommentsPage() {
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+    const { isOpen } = useSidebarStore();
+const [comments, setComments] = useState<Comment[]>(mockComments);
   const [statusFilter, setStatusFilter] = useState("pending");
   const [searchQuery, setSearchQuery] = useState("");
   const [replyDialog, setReplyDialog] = useState<Comment | null>(null);
@@ -285,7 +288,7 @@ export default function CommentsPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in">

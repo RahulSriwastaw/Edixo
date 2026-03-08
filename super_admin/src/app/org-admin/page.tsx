@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -123,7 +125,8 @@ const getStatusStyle = (status: string) => {
 };
 
 export default function OrgAdminDashboard() {
-  const router = useRouter();
+    const { isOpen } = useSidebarStore();
+const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [selectedOrg, setSelectedOrg] = useLocalStorage<SelectedOrg | null>("selectedOrg", null);
   const [showOrgSelector, setShowOrgSelector] = useState(false);
@@ -183,7 +186,7 @@ export default function OrgAdminDashboard() {
     <OrgSidebarProvider>
       <div className="min-h-screen bg-neutral-bg">
         <OrgAdminSidebar />
-        <div className="lg:ml-60 flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "lg:ml-60" : "ml-0")}>
           <OrgAdminTopBar />
           
           {/* Org Context Banner */}

@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
 
 import { useState } from "react";
@@ -95,7 +96,8 @@ const getIconColor = (color: string) => {
 };
 
 export default function AttendancePage() {
-  const [activeTab, setActiveTab] = useState("today");
+    const { isOpen } = useSidebarStore();
+const [activeTab, setActiveTab] = useState("today");
   const [attendance, setAttendance] = useState<Record<string, string>>({});
 
   const handleMarkAttendance = (studentId: string, status: string) => {
@@ -117,7 +119,7 @@ export default function AttendancePage() {
     <OrgSidebarProvider>
       <div className="min-h-screen bg-neutral-bg">
         <OrgAdminSidebar />
-        <div className="lg:ml-60 flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "lg:ml-60" : "ml-0")}>
           <OrgAdminTopBar />
           <OrgContextBanner>
             <main className="flex-1 p-4 lg:p-6">

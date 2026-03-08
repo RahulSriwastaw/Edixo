@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
 
 import { useState } from "react";
@@ -86,7 +87,8 @@ const templates = [
 ];
 
 export default function NotificationsPage() {
-  const [title, setTitle] = useState("");
+    const { isOpen } = useSidebarStore();
+const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [showPreview, setShowPreview] = useState(false);
 
@@ -104,7 +106,7 @@ export default function NotificationsPage() {
     <OrgSidebarProvider>
       <div className="min-h-screen bg-neutral-bg">
         <OrgAdminSidebar />
-        <div className="lg:ml-60 flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "lg:ml-60" : "ml-0")}>
           <OrgAdminTopBar />
           <OrgContextBanner>
             <main className="flex-1 p-4 lg:p-6">

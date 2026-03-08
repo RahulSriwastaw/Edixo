@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState } from "react";
@@ -134,7 +136,8 @@ const mockTaxonomy: Subject[] = [
 ];
 
 export default function TaxonomyPage() {
-  const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
+    const { isOpen } = useSidebarStore();
+const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
   const [search, setSearch] = useState("");
   const [addDialog, setAddDialog] = useState<{ type: "subject" | "chapter" | "topic"; parentId?: string; parentName?: string } | null>(null);
   const [newItemName, setNewItemName] = useState("");
@@ -160,7 +163,7 @@ export default function TaxonomyPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto space-y-6">

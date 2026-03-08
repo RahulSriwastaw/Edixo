@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -164,7 +165,8 @@ const typeLabels: Record<string, string> = {
 };
 
 export default function PDFExtractDetailPage() {
-  const params = useParams();
+    const { isOpen } = useSidebarStore();
+const params = useParams();
   const docId = params.docId as string;
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -291,7 +293,7 @@ export default function PDFExtractDetailPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">

@@ -226,10 +226,10 @@ export function Sidebar() {
         {/* Floating Toggle Button */}
         <button
           onClick={toggle}
-          className="absolute top-4 -right-10 w-10 h-10 bg-brand-dark flex items-center justify-center text-white/70 hover:text-white rounded-r-md border border-l-0 border-white/10 shadow-sm transition-colors focus:outline-none"
+          className="absolute top-1/2 -translate-y-1/2 -right-5 w-5 h-16 bg-brand-dark flex items-center justify-center text-white/50 hover:text-white rounded-r-xl border border-l-0 border-white/10 shadow-md transition-colors focus:outline-none"
           title={isOpen ? "Hide Sidebar" : "Show Sidebar"}
         >
-          <ChevronRight className={cn("w-5 h-5 transition-transform duration-300", isOpen ? "rotate-180" : "")} />
+          <ChevronRight className={cn("w-4 h-4 transition-transform duration-300", isOpen ? "rotate-180" : "")} />
         </button>
 
         {/* Logo Block */}

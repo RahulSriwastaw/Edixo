@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect, use, useRef } from "react";
@@ -174,7 +176,8 @@ function RichTextToolbar({
   );
 }
 
-export default function EditQuestionPage({ params }: { params: Promise<{ id: string }> }) {
+export default function EditQuestionPage({   const { isOpen } = useSidebarStore();
+params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);
@@ -427,7 +430,7 @@ export default function EditQuestionPage({ params }: { params: Promise<{ id: str
     return (
       <div className="min-h-screen bg-neutral-bg">
         <Sidebar />
-        <div className="ml-60 flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 p-6 flex items-center justify-center">
             <div className="text-center">

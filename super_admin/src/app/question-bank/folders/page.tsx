@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -49,7 +51,8 @@ interface QBankFolder {
 }
 
 export default function FoldersPage() {
-    const [folders, setFolders] = useState<QBankFolder[]>([]);
+      const { isOpen } = useSidebarStore();
+const [folders, setFolders] = useState<QBankFolder[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [addDialog, setAddDialog] = useState<{ parentId?: string; parentName?: string } | null>(null);
@@ -216,7 +219,7 @@ export default function FoldersPage() {
     return (
         <div className="min-h-screen bg-slate-50">
             <Sidebar />
-            <div className="ml-60 flex flex-col min-h-screen">
+            <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
                 <TopBar />
                 <main className="flex-1 p-6">
                     <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">

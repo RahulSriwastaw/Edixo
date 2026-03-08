@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState } from "react";
@@ -32,7 +34,8 @@ import { TopBar } from "@/components/admin/TopBar";
 import { toast } from "sonner";
 
 export default function SettingsPage() {
-  const [platformName, setPlatformName] = useState("EduHub");
+    const { isOpen } = useSidebarStore();
+const [platformName, setPlatformName] = useState("EduHub");
   const [platformUrl, setPlatformUrl] = useState("https://eduhub.in");
   const [supportEmail, setSupportEmail] = useState("support@eduhub.in");
   const [defaultCurrency, setDefaultCurrency] = useState("INR");
@@ -56,7 +59,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[900px] mx-auto space-y-6 animate-fade-in">

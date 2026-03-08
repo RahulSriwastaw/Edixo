@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -97,7 +99,8 @@ const getActivityIcon = (type: string) => {
 };
 
 export default function OrgMockBookPage() {
-  const params = useParams();
+    const { isOpen } = useSidebarStore();
+const params = useParams();
   const router = useRouter();
   const orgId = params.orgId as string;
   
@@ -151,7 +154,7 @@ export default function OrgMockBookPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <MockBookOrgBanner
           org={selectedOrg}

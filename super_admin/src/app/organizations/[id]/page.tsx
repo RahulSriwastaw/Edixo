@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -124,7 +126,8 @@ function AppTypeBadge({ type }: { type: string }) {
 }
 
 export default function OrganizationDetailPage() {
-  const params = useParams();
+    const { isOpen } = useSidebarStore();
+const params = useParams();
   const router = useRouter();
   const orgId = params.id as string;
   const [loading, setLoading] = useState(true);
@@ -253,7 +256,7 @@ export default function OrganizationDetailPage() {
     return (
       <div className="min-h-screen bg-neutral-bg">
         <Sidebar />
-        <div className="ml-60 flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 flex items-center justify-center">
             <div className="flex flex-col items-center gap-2">

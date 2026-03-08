@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import Link from "next/link";
@@ -81,7 +83,8 @@ function getToken(): string {
 }
 
 export default function QuestionBankPage() {
-  const [stats, setStats] = useState<any[]>([
+    const { isOpen } = useSidebarStore();
+const [stats, setStats] = useState<any[]>([
     { label: "Total Questions", value: 0, change: "+0 this month", icon: BookOpen, color: "orange" },
     { label: "Public Questions", value: 0, change: "+0 this month", icon: Globe, color: "blue" },
     { label: "Sets Created", value: 0, change: "+0 this month", icon: Layers, color: "purple" },
@@ -122,7 +125,7 @@ export default function QuestionBankPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">

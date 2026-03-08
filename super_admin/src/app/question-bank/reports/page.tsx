@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -69,7 +71,8 @@ function getToken(): string {
 }
 
 export default function ReportsPage() {
-    const [reports, setReports] = useState<QuestionReport[]>([]);
+      const { isOpen } = useSidebarStore();
+const [reports, setReports] = useState<QuestionReport[]>([]);
     const [loading, setLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState("all");
 
@@ -142,7 +145,7 @@ export default function ReportsPage() {
     return (
         <div className="min-h-screen bg-neutral-bg">
             <Sidebar />
-            <div className="ml-60 flex flex-col min-h-screen">
+            <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
                 <TopBar />
                 <main className="flex-1 p-6">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">

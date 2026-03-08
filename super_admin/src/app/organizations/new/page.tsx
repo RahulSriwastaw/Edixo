@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
 
 import { useState } from "react";
@@ -107,7 +108,8 @@ const appTypes = [
 ];
 
 export default function NewOrganizationPage() {
-  const router = useRouter();
+    const { isOpen } = useSidebarStore();
+const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -202,7 +204,7 @@ export default function NewOrganizationPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1000px] mx-auto space-y-6 animate-fade-in">

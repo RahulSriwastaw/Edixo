@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState } from "react";
@@ -246,7 +248,8 @@ const roleColors: Record<string, string> = {
 };
 
 export default function AuditLogPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+    const { isOpen } = useSidebarStore();
+const [searchQuery, setSearchQuery] = useState("");
   const [actorFilter, setActorFilter] = useState("all");
   const [actionTypeFilter, setActionTypeFilter] = useState("all");
 
@@ -277,7 +280,7 @@ export default function AuditLogPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">

@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
 
 import { useState } from "react";
@@ -33,7 +34,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 export default function CreateMockTestFromSetsPage() {
-  const router = useRouter();
+    const { isOpen } = useSidebarStore();
+const router = useRouter();
   const {
     name,
     category,
@@ -117,7 +119,7 @@ export default function CreateMockTestFromSetsPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">

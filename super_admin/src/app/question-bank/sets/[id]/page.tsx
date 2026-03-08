@@ -1,3 +1,4 @@
+import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -96,7 +97,8 @@ function VisibilityBadge({ visibility }: { visibility: string }) {
 }
 
 export default function SetDetailPage() {
-  const params = useParams();
+    const { isOpen } = useSidebarStore();
+const params = useParams();
   const router = useRouter();
   const setId = params.id as string;
 
@@ -144,7 +146,7 @@ export default function SetDetailPage() {
     return (
       <div className="min-h-screen bg-neutral-bg">
         <Sidebar />
-        <div className="ml-60 flex flex-col min-h-screen">
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 p-6 flex items-center justify-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F4511E]"></div>

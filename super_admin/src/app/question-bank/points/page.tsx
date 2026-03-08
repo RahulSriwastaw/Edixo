@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState, useEffect } from "react";
@@ -68,7 +70,8 @@ const typeIcons: Record<string, { icon: React.ReactNode; color: string }> = {
 };
 
 export default function PointsLedgerPage() {
-  const [search, setSearch] = useState("");
+    const { isOpen } = useSidebarStore();
+const [search, setSearch] = useState("");
   const [orgFilter, setOrgFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [addPointsDialog, setAddPointsDialog] = useState(false);
@@ -122,7 +125,7 @@ export default function PointsLedgerPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-6">

@@ -1,3 +1,5 @@
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/lib/utils";
 "use client";
 
 import { useState } from "react";
@@ -310,7 +312,8 @@ function PreviewDialog({ question, open, onClose }: { question: GeneratedQuestio
 }
 
 export default function QuestionGenerationPage() {
-  const [questionType, setQuestionType] = useState("MCQ");
+    const { isOpen } = useSidebarStore();
+const [questionType, setQuestionType] = useState("MCQ");
   const [questionCount, setQuestionCount] = useState("10");
   const [language, setLanguage] = useState("English");
   const [bilingual, setBilingual] = useState(false);
@@ -385,7 +388,7 @@ export default function QuestionGenerationPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-5xl mx-auto space-y-6 animate-fade-in">
