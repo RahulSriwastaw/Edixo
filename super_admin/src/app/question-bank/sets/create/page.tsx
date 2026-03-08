@@ -1,5 +1,5 @@
-import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
+import { useSidebarStore } from "@/store/sidebarStore";
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";

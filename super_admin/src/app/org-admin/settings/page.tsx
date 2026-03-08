@@ -1,5 +1,5 @@
-import { useSidebarStore } from "@/store/sidebarStore";
 "use client";
+import { useSidebarStore } from "@/store/sidebarStore";
 
 import { useState } from "react";
 import Link from "next/link";

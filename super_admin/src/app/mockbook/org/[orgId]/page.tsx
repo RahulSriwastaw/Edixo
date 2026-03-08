@@ -1,6 +1,6 @@
+"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
-"use client";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";

@@ -1,6 +1,6 @@
+"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
-"use client";
 
 import { useState, useRef } from "react";
 import Link from "next/link";
