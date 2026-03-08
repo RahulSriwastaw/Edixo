@@ -62,11 +62,11 @@ const contentTypes = [
 ];
 
 // Simple Rich Text Editor
-function RichTextEditor({ 
-  value, 
-  onChange 
-}: { 
-  value: string; 
+function RichTextEditor({
+  value,
+  onChange
+}: {
+  value: string;
   onChange: (value: string) => void;
 }) {
   const insertFormat = (tag: string, wrapper = false) => {
@@ -76,7 +76,7 @@ function RichTextEditor({
     const start = textarea.selectionStart;
     const end = textarea.selectionEnd;
     const selectedText = value.substring(start, end);
-    
+
     let newText: string;
     if (wrapper) {
       newText = `<${tag}>${selectedText || 'Text here'}</${tag}>`;
@@ -113,10 +113,12 @@ function RichTextEditor({
   return (
     <div className="border rounded-lg overflow-hidden">
       <div className="flex items-center gap-1 p-2 bg-gray-50 border-b flex-wrap">
-        {toolbarButtons.map((btn, idx) => 
-          btn.divider ? (
-            <div key={idx} className="w-px h-6 bg-gray-200 mx-1" />
-          ) : (
+        {toolbarButtons.map((btn, idx) => {
+          if (btn.divider) {
+            return <div key={idx} className="w-px h-6 bg-gray-200 mx-1" />;
+          }
+          const Icon = btn.icon;
+          return (
             <Button
               key={idx}
               variant="ghost"
@@ -125,10 +127,10 @@ function RichTextEditor({
               onClick={btn.action}
               title={btn.label}
             >
-              <btn.icon className="w-4 h-4" />
+              {Icon && <Icon className="w-4 h-4" />}
             </Button>
-          )
-        )}
+          );
+        })}
         <div className="flex-1" />
         <Button
           variant="ghost"
@@ -173,8 +175,9 @@ function calculateSEOScore(post: any): { score: number; checks: { label: string;
   return { score, checks };
 }
 
-export default function EditBlogPostPage({   const { isOpen } = useSidebarStore();
-params }: { params: Promise<{ id: string }> }) {
+export default function EditBlogPostPage({
+  params }: { params: Promise<{ id: string }> }) {
+  const { isOpen } = useSidebarStore();
   const { id } = use(params);
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -369,7 +372,7 @@ params }: { params: Promise<{ id: string }> }) {
     setSaving(true);
     try {
       const contentText = post.content.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      
+
       const res = await fetch(`/api/blog/posts/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
@@ -401,7 +404,7 @@ params }: { params: Promise<{ id: string }> }) {
   // Delete post
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this post?')) return;
-    
+
     try {
       const res = await fetch(`/api/blog/posts/${id}`, { method: 'DELETE' });
       if (res.ok) {
@@ -727,7 +730,7 @@ params }: { params: Promise<{ id: string }> }) {
                       </div>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
-                      <div 
+                      <div
                         className={`h-2 rounded-full ${seoAnalysis.score >= 80 ? 'bg-green-500' : seoAnalysis.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
                         style={{ width: `${seoAnalysis.score}%` }}
                       />

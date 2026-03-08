@@ -176,8 +176,9 @@ function RichTextToolbar({
   );
 }
 
-export default function EditQuestionPage({   const { isOpen } = useSidebarStore();
-params }: { params: Promise<{ id: string }> }) {
+export default function EditQuestionPage({
+  params }: { params: Promise<{ id: string }> }) {
+  const { isOpen } = useSidebarStore();
   const resolvedParams = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(true);

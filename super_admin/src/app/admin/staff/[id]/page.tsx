@@ -103,8 +103,9 @@ const roleConfig: Record<string, { label: string; icon: typeof Shield; color: st
   analytics_viewer: { label: "Analytics Viewer", icon: BarChart3, color: "bg-amber-100 text-amber-700", description: "View reports only" },
 };
 
-export default function StaffProfilePage({   const { isOpen } = useSidebarStore();
-params }: { params: { id: string } }) {
+export default function StaffProfilePage({
+  params }: { params: { id: string } }) {
+  const { isOpen } = useSidebarStore();
   const router = useRouter();
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [showSuspend, setShowSuspend] = useState(false);
