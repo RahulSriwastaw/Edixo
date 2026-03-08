@@ -213,13 +213,25 @@ import { useSidebarStore } from "@/store/sidebarStore";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isOpen } = useSidebarStore();
-
-  if (!isOpen) return null;
+  const { isOpen, toggle } = useSidebarStore();
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside className="fixed left-0 top-0 h-screen bg-brand-dark flex flex-col z-50 w-60 transition-all duration-300">
+      <aside
+        className={cn(
+          "fixed left-0 top-0 h-screen bg-brand-dark flex flex-col z-50 w-60 transition-transform duration-300 ease-in-out",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {/* Floating Toggle Button */}
+        <button
+          onClick={toggle}
+          className="absolute top-4 -right-10 w-10 h-10 bg-brand-dark flex items-center justify-center text-white/70 hover:text-white rounded-r-md border border-l-0 border-white/10 shadow-sm transition-colors focus:outline-none"
+          title={isOpen ? "Hide Sidebar" : "Show Sidebar"}
+        >
+          <ChevronRight className={cn("w-5 h-5 transition-transform duration-300", isOpen ? "rotate-180" : "")} />
+        </button>
+
         {/* Logo Block */}
         <div className="h-[72px] flex items-center px-4 border-b border-white/10 shrink-0">
           <div className="flex items-center gap-3">
