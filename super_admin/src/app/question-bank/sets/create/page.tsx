@@ -149,6 +149,7 @@ export default function CreateSetPage() {
   const [page, setPage] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [isFetchingQuestions, setIsFetchingQuestions] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const addFilter = () => {
     setFilters([...filters, { id: Math.random().toString(36).substr(2, 9), field: "subjectName", operator: "equals", value: "" }]);
@@ -352,12 +353,21 @@ export default function CreateSetPage() {
 
   return (
     <div className="min-h-screen bg-neutral-bg">
-      <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      {isSidebarOpen && <Sidebar />}
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isSidebarOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 overflow-hidden flex flex-col">
           <div className="p-4 border-b bg-white flex justify-between items-center z-10">
             <div className="flex items-center gap-2 text-sm text-gray-500">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                className="h-8 w-8 text-gray-500 hover:text-gray-900 focus:outline-none"
+                title={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+              >
+                <Layers className="h-5 w-5" />
+              </Button>
               <Link href="/question-bank/sets" className="hover:text-[#F4511E]">Question Sets</Link>
               <ChevronRight className="w-4 h-4" />
               <span className="text-gray-900 font-medium">Create New Set (Split View)</span>
