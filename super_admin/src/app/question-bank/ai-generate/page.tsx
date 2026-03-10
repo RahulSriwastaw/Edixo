@@ -142,13 +142,12 @@ function QuestionItem({
       </div>
 
       {/* Content Card */}
-      <div className={`flex-1 mb-4 rounded-2xl border-2 transition-all ${
-        question.selected ? "border-[#F4511E]/30 bg-white shadow-lg" : "border-gray-200 bg-gray-50"
-      }`}>
+      <div className={`flex-1 mb-4 rounded-2xl border-2 transition-all ${question.selected ? "border-[#F4511E]/30 bg-white shadow-lg" : "border-gray-200 bg-gray-50"
+        }`}>
         {/* Header */}
         <div className="flex items-center justify-between p-4 cursor-pointer" onClick={() => setIsOpen(!isOpen)}>
           <div className="flex items-center gap-3">
-            <Checkbox checked={question.selected} onCheckedChange={(e) => { e.stopPropagation(); onToggleSelect(); }} className="data-[state=checked]:bg-[#F4511E] data-[state=checked]:border-[#F4511E]" />
+            <Checkbox checked={question.selected} onCheckedChange={(c) => onToggleSelect()} className="data-[state=checked]:bg-[#F4511E] data-[state=checked]:border-[#F4511E]" />
             <div className={`px-3 py-1 rounded-full text-xs font-semibold ${typeColor.light} ${typeColor.text}`}>{question.type}</div>
             <div className={`px-3 py-1 rounded-full text-xs font-semibold ${diffColor.light} ${diffColor.text}`}>{question.difficulty}</div>
           </div>
@@ -312,8 +311,8 @@ function PreviewDialog({ question, open, onClose }: { question: GeneratedQuestio
 }
 
 export default function QuestionGenerationPage() {
-    const { isOpen } = useSidebarStore();
-const [questionType, setQuestionType] = useState("MCQ");
+  const { isOpen } = useSidebarStore();
+  const [questionType, setQuestionType] = useState("MCQ");
   const [questionCount, setQuestionCount] = useState("10");
   const [language, setLanguage] = useState("English");
   const [bilingual, setBilingual] = useState(false);

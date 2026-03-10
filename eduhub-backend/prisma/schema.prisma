@@ -221,6 +221,10 @@ model QBankFolder {
   id                 String        @id @default(uuid())
   orgId              String?
   name               String
+  slug               String?       // lowercase-hyphen URL slug
+  description        String?
+  icon               String?       // emoji or icon name
+  color              String?       // hex color
   parentId           String?
   path               String
   depth              Int           @default(0)
@@ -235,9 +239,12 @@ model QBankFolder {
   parent             QBankFolder?  @relation("FolderTree", fields: [parentId], references: [id])
   children           QBankFolder[] @relation("FolderTree")
   questions          Question[]
+  sets               QuestionSet[]
 
+  @@unique([parentId, name, orgId])
   @@index([path])
   @@index([orgId])
+  @@index([orgId, isActive])
   @@map("qbank_folders")
 }
 
@@ -333,6 +340,8 @@ model QuestionSet {
   durationMins   Int?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
+  folderId       String?
+  folder         QBankFolder?      @relation(fields: [folderId], references: [id])
   testSections   MockTestSection[]
   items          QuestionSetItem[]
   org            Organization      @relation(fields: [orgId], references: [id])

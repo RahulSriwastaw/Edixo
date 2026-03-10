@@ -108,8 +108,8 @@ const appTypes = [
 ];
 
 export default function NewOrganizationPage() {
-    const { isOpen } = useSidebarStore();
-const router = useRouter();
+  const { isOpen } = useSidebarStore();
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
@@ -156,12 +156,44 @@ const router = useRouter();
   };
 
   const handleSubmit = async () => {
-    setIsSubmitting(true);
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setGeneratedOrgId(`GK-ORG-${String(Math.floor(Math.random() * 90000) + 10000)}`);
-    setIsSubmitting(false);
-    setIsComplete(true);
+    try {
+      setIsSubmitting(true);
+
+      const payload = {
+        name: formData.orgName,
+        email: formData.email,
+        mobile: formData.phone,
+        plan: formData.plan.toUpperCase(),
+        billingCycle: formData.billingCycle.toUpperCase(),
+        adminEmail: formData.adminEmail,
+        adminPassword: formData.adminPassword,
+        trialDays: 30,
+      };
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/super-admin/organizations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || 'Failed to create organization');
+      }
+
+      setGeneratedOrgId(result.data.orgId);
+      setIsComplete(true);
+      toast.success("Organization created successfully");
+    } catch (error: any) {
+      console.error('Create Org Error:', error);
+      toast.error(error.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleCopyId = () => {
@@ -241,8 +273,8 @@ const router = useRouter();
                               status === "completed"
                                 ? "bg-green-500 text-white"
                                 : status === "active"
-                                ? "bg-brand-primary text-white"
-                                : "bg-gray-100 text-gray-400"
+                                  ? "bg-brand-primary text-white"
+                                  : "bg-gray-100 text-gray-400"
                             )}
                           >
                             {status === "completed" ? (
@@ -257,8 +289,8 @@ const router = useRouter();
                               status === "active"
                                 ? "text-brand-primary"
                                 : status === "completed"
-                                ? "text-green-600"
-                                : "text-gray-400"
+                                  ? "text-green-600"
+                                  : "text-gray-400"
                             )}
                           >
                             {step.id}. {step.name}

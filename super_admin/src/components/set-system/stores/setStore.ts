@@ -48,6 +48,7 @@ interface SetCreationState {
   visibility: "private" | "org_only" | "public";
   selectedOrgIds: string[];
   expiresAt: Date | null;
+  folderId: string | null;
   createdSet: { id: string; contentId: string; password: string; name: string } | null;
   isLoading: boolean;
 
@@ -65,6 +66,7 @@ interface SetCreationState {
   setSelectedOrgIds: (orgIds: string[]) => void;
   toggleOrg: (orgId: string) => void;
   setExpiresAt: (date: Date | null) => void;
+  setFolderId: (folderId: string | null) => void;
   submit: () => Promise<void>;
   reset: () => void;
 }
@@ -79,6 +81,14 @@ const generatePassword = (): string => {
   return String(Math.floor(100000 + Math.random() * 900000));
 };
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+function getToken(): string {
+  if (typeof document === 'undefined') return '';
+  const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return match ? match[1] : '';
+}
+
 export const useSetCreationStore = create<SetCreationState>((set, get) => ({
   step: 1,
   questions: [],
@@ -91,6 +101,7 @@ export const useSetCreationStore = create<SetCreationState>((set, get) => ({
   expiresAt: null,
   createdSet: null,
   isLoading: false,
+  folderId: null,
 
   setStep: (step) => set({ step }),
   setQuestions: (questions) => set({ questions }),
@@ -113,26 +124,58 @@ export const useSetCreationStore = create<SetCreationState>((set, get) => ({
       : [...state.selectedOrgIds, orgId]
   })),
   setExpiresAt: (expiresAt) => set({ expiresAt }),
+  setFolderId: (folderId) => set({ folderId }),
 
   submit: async () => {
-    set({ isLoading: true });
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
     const state = get();
-    const contentId = generateId();
-    const password = generatePassword();
-    
-    set({
-      createdSet: {
-        id: `set-${contentId}`,
-        contentId: contentId,
-        password: password,
-        name: state.name
-      },
-      step: 3,
-      isLoading: false
-    });
+    if (!state.name || state.questions.length === 0) {
+      return;
+    }
+
+    set({ isLoading: true });
+    try {
+      const token = getToken();
+      // The backend expects questionIds as an array of strings
+      const questionIds = state.questions.map(q => q.id);
+
+      const response = await fetch(`${API_URL}/qbank/sets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          name: state.name,
+          description: state.description,
+          questionIds: questionIds,
+          folderId: state.folderId,
+          // visibility: state.visibility, 
+        })
+      });
+
+      if (response.ok) {
+        const resData = await response.json();
+        const setObj = resData.data;
+
+        set({
+          createdSet: {
+            id: setObj.id,
+            contentId: setObj.setId,
+            password: setObj.pin,
+            name: setObj.name
+          },
+          step: 3,
+          isLoading: false
+        });
+      } else {
+        const errData = await response.json();
+        throw new Error(errData.message || "Failed to create set");
+      }
+    } catch (error: any) {
+      console.error("Set creation error:", error);
+      set({ isLoading: false });
+      throw error;
+    }
   },
 
   reset: () => set({
@@ -145,6 +188,7 @@ export const useSetCreationStore = create<SetCreationState>((set, get) => ({
     visibility: "private",
     selectedOrgIds: [],
     expiresAt: null,
+    folderId: null,
     createdSet: null,
     isLoading: false
   })
@@ -197,6 +241,7 @@ interface MockTestCreationState {
   verifySection: (id: string) => Promise<void>;
   submit: () => Promise<void>;
   reset: () => void;
+  initFromSet: (setData: { id: string; contentId: string; name: string; questionCount: number; password: string }) => void;
 
   // Computed
   getTotalQuestions: () => number;
@@ -205,39 +250,39 @@ interface MockTestCreationState {
 
 // Mock sets data for verification with creator info
 const mockSetsData: Record<string, { id: string; contentId: string; name: string; questionCount: number; difficulty: { easy: number; medium: number; hard: number }; password: string; creator: Creator }> = {
-  "482931": { 
-    id: "set-1", 
+  "482931": {
+    id: "set-1",
     contentId: "482931",
-    name: "Mathematics — Algebra & Calculus", 
-    questionCount: 25, 
-    difficulty: { easy: 8, medium: 12, hard: 5 }, 
+    name: "Mathematics — Algebra & Calculus",
+    questionCount: 25,
+    difficulty: { easy: 8, medium: 12, hard: 5 },
     password: "738291",
     creator: { id: "u1", name: "Rahul Kumar", email: "rahul@apex.edu", role: "Teacher", org: "Apex Academy", setsCreated: 8, memberSince: "Jan 2025" }
   },
-  "591047": { 
-    id: "set-2", 
+  "591047": {
+    id: "set-2",
     contentId: "591047",
-    name: "English Grammar & Comprehension", 
-    questionCount: 25, 
-    difficulty: { easy: 10, medium: 10, hard: 5 }, 
+    name: "English Grammar & Comprehension",
+    questionCount: 25,
+    difficulty: { easy: 10, medium: 10, hard: 5 },
     password: "492018",
     creator: { id: "u2", name: "Priya Singh", email: "priya@apex.edu", role: "Teacher", org: "Apex Academy", setsCreated: 5, memberSince: "Feb 2025" }
   },
-  "673829": { 
-    id: "set-3", 
+  "673829": {
+    id: "set-3",
     contentId: "673829",
-    name: "Reasoning — Verbal & Non-Verbal", 
-    questionCount: 25, 
-    difficulty: { easy: 6, medium: 14, hard: 5 }, 
+    name: "Reasoning — Verbal & Non-Verbal",
+    questionCount: 25,
+    difficulty: { easy: 6, medium: 14, hard: 5 },
     password: "381927",
     creator: { id: "u3", name: "Amit Sharma", email: "amit@apex.edu", role: "Teacher", org: "Apex Academy", setsCreated: 12, memberSince: "Dec 2024" }
   },
-  "784930": { 
-    id: "set-4", 
+  "784930": {
+    id: "set-4",
     contentId: "784930",
-    name: "General Knowledge", 
-    questionCount: 25, 
-    difficulty: { easy: 12, medium: 8, hard: 5 }, 
+    name: "General Knowledge",
+    questionCount: 25,
+    difficulty: { easy: 12, medium: 8, hard: 5 },
     password: "573810",
     creator: { id: "u4", name: "Sunita Devi", email: "sunita@apex.edu", role: "Teacher", org: "Apex Academy", setsCreated: 6, memberSince: "Jan 2025" }
   },
@@ -253,7 +298,6 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
   visibility: "private",
   sections: [
     { id: "section-1", name: "Section 1", setId: "", password: "", verified: false },
-    { id: "section-2", name: "Section 2", setId: "", password: "", verified: false },
   ],
   questionOrder: "section_wise",
   createdMock: null,
@@ -300,7 +344,7 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
     await new Promise(resolve => setTimeout(resolve, 800));
 
     const setData = mockSetsData[section.setId];
-    
+
     if (setData && setData.password === section.password) {
       set((state) => ({
         sections: state.sections.map(s => s.id === id ? {
@@ -331,7 +375,7 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
 
   submit: async () => {
     const state = get();
-    
+
     // Check all sections are verified
     const allVerified = state.sections.every(s => s.verified);
     if (!allVerified || !state.name) {
@@ -382,10 +426,41 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
     visibility: "private",
     sections: [
       { id: "section-1", name: "Section 1", setId: "", password: "", verified: false },
-      { id: "section-2", name: "Section 2", setId: "", password: "", verified: false },
     ],
     questionOrder: "section_wise",
     createdMock: null,
     isLoading: false
-  })
+  }),
+
+  initFromSet: (setData) => {
+    const sectionId = "section-1";
+    set({
+      name: `${setData.name} - MockTest`,
+      sections: [
+        {
+          id: sectionId,
+          name: "Section 1",
+          setId: setData.contentId,
+          password: setData.password,
+          verified: true,
+          setData: {
+            id: setData.id,
+            contentId: setData.contentId,
+            name: setData.name,
+            questionCount: setData.questionCount,
+            difficulty: { easy: 0, medium: setData.questionCount, hard: 0 },
+            creator: {
+              id: "system",
+              name: "System",
+              email: "",
+              role: "System",
+              org: "System",
+              setsCreated: 0,
+              memberSince: ""
+            }
+          }
+        }
+      ]
+    });
+  }
 }));

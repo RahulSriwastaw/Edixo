@@ -48,12 +48,19 @@ function getToken(): string {
   return match ? match[1] : '';
 }
 
+// Strip HTML tags for preview
+function stripHtml(html?: string): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>?/gm, '').replace(/\\[()\\[\]]/g, '').trim();
+}
+
 // Mock linked content
 const linkedMockTests = [
   { id: "MOCK-295018", name: "SSC CGL Full Mock — March 2026", attempts: 48 },
   { id: "MOCK-384729", name: "Railway NTPC Mock Test", attempts: 12 },
   { id: "MOCK-493820", name: "UPSC Prelims Practice", attempts: 0 },
 ];
+
 
 const linkedEBooks = [
   { id: "BOOK-103847", name: "SSC Practice Book", downloads: 23 },
@@ -97,8 +104,8 @@ function VisibilityBadge({ visibility }: { visibility: string }) {
 }
 
 export default function SetDetailPage() {
-    const { isOpen } = useSidebarStore();
-const params = useParams();
+  const { isOpen } = useSidebarStore();
+  const params = useParams();
   const router = useRouter();
   const setId = params.id as string;
 
@@ -125,7 +132,7 @@ const params = useParams();
             ...resData.data,
             questions: resData.data.items?.map((item: any) => ({
               id: item.question.id,
-              text: item.question.textEn || item.question.textHi || 'Untitled',
+              text: stripHtml(item.question.textEn || item.question.textHi || 'Untitled'),
               difficulty: item.question.difficulty?.toLowerCase() || 'medium',
               type: item.question.type === 'MCQ_SINGLE' ? 'mcq' :
                 item.question.type === 'MCQ_MULTIPLE' ? 'multi_select' :

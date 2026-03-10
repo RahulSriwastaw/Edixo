@@ -376,7 +376,7 @@ export default function QuestionBankPage() {
                   </CardContent>
                 </Card>
               </Link>
-              <Link href="/question-bank/folders">
+              <Link href="/question-bank/questions">
                 <Card className="kpi-card cursor-pointer">
                   <CardContent className="p-5 flex items-center gap-4">
                     <div className="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center">

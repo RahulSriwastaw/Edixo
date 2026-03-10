@@ -1,6 +1,199 @@
 import { prisma } from '../src/config/database';
 import bcrypt from 'bcryptjs';
 
+// ─── Global Folder Seed Data ──────────────────────────────────
+const GLOBAL_FOLDERS = [
+    {
+        id: 'global-ssc', name: 'SSC', slug: 'ssc', icon: '📁', color: '#3b82f6',
+        children: [
+            {
+                id: 'global-ssc-cgl', name: 'CGL', slug: 'ssc-cgl',
+                children: [
+                    {
+                        id: 'global-ssc-cgl-2024', name: '2024', slug: 'ssc-cgl-2024',
+                        children: [
+                            {
+                                id: 'global-ssc-cgl-2024-t1', name: 'Tier-1', slug: 'ssc-cgl-2024-t1',
+                                children: [
+                                    { id: 'global-ssc-cgl-2024-t1-quant', name: 'Quantitative Aptitude', slug: 'ssc-cgl-2024-t1-quant', children: [] },
+                                    { id: 'global-ssc-cgl-2024-t1-reasoning', name: 'Reasoning', slug: 'ssc-cgl-2024-t1-reasoning', children: [] },
+                                    { id: 'global-ssc-cgl-2024-t1-english', name: 'English', slug: 'ssc-cgl-2024-t1-english', children: [] },
+                                    { id: 'global-ssc-cgl-2024-t1-ga', name: 'General Awareness', slug: 'ssc-cgl-2024-t1-ga', children: [] },
+                                ]
+                            },
+                            {
+                                id: 'global-ssc-cgl-2024-t2', name: 'Tier-2', slug: 'ssc-cgl-2024-t2',
+                                children: [
+                                    { id: 'global-ssc-cgl-2024-t2-math', name: 'Math', slug: 'ssc-cgl-2024-t2-math', children: [] },
+                                    { id: 'global-ssc-cgl-2024-t2-english', name: 'English', slug: 'ssc-cgl-2024-t2-english', children: [] },
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        id: 'global-ssc-cgl-2023', name: '2023', slug: 'ssc-cgl-2023',
+                        children: [
+                            {
+                                id: 'global-ssc-cgl-2023-t1', name: 'Tier-1', slug: 'ssc-cgl-2023-t1',
+                                children: [
+                                    { id: 'global-ssc-cgl-2023-t1-quant', name: 'Quantitative Aptitude', slug: 'ssc-cgl-2023-t1-quant', children: [] },
+                                    { id: 'global-ssc-cgl-2023-t1-reasoning', name: 'Reasoning', slug: 'ssc-cgl-2023-t1-reasoning', children: [] },
+                                    { id: 'global-ssc-cgl-2023-t1-english', name: 'English', slug: 'ssc-cgl-2023-t1-english', children: [] },
+                                    { id: 'global-ssc-cgl-2023-t1-ga', name: 'General Awareness', slug: 'ssc-cgl-2023-t1-ga', children: [] },
+                                ]
+                            },
+                        ]
+                    },
+                    {
+                        id: 'global-ssc-cgl-2022', name: '2022', slug: 'ssc-cgl-2022',
+                        children: [
+                            {
+                                id: 'global-ssc-cgl-2022-t1', name: 'Tier-1', slug: 'ssc-cgl-2022-t1',
+                                children: [
+                                    { id: 'global-ssc-cgl-2022-t1-quant', name: 'Quantitative Aptitude', slug: 'ssc-cgl-2022-t1-quant', children: [] },
+                                    { id: 'global-ssc-cgl-2022-t1-reasoning', name: 'Reasoning', slug: 'ssc-cgl-2022-t1-reasoning', children: [] },
+                                    { id: 'global-ssc-cgl-2022-t1-english', name: 'English', slug: 'ssc-cgl-2022-t1-english', children: [] },
+                                ]
+                            },
+                        ]
+                    },
+                ]
+            },
+            {
+                id: 'global-ssc-chsl', name: 'CHSL', slug: 'ssc-chsl',
+                children: [
+                    { id: 'global-ssc-chsl-2024', name: '2024', slug: 'ssc-chsl-2024', children: [] },
+                    { id: 'global-ssc-chsl-2023', name: '2023', slug: 'ssc-chsl-2023', children: [] },
+                ]
+            },
+            { id: 'global-ssc-mts', name: 'MTS', slug: 'ssc-mts', children: [] },
+            { id: 'global-ssc-gd', name: 'GD Constable', slug: 'ssc-gd', children: [] },
+            { id: 'global-ssc-cpo', name: 'CPO', slug: 'ssc-cpo', children: [] },
+        ]
+    },
+    {
+        id: 'global-banking', name: 'Banking', slug: 'banking', icon: '🏦', color: '#10b981',
+        children: [
+            {
+                id: 'global-ibps-po', name: 'IBPS PO', slug: 'ibps-po',
+                children: [
+                    { id: 'global-ibps-po-pre', name: 'Prelims', slug: 'ibps-po-pre', children: [] },
+                    { id: 'global-ibps-po-mains', name: 'Mains', slug: 'ibps-po-mains', children: [] },
+                ]
+            },
+            {
+                id: 'global-ibps-clerk', name: 'IBPS Clerk', slug: 'ibps-clerk',
+                children: [
+                    { id: 'global-ibps-clerk-pre', name: 'Prelims', slug: 'ibps-clerk-pre', children: [] },
+                    { id: 'global-ibps-clerk-mains', name: 'Mains', slug: 'ibps-clerk-mains', children: [] },
+                ]
+            },
+            {
+                id: 'global-sbi-po', name: 'SBI PO', slug: 'sbi-po',
+                children: [
+                    { id: 'global-sbi-po-pre', name: 'Prelims', slug: 'sbi-po-pre', children: [] },
+                    { id: 'global-sbi-po-mains', name: 'Mains', slug: 'sbi-po-mains', children: [] },
+                ]
+            },
+            { id: 'global-sbi-clerk', name: 'SBI Clerk', slug: 'sbi-clerk', children: [] },
+            { id: 'global-rbi-grade-b', name: 'RBI Grade B', slug: 'rbi-grade-b', children: [] },
+        ]
+    },
+    {
+        id: 'global-neet', name: 'NEET', slug: 'neet', icon: '🔬', color: '#8b5cf6',
+        children: [
+            {
+                id: 'global-neet-biology', name: 'Biology', slug: 'neet-biology',
+                children: [
+                    { id: 'global-neet-botany', name: 'Botany', slug: 'neet-botany', children: [] },
+                    { id: 'global-neet-zoology', name: 'Zoology', slug: 'neet-zoology', children: [] },
+                ]
+            },
+            {
+                id: 'global-neet-chemistry', name: 'Chemistry', slug: 'neet-chemistry',
+                children: [
+                    { id: 'global-neet-chem-organic', name: 'Organic', slug: 'neet-chem-organic', children: [] },
+                    { id: 'global-neet-chem-inorganic', name: 'Inorganic', slug: 'neet-chem-inorganic', children: [] },
+                    { id: 'global-neet-chem-physical', name: 'Physical', slug: 'neet-chem-physical', children: [] },
+                ]
+            },
+            { id: 'global-neet-physics', name: 'Physics', slug: 'neet-physics', children: [] },
+        ]
+    },
+    {
+        id: 'global-jee', name: 'JEE', slug: 'jee', icon: '⚙️', color: '#f59e0b',
+        children: [
+            {
+                id: 'global-jee-mains', name: 'JEE Mains', slug: 'jee-mains',
+                children: [
+                    { id: 'global-jee-mains-math', name: 'Mathematics', slug: 'jee-mains-math', children: [] },
+                    { id: 'global-jee-mains-physics', name: 'Physics', slug: 'jee-mains-physics', children: [] },
+                    { id: 'global-jee-mains-chemistry', name: 'Chemistry', slug: 'jee-mains-chemistry', children: [] },
+                ]
+            },
+            {
+                id: 'global-jee-advanced', name: 'JEE Advanced', slug: 'jee-advanced',
+                children: [
+                    { id: 'global-jee-adv-math', name: 'Mathematics', slug: 'jee-adv-math', children: [] },
+                    { id: 'global-jee-adv-physics', name: 'Physics', slug: 'jee-adv-physics', children: [] },
+                    { id: 'global-jee-adv-chemistry', name: 'Chemistry', slug: 'jee-adv-chemistry', children: [] },
+                ]
+            },
+        ]
+    },
+    {
+        id: 'global-upsc', name: 'UPSC', slug: 'upsc', icon: '🏛️', color: '#6366f1',
+        children: [
+            { id: 'global-upsc-prelims', name: 'Prelims', slug: 'upsc-prelims', children: [] },
+            { id: 'global-upsc-mains', name: 'Mains', slug: 'upsc-mains', children: [] },
+        ]
+    },
+    {
+        id: 'global-railways', name: 'Railways', slug: 'railways', icon: '🚂', color: '#ef4444',
+        children: [
+            { id: 'global-rrb-ntpc', name: 'RRB NTPC', slug: 'rrb-ntpc', children: [] },
+            { id: 'global-rrb-group-d', name: 'RRB Group D', slug: 'rrb-group-d', children: [] },
+            { id: 'global-rrb-alp', name: 'RRB ALP', slug: 'rrb-alp', children: [] },
+        ]
+    },
+    {
+        id: 'global-state-psc', name: 'State PSC', slug: 'state-psc', icon: '🏢', color: '#14b8a6',
+        children: [
+            { id: 'global-uppsc', name: 'UPPSC', slug: 'uppsc', children: [] },
+            { id: 'global-bpsc', name: 'BPSC', slug: 'bpsc', children: [] },
+            { id: 'global-mpsc', name: 'MPSC', slug: 'mpsc', children: [] },
+            { id: 'global-rpsc', name: 'RPSC', slug: 'rpsc', children: [] },
+        ]
+    },
+];
+
+// ─── Helper: Seed folder recursively ─────────────────────────
+async function seedFolder(folder: any, parentId: string | null, depth: number, parentPath: string) {
+    const path = parentId === null ? '/' : (parentPath === '/' ? `/${parentId}` : `${parentPath}/${parentId}`);
+
+    await prisma.qBankFolder.upsert({
+        where: { id: folder.id },
+        update: { name: folder.name, slug: folder.slug, icon: folder.icon, color: folder.color, depth, path, sortOrder: 0 },
+        create: {
+            id: folder.id,
+            name: folder.name,
+            slug: folder.slug,
+            icon: folder.icon || '📁',
+            color: folder.color,
+            parentId,
+            path,
+            depth,
+            scope: 'GLOBAL',
+            sortOrder: 0,
+            isActive: true,
+        },
+    });
+
+    for (const child of (folder.children || [])) {
+        await seedFolder(child, folder.id, depth + 1, path);
+    }
+}
+
 async function seed() {
     console.log('🌱 Seeding database...');
 
@@ -30,108 +223,13 @@ async function seed() {
 
     console.log('✅ Super Admin created: admin@eduhub.in / SuperAdmin@123');
 
-    // ─── Global Q-Bank Folders (SSC, NEET, JEE, Banking, etc.) ─
-    const globalFolders = [
-        { name: 'SSC', children: ['CGL', 'CHSL', 'CPO', 'MTS'] },
-        { name: 'Banking', children: ['IBPS PO', 'IBPS Clerk', 'SBI PO', 'RBI Grade B'] },
-        { name: 'NEET', children: ['Biology', 'Chemistry', 'Physics'] },
-        { name: 'JEE', children: ['JEE Mains', 'JEE Advanced'] },
-        { name: 'UPSC', children: ['Prelims', 'Mains', 'Optional'] },
-        { name: 'Railways', children: ['RRB NTPC', 'RRB Group D', 'RRB JE'] },
-        { name: 'State PSC', children: ['UPPSC', 'BPSC', 'MPPSC', 'RPSC'] },
-    ];
-
-    for (const folder of globalFolders) {
-        const parent = await prisma.qBankFolder.upsert({
-            where: { id: `global-${folder.name.toLowerCase().replace(/\s/g, '-')}` },
-            update: {},
-            create: {
-                id: `global-${folder.name.toLowerCase().replace(/\s/g, '-')}`,
-                name: folder.name,
-                path: '/',
-                depth: 0,
-                scope: 'GLOBAL',
-            },
-        });
-
-        for (const child of folder.children) {
-            await prisma.qBankFolder.upsert({
-                where: { id: `global-${parent.id}-${child.toLowerCase().replace(/\s/g, '-')}` },
-                update: {},
-                create: {
-                    id: `global-${parent.id}-${child.toLowerCase().replace(/\s/g, '-')}`,
-                    name: child,
-                    parentId: parent.id,
-                    path: `/${parent.id}`,
-                    depth: 1,
-                    scope: 'GLOBAL',
-                },
-            });
-        }
-
-        console.log(`✅ Global folder: ${folder.name} (${folder.children.length} sub-folders)`);
+    // ─── Global Q-Bank Folders ────────────────────────────────
+    console.log('📁 Seeding global folder structure...');
+    for (const folder of GLOBAL_FOLDERS) {
+        await seedFolder(folder, null, 0, '/');
+        console.log(`  ✅ ${folder.icon} ${folder.name}`);
     }
 
-    // ─── Demo Organization ────────────────────────────────────
-    const demoPasswordHash = await bcrypt.hash('DemoOrg@123', 12);
-
-    const demoOrg = await prisma.organization.upsert({
-        where: { orgId: 'GK-ORG-00001' },
-        update: {},
-        create: {
-            orgId: 'GK-ORG-00001',
-            name: 'Demo Coaching Institute',
-            email: 'demo@coaching.in',
-            plan: 'MEDIUM',
-            status: 'ACTIVE',
-            aiCredits: 2000,
-            orgAdminEmail: 'admin@demo-coaching.in',
-            orgAdminPassword: demoPasswordHash,
-        },
-    });
-
-    const demoAdminUser = await prisma.user.upsert({
-        where: { email: 'admin@demo-coaching.in' },
-        update: {},
-        create: {
-            email: 'admin@demo-coaching.in',
-            passwordHash: demoPasswordHash,
-            role: 'ORG_STAFF',
-        },
-    });
-
-    await prisma.orgStaff.upsert({
-        where: { staffId: 'GK-TCH-00001' },
-        update: {},
-        create: {
-            staffId: 'GK-TCH-00001',
-            userId: demoAdminUser.id,
-            orgId: demoOrg.id,
-            name: 'Demo Org Admin',
-            email: 'admin@demo-coaching.in',
-            role: 'ORG_ADMIN',
-        },
-    });
-
-    // Feature flags for demo org
-    await prisma.orgFeatureFlag.createMany({
-        data: [
-            { orgId: demoOrg.id, key: 'ai_question_generation', value: true },
-            { orgId: demoOrg.id, key: 'pdf_extraction', value: true },
-            { orgId: demoOrg.id, key: 'whatsapp_bot', value: false },
-            { orgId: demoOrg.id, key: 'razorpay_integration', value: false },
-        ],
-        skipDuplicates: true,
-    });
-
-    await prisma.orgPersonalizationSettings.upsert({
-        where: { orgId: demoOrg.id },
-        update: {},
-        create: { orgId: demoOrg.id },
-    });
-
-    console.log('✅ Demo org created: GK-ORG-00001');
-    console.log('   Org Admin: admin@demo-coaching.in / DemoOrg@123');
     console.log('\n🎉 Seeding complete!');
 }
 

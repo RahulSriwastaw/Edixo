@@ -2,7 +2,7 @@
 import { useSidebarStore } from "@/store/sidebarStore";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
   ChevronRight,
@@ -38,11 +38,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { IDDisplay } from "@/components/set-system/PINEntry";
 import { VisibilitySelector } from "@/components/set-system/VisibilitySelector";
-import { useSetCreationStore } from "@/components/set-system/stores/setStore";
+import {
+  useSetCreationStore,
+  useMockTestCreationStore
+} from "@/components/set-system/stores/setStore";
+import { QuestionSetExportModal } from "@/components/set-system/QuestionSetExportModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import {
@@ -54,6 +59,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+
+function stripHtml(html?: string): string {
+  if (!html) return "";
+  return html.replace(/<[^>]*>?/gm, '').replace(/\\[()\\[\]]/g, '').trim();
+}
 
 function getToken(): string {
   if (typeof document === 'undefined') return '';
@@ -108,8 +118,8 @@ function TypeBadge({ type }: { type: string }) {
 }
 
 export default function CreateSetPage() {
-    const { isOpen } = useSidebarStore();
-const router = useRouter();
+  const { isOpen } = useSidebarStore();
+  const router = useRouter();
   const {
     step,
     questions,
@@ -133,9 +143,21 @@ const router = useRouter();
     setVisibility,
     toggleOrg,
     setExpiresAt,
+    setFolderId,
     submit,
     reset,
   } = useSetCreationStore();
+
+  const { isOpen: isGlobalSidebarOpen, toggle: globalToggle } = useSidebarStore();
+
+  const searchParams = useSearchParams();
+  const folderIdParam = searchParams.get("folderId");
+
+  useEffect(() => {
+    if (folderIdParam) {
+      setFolderId(folderIdParam);
+    }
+  }, [folderIdParam]);
 
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [showExpiry, setShowExpiry] = useState(false);
@@ -151,7 +173,35 @@ const router = useRouter();
   const [page, setPage] = useState(1);
   const [totalQuestions, setTotalQuestions] = useState(0);
   const [isFetchingQuestions, setIsFetchingQuestions] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  // Multi-select state
+  const [selectedQuestionIds, setSelectedQuestionIds] = useState<Set<string>>(new Set());
+
+  // View mode state
+  const [viewMode, setViewMode] = useState<"list" | "single">("list");
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [prefLang, setPrefLang] = useState<"eng" | "hin">("eng");
+  const [showExportModal, setShowExportModal] = useState(false);
+  const mockTestStore = useMockTestCreationStore();
+
+  const handleCreateMockTest = () => {
+    if (!createdSet) return;
+    mockTestStore.reset();
+    mockTestStore.initFromSet({
+      id: createdSet.id,
+      contentId: createdSet.contentId,
+      name: createdSet.name,
+      questionCount: questions.length,
+      password: createdSet.password
+    });
+    router.push("/mocktests/create-from-sets");
+  };
+
+  const handlePreviewSet = () => {
+    if (createdSet) {
+      router.push(`/question-bank/sets/${createdSet.id}`);
+    }
+  };
 
   const addFilter = () => {
     setFilters([...filters, { id: Math.random().toString(36).substr(2, 9), field: "subjectName", operator: "equals", value: "" }]);
@@ -214,17 +264,19 @@ const router = useRouter();
           const mappedQuestions = (resData.data?.questions || []).map((q: any) => ({
             id: q.id,
             question_eng: q.textEn || q.textHi || 'Untitled',
+            question_hin: q.textHi || '',
             type: mapType(q.type),
             subject: q.folder?.name || 'General',
             difficulty: mapDifficulty(q.difficulty),
-            question_hin: q.textHi || '',
             visibility: q.isGlobal ? 'public' : 'private',
             pointCost: q.pointCost || 5,
             usageCount: q.usageCount || 0,
+            options: q.options || [],
             answer: 'A',
           }));
           setApiQuestions(mappedQuestions);
           setTotalQuestions(resData.data?.total || 0);
+          setCurrentQuestionIndex(0);
         }
       } catch (error) {
         console.error("Error fetching questions:", error);
@@ -255,6 +307,33 @@ const router = useRouter();
   };
 
   const handleDragEnd = () => setDraggedIndex(null);
+
+  // Handle selection
+  const toggleSelection = (id: string) => {
+    const newSet = new Set(selectedQuestionIds);
+    if (newSet.has(id)) newSet.delete(id);
+    else newSet.add(id);
+    setSelectedQuestionIds(newSet);
+  };
+
+  const toggleSelectAll = () => {
+    // Only select questions that are not already in the set
+    const availableApiQ = apiQuestions.filter(q => !questions.some(sel => sel.id === q.id));
+    if (selectedQuestionIds.size === availableApiQ.length && availableApiQ.length > 0) {
+      setSelectedQuestionIds(new Set());
+    } else {
+      setSelectedQuestionIds(new Set(availableApiQ.map(q => q.id)));
+    }
+  };
+
+  const handleBulkAdd = () => {
+    const questionsToAdd = apiQuestions.filter(q => selectedQuestionIds.has(q.id));
+    if (questionsToAdd.length > 0) {
+      addQuestions(questionsToAdd);
+      setSelectedQuestionIds(new Set()); // clear selection after adding
+      toast.success(`${questionsToAdd.length} questions added to the set.`);
+    }
+  };
 
   const canSubmit = name.trim().length > 0 && questions.length > 0;
 
@@ -327,25 +406,49 @@ const router = useRouter();
                   </div>
 
                   <div className="grid sm:grid-cols-2 gap-3 max-w-md mx-auto pt-4 border-t">
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-[#F4511E] hover:text-[#F4511E] transition-all" onClick={handleCreateMockTest}>
                       <Layers className="w-5 h-5" />
                       <span>Create MockTest</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-[#F4511E] hover:text-[#F4511E] transition-all" onClick={() => setShowExportModal(true)}>
                       <BookOpen className="w-5 h-5" />
                       <span>Create eBook</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2">
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-[#F4511E] hover:text-[#F4511E] transition-all" onClick={handlePreviewSet}>
                       <Eye className="w-5 h-5" />
                       <span>Preview Set</span>
                     </Button>
-                    <Button variant="outline" className="h-auto py-4 flex-col gap-2" onClick={handleBackToSets}>
+                    <Button variant="outline" className="h-auto py-4 flex-col gap-2 hover:border-[#F4511E] hover:text-[#F4511E] transition-all" onClick={handleBackToSets}>
                       <FolderOpen className="w-5 h-5" />
                       <span>My Sets</span>
                     </Button>
                   </div>
                 </CardContent>
               </Card>
+
+              {/* Export Modal for "Create eBook" feature */}
+              <QuestionSetExportModal
+                open={showExportModal}
+                onOpenChange={setShowExportModal}
+                questionSet={{
+                  id: createdSet.id,
+                  set_code: createdSet.contentId,
+                  name: createdSet.name,
+                  description: description || "",
+                  subject: "General",
+                  chapter: "General",
+                  questions: questions.map((q, index) => ({
+                    id: q.id,
+                    text: stripHtml(q.question_eng || q.question_hin || ''),
+                    difficulty: q.difficulty,
+                    type: q.type,
+                    options: [q.option1_eng, q.option2_eng, q.option3_eng, q.option4_eng].filter(Boolean) as string[],
+                    answer: q.answer,
+                    explanation: stripHtml(q.solution_eng || q.solution_hin || ''),
+                    marks: 2,
+                  })),
+                }}
+              />
             </div>
           </main>
         </div>
@@ -355,8 +458,8 @@ const router = useRouter();
 
   return (
     <div className="min-h-screen bg-neutral-bg">
-      {isSidebarOpen && <Sidebar />}
-      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isSidebarOpen ? "ml-60" : "ml-0")}>
+      <Sidebar />
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isGlobalSidebarOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 overflow-hidden flex flex-col">
           <div className="p-4 border-b bg-white flex justify-between items-center z-10">
@@ -364,9 +467,9 @@ const router = useRouter();
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+                onClick={globalToggle}
                 className="h-8 w-8 text-gray-500 hover:text-gray-900 focus:outline-none"
-                title={isSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
+                title={isGlobalSidebarOpen ? "Hide Sidebar" : "Show Sidebar"}
               >
                 <Layers className="h-5 w-5" />
               </Button>
@@ -424,7 +527,9 @@ const router = useRouter();
                             <div className="flex items-start justify-between">
                               <div className="flex items-start gap-2 max-w-[85%]">
                                 <span className="text-xs font-semibold text-gray-500 mt-0.5">Q{index + 1}.</span>
-                                <p className="text-sm text-gray-800 line-clamp-2">{question.question_eng}</p>
+                                <div className="text-sm text-gray-800 line-clamp-2">
+                                  {stripHtml(question.question_eng || question.question_hin || '')}
+                                </div>
                               </div>
                               <button
                                 onClick={() => removeQuestion(question.id)}
@@ -617,6 +722,55 @@ const router = useRouter();
                 </div>
               </div>
 
+              {/* Selection Action Bar */}
+              <div className="px-4 py-2 border-b bg-gray-50 flex items-center justify-between shadow-sm z-10 sticky top-0">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    id="select-all"
+                    checked={
+                      apiQuestions.length > 0 &&
+                      apiQuestions.filter(q => !questions.some(sel => sel.id === q.id)).length > 0 &&
+                      selectedQuestionIds.size === apiQuestions.filter(q => !questions.some(sel => sel.id === q.id)).length
+                    }
+                    onCheckedChange={toggleSelectAll}
+                  />
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="select-all" className="text-xs font-semibold text-gray-700 cursor-pointer uppercase tracking-wider">
+                      Select All Visible
+                    </label>
+                    {selectedQuestionIds.size > 0 && (
+                      <Badge variant="secondary" className="px-1.5 py-0 h-5 text-[10px] bg-blue-100 text-blue-700 hover:bg-blue-100 border-none">
+                        {selectedQuestionIds.size}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="flex bg-white rounded-md border shadow-sm p-0.5">
+                    <button
+                      onClick={() => setViewMode("list")}
+                      className={cn("px-2 py-1 text-xs font-medium rounded-sm flex items-center gap-1 transition-colors", viewMode === "list" ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:text-gray-700")}
+                    >
+                      <ListFilter className="w-3 h-3" /> List
+                    </button>
+                    <button
+                      onClick={() => setViewMode("single")}
+                      className={cn("px-2 py-1 text-xs font-medium rounded-sm flex items-center gap-1 transition-colors", viewMode === "single" ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:text-gray-700")}
+                    >
+                      <Eye className="w-3 h-3" /> Single
+                    </button>
+                  </div>
+                  <Button
+                    size="sm"
+                    disabled={selectedQuestionIds.size === 0}
+                    onClick={handleBulkAdd}
+                    className="h-8 bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-sm"
+                  >
+                    <Plus className="w-3 h-3 mr-1.5" /> Add Selected
+                  </Button>
+                </div>
+              </div>
+
               {/* Question List */}
               <div className="flex-1 overflow-y-auto p-4 bg-gray-50/50">
                 {isFetchingQuestions ? (
@@ -632,22 +786,152 @@ const router = useRouter();
                     <p>No questions found.</p>
                     <p className="text-sm">Try adjusting your filters.</p>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {apiQuestions.map((q) => {
+                ) : viewMode === "single" ? (
+                  <div className="flex flex-col h-full max-h-[100%]">
+                    {apiQuestions[currentQuestionIndex] && (() => {
+                      const q = apiQuestions[currentQuestionIndex];
                       const isAlreadyAdded = questions.some(sel => sel.id === q.id);
                       return (
-                        <Card key={q.id} className={cn("transition-colors", isAlreadyAdded ? "border-[#F4511E] bg-orange-50/30" : "hover:border-gray-300")}>
-                          <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-center">
-                            <div className="flex-1 space-y-2">
-                              <div className="flex gap-2 text-xs text-gray-500">
-                                <span className="font-mono">ID: {q.id.substring(0, 8)}</span>
-                                <span>•</span>
-                                <span className="font-medium text-[#F4511E]">{q.subject}</span>
+                        <Card className={cn("transition-colors flex flex-col h-full", isAlreadyAdded ? "border-[#F4511E] bg-orange-50/10" : "border-gray-200")}>
+                          <CardContent className="p-4 sm:p-6 flex-1 flex flex-col items-stretch overflow-hidden">
+                            <div className="flex justify-between items-start mb-4 pb-4 border-b shrink-0">
+                              <div className="flex flex-wrap gap-2 text-sm text-gray-500">
+                                <span className="font-mono bg-gray-100 px-2 py-1 rounded text-xs text-gray-600">ID: {q.id.substring(0, 8)}</span>
+                                <span className="font-semibold text-[#F4511E] uppercase tracking-wider text-xs bg-orange-50 px-2 py-1 rounded border border-orange-100">{q.subject}</span>
                               </div>
-                              <p className="text-sm text-gray-900 leading-relaxed font-medium line-clamp-2">
-                                {q.question_eng}
-                              </p>
+                              <div className="flex gap-2 items-center">
+                                <TypeBadge type={q.type} />
+                                <DifficultyBadge difficulty={q.difficulty} />
+                              </div>
+                            </div>
+
+                            <div className="flex-1 overflow-y-auto mb-4 pr-2">
+                              <div className="flex justify-between items-center mb-3">
+                                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Question {currentQuestionIndex + 1} of {apiQuestions.length}</h3>
+                                {(q.question_hin || q.options?.some((opt: any) => opt.textHi)) && (
+                                  <div className="flex bg-gray-100 rounded-md p-0.5">
+                                    <button
+                                      onClick={() => setPrefLang("eng")}
+                                      className={cn("px-2 py-1 text-[10px] font-bold rounded-sm uppercase tracking-wider transition-colors", prefLang === "eng" ? "bg-white text-[#F4511E] shadow-sm" : "text-gray-500 hover:text-gray-700")}
+                                    >
+                                      English
+                                    </button>
+                                    <button
+                                      onClick={() => setPrefLang("hin")}
+                                      className={cn("px-2 py-1 text-[10px] font-bold rounded-sm uppercase tracking-wider transition-colors", prefLang === "hin" ? "bg-white text-[#F4511E] shadow-sm" : "text-gray-500 hover:text-gray-700")}
+                                    >
+                                      Hindi
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-base text-gray-800 leading-relaxed mb-6">
+                                {stripHtml((prefLang === "hin" && q.question_hin) ? q.question_hin : q.question_eng)}
+                              </div>
+
+                              {q.options && q.options.length > 0 && (
+                                <div className="space-y-3 mt-4">
+                                  <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Options</h4>
+                                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {q.options.map((opt: any, i: number) => {
+                                      const isCorrect = opt.isCorrect;
+                                      const optionText = (prefLang === "hin" && opt.textHi) ? opt.textHi : opt.textEn;
+                                      return (
+                                        <div
+                                          key={opt.id || i}
+                                          className={cn(
+                                            "flex items-start gap-3 p-3 rounded-lg border",
+                                            isCorrect ? "bg-green-50/50 border-green-200" : "bg-gray-50 border-gray-100"
+                                          )}
+                                        >
+                                          <div className={cn(
+                                            "w-6 h-6 rounded-full flex items-center justify-center shrink-0 text-xs font-semibold mt-0.5",
+                                            isCorrect ? "bg-green-100 text-green-700" : "bg-gray-200 text-gray-600"
+                                          )}>
+                                            {String.fromCharCode(65 + i)}
+                                          </div>
+                                          <div className="text-sm flex-1">
+                                            {stripHtml(optionText || '')}
+                                          </div>
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            <div className="pt-4 border-t flex flex-wrap gap-3 items-center justify-between shrink-0">
+                              <Button
+                                variant="outline"
+                                disabled={currentQuestionIndex === 0}
+                                onClick={() => setCurrentQuestionIndex(i => i - 1)}
+                              >
+                                <ChevronLeft className="w-4 h-4 mr-2" /> Prev
+                              </Button>
+
+                              <div className="flex gap-3 flex-1 justify-center">
+                                {isAlreadyAdded ? (
+                                  <Button
+                                    variant="outline"
+                                    className="text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700"
+                                    onClick={() => removeQuestion(q.id)}
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" /> Remove from Set
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    className="bg-[#F4511E] hover:bg-[#E64A19] text-white"
+                                    onClick={() => addQuestions([q])}
+                                  >
+                                    <Plus className="w-4 h-4 mr-2" /> Add to Set
+                                  </Button>
+                                )}
+                              </div>
+
+                              <Button
+                                variant="outline"
+                                disabled={currentQuestionIndex === apiQuestions.length - 1}
+                                onClick={() => setCurrentQuestionIndex(i => i + 1)}
+                              >
+                                Next <ChevronRight className="w-4 h-4 ml-2" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })()}
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {apiQuestions.map((q) => {
+                      const isAlreadyAdded = questions.some(sel => sel.id === q.id);
+                      const isSelected = selectedQuestionIds.has(q.id);
+                      return (
+                        <Card key={q.id} className={cn("transition-colors", isAlreadyAdded ? "border-[#F4511E] bg-orange-50/50" : isSelected ? "border-blue-400 bg-blue-50/50 shadow-md ring-1 ring-blue-400" : "hover:border-gray-300 shadow-sm")}>
+                          <CardContent className="p-4 flex flex-col md:flex-row gap-4 items-start md:items-start">
+                            <div className="pt-1 w-5 shrink-0">
+                              {!isAlreadyAdded ? (
+                                <Checkbox
+                                  checked={isSelected}
+                                  onCheckedChange={() => toggleSelection(q.id)}
+                                  className={isSelected ? "border-blue-500 data-[state=checked]:bg-blue-500" : ""}
+                                />
+                              ) : (
+                                <div className="w-4 h-4 rounded mt-0.5 bg-[#F4511E] flex items-center justify-center">
+                                  <Check className="w-3 h-3 text-white" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex-1 space-y-3 min-w-0 pr-2">
+                              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                                <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-[10px] text-gray-600">ID: {q.id.substring(0, 8)}</span>
+                                <span className="text-gray-300">•</span>
+                                <span className="font-semibold text-[#F4511E] uppercase tracking-wider text-[10px] bg-orange-50 px-2 py-0.5 rounded border border-orange-100">{q.subject}</span>
+                              </div>
+                              <div className="text-sm text-gray-800 leading-relaxed font-medium">
+                                {stripHtml(q.question_eng || q.question_hin || '')}
+                              </div>
                               <div className="flex gap-2 items-center">
                                 <TypeBadge type={q.type} />
                                 <DifficultyBadge difficulty={q.difficulty} />

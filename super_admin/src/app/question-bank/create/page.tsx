@@ -3,7 +3,7 @@ import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Save,
@@ -179,8 +179,10 @@ function RichTextToolbar({
 }
 
 export default function CreateQuestionPage() {
-    const { isOpen } = useSidebarStore();
-const router = useRouter();
+  const { isOpen } = useSidebarStore();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const folderIdParam = searchParams.get("folderId");
   const [formData, setFormData] = useState<QuestionForm>(initialForm);
   const [options, setOptions] = useState<BilingualOption[]>([
     { id: "A", label: "A", text_hin: "", text_eng: "" },
@@ -313,7 +315,7 @@ const router = useRouter();
         type: formData.questionType === 'mcq' ? 'MCQ_SINGLE' :
           formData.questionType === 'multi_select' ? 'MCQ_MULTIPLE' :
             formData.questionType === 'true_false' ? 'TRUE_FALSE' : 'FILL_IN_BLANK',
-        folderId: folder?.id,
+        folderId: folderIdParam || folder?.id,
         topicId: topic?.id,
         tags: formData.tags,
         visibility: formData.visibility,
