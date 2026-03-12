@@ -1,9 +1,9 @@
 "use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
   Copy,
@@ -125,9 +125,9 @@ function AppTypeBadge({ type }: { type: string }) {
   return <span className={`badge ${styles[type] || ""}`}>{type}</span>;
 }
 
-export default function OrganizationDetailPage() {
-    const { isOpen } = useSidebarStore();
-const params = useParams();
+function OrganizationDetailInner() {
+  const { isOpen } = useSidebarStore();
+  const params = useParams();
   const router = useRouter();
   const orgId = params.id as string;
   const [loading, setLoading] = useState(true);
@@ -136,9 +136,28 @@ const params = useParams();
   const [studentsData, setStudentsData] = useState<any[]>([]);
   const [auditLogs, setAuditLogs] = useState<any[]>([]);
   const [showSuspendDialog, setShowSuspendDialog] = useState(false);
+  const [showActivateDialog, setShowActivateDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showImpersonateDialog, setShowImpersonateDialog] = useState(false);
+  const [showChangePlanDialog, setShowChangePlanDialog] = useState(false);
+  const [showExtendTrialDialog, setShowExtendTrialDialog] = useState(false);
+  const [newPlan, setNewPlan] = useState("SMALL");
+  const [trialDays, setTrialDays] = useState(30);
   const [activeTab, setActiveTab] = useState("overview");
+  
+  // Editable form state
+  const [editData, setEditData] = useState({
+    name: "",
+    subdomain: "",
+    customDomain: "",
+    email: "",
+    mobile: "",
+    displayName: "",
+    primaryColor: "",
+    logoUrl: "",
+  });
+
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -165,6 +184,16 @@ const params = useParams();
       const data = await res.json();
       if (data.success) {
         setOrgData(data.data);
+        setEditData({
+          name: data.data.name || "",
+          subdomain: data.data.subdomain || "",
+          customDomain: data.data.customDomain || "",
+          email: data.data.email || "",
+          mobile: data.data.mobile || "",
+          displayName: data.data.displayName || data.data.name || "",
+          primaryColor: data.data.primaryColor || "#F4511E",
+          logoUrl: data.data.logoUrl || "",
+        });
       } else {
         toast.error(data.error || "Failed to fetch organization details");
         router.push('/organizations');
@@ -246,10 +275,88 @@ const params = useParams();
     setShowSuspendDialog(false);
   };
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     if (!orgData) return;
-    toast.success(`${orgData.name} has been deleted`);
+    try {
+      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}` }
+      });
+      const data = await res.json();
+      if (data.success) { toast.success(`${orgData.name} deleted`); router.push('/organizations'); }
+      else toast.error(data.error || "Failed to delete");
+    } catch { toast.error("Connection error"); }
     setShowDeleteDialog(false);
+  };
+
+  const handleActivate = async () => {
+    if (!orgData) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}` },
+        body: JSON.stringify({ status: 'ACTIVE' })
+      });
+      const data = await res.json();
+      if (data.success) { toast.success(`${orgData.name} activated`); fetchOrgDetails(); }
+      else toast.error(data.error || "Failed");
+    } catch { toast.error("Connection error"); }
+    setShowActivateDialog(false);
+  };
+
+  const handleChangePlan = async () => {
+    if (!orgData) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/plan`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}` },
+        body: JSON.stringify({ plan: newPlan })
+      });
+      const data = await res.json();
+      if (data.success) { toast.success(`Plan changed to ${newPlan}`); fetchOrgDetails(); }
+      else toast.error(data.error || "Failed");
+    } catch { toast.error("Connection error"); }
+    setShowChangePlanDialog(false);
+  };
+
+  const handleExtendTrial = async () => {
+    if (!orgData) return;
+    try {
+      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/extend-trial`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}` },
+        body: JSON.stringify({ days: Number(trialDays) })
+      });
+      const data = await res.json();
+      if (data.success) { toast.success(`Trial extended by ${trialDays} days`); fetchOrgDetails(); }
+      else toast.error(data.error || "Failed");
+    } catch { toast.error("Connection error"); }
+    setShowExtendTrialDialog(false);
+  };
+
+  const handleUpdateOrg = async (fields: any) => {
+    setSaving(true);
+    try {
+      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('token=')[1]?.split(';')[0]}`
+        },
+        body: JSON.stringify(fields)
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success("Organization updated successfully");
+        fetchOrgDetails();
+      } else {
+        toast.error(data.message || "Failed to update");
+      }
+    } catch (err) {
+      toast.error("Connection error");
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading) {
@@ -269,7 +376,7 @@ const params = useParams();
     );
   }
 
-  if (!orgData) return null;
+  if (!orgData || !orgData._count) return null;
 
   const planRates: Record<string, number> = {
     SMALL: 5000,
@@ -404,7 +511,7 @@ const params = useParams();
                             </div>
                             <div>
                               <div className="text-xs text-gray-500">Teachers</div>
-                              <div className="text-xl font-bold text-gray-900">{orgData._count.staff}</div>
+                              <div className="text-xl font-bold text-gray-900">{orgData._count?.staff ?? 0}</div>
                             </div>
                           </div>
                         </CardContent>
@@ -417,7 +524,7 @@ const params = useParams();
                             </div>
                             <div>
                               <div className="text-xs text-gray-500">Students</div>
-                              <div className="text-xl font-bold text-gray-900">{orgData._count.students.toLocaleString()}</div>
+                              <div className="text-xl font-bold text-gray-900">{(orgData._count?.students ?? 0).toLocaleString()}</div>
                             </div>
                           </div>
                         </CardContent>
@@ -460,27 +567,55 @@ const params = useParams();
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
                             <Label>Organization Name</Label>
-                            <Input defaultValue={orgData.name} className="input-field" readOnly />
+                            <Input 
+                              value={editData.name} 
+                              onChange={(e) => setEditData({...editData, name: e.target.value})}
+                              className="input-field" 
+                            />
                           </div>
                           <div className="space-y-2">
-                            <Label>Domain</Label>
-                            <Input defaultValue={orgData.domain || 'N/A'} className="input-field" readOnly />
+                            <Label>Subdomain</Label>
+                            <div className="flex items-center">
+                              <Input 
+                                value={editData.subdomain}
+                                onChange={(e) => setEditData({...editData, subdomain: e.target.value})}
+                                className="input-field rounded-r-none" 
+                              />
+                              <span className="bg-gray-100 border border-l-0 border-gray-200 px-3 py-2 rounded-r-lg text-sm text-gray-500">
+                                .eduhub.in
+                              </span>
+                            </div>
                           </div>
                           <div className="space-y-2">
                             <Label>Contact Email</Label>
-                            <Input defaultValue={orgData.email || 'N/A'} className="input-field" readOnly />
+                            <Input 
+                              value={editData.email}
+                              onChange={(e) => setEditData({...editData, email: e.target.value})}
+                              className="input-field" 
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label>Phone</Label>
-                            <Input defaultValue={orgData.mobile || 'N/A'} className="input-field" readOnly />
+                            <Input 
+                              value={editData.mobile}
+                              onChange={(e) => setEditData({...editData, mobile: e.target.value})}
+                              className="input-field" 
+                            />
                           </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label>Address</Label>
-                          <Input defaultValue={`${orgData.city || ''} ${orgData.state || ''}`.trim() || 'N/A'} className="input-field" readOnly />
-                        </div>
                         <div className="flex justify-end">
-                          <Button className="btn-primary" disabled>Save Changes</Button>
+                          <Button 
+                            className="btn-primary" 
+                            onClick={() => handleUpdateOrg({
+                              name: editData.name,
+                              subdomain: editData.subdomain,
+                              email: editData.email,
+                              mobile: editData.mobile
+                            })}
+                            disabled={saving}
+                          >
+                            {saving ? "Saving..." : "Save Changes"}
+                          </Button>
                         </div>
                       </CardContent>
                     </Card>
@@ -508,9 +643,9 @@ const params = useParams();
                         <div className="space-y-2">
                           <div className="flex items-center justify-between text-sm">
                             <span className="text-gray-600">Active Students</span>
-                            <span className="font-medium">{orgData._count.students.toLocaleString()} / 10000</span>
+                            <span className="font-medium">{(orgData._count?.students ?? 0).toLocaleString()} / 10000</span>
                           </div>
-                          <Progress value={Math.min((orgData._count.students / 10000) * 100, 100)} className="h-2" />
+                          <Progress value={Math.min(((orgData._count?.students ?? 0) / 10000) * 100, 100)} className="h-2" />
                         </div>
                       </CardContent>
                     </Card>
@@ -526,17 +661,23 @@ const params = useParams();
                         <Button className="w-full justify-start btn-secondary" onClick={() => setShowImpersonateDialog(true)}>
                           <Key className="w-4 h-4 mr-2" /> Impersonate Admin
                         </Button>
-                        <Button className="w-full justify-start btn-secondary">
-                          <Monitor className="w-4 h-4 mr-2" /> Change App Type
-                        </Button>
-                        <Button className="w-full justify-start btn-secondary">
+                        <Button className="w-full justify-start btn-secondary" onClick={() => setShowChangePlanDialog(true)}>
                           <CreditCard className="w-4 h-4 mr-2" /> Change Plan
                         </Button>
-                        <Button className="w-full justify-start btn-secondary">
+                        <Button className="w-full justify-start btn-secondary" onClick={() => setShowExtendTrialDialog(true)}>
                           <Clock className="w-4 h-4 mr-2" /> Extend Trial
                         </Button>
-                        <Button className="w-full justify-start text-orange-600 border-orange-200 hover:bg-orange-50" variant="outline">
-                          <AlertTriangle className="w-4 h-4 mr-2" /> Suspend Org
+                        {orgData?.status === 'SUSPENDED' ? (
+                          <Button className="w-full justify-start text-green-600 border-green-200 hover:bg-green-50" variant="outline" onClick={() => setShowActivateDialog(true)}>
+                            <CheckCircle className="w-4 h-4 mr-2" /> Activate Org
+                          </Button>
+                        ) : (
+                          <Button className="w-full justify-start text-orange-600 border-orange-200 hover:bg-orange-50" variant="outline" onClick={() => setShowSuspendDialog(true)}>
+                            <AlertTriangle className="w-4 h-4 mr-2" /> Suspend Org
+                          </Button>
+                        )}
+                        <Button className="w-full justify-start text-red-600 border-red-200 hover:bg-red-50" variant="outline" onClick={() => setShowDeleteDialog(true)}>
+                          <Trash2 className="w-4 h-4 mr-2" /> Delete Org
                         </Button>
                       </CardContent>
                     </Card>
@@ -662,7 +803,7 @@ const params = useParams();
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Students Enrolled</span>
-                        <span className="text-sm font-medium">{orgData.activeStudents.toLocaleString()}</span>
+                        <span className="text-sm font-medium">{(orgData.activeStudents ?? orgData._count?.students ?? 0).toLocaleString()}</span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-gray-600">Courses Active</span>
@@ -813,7 +954,7 @@ const params = useParams();
                         </div>
                         <div>
                           <div className="text-xs text-gray-500">Monthly Revenue</div>
-                          <div className="text-xl font-bold text-gray-900">₹{orgData.mrr.toLocaleString()}</div>
+                          <div className="text-xl font-bold text-gray-900">₹{(orgData.mrr ?? 0).toLocaleString()}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -826,7 +967,7 @@ const params = useParams();
                         </div>
                         <div>
                           <div className="text-xs text-gray-500">Total Revenue</div>
-                          <div className="text-xl font-bold text-gray-900">₹{orgData.totalRevenue.toLocaleString()}</div>
+                          <div className="text-xl font-bold text-gray-900">₹{(orgData.totalRevenue ?? 0).toLocaleString()}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -901,49 +1042,94 @@ const params = useParams();
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
                         <Label>Display Name</Label>
-                        <Input defaultValue={orgData.name} className="input-field" />
+                        <Input 
+                          value={editData.displayName}
+                          onChange={(e) => setEditData({...editData, displayName: e.target.value})}
+                          className="input-field" 
+                        />
                       </div>
                       <div className="space-y-2">
                         <Label>Primary Color</Label>
                         <div className="flex gap-2">
-                          <Input type="color" defaultValue="#1E40AF" className="w-14 h-10 p-1 border rounded" />
-                          <Input defaultValue="#1E40AF" className="input-field mono" />
+                          <Input 
+                            type="color" 
+                            value={editData.primaryColor}
+                            onChange={(e) => setEditData({...editData, primaryColor: e.target.value})}
+                            className="w-14 h-10 p-1 border rounded" 
+                          />
+                          <Input 
+                            value={editData.primaryColor}
+                            onChange={(e) => setEditData({...editData, primaryColor: e.target.value})}
+                            className="input-field mono" 
+                          />
                         </div>
                       </div>
                       <div className="space-y-2">
                         <Label>Logo URL</Label>
-                        <Input placeholder="https://..." className="input-field" />
+                        <Input 
+                          value={editData.logoUrl}
+                          onChange={(e) => setEditData({...editData, logoUrl: e.target.value})}
+                          placeholder="https://..." 
+                          className="input-field" 
+                        />
                       </div>
-                      <Button className="btn-primary">Save Branding</Button>
+                      <Button 
+                        className="btn-primary"
+                        onClick={() => handleUpdateOrg({
+                          displayName: editData.displayName,
+                          primaryColor: editData.primaryColor,
+                          logoUrl: editData.logoUrl
+                        })}
+                        disabled={saving}
+                      >
+                        {saving ? "Saving..." : "Save Branding"}
+                      </Button>
                     </CardContent>
                   </Card>
 
                   <Card>
                     <CardHeader>
                       <CardTitle>Custom Domain</CardTitle>
+                      <CardDescription>Configure external domain (CNAME required)</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="space-y-2">
-                        <Label>Admin Domain</Label>
-                        <Input defaultValue={orgData.adminDomain} placeholder="admin.example.com" className="input-field" />
-                      </div>
-                      <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">DNS Status</span>
-                          <div className="flex items-center gap-1 text-green-600">
-                            <CheckCircle className="w-4 h-4" />
-                            <span className="text-sm font-medium">Verified</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-gray-600">SSL Certificate</span>
-                          <div className="flex items-center gap-1 text-green-600">
-                            <Shield className="w-4 h-4" />
-                            <span className="text-sm font-medium">Active</span>
-                          </div>
+                        <Label>Custom Domain</Label>
+                        <div className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-gray-400" />
+                          <Input 
+                            value={editData.customDomain}
+                            onChange={(e) => setEditData({...editData, customDomain: e.target.value})}
+                            placeholder="e.g., learn.apex-academy.com" 
+                            className="input-field" 
+                          />
                         </div>
                       </div>
-                      <Button className="btn-primary">Update Domain</Button>
+                      <div className="p-4 bg-gray-50 border rounded-lg space-y-3">
+                        <div className="text-sm font-medium text-gray-900 mb-1">CNAME Configuration</div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-500 uppercase font-semibold">Type</span>
+                          <span className="text-sm mono font-bold">CNAME</span>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs text-gray-500 uppercase font-semibold">Target</span>
+                          <span className="text-sm mono font-bold">cname.eduhub.in</span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2 pt-2 border-t border-gray-200">
+                          <span className="text-sm text-gray-600">Status</span>
+                          <div className={`flex items-center gap-1 ${orgData.customDomain ? 'text-green-600' : 'text-gray-400'}`}>
+                            {orgData.customDomain ? <CheckCircle className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}
+                            <span className="text-sm font-medium">{orgData.customDomain ? 'Active' : 'Not Configured'}</span>
+                          </div>
+                        </div>
+                      </div>
+                      <Button 
+                        className="btn-primary"
+                        onClick={() => handleUpdateOrg({ customDomain: editData.customDomain })}
+                        disabled={saving}
+                      >
+                        {saving ? "Saving..." : "Update Domain"}
+                      </Button>
                     </CardContent>
                   </Card>
                 </div>
@@ -1114,6 +1300,87 @@ const params = useParams();
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Activate Dialog */}
+      <Dialog open={showActivateDialog} onOpenChange={setShowActivateDialog}>
+        <DialogContent className="sm:max-w-[500px] bg-white">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-green-600">
+              <CheckCircle className="w-5 h-5" />
+              Activate Organization
+            </DialogTitle>
+            <DialogDescription>
+              Re-activate <strong>{orgData?.name}</strong>? All users will regain access immediately.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowActivateDialog(false)}>Cancel</Button>
+            <Button className="bg-green-600 hover:bg-green-700 text-white" onClick={handleActivate}>
+              Activate Organization
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Change Plan Dialog */}
+      <Dialog open={showChangePlanDialog} onOpenChange={setShowChangePlanDialog}>
+        <DialogContent className="sm:max-w-[450px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Change Plan</DialogTitle>
+            <DialogDescription>Update subscription plan for <strong>{orgData?.name}</strong></DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">New Plan</label>
+            <Select value={newPlan} onValueChange={setNewPlan}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent className="bg-white">
+                <SelectItem value="SMALL">Small — ₹5,000/mo</SelectItem>
+                <SelectItem value="MEDIUM">Medium — ₹15,000/mo</SelectItem>
+                <SelectItem value="LARGE">Large — ₹40,000/mo</SelectItem>
+                <SelectItem value="ENTERPRISE">Enterprise — ₹1,00,000/mo</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowChangePlanDialog(false)}>Cancel</Button>
+            <Button className="bg-brand-primary hover:bg-brand-primary-hover text-white" onClick={handleChangePlan}>
+              Change Plan
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Extend Trial Dialog */}
+      <Dialog open={showExtendTrialDialog} onOpenChange={setShowExtendTrialDialog}>
+        <DialogContent className="sm:max-w-[400px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Extend Trial</DialogTitle>
+            <DialogDescription>Extend trial period for <strong>{orgData?.name}</strong></DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <label className="text-sm font-medium text-gray-700 mb-2 block">Days to Extend</label>
+            <Input
+              type="number" min={1} max={365}
+              value={trialDays}
+              onChange={(e) => setTrialDays(Number(e.target.value))}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowExtendTrialDialog(false)}>Cancel</Button>
+            <Button className="bg-brand-primary hover:bg-brand-primary-hover text-white" onClick={handleExtendTrial}>
+              Extend by {trialDays} days
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+export default function OrganizationDetailPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#F4511E]" /></div>}>
+      <OrganizationDetailInner />
+    </Suspense>
   );
 }

@@ -1,0 +1,30 @@
+[
+  {
+    "projectId": "2820f80f-beb8-4fb8-9183-3d83506ad6f4",
+    "testId": "b0e19807-8c99-44fb-b442-75337cd942f8",
+    "userId": "4498e458-b011-70fe-e3e6-b78e00a5ef8b",
+    "title": "TC002-get api mockbook folders list all folders",
+    "description": "Test retrieving all exam folders using GET /api/mockbook/folders without authorization. Verify response status 200 and response contains an array of folders including public/global and org folders.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:4000\"\nTIMEOUT = 30\n\ndef test_get_mockbook_folders_list_all():\n    url = f\"{BASE_URL}/api/mockbook/folders\"\n    headers = {\n        \"Accept\": \"application/json\",\n    }\n    try:\n        response = requests.get(url, headers=headers, timeout=TIMEOUT)\n        # Assert status code is 200 OK\n        assert response.status_code == 200, f\"Expected status 200, got {response.status_code}\"\n        json_data = response.json()\n\n        # Assert the response is a list or contains a list of folders\n        assert isinstance(json_data, list), \"Response is not a list\"\n        # Check at least one folder has typical folder keys and includes public/global or org folders\n        # We assume folders have keys: id, name, path, orgId (based on PRD)\n        assert any(\n            isinstance(folder, dict) and\n            all(k in folder for k in (\"id\", \"name\", \"path\", \"orgId\"))\n            for folder in json_data\n        ), \"No folders with expected keys found\"\n\n    except requests.RequestException as e:\n        assert False, f\"Request failed: {e}\"\n\ntest_get_mockbook_folders_list_all()",
+    "testStatus": "FAILED",
+    "testError": "Traceback (most recent call last):\n  File \"/var/task/handler.py\", line 258, in run_with_retry\n    exec(code, exec_env)\n  File \"<string>\", line 30, in <module>\n  File \"<string>\", line 14, in test_get_mockbook_folders_list_all\nAssertionError: Expected status 200, got 401\n",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-03-10T18:32:46.287Z",
+    "modified": "2026-03-10T18:33:00.233Z"
+  },
+  {
+    "projectId": "2820f80f-beb8-4fb8-9183-3d83506ad6f4",
+    "testId": "e0a23e93-0117-43f1-a233-38e6ec37ec68",
+    "userId": "4498e458-b011-70fe-e3e6-b78e00a5ef8b",
+    "title": "TC005-get api super admin mockbook orgid tests list tests with superadmin authorization",
+    "description": "Test listing mock tests for an organization using GET /api/super-admin/mockbook/:orgId/tests with SuperAdmin JWT. Verify response status 200 and returned array of mock tests for the specified organization.",
+    "code": "import requests\n\nBASE_URL = \"http://localhost:4000\"\nORG_ID = \"GK-ORG-00234\"\nSUPERADMIN_JWT = \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.SuperAdminMockToken\"  # Replace with valid SuperAdmin JWT for testing\nTIMEOUT = 30\n\n\ndef test_get_superadmin_mockbook_orgid_tests_list():\n    url = f\"{BASE_URL}/api/super-admin/mockbook/{ORG_ID}/tests\"\n    headers = {\n        \"Authorization\": f\"Bearer {SUPERADMIN_JWT}\"\n    }\n    try:\n        response = requests.get(url, headers=headers, timeout=TIMEOUT)\n        assert response.status_code == 200, f\"Expected status 200, got {response.status_code}\"\n        data = response.json()\n        assert isinstance(data, list), \"Response data is not a list\"\n        # Further validation can include checking keys in mock test objects if needed\n        for item in data:\n            assert isinstance(item, dict), \"Mock test item is not a dict\"\n            assert \"testId\" in item or \"id\" in item or \"title\" in item, \"Mock test item missing expected keys\"\n        print(\"Test passed: SuperAdmin mockbook orgId tests list retrieved successfully.\")\n    except requests.exceptions.RequestException as e:\n        assert False, f\"Request failed: {e}\"\n\n\ntest_get_superadmin_mockbook_orgid_tests_list()",
+    "testStatus": "FAILED",
+    "testError": "Traceback (most recent call last):\n  File \"/var/task/handler.py\", line 258, in run_with_retry\n    exec(code, exec_env)\n  File \"<string>\", line 28, in <module>\n  File \"<string>\", line 16, in test_get_superadmin_mockbook_orgid_tests_list\nAssertionError: Expected status 200, got 401\n",
+    "testType": "BACKEND",
+    "createFrom": "mcp",
+    "created": "2026-03-10T18:32:46.292Z",
+    "modified": "2026-03-10T18:33:01.454Z"
+  }
+]

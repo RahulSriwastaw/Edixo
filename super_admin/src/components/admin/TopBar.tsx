@@ -323,7 +323,7 @@ export function TopBar() {
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" className="flex items-center gap-2 px-2">
             <Avatar className="w-9 h-9">
-              <AvatarImage src="/avatar.png" />
+              <AvatarImage />
               <AvatarFallback className="bg-brand-primary text-white text-sm font-semibold">
                 PA
               </AvatarFallback>

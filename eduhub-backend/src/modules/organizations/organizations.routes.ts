@@ -5,6 +5,32 @@ import { authenticate } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 
 const router = Router();
+
+// Public route for organization branding (name, logo, theme)
+router.get('/public/:orgId', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({
+            where: { 
+                OR: [
+                    { orgId: req.params.orgId },
+                    { subdomain: req.params.orgId }
+                ],
+                deletedAt: null 
+            },
+            select: {
+                orgId: true,
+                name: true,
+                logoUrl: true,
+                primaryColor: true,
+                subdomain: true,
+                customDomain: true
+            }
+        });
+        if (!org) throw new AppError('Organization not found', 404);
+        res.json({ success: true, data: org });
+    } catch (err) { next(err); }
+});
+
 router.use(authenticate);
 
 router.get('/', async (req, res, next) => {

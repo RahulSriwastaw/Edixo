@@ -169,7 +169,7 @@ function SidebarContent({ pathname, onNavigate }: { pathname: string; onNavigate
       <div className="shrink-0 border-t border-white/10 p-4">
         <div className="flex items-center gap-3">
           <Avatar className="w-9 h-9 border-2 border-orange-500">
-            <AvatarImage src="/avatar.png" />
+            <AvatarImage />
             <AvatarFallback className="bg-orange-500 text-white text-sm font-semibold">
               RK
             </AvatarFallback>

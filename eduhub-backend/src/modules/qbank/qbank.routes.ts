@@ -1314,6 +1314,46 @@ router.get('/sets/:id', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ─── PATCH /api/qbank/sets/:id ───────────────────────────────
+router.patch('/sets/:id', async (req, res, next) => {
+    try {
+        const schema = z.object({
+            name: z.string().min(1).optional(),
+            description: z.string().optional(),
+            durationMins: z.number().optional().nullable(),
+            folderId: z.string().nullable().optional(),
+            questionIds: z.array(z.string()).optional(),
+        });
+        const body = schema.parse(req.body);
+
+        const set = await prisma.questionSet.findUnique({ where: { id: req.params.id } });
+        if (!set) throw new AppError('Set not found', 404);
+
+        const updateData: any = {};
+        if (body.name !== undefined) updateData.name = body.name;
+        if (body.description !== undefined) updateData.description = body.description;
+        if (body.durationMins !== undefined) updateData.durationMins = body.durationMins;
+        if (body.folderId !== undefined) updateData.folderId = body.folderId;
+
+        if (body.questionIds !== undefined) {
+            // Replace all items
+            updateData.totalQuestions = body.questionIds.length;
+            updateData.items = {
+                deleteMany: {},
+                create: body.questionIds.map((qId, idx) => ({ questionId: qId, sortOrder: idx })),
+            };
+        }
+
+        const updated = await prisma.questionSet.update({
+            where: { id: req.params.id },
+            data: updateData,
+            include: { items: { include: { question: { include: { options: true } } } } },
+        });
+
+        res.json({ success: true, data: updated });
+    } catch (err) { next(err); }
+});
+
 // ─── DELETE /api/qbank/sets/:id ──────────────────────────────
 router.delete('/sets/:id', async (req, res, next) => {
     try {

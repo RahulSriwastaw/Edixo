@@ -95,7 +95,21 @@ const navigation: NavGroup[] = [
           { label: "Points Ledger", href: "/question-bank/points", icon: <Coins className="w-4 h-4" /> },
         ],
       },
-      { label: "MockBook", href: "/mockbook", icon: <ClipboardList className="w-5 h-5" /> },
+      {
+        label: "MockBook",
+        href: "/mockbook",
+        icon: <ClipboardList className="w-5 h-5" />,
+        children: [
+          { label: "Dashboard", href: "/mockbook", icon: <LayoutGrid className="w-4 h-4" /> },
+          { label: "Exam Folders", href: "/mockbook/categories", icon: <Layers className="w-4 h-4" /> },
+          { label: "Test Series", href: "/mockbook/test-series", icon: <BookOpen className="w-4 h-4" /> },
+          { label: "Mock Tests", href: "/mockbook/mock-tests", icon: <FileText className="w-4 h-4" /> },
+          { label: "🔴 Live Monitor", href: "/mockbook/live", icon: <TrendingUp className="w-4 h-4" /> },
+          { label: "Students", href: "/mockbook/students", icon: <Users className="w-4 h-4" /> },
+          { label: "Analytics", href: "/mockbook/analytics", icon: <BarChart3 className="w-4 h-4" /> },
+        ],
+      },
+
       { label: "Digital Board", href: "/digital-board", icon: <Monitor className="w-5 h-5" /> },
       {
         label: "Public Website CMS",
@@ -267,7 +281,7 @@ export function Sidebar() {
         <div className="shrink-0 border-t border-white/10 p-4">
           <div className="flex items-center gap-3">
             <Avatar className="w-9 h-9 border-2 border-white/20">
-              <AvatarImage src="/avatar.png" />
+              <AvatarImage />
               <AvatarFallback className="bg-brand-primary text-white text-sm font-semibold">
                 PA
               </AvatarFallback>

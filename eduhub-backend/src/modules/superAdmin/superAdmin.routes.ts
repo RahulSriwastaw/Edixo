@@ -115,6 +115,7 @@ router.get('/organizations', async (req, res, next) => {
                     status: true, billingCycle: true, trialEndsAt: true,
                     studentCount: true, staffCount: true, aiCredits: true,
                     createdAt: true, city: true, state: true,
+                    subdomain: true, customDomain: true,
                 },
             }),
             prisma.organization.count({ where }),
@@ -142,7 +143,16 @@ router.get('/organizations/:orgId', async (req, res, next) => {
         const [studentCount, staffCount, testAttemptCount] = await Promise.all([
             prisma.student.count({ where: { orgId: org.id, isActive: true } }),
             prisma.orgStaff.count({ where: { orgId: org.id, isActive: true } }),
-            prisma.testAttempt.count({ where: { student: { orgId: org.id } } }),
+            prisma.testAttempt.count({ 
+                where: { 
+                    student: { 
+                        orgId: org.id 
+                    } 
+                } 
+            }).catch(e => {
+                console.error("Error counting test attempts:", e);
+                return 0;
+            }),
         ]);
 
         res.json({
@@ -156,7 +166,10 @@ router.get('/organizations/:orgId', async (req, res, next) => {
                 }
             },
         });
-    } catch (err) { next(err); }
+    } catch (err) { 
+        console.error("Error in GET /organizations/:orgId:", err);
+        next(err); 
+    }
 });
 
 // ─── GET /api/super-admin/organizations/:orgId/staff ────────
@@ -220,6 +233,8 @@ router.post('/organizations', async (req, res, next) => {
             adminEmail: z.string().email(),
             adminPassword: z.string().min(8),
             trialDays: z.number().default(30),
+            subdomain: z.string().optional(),
+            customDomain: z.string().optional(),
         });
         const body = schema.parse(req.body);
 
@@ -249,6 +264,8 @@ router.post('/organizations', async (req, res, next) => {
                     aiCredits: planCredits[body.plan],
                     orgAdminEmail: body.adminEmail,
                     orgAdminPassword: passwordHash,
+                    subdomain: body.subdomain,
+                    customDomain: body.customDomain,
                 },
             });
 
@@ -295,11 +312,43 @@ router.post('/organizations', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ─── PATCH /api/super-admin/organizations/:orgId ─────────────
+router.patch('/organizations/:orgId', async (req, res, next) => {
+    try {
+        const schema = z.object({
+            name: z.string().min(2).optional(),
+            email: z.string().email().optional(),
+            mobile: z.string().optional(),
+            city: z.string().optional(),
+            state: z.string().optional(),
+            address: z.string().optional(),
+            category: z.string().optional(),
+            subdomain: z.string().optional(),
+            customDomain: z.string().optional(),
+            logoUrl: z.string().optional(),
+            primaryColor: z.string().optional(),
+        });
+        const body = schema.parse(req.body);
+
+        const org = await prisma.organization.findFirst({
+            where: { orgId: req.params.orgId, deletedAt: null },
+        });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const updated = await prisma.organization.update({
+            where: { id: org.id },
+            data: body,
+        });
+
+        res.json({ success: true, data: updated, message: 'Organization updated' });
+    } catch (err) { next(err); }
+});
+
 // ─── PATCH /api/super-admin/organizations/:orgId/status ─────
 router.patch('/organizations/:orgId/status', async (req, res, next) => {
     try {
         const { status } = z.object({
-            status: z.enum(['ACTIVE', 'SUSPENDED', 'EXPIRED']),
+            status: z.enum(['ACTIVE', 'SUSPENDED', 'EXPIRED', 'TRIAL']),
         }).parse(req.body);
 
         const org = await prisma.organization.findFirst({
@@ -313,6 +362,85 @@ router.patch('/organizations/:orgId/status', async (req, res, next) => {
         });
 
         res.json({ success: true, message: `Status updated to ${status}` });
+    } catch (err) { next(err); }
+});
+
+// ─── PATCH /api/super-admin/organizations/:orgId/plan ────────
+router.patch('/organizations/:orgId/plan', async (req, res, next) => {
+    try {
+        const { plan, billingCycle } = z.object({
+            plan: z.enum(['SMALL', 'MEDIUM', 'LARGE', 'ENTERPRISE']),
+            billingCycle: z.enum(['MONTHLY', 'YEARLY']).optional(),
+        }).parse(req.body);
+
+        const org = await prisma.organization.findFirst({
+            where: { orgId: req.params.orgId, deletedAt: null },
+        });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const planCredits: Record<string, number> = {
+            SMALL: 500, MEDIUM: 2000, LARGE: 8000, ENTERPRISE: 999999
+        };
+
+        const updateData: any = { plan };
+        if (billingCycle) updateData.billingCycle = billingCycle;
+        // Top up AI credits when upgrading plan
+        if (planCredits[plan] > (org.aiCredits || 0)) {
+            updateData.aiCredits = planCredits[plan];
+        }
+
+        const updated = await prisma.organization.update({
+            where: { id: org.id },
+            data: updateData,
+        });
+
+        res.json({ success: true, data: updated, message: `Plan changed to ${plan}` });
+    } catch (err) { next(err); }
+});
+
+// ─── PATCH /api/super-admin/organizations/:orgId/extend-trial ─
+router.patch('/organizations/:orgId/extend-trial', async (req, res, next) => {
+    try {
+        const { days } = z.object({
+            days: z.number().int().min(1).max(365),
+        }).parse(req.body);
+
+        const org = await prisma.organization.findFirst({
+            where: { orgId: req.params.orgId, deletedAt: null },
+        });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const baseDate = org.trialEndsAt && org.trialEndsAt > new Date()
+            ? org.trialEndsAt
+            : new Date();
+        const newTrialEnd = new Date(baseDate.getTime() + days * 24 * 60 * 60 * 1000);
+
+        await prisma.organization.update({
+            where: { id: org.id },
+            data: {
+                trialEndsAt: newTrialEnd,
+                status: 'TRIAL',
+            },
+        });
+
+        res.json({ success: true, message: `Trial extended by ${days} days until ${newTrialEnd.toLocaleDateString()}` });
+    } catch (err) { next(err); }
+});
+
+// ─── DELETE /api/super-admin/organizations/:orgId ────────────
+router.delete('/organizations/:orgId', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({
+            where: { orgId: req.params.orgId, deletedAt: null },
+        });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        await prisma.organization.update({
+            where: { id: org.id },
+            data: { deletedAt: new Date(), status: 'SUSPENDED' },
+        });
+
+        res.json({ success: true, message: `Organization ${org.name} deleted` });
     } catch (err) { next(err); }
 });
 
@@ -419,6 +547,211 @@ router.get('/users', async (req, res, next) => {
             success: true,
             data: { users, total, page: Number(page), pages: Math.ceil(total / Number(limit)) },
         });
+    } catch (err) { next(err); }
+});
+
+// ─── MockBook / Organization Tests ───────────────────────────
+router.get('/mockbook/:orgId/tests', async (req, res, next) => {
+    try {
+        const { folderId } = req.query;
+        const org = await prisma.organization.findFirst({ where: { orgId: req.params.orgId } });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const tests = await prisma.mockTest.findMany({
+            where: { 
+                orgId: org.id,
+                subCategoryId: folderId ? (folderId as string) : undefined
+            },
+            orderBy: { createdAt: 'desc' },
+            include: {
+                _count: { select: { attempts: true } },
+                sections: { include: { set: true } }
+            },
+        });
+
+        // Map to frontend format
+        const mappedTests = tests.map(test => ({
+            id: test.testId,
+            dbId: test.id,
+            name: test.name,
+            type: "Full Mock", 
+            setCode: test.sections[0]?.set?.setId || "N/A",
+            questions: test.sections[0]?.set?.totalQuestions || 0,
+            duration: test.durationMins,
+            attempts: test._count.attempts,
+            status: test.status.toLowerCase(),
+            marks: test.totalMarks,
+            accessType: test.isPublic ? "free" : "pack",
+        }));
+
+        res.json({ success: true, data: mappedTests });
+    } catch (err) { next(err); }
+});
+
+router.post('/mockbook/:orgId/tests', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({ where: { orgId: req.params.orgId } });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const schema = z.object({
+            name: z.string().min(1),
+            type: z.string().optional(),
+            description: z.string().optional(),
+            instructions: z.string().optional(),
+            setId: z.string().min(1),
+            setPassword: z.string().optional(),
+            duration: z.number().min(1),
+            totalMarks: z.number().min(0),
+            status: z.string().optional(),
+            folderId: z.string().optional(), // ExamSubCategory ID
+        });
+
+        const body = schema.parse(req.body);
+
+        // Find the QuestionSet DB ID from the user-provided setId (human-readable or UUID)
+        const qSet = await prisma.questionSet.findFirst({
+            where: {
+                OR: [
+                    { id: body.setId },
+                    { setId: body.setId }
+                ]
+            }
+        });
+        if (!qSet) throw new AppError('Question Set not found', 404);
+
+        const testId = String(Math.floor(100000 + Math.random() * 900000));
+        const pin = body.setPassword || String(Math.floor(100000 + Math.random() * 900000));
+
+        const test = await prisma.mockTest.create({
+            data: {
+                testId,
+                pin,
+                orgId: org.id,
+                subCategoryId: body.folderId || null,
+                name: body.name,
+                description: body.description,
+                durationMins: body.duration,
+                totalMarks: body.totalMarks,
+                status: (body.status?.toUpperCase() as any) || 'DRAFT',
+                sections: {
+                    create: [{
+                        setId: qSet.id,
+                        name: 'Section 1',
+                        sortOrder: 0,
+                    }]
+                }
+            },
+            include: {
+                _count: { select: { attempts: true } }
+            }
+        });
+
+        res.status(201).json({ 
+            success: true, 
+            data: {
+                id: test.testId,
+                dbId: test.id,
+                name: test.name,
+                type: body.type || "Full Mock",
+                setCode: body.setId,
+                questions: qSet.totalQuestions || 0,
+                duration: test.durationMins,
+                attempts: 0,
+                status: test.status.toLowerCase(),
+                marks: test.totalMarks,
+                accessType: "free"
+            }
+        });
+    } catch (err) { next(err); }
+});
+
+// ─── MockBook Packs (Super Admin) ─────────────────────────────
+router.get('/mockbook/:orgId/packs', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({ where: { orgId: req.params.orgId } });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        // Using ExamCategory as "packs" scoped to org
+        const packs = await prisma.examCategory.findMany({
+            where: { orgId: org.id },
+            include: { _count: { select: { subCategories: true } } },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        res.json({
+            success: true,
+            data: packs.map(p => ({
+                id: p.id,
+                name: p.name,
+                shortDesc: p.description || '',
+                monthlyPrice: p.isFree ? 0 : (p.price || 0),
+                yearlyPrice: p.isFree ? 0 : Math.round((p.price || 0) * 10),
+                status: p.isActive ? 'active' : 'draft',
+                badge: p.isFeatured ? 'Most Popular' : null,
+                mockTests: p._count.subCategories || 0,
+                studyPlans: 0,
+                aiPoints: 500,
+                dailyPractice: true,
+                students: 0,
+                isFree: p.isFree,
+            }))
+        });
+    } catch (err) { next(err); }
+});
+
+router.post('/mockbook/:orgId/packs', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({ where: { orgId: req.params.orgId } });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const folder = await prisma.examFolder.findFirst({ where: { orgId: org.id } });
+        if (!folder) throw new AppError('Create an exam folder first', 400);
+
+        const pack = await prisma.examCategory.create({
+            data: {
+                orgId: org.id,
+                folderId: folder.id,
+                name: req.body.name || 'Unnamed Pack',
+                description: req.body.shortDesc || req.body.description || '',
+                isFree: req.body.monthlyPrice === 0 || req.body.isFree || false,
+                price: req.body.monthlyPrice || 0,
+                isActive: req.body.status === 'active',
+                isFeatured: req.body.badge === 'Most Popular',
+            }
+        });
+
+        res.status(201).json({ success: true, data: { id: pack.id, ...req.body, status: pack.isActive ? 'active' : 'draft' } });
+    } catch (err) { next(err); }
+});
+
+router.patch('/mockbook/:orgId/packs/:packId', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({ where: { orgId: req.params.orgId } });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const pack = await prisma.examCategory.update({
+            where: { id: req.params.packId },
+            data: {
+                name: req.body.name,
+                description: req.body.shortDesc,
+                isActive: req.body.status === 'active',
+                isFeatured: req.body.badge === 'Most Popular',
+                price: req.body.monthlyPrice,
+                isFree: req.body.isFree,
+            }
+        });
+
+        res.json({ success: true, data: pack });
+    } catch (err) { next(err); }
+});
+
+router.delete('/mockbook/:orgId/packs/:packId', async (req, res, next) => {
+    try {
+        const org = await prisma.organization.findFirst({ where: { orgId: req.params.orgId } });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        await prisma.examCategory.delete({ where: { id: req.params.packId } });
+        res.json({ success: true, message: 'Pack deleted' });
     } catch (err) { next(err); }
 });
 

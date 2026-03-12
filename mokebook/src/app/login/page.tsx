@@ -21,6 +21,7 @@ import {
 } from "firebase/auth";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { useOrganization } from "@/providers/OrganizationProvider";
 
 /* ─── Floating Particle ─────────────────────── */
 const particles = Array.from({ length: 18 }, (_, i) => ({
@@ -84,7 +85,6 @@ export default function LoginPage() {
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [guestLoading, setGuestLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -94,6 +94,7 @@ export default function LoginPage() {
   const auth = useAuth();
   const router = useRouter();
   const { toast } = useToast();
+  const { org } = useOrganization();
 
   useEffect(() => {
     setMounted(true);
@@ -108,7 +109,13 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const endpoint = isLogin ? "/auth/login" : "/auth/register";
-      const body: any = { email, password };
+      const body: any = { 
+        email: email.includes('@') ? email : undefined,
+        studentId: !email.includes('@') ? email : undefined,
+        password,
+        orgId: org?.orgId || process.env.NEXT_PUBLIC_ORG_ID,
+        role: "STUDENT"
+      };
       if (!isLogin) body.name = name;
 
       const res = await fetch(`${API_URL}${endpoint}`, {
@@ -145,17 +152,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleGuest = async () => {
-    setGuestLoading(true);
-    try {
-      // For demo mode, we can use a guest login if backend supports it, 
-      // or just redirect if it's a public demo.
-      toast({ title: "Demo Mode Active ⚡", description: "Explore Mockbook with sample data!" });
-      router.push("/");
-    } finally {
-      setGuestLoading(false);
-    }
-  };
 
   const switchMode = () => {
     setIsLogin(p => !p);
@@ -201,10 +197,16 @@ export default function LoginPage() {
         <div className="relative z-10 flex flex-col h-full p-10 xl:p-14">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2.5 group w-fit">
-            <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-lg shadow-lg shadow-primary/40 group-hover:scale-105 transition-transform">
-              M
-            </div>
-            <span className="text-white font-bold text-xl tracking-tight">Mockbook</span>
+            {org?.logoUrl ? (
+              <div className="relative w-10 h-10 rounded-2xl overflow-hidden shadow-lg group-hover:scale-105 transition-transform">
+                <Image src={org.logoUrl} alt={org.name} fill className="object-cover" sizes="40px" />
+              </div>
+            ) : (
+              <div className="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center text-white font-black text-lg shadow-lg shadow-primary/40 group-hover:scale-105 transition-transform">
+                {org?.name?.charAt(0) || "M"}
+              </div>
+            )}
+            <span className="text-white font-bold text-xl tracking-tight">{org?.name || "Mockbook"}</span>
           </Link>
 
           {/* Hero text */}
@@ -212,7 +214,7 @@ export default function LoginPage() {
             <div className="space-y-4">
               <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-primary text-xs font-black uppercase tracking-widest">
                 <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                India's #1 AI Mock Test Platform
+                {org?.name ? `${org.name} - Official Student Portal` : "India's #1 AI Mock Test Platform"}
               </div>
               <h1 className="text-4xl xl:text-5xl font-extrabold leading-[1.08] tracking-tight text-white">
                 Crack Any Exam
@@ -312,33 +314,7 @@ export default function LoginPage() {
               </p>
             </div>
 
-            {/* Demo/Guest Button */}
-            <button
-              onClick={handleGuest}
-              disabled={guestLoading}
-              className="btn-glow w-full group relative flex items-center justify-between gap-4 px-5 py-4 rounded-2xl bg-gradient-to-r from-primary to-accent text-white font-bold shadow-xl shadow-primary/25 hover:shadow-primary/40 hover:-translate-y-0.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden"
-            >
-              {/* Shimmer overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700" />
-
-              <div className="flex items-center gap-3 relative z-10">
-                {guestLoading
-                  ? <Loader2 className="h-5 w-5 animate-spin" />
-                  : (
-                    <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
-                      <Zap className="h-5 w-5 fill-white" />
-                    </div>
-                  )
-                }
-                <div className="text-left">
-                  <p className="text-sm font-black leading-none">
-                    {guestLoading ? "Entering Demo..." : "Try Demo Mode"}
-                  </p>
-                  <p className="text-[10px] text-white/70 mt-0.5 font-medium leading-none">No account needed — explore freely</p>
-                </div>
-              </div>
-              <ArrowRight className="h-5 w-5 relative z-10 group-hover:translate-x-1 transition-transform shrink-0" />
-            </button>
+            {/* Demo/Guest Mode Removed */}
 
             {/* OR divider */}
             <div className="flex items-center gap-3">
@@ -369,13 +345,13 @@ export default function LoginPage() {
 
               {/* Email */}
               <div className="space-y-1.5">
-                <Label htmlFor="email" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Email Address</Label>
+                <Label htmlFor="email" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Student ID or Email</Label>
                 <div className="relative group">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-primary transition-colors" />
                   <Input
                     id="email"
-                    type="email"
-                    placeholder="you@email.com"
+                    type="text"
+                    placeholder="Enter Student ID or Email"
                     required
                     className="pl-10 h-12 text-sm rounded-xl bg-slate-50 border-slate-200 focus-visible:ring-primary focus-visible:border-primary focus-visible:bg-white transition-all"
                     value={email}

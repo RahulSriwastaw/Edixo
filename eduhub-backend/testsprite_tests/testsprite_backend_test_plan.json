@@ -1,0 +1,47 @@
+[
+  {
+    "id": "TC001",
+    "title": "post api mockbook folders create folder with authorization",
+    "description": "Test creating a new exam folder using POST /api/mockbook/folders with valid Authorization header. Verify response status 201 and returned folder object contains id, name, path, and orgId."
+  },
+  {
+    "id": "TC002",
+    "title": "get api mockbook folders list all folders",
+    "description": "Test retrieving all exam folders using GET /api/mockbook/folders without authorization. Verify response status 200 and response contains an array of folders including public/global and org folders."
+  },
+  {
+    "id": "TC003",
+    "title": "post api mockbook categories create test series with valid folderid",
+    "description": "Test creating a new test series using POST /api/mockbook/categories with valid Authorization and body containing name, folderId, and examType. Verify response status 201 and returned category object."
+  },
+  {
+    "id": "TC004",
+    "title": "post api mockbook categories create test series with invalid folderid",
+    "description": "Test creating a new test series using POST /api/mockbook/categories with valid Authorization but folderId that does not exist. Verify response status 404 with validation error message."
+  },
+  {
+    "id": "TC005",
+    "title": "get api super admin mockbook orgid tests list tests with superadmin authorization",
+    "description": "Test listing mock tests for an organization using GET /api/super-admin/mockbook/:orgId/tests with SuperAdmin JWT. Verify response status 200 and returned array of mock tests for the specified organization."
+  },
+  {
+    "id": "TC006",
+    "title": "post api super admin mockbook orgid tests create test with superadmin authorization",
+    "description": "Test creating a mock test for an organization using POST /api/super-admin/mockbook/:orgId/tests with SuperAdmin JWT and valid body. Verify response status 201 and returned mock test object containing testId, orgId, and status."
+  },
+  {
+    "id": "TC007",
+    "title": "get api super admin organizations id get organization details with superadmin authorization",
+    "description": "Test retrieving organization details using GET /api/super-admin/organizations/:id with SuperAdmin JWT. Verify response status 200 and returned organization details including id, name, plan, and featureFlags."
+  },
+  {
+    "id": "TC008",
+    "title": "get api super admin mockbook orgid tests forbidden for non superadmin",
+    "description": "Test accessing GET /api/super-admin/mockbook/:orgId/tests with OrgStaff JWT (non-SuperAdmin). Verify response status 403 Forbidden."
+  },
+  {
+    "id": "TC009",
+    "title": "post api super admin mockbook invalid org tests not found",
+    "description": "Test creating a mock test for an invalid organization using POST /api/super-admin/mockbook/invalid-org/tests with SuperAdmin JWT. Verify response status 404 Not Found with error message."
+  }
+]

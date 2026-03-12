@@ -25,38 +25,64 @@ interface Organization {
 interface MockBookOrgSwitcherProps {
   open: boolean;
   onSelect: (org: Organization) => void;
+  onClose?: () => void;
   recentOrgs?: Organization[];
 }
 
-const organizations: Organization[] = [
-  { id: "GK-ORG-00142", name: "Apex Academy", plan: "Medium", status: "Active", students: 847, mockTests: 24 },
-  { id: "GK-ORG-00141", name: "Brilliant Coaching", plan: "Large", status: "Active", students: 1245, mockTests: 42 },
-  { id: "GK-ORG-00140", name: "Excel Institute", plan: "Small", status: "Active", students: 342, mockTests: 12 },
-  { id: "GK-ORG-00139", name: "Success Classes", plan: "Medium", status: "Active", students: 567, mockTests: 18 },
-  { id: "GK-ORG-00137", name: "Prime Tutorials", plan: "Enterprise", status: "Active", students: 2341, mockTests: 67 },
-  { id: "GK-ORG-00136", name: "Knowledge Park", plan: "Medium", status: "Trial", students: 156, mockTests: 5 },
-  { id: "GK-ORG-00135", name: "Vision Academy", plan: "Small", status: "Active", students: 234, mockTests: 8 },
-  { id: "GK-ORG-00134", name: "Rise High Institute", plan: "Large", status: "Active", students: 1890, mockTests: 52 },
-];
+// The organizations list is now fetched from the API instead of hardcoded
 
-export function MockBookOrgSwitcher({ open, onSelect, recentOrgs = [] }: MockBookOrgSwitcherProps) {
+export function MockBookOrgSwitcher({ open, onSelect, onClose, recentOrgs = [] }: MockBookOrgSwitcherProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [mounted, setMounted] = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const getToken = () => {
+    if (typeof document === 'undefined') return '';
+    const match = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+    return match ? match[1] : '';
+  };
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-  }, []);
+    fetchOrganizations();
+  }, [open]); // Re-fetch when the switcher is opened just in case
+
+  const fetchOrganizations = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch(`http://localhost:4000/api/super-admin/organizations?limit=100`, {
+        headers: { 'Authorization': `Bearer ${getToken()}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        // Map the API response to the required Organization interface format
+        const mappedData = data.data.orgs.map((org: any) => ({
+          id: org.orgId, // Use the human-readable orgId instead of the DB id!
+          dbId: org.id, // Keep pure DB id if needed
+          name: org.name,
+          plan: org.plan || "SMALL",
+          status: org.status || "ACTIVE",
+          students: org.studentCount || 0,
+          mockTests: 0 // Will need to adjust if testAttempts is available or use 0
+        }));
+        setOrganizations(mappedData);
+      }
+    } catch (err) {
+      console.error("Failed to fetch mockbook orgs", err);
+    }
+    setLoading(false);
+  };
 
   const filteredOrgs = useMemo(() => {
     if (!searchQuery) return organizations;
     const query = searchQuery.toLowerCase();
     return organizations.filter(
       (org) =>
-        org.name.toLowerCase().includes(query) ||
-        org.id.toLowerCase().includes(query)
+        org.name?.toLowerCase().includes(query) ||
+        org.id?.toLowerCase().includes(query)
     );
-  }, [searchQuery]);
+  }, [searchQuery, organizations]);
 
   const recentOrgIds = recentOrgs.map((org) => org.id);
   const otherOrgs = filteredOrgs.filter((org) => !recentOrgIds.includes(org.id));
@@ -69,8 +95,13 @@ export function MockBookOrgSwitcher({ open, onSelect, recentOrgs = [] }: MockBoo
   if (!mounted) return null;
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[500px] p-0 gap-0" onPointerDownOutside={(e) => e.preventDefault()}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen && onClose) onClose();
+    }}>
+      <DialogContent className="sm:max-w-[500px] p-0 gap-0" onPointerDownOutside={(e) => {
+        // Only prevent default if we want to force explicit selection, but user asked for close button to work
+        // Removing preventDefault allows clicking outside to close
+      }}>
         <DialogHeader className="p-4 pb-0">
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="w-5 h-5 text-orange-600" />
@@ -121,15 +152,23 @@ export function MockBookOrgSwitcher({ open, onSelect, recentOrgs = [] }: MockBoo
               <div className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
                 All Organizations ({filteredOrgs.length})
               </div>
-              <div className="space-y-1">
-                {(recentOrgs.length > 0 ? otherOrgs : filteredOrgs).map((org) => (
-                  <OrgListItem
-                    key={org.id}
-                    org={org}
-                    onClick={() => handleSelect(org)}
-                  />
-                ))}
-              </div>
+
+              {loading ? (
+                <div className="py-8 flex justify-center text-sm text-gray-500">Loading organizations...</div>
+              ) : (
+                <div className="space-y-1">
+                  {(recentOrgs.length > 0 ? otherOrgs : filteredOrgs).map((org) => (
+                    <OrgListItem
+                      key={org.id}
+                      org={org}
+                      onClick={() => handleSelect(org)}
+                    />
+                  ))}
+                  {filteredOrgs.length === 0 && !loading && (
+                    <div className="py-4 text-center text-sm text-gray-500">No organizations found.</div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </ScrollArea>
@@ -165,8 +204,8 @@ function OrgListItem({
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-medium text-gray-900 truncate">{org.name}</span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded ${planStyles[org.plan]}`}>
-            {org.plan}
+          <span className={`text-[10px] px-1.5 py-0.5 rounded capitalize ${planStyles[org.plan] || "bg-gray-50 text-gray-700"}`}>
+            {org.plan?.toLowerCase() || 'Small'}
           </span>
         </div>
         <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">

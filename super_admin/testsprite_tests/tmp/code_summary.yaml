@@ -1,0 +1,275 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 14 (App Router)
+  - React 18
+  - Tailwind CSS
+  - shadcn/ui
+  - Zustand (sidebarStore)
+  - Sonner (toasts)
+  - lucide-react
+
+routes:
+  - path: /login
+    file: src/app/login/page.tsx
+    auth_required: false
+    description: Super Admin login page with email/password
+  - path: /
+    file: src/app/page.tsx
+    auth_required: true
+    description: Root redirect to dashboard
+  - path: /dashboard
+    file: src/app/dashboard/page.tsx
+    auth_required: true
+    description: Super Admin main dashboard with KPI stats
+  - path: /organizations
+    file: src/app/organizations/page.tsx
+    auth_required: true
+    description: List all organizations with search and filters
+  - path: /organizations/[orgId]
+    file: src/app/organizations/[orgId]/page.tsx
+    auth_required: true
+    description: Organization detail page
+  - path: /billing
+    file: src/app/billing/page.tsx
+    auth_required: true
+    description: Billing management page
+  - path: /mockbook
+    file: src/app/mockbook/page.tsx
+    auth_required: true
+    description: Super Admin MockBook dashboard with 8 tabs
+  - path: /mockbook/test-series
+    file: src/app/mockbook/test-series/page.tsx
+    auth_required: true
+    description: Test series list with search and filters
+  - path: /mockbook/test-series/create
+    file: src/app/mockbook/test-series/create/page.tsx
+    auth_required: true
+    description: 6-step test series creation wizard
+  - path: /mockbook/test-series/[seriesId]
+    file: src/app/mockbook/test-series/[seriesId]/page.tsx
+    auth_required: true
+    description: Series detail with tests table and analytics
+  - path: /mockbook/categories
+    file: src/app/mockbook/categories/page.tsx
+    auth_required: true
+    description: Exam category management grid
+  - path: /mockbook/analytics
+    file: src/app/mockbook/analytics/page.tsx
+    auth_required: true
+    description: Platform analytics with charts and revenue breakdown
+  - path: /mockbook/featured
+    file: src/app/mockbook/featured/page.tsx
+    auth_required: true
+    description: Featured series ordering and management
+  - path: /mockbook/org/[orgId]
+    file: src/app/mockbook/org/[orgId]/page.tsx
+    auth_required: true
+    description: Organization-specific MockBook dashboard
+  - path: /mockbook/org/[orgId]/mocktests
+    file: src/app/mockbook/org/[orgId]/mocktests/page.tsx
+    auth_required: true
+    description: Org-level mock test management with folder hierarchy
+  - path: /mockbook/org/[orgId]/students
+    file: src/app/mockbook/org/[orgId]/students/page.tsx
+    auth_required: true
+    description: Students enrolled in org's mockbook
+  - path: /mockbook/org/[orgId]/packs
+    file: src/app/mockbook/org/[orgId]/packs/page.tsx
+    auth_required: true
+    description: Packs/subscriptions for org's mockbook
+  - path: /qbank
+    file: src/app/qbank/page.tsx
+    auth_required: true
+    description: Question bank management
+
+features:
+  - name: Login
+    description: Super Admin logs in with email and password
+    files:
+      - src/app/login/page.tsx
+    entry_route: /login
+    user_interactions:
+      - Fill in email input field
+      - Fill in password input field
+      - Click the Login button
+      - See error message on invalid credentials
+      - See dashboard on successful login
+    api_calls:
+      - method: POST
+        endpoint: /api/auth/login
+    auth_required: false
+
+  - name: MockBook Dashboard
+    description: View platform-wide MockBook stats and manage tabs including Test Series, Live Tests, PYQ Bank, Pricing, Analytics, AI Quotas, Taxonomy
+    files:
+      - src/app/mockbook/page.tsx
+    entry_route: /mockbook
+    user_interactions:
+      - View KPI stats cards (Platform Tests, Series, Attempts, Students, Live, Revenue)
+      - Click Select Organization button to open org switcher
+      - Switch between 8 tabs (Test Series, Live Tests, Free Quizzes, PYQ Bank, Pricing, Analytics, AI Quotas, Taxonomy)
+      - Search and filter test series in Test Series tab
+      - View live tests with status badges in Live Tests tab
+      - See revenue breakdown in Pricing tab
+      - Navigate to Categories page via header button
+      - Navigate to Featured page via header button
+      - Click Create New Series button
+    api_calls:
+      - method: GET
+        endpoint: /api/super-admin/dashboard
+      - method: GET
+        endpoint: /api/super-admin/organizations
+      - method: GET
+        endpoint: /api/qbank/taxonomy
+    auth_required: true
+
+  - name: Test Series List
+    description: List all test series with search and category/status filters
+    files:
+      - src/app/mockbook/test-series/page.tsx
+    entry_route: /mockbook/test-series
+    user_interactions:
+      - Search series by name
+      - Filter by category (SSC, Banking, NEET, etc.)
+      - Filter by status (Active, Draft, Scheduled, Archived)
+      - Click Manage button on a series row
+      - Click Create New Series button
+      - Open dropdown for Edit, Duplicate, Feature, Analytics, Delete actions
+    api_calls: []
+    auth_required: true
+
+  - name: Create Test Series Wizard
+    description: 6-step wizard to create a new test series
+    files:
+      - src/app/mockbook/test-series/create/page.tsx
+    entry_route: /mockbook/test-series/create
+    user_interactions:
+      - Step 1 - Fill in series name, select category, choose target (Platform/Org), add description
+      - Step 1 - Select series color tag
+      - Step 1 - Upload thumbnail image
+      - Step 2 - Set test counts per type using +/- buttons
+      - Step 3 - Add existing tests or create new ones
+      - Step 4 - Choose pricing type (Free/Partly Free/Paid), set price and validity
+      - Step 5 - Choose unlock rule (All available, Weekly, Sequential, Custom)
+      - Step 6 - Review summary checklist and click Publish
+      - Click Next to move forward between steps
+      - Click Previous to go back
+    api_calls: []
+    auth_required: true
+
+  - name: Exam Categories Management
+    description: Manage exam categories displayed on the platform
+    files:
+      - src/app/mockbook/categories/page.tsx
+    entry_route: /mockbook/categories
+    user_interactions:
+      - View exam category cards grid
+      - Click a card to expand featured series for that category
+      - Click Add Category button
+      - Click Edit or Delete icons on a category card
+    api_calls: []
+    auth_required: true
+
+  - name: Featured Series Management
+    description: Manage which series are featured on the homepage and their order
+    files:
+      - src/app/mockbook/featured/page.tsx
+    entry_route: /mockbook/featured
+    user_interactions:
+      - View ordered list of series
+      - Toggle featured status using toggle button
+      - Click up/down arrows to reorder series
+      - Click Save Order button
+      - View category-wise featured sections
+    api_calls: []
+    auth_required: true
+
+  - name: Analytics Dashboard
+    description: View platform analytics with KPIs, charts, and revenue breakdown
+    files:
+      - src/app/mockbook/analytics/page.tsx
+    entry_route: /mockbook/analytics
+    user_interactions:
+      - Select date range from dropdown (7, 30, 90 days)
+      - View KPI cards (DAU, Tests Attempted, Enrollments, Revenue)
+      - View daily tests bar chart
+      - View top series by enrollment table
+      - View top tests by attempts table
+      - View revenue breakdown bars
+      - Click Export CSV button
+    api_calls: []
+    auth_required: true
+
+  - name: Organization MockTest Management
+    description: Create and manage mock tests for a specific organization using a 3-level folder hierarchy
+    files:
+      - src/app/mockbook/org/[orgId]/mocktests/page.tsx
+    entry_route: /mockbook/org/:orgId/mocktests
+    user_interactions:
+      - Navigate through folder hierarchy (Exam Category > Test Series > Folder)
+      - Click on an Exam Category card to drill down
+      - Click on a Test Series card to drill down
+      - Click on a Folder card to view tests
+      - Click New Category/Series/Folder button
+      - Click Create MockTest button (only enabled inside a Series)
+      - Fill test name, type, duration, marks in create dialog
+      - Select QBank set for the test
+      - Submit to create the test
+      - Filter tests by status and type
+      - Search tests by name
+    api_calls:
+      - method: GET
+        endpoint: /api/super-admin/organizations/:orgId
+      - method: GET
+        endpoint: /api/mockbook/folders?orgId=:orgId
+      - method: GET
+        endpoint: /api/super-admin/mockbook/:orgId/tests
+      - method: POST
+        endpoint: /api/super-admin/mockbook/:orgId/tests
+      - method: POST
+        endpoint: /api/mockbook/folders
+      - method: POST
+        endpoint: /api/mockbook/categories
+      - method: POST
+        endpoint: /api/mockbook/subcategories
+      - method: DELETE
+        endpoint: /api/mockbook/folders/:id
+    auth_required: true
+
+  - name: Organization Management
+    description: View and manage all organizations
+    files:
+      - src/app/organizations/page.tsx
+      - src/app/organizations/[orgId]/page.tsx
+    entry_route: /organizations
+    user_interactions:
+      - Search organizations by name or ID
+      - Filter by plan or status
+      - Click on an organization to view details
+      - Change organization plan
+      - Toggle organization status
+    api_calls:
+      - method: GET
+        endpoint: /api/super-admin/organizations
+      - method: GET
+        endpoint: /api/super-admin/organizations/:orgId
+    auth_required: true
+
+known_limitations:
+  - issue: Test series create wizard does not connect to backend API yet
+    location: src/app/mockbook/test-series/create/page.tsx
+    impact: Publishing navigates back without actually saving to database
+  - issue: Categories page uses UI-only mock data
+    location: src/app/mockbook/categories/page.tsx
+    impact: Add/Edit/Delete do not persist to backend
+  - issue: Featured page reordering is UI-only (no save API)
+    location: src/app/mockbook/featured/page.tsx
+    impact: Order saved button shows toast but does not call backend
+  - issue: Analytics page uses hardcoded mock data
+    location: src/app/mockbook/analytics/page.tsx
+    impact: No real API data yet; KPIs and charts are static
+  - issue: Series detail page uses hardcoded series data
+    location: src/app/mockbook/test-series/[seriesId]/page.tsx
+    impact: Only S001 shows real data; other IDs fall back to default

@@ -7,10 +7,7 @@ import { Button } from "@/components/ui/button";
 import { 
   ChevronRight, 
   Loader2,
-  ArrowLeft
 } from "lucide-react";
-import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc } from "firebase/firestore";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { 
@@ -21,21 +18,26 @@ import {
   SelectValue 
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { apiFetch } from "@/lib/api";
 
 export default function TestInstructionsPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useUser();
-  const db = useFirestore();
-  const userDoc = useDoc(user && db ? doc(db, "users", user.uid) : null);
+  const [displayName, setDisplayName] = useState("Student");
 
   const [step, setStep] = useState(1);
   const [language, setLanguage] = useState("");
   const [declared, setDeclared] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
 
-  // Get testId safely
   const testId = params?.id ? String(params.id) : "demo-test";
+
+  // Fetch student name from API
+  useEffect(() => {
+    apiFetch("/students/me").then(res => {
+      if (res.data?.name) setDisplayName(res.data.name);
+    }).catch(() => {});
+  }, []);
 
   const handleBegin = () => {
     if (step === 1) {
@@ -45,15 +47,11 @@ export default function TestInstructionsPage() {
     
     if (language && declared) {
       setIsNavigating(true);
-      // Atomic redirect to ensure reliability in dev/prod environments
-      // We use a slight delay to allow the loading state to be visible
       setTimeout(() => {
         window.location.href = `/tests/exam/${testId}`;
       }, 300);
     }
   };
-
-  const displayName = user?.displayName || userDoc.data?.name || "Student";
 
   return (
     <div className="flex flex-col h-screen bg-[#f0f4f7] font-sans overflow-hidden">

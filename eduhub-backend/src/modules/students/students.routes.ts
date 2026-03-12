@@ -129,6 +129,65 @@ router.post('/', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ─── GET /api/students/me ─────────────────────────────────────
+router.get('/me', async (req, res, next) => {
+    try {
+        if (!req.user) throw new AppError('Unauthorized', 401);
+        
+        const student = await prisma.student.findFirst({
+            where: { userId: req.user.id },
+            include: {
+                batchEnrollments: { include: { batch: true } },
+            },
+        });
+        
+        if (!student) throw new AppError('Student profile not found', 404);
+        
+        // Find enrolled categories (this logic might need refinement based on actual enrollments model)
+        // Currently assuming test purchases or enrollments are tracked somehow, 
+        // passing empty for now until full store logic is built, or fetching user details.
+        
+        res.json({ success: true, data: { ...student, email: req.user.email, mobile: req.user.mobile } });
+    } catch (err) { next(err); }
+});
+
+// ─── PATCH /api/students/me ───────────────────────────────────
+router.patch('/me', async (req, res, next) => {
+    try {
+        if (!req.user) throw new AppError('Unauthorized', 401);
+        
+        const schema = z.object({
+            name: z.string().min(2).optional(),
+            phone: z.string().optional(),
+            primaryExam: z.string().optional(),
+            targetYear: z.number().optional(),
+        });
+        const body = schema.parse(req.body);
+
+        const student = await prisma.student.findFirst({ where: { userId: req.user.id } });
+        if (!student) throw new AppError('Student profile not found', 404);
+
+        const updated = await prisma.student.update({
+            where: { id: student.id },
+            data: {
+                name: body.name !== undefined ? body.name : undefined,
+                mobile: body.phone !== undefined ? body.phone : undefined,
+                // Add primaryExam and targetYear if they exist in schema, else ignore or store in JSON
+            },
+        });
+        
+        // Also update User mobile if provided
+        if (body.phone) {
+            await prisma.user.update({
+                where: { id: req.user.id },
+                data: { mobile: body.phone }
+            });
+        }
+
+        res.json({ success: true, data: updated });
+    } catch (err) { next(err); }
+});
+
 // ─── GET /api/students/:id ───────────────────────────────────
 router.get('/:id', async (req, res, next) => {
     try {

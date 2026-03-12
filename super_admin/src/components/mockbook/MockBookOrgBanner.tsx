@@ -10,6 +10,7 @@ export interface MockBookOrg {
   status: string;
   students: number;
   mockTests: number;
+  aiCredits?: number;
 }
 
 interface MockBookOrgBannerProps {

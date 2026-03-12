@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { OrganizationProvider } from '@/providers/OrganizationProvider';
 
 export const metadata: Metadata = {
   title: 'Mockbook - Your Smart Study Partner',
@@ -18,8 +19,10 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans antialiased bg-background min-h-screen">
         <FirebaseClientProvider>
-          {children}
-          <Toaster />
+          <OrganizationProvider>
+            {children}
+            <Toaster />
+          </OrganizationProvider>
         </FirebaseClientProvider>
       </body>
     </html>

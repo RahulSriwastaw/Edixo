@@ -1,0 +1,22 @@
+{
+  "status": "commited",
+  "type": "backend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:4000",
+  "backendAuthType": "public",
+  "executionArgs": {
+    "projectName": "eduhub-backend",
+    "projectPath": "d:\\RahulProjects\\New EduHub\\eduhub-backend",
+    "testIds": [
+      "TC002",
+      "TC005"
+    ],
+    "additionalInstruction": "Fix 500 Internal Server Error in /api/mockbook/folders and /api/super-admin/mockbook/:orgId/tests.\nThe logs show 500 errors. I recently added folders, categories, and subcategories to the Prisma schema.\nEnsure the database is synced and the code handles the new hierarchy correctly.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-FLf22UkcGaZ3ENXC7qZB3kNRNn63WQKT_014Cx3QeRnvNsVk9Ec3B6I6VvSB72ao83CQg02-zMxZCYR7cK9RAd_25Fz40lwCNLYnbYQbF55pXgeF8sTEYJD6PKZcnZMRgj0"
+    }
+  },
+  "serverPort": 55321,
+  "proxy": "http://6e2c081f-499a-41a8-aa4c-6de1be125578:e3bEgjId1FLwDhZS8Ie9xz69gBtC2Goo@tun.testsprite.com:8080"
+}

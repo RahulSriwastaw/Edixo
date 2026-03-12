@@ -38,31 +38,8 @@ const quickActions = [
   { title: "Results", desc: "Analytics and reports", icon: BarChart3, href: "results", color: "indigo" },
 ];
 
-// Stats
-const orgStats = [
-  { label: "Total MockTests", value: 24, icon: BookOpen, color: "purple" },
-  { label: "Active Students", value: 692, icon: Users, color: "blue" },
-  { label: "Tests This Month", value: 1247, icon: CheckCircle2, color: "green" },
-  { label: "AI Credits Used", value: "342/500", icon: Sparkles, color: "orange" },
-];
 
-// Recent activity
-const recentActivity = [
-  { action: "New student enrolled: Rahul Sharma", time: "10 min ago", type: "student" },
-  { action: "MockTest 'JEE Full Mock #12' published", time: "1 hour ago", type: "test" },
-  { action: "Pack 'JEE Gold' renewed by 3 students", time: "2 hours ago", type: "pack" },
-  { action: "Daily Practice completed by 45 students", time: "3 hours ago", type: "practice" },
-  { action: "New MockTest scheduled for Mar 10", time: "5 hours ago", type: "test" },
-];
 
-// Top performers
-const topPerformers = [
-  { name: "Neha Gupta", score: 95, tests: 67, streak: 28 },
-  { name: "Priya Verma", score: 89, tests: 32, streak: 5 },
-  { name: "Rahul Sharma", score: 85, tests: 48, streak: 12 },
-  { name: "Amit Kumar", score: 82, tests: 15, streak: 0 },
-  { name: "Sunita Patel", score: 78, tests: 8, streak: 3 },
-];
 
 const getIconBgColor = (color: string) => {
   const colors: Record<string, string> = {
@@ -107,20 +84,51 @@ const params = useParams();
   const [mounted, setMounted] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<MockBookOrg | null>(null);
   const [showOrgSwitcher, setShowOrgSwitcher] = useState(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    // Mock: Load org from ID
-    const mockOrg: MockBookOrg = {
-      id: orgId,
-      name: "Apex Academy",
-      plan: "Medium",
-      status: "Active",
-      students: 847,
-      mockTests: 24,
+    // Dynamic fetch: Load org from API
+    const fetchOrgDetails = async () => {
+      try {
+        const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        const token = tokenMatch ? tokenMatch[1] : '';
+        
+        const [orgRes, auditRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations/${orgId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations/${orgId}/audit`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        const data = await orgRes.json();
+        const auditData = await auditRes.json();
+        
+        if (auditData.success) {
+          setAuditLogs(auditData.data || []);
+        }
+        
+        if (data.success) {
+          const orgInfo = data.data;
+          setSelectedOrg({
+            id: orgInfo.orgId,
+            name: orgInfo.name,
+            plan: orgInfo.plan || "SMALL",
+            status: orgInfo.status || "ACTIVE",
+            students: orgInfo._count?.students || orgInfo.studentCount || 0,
+            mockTests: orgInfo._count?.testAttempts || 0,
+            aiCredits: orgInfo.aiCredits || 0,
+            
+          });
+        } else {
+          router.push('/mockbook');
+        }
+      } catch (err) {
+        console.error("Failed to load org details", err);
+        router.push('/mockbook');
+      }
     };
-    setSelectedOrg(mockOrg);
+
+    fetchOrgDetails();
+    
     // eslint-disable-next-line react-hooks/set-state-in-effect
   }, [orgId]);
 
@@ -180,7 +188,16 @@ const params = useParams();
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {orgStats.map((stat, index) => {
+                {(() => {
+                  const planLimit = selectedOrg.plan === 'ENTERPRISE' ? 20000 : selectedOrg.plan === 'LARGE' ? 8000 : selectedOrg.plan === 'MEDIUM' ? 2000 : 500;
+                  const stats = [
+                    { label: "Total MockTests", value: selectedOrg.mockTests || 0, icon: BookOpen, color: "purple" },
+                    { label: "Active Students", value: selectedOrg.students || 0, icon: Users, color: "blue" },
+                    { label: "Tests Attempted", value: selectedOrg.mockTests || 0, icon: CheckCircle2, color: "green" },
+                    { label: "AI Credits Used", value: `${selectedOrg.aiCredits || 0}/${planLimit}`, icon: Sparkles, color: "orange" },
+                  ];
+                  return stats;
+                })().map((stat, index) => {
                   const Icon = stat.icon;
                   return (
                     <Card key={index} className="kpi-card">
@@ -245,9 +262,9 @@ const params = useParams();
                       <div>
                         <div className="flex items-center justify-between text-sm mb-2">
                           <span className="text-gray-600">Used this month</span>
-                          <span className="font-medium">342 / 500 credits</span>
+                          <span className="font-medium">{selectedOrg.aiCredits || 0} / {selectedOrg.plan === 'ENTERPRISE' ? 20000 : selectedOrg.plan === 'LARGE' ? 8000 : selectedOrg.plan === 'MEDIUM' ? 2000 : 500} credits</span>
                         </div>
-                        <Progress value={68} className="h-2" />
+                        <Progress value={Math.round(((selectedOrg.aiCredits || 0) / (selectedOrg.plan === 'ENTERPRISE' ? 20000 : selectedOrg.plan === 'LARGE' ? 8000 : selectedOrg.plan === 'MEDIUM' ? 2000 : 500)) * 100)} className="h-2" />
                       </div>
                       <div className="grid grid-cols-3 gap-4 pt-2">
                         <div className="text-center p-3 bg-gray-50 rounded-lg">
@@ -275,15 +292,17 @@ const params = useParams();
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3">
-                      {recentActivity.map((item, index) => (
+                      {auditLogs.length > 0 ? auditLogs.slice(0, 5).map((log, index) => (
                         <div key={index} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50">
-                          <span className="text-lg">{getActivityIcon(item.type)}</span>
+                          <span className="text-lg">{log.action ? '📝' : '👤'}</span>
                           <div className="flex-1 min-w-0">
-                            <div className="text-sm text-gray-900">{item.action}</div>
-                            <div className="text-xs text-gray-500">{item.time}</div>
+                            <div className="text-sm text-gray-900 capitalize">{log.action?.replace(/_/g, " ")}: {log.details}</div>
+                            <div className="text-xs text-gray-500">{new Date(log.createdAt).toLocaleString()}</div>
                           </div>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="text-center text-gray-500 text-sm py-4">No recent activity found.</div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -303,18 +322,7 @@ const params = useParams();
                   </Button>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                    {topPerformers.map((student, index) => (
-                      <div key={index} className="text-center p-4 rounded-xl bg-gradient-to-br from-gray-50 to-orange-50 border border-gray-100">
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg mx-auto mb-2">
-                          {student.name.charAt(0)}
-                        </div>
-                        <div className="font-medium text-gray-900 text-sm">{student.name}</div>
-                        <div className="text-lg font-bold text-orange-600 mt-1">{student.score}%</div>
-                        <div className="text-xs text-gray-500 mt-1">{student.tests} tests</div>
-                      </div>
-                    ))}
-                  </div>
+                  <div className="py-8 text-center text-sm text-gray-400">Performance analytics are currently being tracked. Top performers will appear here soon.</div>
                 </CardContent>
               </Card>
             </div>

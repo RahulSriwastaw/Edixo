@@ -1,7 +1,7 @@
 "use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -23,6 +23,10 @@ import {
   BarChart3,
   Download,
   KeyRound,
+  Folder,
+  FolderPlus,
+  Layers,
+  LayoutGrid,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -67,109 +71,7 @@ import { MockBookOrgBanner, MockBookOrg } from "@/components/mockbook/MockBookOr
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Mock tests data
-const mockTestsData = [
-  {
-    id: "MT-001",
-    name: "JEE Full Mock Test - Series 1",
-    type: "Full Mock",
-    setCode: "482931",
-    password: "738291",
-    questions: 90,
-    marks: 360,
-    duration: 180,
-    attempts: 1247,
-    avgScore: 68,
-    status: "published",
-    accessType: "free",
-    scheduledStart: null,
-    scheduledEnd: null,
-    negativeMarking: true,
-    createdAt: "Feb 15, 2026",
-  },
-  {
-    id: "MT-002",
-    name: "Physics Chapter Test - Kinematics",
-    type: "Chapter Test",
-    setCode: "582931",
-    password: "838291",
-    questions: 30,
-    marks: 120,
-    duration: 60,
-    attempts: 342,
-    avgScore: 72,
-    status: "published",
-    accessType: "pack",
-    packs: ["JEE Gold Pack", "JEE Platinum Pack"],
-    scheduledStart: null,
-    scheduledEnd: null,
-    negativeMarking: true,
-    createdAt: "Feb 20, 2026",
-  },
-  {
-    id: "MT-003",
-    name: "JEE PYQ 2024 Paper",
-    type: "PYQ",
-    setCode: "682931",
-    password: "938291",
-    questions: 90,
-    marks: 300,
-    duration: 180,
-    attempts: 892,
-    avgScore: 58,
-    status: "published",
-    accessType: "free",
-    scheduledStart: null,
-    scheduledEnd: null,
-    negativeMarking: false,
-    createdAt: "Feb 25, 2026",
-  },
-  {
-    id: "MT-004",
-    name: "NEET Biology Special",
-    type: "Mini Mock",
-    setCode: "782931",
-    password: "048291",
-    questions: 20,
-    marks: 80,
-    duration: 30,
-    attempts: 0,
-    avgScore: 0,
-    status: "scheduled",
-    accessType: "free",
-    scheduledStart: "Mar 10, 2026 10:00 AM",
-    scheduledEnd: "Mar 10, 2026 2:00 PM",
-    negativeMarking: true,
-    createdAt: "Mar 1, 2026",
-  },
-  {
-    id: "MT-005",
-    name: "Math Speed Test - Calculus",
-    type: "Speed Test",
-    setCode: "882931",
-    password: "158291",
-    questions: 50,
-    marks: 200,
-    duration: 45,
-    attempts: 0,
-    avgScore: 0,
-    status: "draft",
-    accessType: "pack",
-    packs: ["JEE Platinum Pack"],
-    scheduledStart: null,
-    scheduledEnd: null,
-    negativeMarking: true,
-    createdAt: "Mar 3, 2026",
-  },
-];
 
-// Stats
-const stats = [
-  { label: "Total MockTests", value: 45, icon: FileText, color: "purple" },
-  { label: "Published", value: 32, icon: CheckCircle2, color: "green" },
-  { label: "Total Attempts", value: "8.2K", icon: Users, color: "blue" },
-  { label: "Avg Score", value: "68%", icon: BarChart3, color: "orange" },
-];
 
 // Type Badge
 function TypeBadge({ type }: { type: string }) {
@@ -231,23 +133,364 @@ const params = useParams();
   const [typeFilter, setTypeFilter] = useState("all");
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createStep, setCreateStep] = useState(1);
+  const [mockTestsList, setMockTestsList] = useState<any[]>([]);
+
+  // Hierarchy Navigation States
+  const [examFolders, setExamFolders] = useState<any[]>([]); // Level 1 (SSC, Railway)
+  const [testSeries, setTestSeries] = useState<any[]>([]); // Level 2 (SSC CGL 2026)
+  const [testFolders, setTestFolders] = useState<any[]>([]); // Level 3+ (Tier 1, Sectional)
+  
+  const [activeExamFolder, setActiveExamFolder] = useState<any>(null);
+  const [activeTestSeries, setActiveTestSeries] = useState<any>(null);
+  const [activeTestFolder, setActiveTestFolder] = useState<any>(null);
+  const [navigationPath, setNavigationPath] = useState<any[]>([]); // Breadcrumbs
+  
+  const [showAddFolderDialog, setShowAddFolderDialog] = useState(false);
+  const [newFolderType, setNewFolderType] = useState<"category" | "series" | "folder">("category");
+  const [newFolderName, setNewFolderName] = useState("");
+
+  // New states for form and Q-Bank browser
+  const [showQBankBrowser, setShowQBankBrowser] = useState(false);
+  const [qBankSets, setQBankSets] = useState<any[]>([]);
+  const [isLoadingSets, setIsLoadingSets] = useState(false);
+  const [testForm, setTestForm] = useState({
+    name: "",
+    type: "Full Mock",
+    description: "",
+    instructions: "",
+    setId: "",
+    setPassword: "",
+    duration: 180,
+    totalMarks: 360,
+    negativeMarking: "yes",
+    shuffleQuestions: "yes",
+    showResult: "immediate",
+    maxAttempts: "unlimited",
+    accessType: "free",
+    status: "draft",
+    startDate: "",
+    endDate: "",
+  });
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    // Mock: Load org from ID
-    const mockOrg: MockBookOrg = {
-      id: orgId,
-      name: "Apex Academy",
-      plan: "Medium",
-      status: "Active",
-      students: 847,
-      mockTests: 24,
+    // Dynamic fetch: load org and tests
+    const fetchData = async () => {
+      try {
+        const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        const token = tokenMatch ? tokenMatch[1] : '';
+        
+        // Fetch Org Details
+        const orgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations/${orgId}`, { 
+          headers: { 'Authorization': `Bearer ${token}` } 
+        });
+        const orgData = await orgRes.json();
+        
+        if (orgData.success) {
+          const orgInfo = orgData.data;
+          setSelectedOrg({
+            id: orgInfo.orgId,
+            name: orgInfo.name,
+            plan: orgInfo.plan || "SMALL",
+            status: orgInfo.status || "ACTIVE",
+            students: orgInfo._count?.students || orgInfo.studentCount || 0,
+            mockTests: orgInfo._count?.testAttempts || 0,
+            aiCredits: orgInfo.aiCredits || 0,
+          });
+        } else {
+          router.push('/mockbook');
+          return;
+        }
+
+        // Fetch Initial Hierarchy (Exam Folders / Categories)
+        const foldersRes = await fetch(`http://localhost:4000/api/mockbook/folders?orgId=${orgId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const foldersData = await foldersRes.json();
+        if (foldersData.success) {
+          setExamFolders(foldersData.data || []);
+        }
+
+        // Fetch MockTests for this level (initially top level if any)
+        fetchTests(null);
+      } catch (err) {
+        console.error("Failed to load data", err);
+      }
     };
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSelectedOrg(mockOrg);
+    fetchData();
+    
   }, [orgId]);
+
+  const fetchTests = async (folderId: string | null) => {
+    try {
+      const testsRes = await fetch(`http://localhost:4000/api/mockbook/admin/tests?orgId=${orgId}${folderId ? `&categoryId=${folderId}` : ''}`, {
+        headers: { 'Authorization': `Bearer ${document.cookie.match(/(?:^|;\s*)token=([^;]*)/)?.[1] || ''}` }
+      });
+      const testsData = await testsRes.json();
+      if (testsData.success) {
+        setMockTestsList(testsData.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch tests", err);
+    }
+  };
+
+  const fetchSeries = async (examFolderId: string) => {
+    try {
+      const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+      const token = tokenMatch ? tokenMatch[1] : '';
+      const res = await fetch(`http://localhost:4000/api/mockbook/categories?folderId=${examFolderId}&orgId=${orgId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestSeries(data.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch series", err);
+    }
+  };
+
+  const fetchSubFolders = async (seriesId: string, parentId: string | null = null) => {
+    try {
+      const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+      const token = tokenMatch ? tokenMatch[1] : '';
+      const res = await fetch(`http://localhost:4000/api/mockbook/subcategories?categoryId=${seriesId}${parentId ? `&parentId=${parentId}` : '&parentId=null'}&orgId=${orgId}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTestFolders(data.data || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch folders", err);
+    }
+  };
+
+  const navigateToExamFolder = (folder: any) => {
+    setActiveExamFolder(folder);
+    setActiveTestSeries(null);
+    setActiveTestFolder(null);
+    setNavigationPath([{ type: 'examFolder', name: folder.name, id: folder.id }]);
+    fetchSeries(folder.id);
+    setMockTestsList([]);
+  };
+
+  const navigateToSeries = (series: any) => {
+    setActiveTestSeries(series);
+    setActiveTestFolder(null);
+    setNavigationPath([
+      ...navigationPath.filter(p => p.type === 'examFolder'),
+      { type: 'series', name: series.name, id: series.id }
+    ]);
+    fetchSubFolders(series.id, null);
+    setMockTestsList([]);
+  };
+
+  const navigateToFolder = (folder: any) => {
+    setActiveTestFolder(folder);
+    const newPath = [...navigationPath];
+    const folderIndex = newPath.findIndex(p => p.id === folder.id);
+    if (folderIndex !== -1) {
+      newPath.splice(folderIndex + 1);
+    } else {
+      newPath.push({ type: 'folder', name: folder.name, id: folder.id });
+    }
+    setNavigationPath(newPath);
+    fetchSubFolders(activeTestSeries.id, folder.id);
+    fetchTests(folder.id);
+  };
+
+  const goBackInPath = (index: number) => {
+    const item = navigationPath[index];
+    if (item.type === 'examFolder') {
+      navigateToExamFolder(item);
+    } else if (item.type === 'series') {
+      navigateToSeries(item);
+    } else if (item.type === 'folder') {
+      navigateToFolder(item);
+    }
+  };
+
+  const handleCreateFolder = async () => {
+    if (!newFolderName.trim()) return;
+    try {
+      const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+      const token = tokenMatch ? tokenMatch[1] : '';
+      
+      let url = 'http://localhost:4000/api/mockbook/';
+      let body: any = { name: newFolderName, orgId };
+
+      if (newFolderType === 'category') {
+        url += 'folders';
+      } else if (newFolderType === 'series') {
+        url += 'categories';
+        body.folderId = activeExamFolder.id;
+      } else if (newFolderType === 'folder') {
+        url += 'subcategories';
+        body.categoryId = activeTestSeries.id;
+        body.parentId = activeTestFolder?.id || null;
+      }
+
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`${newFolderType} created!`);
+        setShowAddFolderDialog(false);
+        setNewFolderName("");
+        // Refresh current level
+        if (newFolderType === 'category') {
+          const foldersRes = await fetch(`http://localhost:4000/api/mockbook/folders?orgId=${orgId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          const foldersData = await foldersRes.json();
+          setExamFolders(foldersData.data || []);
+        } else if (newFolderType === 'series') {
+          fetchSeries(activeExamFolder.id);
+        } else {
+          fetchSubFolders(activeTestSeries.id, activeTestFolder?.id || null);
+        }
+      }
+    } catch (err) {
+      toast.error("Failed to create folder");
+    }
+  };
+
+  const handleDeleteHierarchy = async (id: string, type: "category" | "series" | "folder", e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent navigation when clicking delete
+    if (!confirm(`Are you sure you want to delete this ${type}? All nested content will be lost.`)) return;
+
+    try {
+      const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+      const token = tokenMatch ? tokenMatch[1] : '';
+      
+      let url = `http://localhost:4000/api/mockbook/`;
+      if (type === 'category') url += `folders/${id}`;
+      else if (type === 'series') url += `categories/${id}`;
+      else url += `subcategories/${id}`;
+
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (data.success) {
+        toast.success(`${type} deleted!`);
+        // Refresh current level
+        if (type === 'category') {
+          setExamFolders(examFolders.filter(f => f.id !== id));
+        } else if (type === 'series') {
+          setTestSeries(testSeries.filter(s => s.id !== id));
+        } else {
+          setTestFolders(testFolders.filter(f => f.id !== id));
+        }
+      } else {
+        toast.error(data.message || "Failed to delete");
+      }
+    } catch (err) {
+      console.error("Delete error:", err);
+      toast.error("An error occurred during deletion");
+    }
+  };
+
+  const fetchQBankSets = async () => {
+    try {
+      setIsLoadingSets(true);
+      const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+      const token = tokenMatch ? tokenMatch[1] : '';
+      const response = await fetch(`http://localhost:4000/api/qbank/sets?limit=50`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      if (response.ok) {
+        const resData = await response.json();
+        setQBankSets(resData.data?.sets || []);
+      }
+    } catch (error) {
+      console.error("Error fetching sets:", error);
+    } finally {
+      setIsLoadingSets(false);
+    }
+  };
+
+  const [selectedSetInfo, setSelectedSetInfo] = useState<any>(null);
+
+  const handleSelectSet = (set: any) => {
+    setTestForm({
+      ...testForm,
+      setId: set.code || set.setId || set.id,
+      setPassword: set.password || "",
+    });
+    setSelectedSetInfo(set);
+    setShowQBankBrowser(false);
+    toast.success(`Selected Set: ${set.name}`);
+  };
+
+  const handleCreateTest = async () => {
+    try {
+      const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+      const token = tokenMatch ? tokenMatch[1] : '';
+      
+      const payload = {
+        name: testForm.name,
+        orgId: orgId,
+        subCategoryId: activeTestFolder?.id || undefined,
+        durationMins: testForm.duration,
+        totalMarks: testForm.totalMarks,
+        description: testForm.description,
+        isPublic: testForm.accessType === "free",
+        shuffleQuestions: testForm.shuffleQuestions === "yes",
+      };
+
+      const response = await fetch(`http://localhost:4000/api/mockbook/admin/tests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        toast.success("MockTest created successfully!");
+        setMockTestsList([data.data, ...mockTestsList]);
+        setShowCreateDialog(false);
+        setCreateStep(1);
+        setSelectedSetInfo(null); // Reset selected set info
+        // Reset form
+        setTestForm({
+          name: "",
+          type: "Full Mock",
+          description: "",
+          instructions: "",
+          setId: "",
+          setPassword: "",
+          duration: 180,
+          totalMarks: 360,
+          negativeMarking: "yes",
+          shuffleQuestions: "yes",
+          showResult: "immediate",
+          maxAttempts: "unlimited",
+          accessType: "free",
+          status: "draft",
+          startDate: "",
+          endDate: "",
+        });
+      } else {
+        toast.error(data.message || "Failed to create MockTest");
+      }
+    } catch (err) {
+      console.error("Create test error:", err);
+      toast.error("An error occurred while creating the test");
+    }
+  };
 
   const handleOrgSelect = (org: MockBookOrg) => {
     setSelectedOrg(org);
@@ -269,19 +512,15 @@ const params = useParams();
   const hasActiveFilters = searchQuery || statusFilter !== "all" || typeFilter !== "all";
 
   // Filter tests
-  const filteredTests = mockTestsData.filter((test) => {
-    const matchesSearch = test.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      test.id.toLowerCase().includes(searchQuery.toLowerCase());
+  const filteredTests = mockTestsList.filter((test: any) => {
+    const name = test.name || "";
+    const id = test.id || "";
+    const matchesSearch = name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      id.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = statusFilter === "all" || test.status === statusFilter;
     const matchesType = typeFilter === "all" || test.type === typeFilter;
     return matchesSearch && matchesStatus && matchesType;
   });
-
-  const handleCreateTest = () => {
-    toast.success("MockTest created successfully!");
-    setShowCreateDialog(false);
-    setCreateStep(1);
-  };
 
   if (!mounted) {
     return (
@@ -317,26 +556,151 @@ const params = useParams();
                 <ChevronRight className="w-4 h-4" />
                 <Link href={`/mockbook/org/${orgId}`} className="hover:text-orange-600">{selectedOrg.name}</Link>
                 <ChevronRight className="w-4 h-4" />
-                <span className="text-gray-900 font-medium">MockTests</span>
+                <button 
+                  onClick={() => {
+                    setActiveExamFolder(null);
+                    setActiveTestSeries(null);
+                    setActiveTestFolder(null);
+                    setNavigationPath([]);
+                    fetchTests(null);
+                  }}
+                  className={cn("hover:text-orange-600", navigationPath.length === 0 ? "text-gray-900 font-medium" : "")}
+                >
+                  MockTests
+                </button>
+                {navigationPath.map((item, index) => (
+                  <React.Fragment key={index}>
+                    <ChevronRight className="w-4 h-4" />
+                    <button 
+                      onClick={() => goBackInPath(index)}
+                      className={cn("hover:text-orange-600", index === navigationPath.length - 1 ? "text-gray-900 font-medium" : "")}
+                    >
+                      {item.name}
+                    </button>
+                  </React.Fragment>
+                ))}
               </div>
 
               {/* Page Header */}
               <div className="flex items-center justify-between">
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">MockTests</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">
+                    {activeTestFolder?.name || activeTestSeries?.name || activeExamFolder?.name || "MockTests"}
+                  </h1>
                   <p className="text-gray-500 text-sm mt-1">
-                    Create and manage mock tests from Question Sets
+                    {activeTestFolder ? "Manage tests in this folder" : 
+                     activeTestSeries ? "Manage folders and tests in this series" :
+                     activeExamFolder ? "Manage test series in this category" :
+                     "Create and manage mock tests from Question Sets"}
                   </p>
                 </div>
-                <Button onClick={() => setShowCreateDialog(true)} className="btn-primary">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create MockTest
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      if (!activeExamFolder) setNewFolderType("category");
+                      else if (!activeTestSeries) setNewFolderType("series");
+                      else setNewFolderType("folder");
+                      setShowAddFolderDialog(true);
+                    }}
+                  >
+                    <FolderPlus className="w-4 h-4 mr-2" />
+                    {!activeExamFolder ? "New Category" : !activeTestSeries ? "New Series" : "New Folder"}
+                  </Button>
+                  <Button 
+                    onClick={() => setShowCreateDialog(true)} 
+                    className="btn-primary"
+                    disabled={!activeTestSeries}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Create MockTest
+                  </Button>
+                </div>
+              </div>
+
+              {/* Folders/Hierarchy Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {!activeExamFolder && examFolders.map((folder) => (
+                  <Card key={folder.id} className="hover:border-orange-300 cursor-pointer transition-all group relative" onClick={() => navigateToExamFolder(folder)}>
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all">
+                        <LayoutGrid className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-900">{folder.name}</div>
+                        <div className="text-xs text-gray-500">Exam Category</div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                        onClick={(e) => handleDeleteHierarchy(folder.id, 'category', e)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <ChevronRight className="w-5 h-5 text-gray-300" />
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {activeExamFolder && !activeTestSeries && testSeries.map((series) => (
+                  <Card key={series.id} className="hover:border-orange-300 cursor-pointer transition-all group relative" onClick={() => navigateToSeries(series)}>
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-600 group-hover:bg-purple-600 group-hover:text-white transition-all">
+                        <Layers className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-900">{series.name}</div>
+                        <div className="text-xs text-gray-500">Test Series</div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                        onClick={(e) => handleDeleteHierarchy(series.id, 'series', e)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <ChevronRight className="w-5 h-5 text-gray-300" />
+                    </CardContent>
+                  </Card>
+                ))}
+
+                {activeTestSeries && testFolders.map((folder) => (
+                  <Card key={folder.id} className="hover:border-orange-300 cursor-pointer transition-all group relative" onClick={() => navigateToFolder(folder)}>
+                    <CardContent className="p-4 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                        <Folder className="w-6 h-6" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="font-bold text-gray-900">{folder.name}</div>
+                        <div className="text-xs text-gray-500">Folder</div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-gray-400 hover:text-red-600 hover:bg-red-50 opacity-0 group-hover:opacity-100 transition-all"
+                        onClick={(e) => handleDeleteHierarchy(folder.id, 'folder', e)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                      <ChevronRight className="w-5 h-5 text-gray-300" />
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, index) => {
+                {(() => {
+                  const dynamicStats = [
+                    { label: "Tests in this folder", value: mockTestsList.length, icon: FileText, color: "purple" },
+                    { label: "Published", value: mockTestsList.filter(t => t.status === "published").length, icon: CheckCircle2, color: "green" },
+                    { label: "Total Attempts", value: mockTestsList.reduce((acc, curr) => acc + (curr.attempts || 0), 0), icon: Users, color: "blue" },
+                    { label: "Avg Score", value: "0%", icon: BarChart3, color: "orange" },
+                  ];
+                  return dynamicStats;
+                })().map((stat, index) => {
                   const Icon = stat.icon;
                   return (
                     <Card key={index} className="kpi-card">
@@ -403,112 +767,120 @@ const params = useParams();
               </Card>
 
               {/* MockTests Table */}
-              <Card>
-                <CardContent className="p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Test Name</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Set Code</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Questions</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Duration</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Attempts</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredTests.map((test) => (
-                        <TableRow key={test.id} className="hover:bg-orange-50">
-                          <TableCell>
-                            <div>
-                              <div className="font-medium text-gray-900">{test.name}</div>
-                              <div className="flex items-center gap-2 text-xs text-gray-500">
-                                <span className="font-mono">{test.id}</span>
-                                <span>•</span>
-                                <span>{test.marks} marks</span>
-                                {test.accessType === "pack" && (
-                                  <Badge variant="outline" className="text-[10px]">Pack Only</Badge>
+              {activeTestSeries && (
+                <Card>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Test Name</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Set Code</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Questions</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Duration</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Attempts</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockTestsList.length === 0 ? (
+                          <TableRow>
+                            <TableCell colSpan={8} className="text-center py-12 text-gray-500">
+                              No tests found in this {activeTestFolder ? "folder" : "series"}.
+                            </TableCell>
+                          </TableRow>
+                        ) : filteredTests.map((test: any) => (
+                          <TableRow key={test.id} className="hover:bg-orange-50">
+                            <TableCell>
+                              <div>
+                                <div className="font-medium text-gray-900">{test.name}</div>
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  <span className="font-mono">{test.id}</span>
+                                  <span>•</span>
+                                  <span>{test.marks} marks</span>
+                                  {test.accessType === "pack" && (
+                                    <Badge variant="outline" className="text-[10px]">Pack Only</Badge>
+                                  )}
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <TypeBadge type={test.type} />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="font-mono text-sm">{test.setCode}</span>
+                                <span className="text-gray-400">/</span>
+                                <span className="font-mono text-sm text-gray-500">••••••</span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-center font-medium">{test.questions}</TableCell>
+                            <TableCell className="text-center text-sm text-gray-600">{test.duration} min</TableCell>
+                            <TableCell className="text-center">
+                              <div>
+                                <span className="font-medium">{(test.attempts || 0).toLocaleString()}</span>
+                                {test.avgScore > 0 && (
+                                  <div className="text-xs text-gray-500">Avg: {test.avgScore}%</div>
                                 )}
                               </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <TypeBadge type={test.type} />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-sm">{test.setCode}</span>
-                              <span className="text-gray-400">/</span>
-                              <span className="font-mono text-sm text-gray-500">••••••</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-center font-medium">{test.questions}</TableCell>
-                          <TableCell className="text-center text-sm text-gray-600">{test.duration} min</TableCell>
-                          <TableCell className="text-center">
-                            <div>
-                              <span className="font-medium">{test.attempts.toLocaleString()}</span>
-                              {test.avgScore > 0 && (
-                                <div className="text-xs text-gray-500">Avg: {test.avgScore}%</div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={test.status} />
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex items-center justify-end gap-1">
-                              {test.status === "published" && (
-                                <Button variant="outline" size="sm" className="h-8">
-                                  <Eye className="w-3 h-3 mr-1" />
-                                  Results
-                                </Button>
-                              )}
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                                    <MoreHorizontal className="w-4 h-4" />
+                            </TableCell>
+                            <TableCell>
+                              <StatusBadge status={test.status} />
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {test.status === "published" && (
+                                  <Button variant="outline" size="sm" className="h-8">
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    Results
                                   </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>
-                                    <Edit className="w-4 h-4 mr-2" /> Edit Test
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Copy className="w-4 h-4 mr-2" /> Duplicate
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <KeyRound className="w-4 h-4 mr-2" /> View Set ID/Password
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  {test.status === "published" && (
+                                )}
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreHorizontal className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
                                     <DropdownMenuItem>
-                                      <Pause className="w-4 h-4 mr-2" /> Unpublish
+                                      <Edit className="w-4 h-4 mr-2" /> Edit Test
                                     </DropdownMenuItem>
-                                  )}
-                                  {test.status === "draft" && (
                                     <DropdownMenuItem>
-                                      <Play className="w-4 h-4 mr-2" /> Publish
+                                      <Copy className="w-4 h-4 mr-2" /> Duplicate
                                     </DropdownMenuItem>
-                                  )}
-                                  <DropdownMenuItem>
-                                    <Download className="w-4 h-4 mr-2" /> Export Results
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-red-600">
-                                    <Trash2 className="w-4 h-4 mr-2" /> Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
+                                    <DropdownMenuItem>
+                                      <KeyRound className="w-4 h-4 mr-2" /> View Set ID/Password
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    {test.status === "published" && (
+                                      <DropdownMenuItem>
+                                        <Pause className="w-4 h-4 mr-2" /> Unpublish
+                                      </DropdownMenuItem>
+                                    )}
+                                    {test.status === "draft" && (
+                                      <DropdownMenuItem>
+                                        <Play className="w-4 h-4 mr-2" /> Publish
+                                      </DropdownMenuItem>
+                                    )}
+                                    <DropdownMenuItem>
+                                      <Download className="w-4 h-4 mr-2" /> Export Results
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem className="text-red-600">
+                                      <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              )}
             </div>
           </main>
         </MockBookOrgBanner>
@@ -549,29 +921,44 @@ const params = useParams();
 
           {createStep === 1 && (
             <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Test Name *</Label>
-                <Input placeholder="e.g., JEE Full Mock Test - Series 1" className="input-field" />
-              </div>
-              <div className="space-y-2">
-                <Label>Test Type *</Label>
-                <Select>
-                  <SelectTrigger className="input-field">
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Full Mock">Full Mock Test</SelectItem>
-                    <SelectItem value="Chapter Test">Chapter Test</SelectItem>
-                    <SelectItem value="PYQ">Previous Year Paper</SelectItem>
-                    <SelectItem value="Mini Mock">Mini Mock</SelectItem>
-                    <SelectItem value="Speed Test">Speed Test</SelectItem>
-                    <SelectItem value="Practice">Practice Mode</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Test Name *</Label>
+                  <Input 
+                    placeholder="JEE Main Full Mock 1" 
+                    className="input-field" 
+                    value={testForm.name}
+                    onChange={(e) => setTestForm({ ...testForm, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Type *</Label>
+                  <Select 
+                    value={testForm.type} 
+                    onValueChange={(v) => setTestForm({ ...testForm, type: v })}
+                  >
+                    <SelectTrigger className="input-field">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Full Mock">Full Mock</SelectItem>
+                      <SelectItem value="Chapter Test">Chapter Test</SelectItem>
+                      <SelectItem value="PYQ">PYQ</SelectItem>
+                      <SelectItem value="Mini Mock">Mini Mock</SelectItem>
+                      <SelectItem value="Speed Test">Speed Test</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Description</Label>
-                <Textarea placeholder="Brief description of the test..." className="input-field" rows={2} />
+                <Textarea 
+                  placeholder="Complete syllabus mock test..." 
+                  className="input-field" 
+                  rows={2} 
+                  value={testForm.description}
+                  onChange={(e) => setTestForm({ ...testForm, description: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Instructions (shown before test)</Label>
@@ -579,6 +966,8 @@ const params = useParams();
                   placeholder="Read carefully, negative marking applies..." 
                   className="input-field" 
                   rows={3} 
+                  value={testForm.instructions}
+                  onChange={(e) => setTestForm({ ...testForm, instructions: e.target.value })}
                 />
               </div>
             </div>
@@ -591,11 +980,22 @@ const params = useParams();
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Set ID *</Label>
-                    <Input placeholder="482931" className="input-field font-mono" />
+                    <Input 
+                      placeholder="482931" 
+                      className="input-field font-mono" 
+                      value={testForm.setId}
+                      onChange={(e) => setTestForm({ ...testForm, setId: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label>Password *</Label>
-                    <Input placeholder="738291" className="input-field font-mono" type="password" />
+                    <Input 
+                      placeholder="738291" 
+                      className="input-field font-mono" 
+                      type="password" 
+                      value={testForm.setPassword}
+                      onChange={(e) => setTestForm({ ...testForm, setPassword: e.target.value })}
+                    />
                   </div>
                 </div>
                 <Button variant="outline" className="mt-3" size="sm">
@@ -605,20 +1005,33 @@ const params = useParams();
 
               <div className="p-4 bg-gray-50 rounded-lg text-center text-gray-500">
                 <div className="text-sm font-medium mb-1">Or browse from Question Sets</div>
-                <Button variant="outline" size="sm">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => {
+                    setShowQBankBrowser(true);
+                    fetchQBankSets();
+                  }}
+                >
                   Browse Q-Bank
                 </Button>
               </div>
 
               <div className="p-4 border rounded-lg">
                 <div className="text-sm font-medium mb-2">Questions Loaded</div>
-                <div className="flex items-center gap-4 text-sm text-gray-600">
-                  <span>30 Questions</span>
-                  <span>•</span>
-                  <span>120 Marks</span>
-                  <span>•</span>
-                  <span>Physics: Kinematics</span>
-                </div>
+                {selectedSetInfo ? (
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>{selectedSetInfo.questions || 0} Questions</span>
+                    <span>•</span>
+                    <span>{selectedSetInfo.marks || 120} Marks</span>
+                    <span>•</span>
+                    <span>{selectedSetInfo.subject}: {selectedSetInfo.name}</span>
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-400 italic">
+                    Link a question set or browse Q-Bank to load questions.
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -628,11 +1041,21 @@ const params = useParams();
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Duration (minutes) *</Label>
-                  <Input type="number" defaultValue="180" className="input-field" />
+                  <Input 
+                    type="number" 
+                    className="input-field" 
+                    value={testForm.duration}
+                    onChange={(e) => setTestForm({ ...testForm, duration: parseInt(e.target.value) })}
+                  />
                 </div>
                 <div className="space-y-2">
                   <Label>Total Marks</Label>
-                  <Input type="number" defaultValue="360" className="input-field" />
+                  <Input 
+                    type="number" 
+                    className="input-field" 
+                    value={testForm.totalMarks}
+                    onChange={(e) => setTestForm({ ...testForm, totalMarks: parseInt(e.target.value) })}
+                  />
                 </div>
               </div>
 
@@ -641,7 +1064,10 @@ const params = useParams();
                   <div className="font-medium">Negative Marking</div>
                   <div className="text-sm text-gray-500">Deduct marks for wrong answers</div>
                 </div>
-                <Select defaultValue="yes">
+                <Select 
+                  value={testForm.negativeMarking} 
+                  onValueChange={(v) => setTestForm({ ...testForm, negativeMarking: v })}
+                >
                   <SelectTrigger className="w-28 input-field">
                     <SelectValue />
                   </SelectTrigger>
@@ -657,7 +1083,10 @@ const params = useParams();
                 <div>
                   <div className="font-medium">Shuffle Questions</div>
                 </div>
-                <Select defaultValue="yes">
+                <Select 
+                  value={testForm.shuffleQuestions} 
+                  onValueChange={(v) => setTestForm({ ...testForm, shuffleQuestions: v })}
+                >
                   <SelectTrigger className="w-24 input-field">
                     <SelectValue />
                   </SelectTrigger>
@@ -672,7 +1101,10 @@ const params = useParams();
                 <div>
                   <div className="font-medium">Show Result</div>
                 </div>
-                <Select defaultValue="immediate">
+                <Select 
+                  value={testForm.showResult} 
+                  onValueChange={(v) => setTestForm({ ...testForm, showResult: v })}
+                >
                   <SelectTrigger className="w-32 input-field">
                     <SelectValue />
                   </SelectTrigger>
@@ -686,7 +1118,10 @@ const params = useParams();
 
               <div className="space-y-2">
                 <Label>Max Attempts</Label>
-                <Select defaultValue="unlimited">
+                <Select 
+                  value={testForm.maxAttempts} 
+                  onValueChange={(v) => setTestForm({ ...testForm, maxAttempts: v })}
+                >
                   <SelectTrigger className="input-field">
                     <SelectValue />
                   </SelectTrigger>
@@ -706,11 +1141,19 @@ const params = useParams();
               <div className="space-y-2">
                 <Label>Access Type *</Label>
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" className="h-auto py-3 flex-col">
+                  <Button 
+                    variant="outline" 
+                    className={cn("h-auto py-3 flex-col", testForm.accessType === "free" && "border-orange-300 bg-orange-50")}
+                    onClick={() => setTestForm({ ...testForm, accessType: "free" })}
+                  >
                     <span className="text-sm font-medium">Free</span>
                     <span className="text-xs text-gray-500">All org students</span>
                   </Button>
-                  <Button variant="outline" className="h-auto py-3 flex-col border-orange-300 bg-orange-50">
+                  <Button 
+                    variant="outline" 
+                    className={cn("h-auto py-3 flex-col", testForm.accessType === "pack" && "border-orange-300 bg-orange-50")}
+                    onClick={() => setTestForm({ ...testForm, accessType: "pack" })}
+                  >
                     <span className="text-sm font-medium">Pack Only</span>
                     <span className="text-xs text-gray-500">Select packs below</span>
                   </Button>
@@ -737,11 +1180,21 @@ const params = useParams();
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label className="text-xs text-gray-500">Start Date/Time</Label>
-                    <Input type="datetime-local" className="input-field" />
+                    <Input 
+                      type="datetime-local" 
+                      className="input-field" 
+                      value={testForm.startDate}
+                      onChange={(e) => setTestForm({ ...testForm, startDate: e.target.value })}
+                    />
                   </div>
                   <div className="space-y-2">
                     <Label className="text-xs text-gray-500">End Date/Time</Label>
-                    <Input type="datetime-local" className="input-field" />
+                    <Input 
+                      type="datetime-local" 
+                      className="input-field" 
+                      value={testForm.endDate}
+                      onChange={(e) => setTestForm({ ...testForm, endDate: e.target.value })}
+                    />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500">Leave empty for always available</p>
@@ -749,7 +1202,10 @@ const params = useParams();
 
               <div className="space-y-2">
                 <Label>Status</Label>
-                <Select defaultValue="draft">
+                <Select 
+                  value={testForm.status} 
+                  onValueChange={(v) => setTestForm({ ...testForm, status: v })}
+                >
                   <SelectTrigger className="input-field">
                     <SelectValue />
                   </SelectTrigger>
@@ -778,6 +1234,92 @@ const params = useParams();
                 Create MockTest
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Question Set Browser Dialog */}
+      <Dialog open={showQBankBrowser} onOpenChange={setShowQBankBrowser}>
+        <DialogContent className="max-w-4xl max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Browse Question Sets</DialogTitle>
+            <DialogDescription>
+              Select a question set to link with your mock test
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input placeholder="Search question sets..." className="pl-9 input-field" />
+            </div>
+
+            {isLoadingSets ? (
+              <div className="flex flex-col items-center justify-center py-12 text-gray-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mb-4"></div>
+                <p>Loading question sets...</p>
+              </div>
+            ) : qBankSets.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                No question sets found.
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {qBankSets.map((set) => (
+                  <Card key={set.id} className="cursor-pointer hover:border-orange-300 transition-colors" onClick={() => handleSelectSet(set)}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-bold text-gray-900">{set.name}</div>
+                        <Badge variant="outline" className="text-[10px]">{set.subject}</Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-gray-500">
+                         <span className="font-mono">{set.code || set.setId}</span>
+                         <span>•</span>
+                         <span>{set.questions || 0} Questions</span>
+                       </div>
+                       <div className="mt-3 flex items-center justify-between">
+                         <div className="text-[10px] text-gray-400">Created {set.created || new Date(set.createdAt).toLocaleDateString()}</div>
+                         <Button variant="ghost" size="sm" className="h-7 text-orange-600 hover:text-orange-700 hover:bg-orange-50 p-0 px-2">
+                           Select
+                         </Button>
+                       </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Category/Series/Folder Dialog */}
+      <Dialog open={showAddFolderDialog} onOpenChange={setShowAddFolderDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {newFolderType === 'category' ? 'Create Exam Category' : 
+               newFolderType === 'series' ? 'Create Test Series' : 'Create Folder'}
+            </DialogTitle>
+            <DialogDescription>
+              {newFolderType === 'category' ? 'Add a new high-level category (e.g., SSC, Railway)' : 
+               newFolderType === 'series' ? `Add a new series under ${activeExamFolder?.name}` : 
+               `Add a new folder under ${activeTestSeries?.name}`}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                placeholder={newFolderType === 'category' ? "SSC" : newFolderType === 'series' ? "SSC CGL 2026" : "Tier 1"}
+                value={newFolderName}
+                onChange={(e) => setNewFolderName(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddFolderDialog(false)}>Cancel</Button>
+            <Button onClick={handleCreateFolder} className="btn-primary">Create</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

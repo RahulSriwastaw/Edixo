@@ -38,6 +38,8 @@ router.post('/register', async (req, res, next) => {
             email: z.string().email(),
             password: z.string().min(6),
             name: z.string().min(2),
+            role: z.enum(['SUPER_ADMIN', 'ORG_STAFF', 'STUDENT']).default('ORG_STAFF'),
+            orgId: z.string().optional(),
         });
         const body = schema.parse(req.body);
 
@@ -45,17 +47,52 @@ router.post('/register', async (req, res, next) => {
         if (exists) throw new AppError('Email already registered', 400);
 
         const passwordHash = await bcrypt.hash(body.password, 12);
-        const user = await prisma.user.create({
-            data: {
-                email: body.email,
-                passwordHash,
-                role: 'ORG_STAFF', // Default for public signup
-            },
+
+        const result = await prisma.$transaction(async (tx) => {
+            const user = await tx.user.create({
+                data: {
+                    email: body.email,
+                    passwordHash,
+                    role: body.role,
+                },
+            });
+
+            if (body.role === 'STUDENT') {
+                if (!body.orgId) throw new AppError('Organization ID is required for student registration', 400);
+                
+                const org = await tx.organization.findFirst({
+                    where: { orgId: body.orgId },
+                });
+                if (!org) throw new AppError('Organization not found', 404);
+
+                // Generate Student ID
+                const globalCount = await tx.student.count();
+                const timestamp = Date.now().toString().slice(-3);
+                const studentId = `GK-STU-${String(globalCount + 1).padStart(5, '0')}-${timestamp}`;
+
+                await tx.student.create({
+                    data: {
+                        studentId,
+                        userId: user.id,
+                        orgId: org.id,
+                        name: body.name,
+                        email: body.email,
+                    },
+                });
+
+                // Increment student count
+                await tx.organization.update({
+                    where: { id: org.id },
+                    data: { studentCount: { increment: 1 } },
+                });
+            }
+
+            return user;
         });
 
         const tokenPayload = {
-            userId: user.id,
-            role: user.role,
+            userId: result.id,
+            role: result.role,
         };
 
         const accessToken = generateToken(tokenPayload, env.JWT_SECRET, env.JWT_EXPIRES_IN);

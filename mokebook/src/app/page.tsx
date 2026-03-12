@@ -306,6 +306,7 @@ export default function LandingPage() {
                   alt="Students studying with Mockbook"
                   fill className="object-cover"
                   priority
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 800px"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
 

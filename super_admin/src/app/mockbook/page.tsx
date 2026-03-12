@@ -2,9 +2,10 @@
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { mockbookService, MockBookStats, ExamFolder } from "@/services/mockbookService";
 import {
   Search,
   ChevronDown,
@@ -19,9 +20,26 @@ import {
   Building2,
   Sparkles,
   BookOpen,
-  Settings,
   TrendingUp,
   ArrowRight,
+  FileText,
+  Users,
+  BarChart3,
+  IndianRupee,
+  Radio,
+  Star,
+  Tag,
+  CheckCircle2,
+  XCircle,
+  Play,
+  Eye,
+  Copy,
+  Package,
+  Layers,
+  Globe,
+  LayoutGrid,
+  BadgePercent,
+  Zap,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,159 +66,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { MockBookOrgSwitcher } from "@/components/mockbook/MockBookOrgSwitcher";
+import { toast } from "sonner";
 
-// AI Quota data
-const aiQuotaData = [
-  {
-    orgId: "GK-ORG-00142",
-    organization: "Apex Academy",
-    plan: "Medium",
-    monthlyLimit: 500,
-    usedThisMonth: 342,
-    resetsOn: "Mar 15, 2026",
-  },
-  {
-    orgId: "GK-ORG-00141",
-    organization: "Brilliant Coaching",
-    plan: "Small",
-    monthlyLimit: 200,
-    usedThisMonth: 156,
-    resetsOn: "Mar 10, 2026",
-  },
-  {
-    orgId: "GK-ORG-00140",
-    organization: "Excel Institute",
-    plan: "Large",
-    monthlyLimit: 1000,
-    usedThisMonth: 623,
-    resetsOn: "Apr 01, 2026",
-  },
-  {
-    orgId: "GK-ORG-00139",
-    organization: "Success Classes",
-    plan: "Medium",
-    monthlyLimit: 500,
-    usedThisMonth: 487,
-    resetsOn: "Mar 25, 2026",
-  },
-  {
-    orgId: "GK-ORG-00137",
-    organization: "Prime Tutorials",
-    plan: "Enterprise",
-    monthlyLimit: 2000,
-    usedThisMonth: 892,
-    resetsOn: "May 15, 2026",
-  },
-  {
-    orgId: "GK-ORG-00136",
-    organization: "Knowledge Park",
-    plan: "Medium",
-    monthlyLimit: 500,
-    usedThisMonth: 234,
-    resetsOn: "Mar 30, 2026",
-  },
-];
+// ─────────────────────────────────────────────
+// Helper Components
+// ─────────────────────────────────────────────
 
-// Taxonomy data
-const taxonomyData = [
-  {
-    id: "sub-1",
-    name: "Physics",
-    chapters: [
-      {
-        id: "ch-1",
-        name: "Kinematics",
-        topics: [
-          { id: "t-1", name: "Uniform Motion", questionCount: 45 },
-          { id: "t-2", name: "Non-uniform Motion", questionCount: 38 },
-          { id: "t-3", name: "Projectile Motion", questionCount: 52 },
-        ],
-      },
-      {
-        id: "ch-2",
-        name: "Laws of Motion",
-        topics: [
-          { id: "t-4", name: "Newton's First Law", questionCount: 28 },
-          { id: "t-5", name: "Newton's Second Law", questionCount: 35 },
-          { id: "t-6", name: "Newton's Third Law", questionCount: 22 },
-        ],
-      },
-      {
-        id: "ch-3",
-        name: "Work, Energy and Power",
-        topics: [
-          { id: "t-7", name: "Work Done", questionCount: 41 },
-          { id: "t-8", name: "Kinetic Energy", questionCount: 33 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "sub-2",
-    name: "Chemistry",
-    chapters: [
-      {
-        id: "ch-4",
-        name: "Chemical Bonding",
-        topics: [
-          { id: "t-9", name: "Ionic Bonding", questionCount: 29 },
-          { id: "t-10", name: "Covalent Bonding", questionCount: 36 },
-        ],
-      },
-      {
-        id: "ch-5",
-        name: "Acids and Bases",
-        topics: [
-          { id: "t-11", name: "pH Scale", questionCount: 24 },
-          { id: "t-12", name: "Neutralization", questionCount: 18 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "sub-3",
-    name: "Mathematics",
-    chapters: [
-      {
-        id: "ch-6",
-        name: "Calculus",
-        topics: [
-          { id: "t-13", name: "Derivatives", questionCount: 48 },
-          { id: "t-14", name: "Integrals", questionCount: 42 },
-        ],
-      },
-      {
-        id: "ch-7",
-        name: "Algebra",
-        topics: [
-          { id: "t-15", name: "Quadratic Equations", questionCount: 37 },
-          { id: "t-16", name: "Complex Numbers", questionCount: 28 },
-        ],
-      },
-    ],
-  },
-  {
-    id: "sub-4",
-    name: "Biology",
-    chapters: [
-      {
-        id: "ch-8",
-        name: "Cell Structure",
-        topics: [
-          { id: "t-17", name: "Cell Organelles", questionCount: 32 },
-          { id: "t-18", name: "Cell Division", questionCount: 26 },
-        ],
-      },
-    ],
-  },
-];
-
-// Plan Badge Component
 function PlanBadge({ plan }: { plan: string }) {
   const styles: Record<string, string> = {
     Small: "badge-small",
@@ -208,11 +85,11 @@ function PlanBadge({ plan }: { plan: string }) {
     Large: "badge-large",
     Enterprise: "badge-enterprise",
   };
-  return <span className={`badge ${styles[plan] || ""}`}>{plan}</span>;
+  return <span className={`badge ${styles[plan] || "bg-gray-50 text-gray-700"} capitalize`}>{plan?.toLowerCase() || 'Small'}</span>;
 }
 
-// Quota Progress Component
 function QuotaProgress({ used, limit }: { used: number; limit: number }) {
+  if (limit === 0) return <span>No limit data</span>;
   const percentage = Math.round((used / limit) * 100);
   let colorClass = "bg-green-500";
   if (percentage >= 90) colorClass = "bg-red-500";
@@ -233,7 +110,6 @@ function QuotaProgress({ used, limit }: { used: number; limit: number }) {
   );
 }
 
-// Tree Item Component
 function TreeItem({
   name,
   type,
@@ -288,21 +164,147 @@ function TreeItem({
   );
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const cfg: Record<string, { label: string; cls: string }> = {
+    active: { label: "Active", cls: "bg-green-50 text-green-700 border-green-200" },
+    draft: { label: "Draft", cls: "bg-gray-50 text-gray-600 border-gray-200" },
+    scheduled: { label: "Scheduled", cls: "bg-blue-50 text-blue-700 border-blue-200" },
+    archived: { label: "Archived", cls: "bg-red-50 text-red-600 border-red-200" },
+    live: { label: "Live", cls: "bg-red-50 text-red-700 border-red-200" },
+  };
+  const { label, cls } = cfg[status] || cfg.draft;
+  return <Badge variant="outline" className={cn("text-[10px]", cls)}>{label}</Badge>;
+}
+
+// ─────────────────────────────────────────────
+// Mock series data (UI demonstration — will be replaced with API)
+// ─────────────────────────────────────────────
+const mockSeriesData = [
+  { id: "S001", name: "SSC CGL Mock Test Series 2026", category: "SSC", tests: 5602, enrolled: 74636, price: 499, status: "active", featured: true, freeTests: 3, updatedAt: "2 days ago" },
+  { id: "S002", name: "RRB NTPC Graduate 2025 (CBT1+CBT2)", category: "Railways", tests: 21198, enrolled: 61540, price: 0, status: "active", featured: true, freeTests: 21198, updatedAt: "5 days ago" },
+  { id: "S003", name: "IBPS PO Complete Series 2026", category: "Banking", tests: 1240, enrolled: 45230, price: 399, status: "active", featured: false, freeTests: 2, updatedAt: "1 week ago" },
+  { id: "S004", name: "NEET 2026 Full Mock Series", category: "NEET", tests: 890, enrolled: 38900, price: 599, status: "scheduled", featured: true, freeTests: 3, updatedAt: "3 days ago" },
+  { id: "S005", name: "JEE Mains 2026 Practice Series", category: "JEE", tests: 650, enrolled: 29100, price: 449, status: "draft", featured: false, freeTests: 2, updatedAt: "10 days ago" },
+];
+
+const mockLiveTests = [
+  { id: "LT001", name: "SSC CGL Mini Live Test — March 11", series: "SSC CGL 2026", students: 12453, status: "live", startTime: "10:00 AM", endTime: "11:00 AM", questions: 50, marks: 100 },
+  { id: "LT002", name: "Banking PO Speed Test — Quant", series: "IBPS PO 2026", students: 0, status: "scheduled", startTime: "Mar 12, 9:00 AM", endTime: "Mar 12, 10:30 AM", questions: 30, marks: 60 },
+  { id: "LT003", name: "NEET Biology Booster Live", series: "NEET 2026", students: 8920, status: "live", startTime: "9:00 AM", endTime: "10:00 AM", questions: 45, marks: 180 },
+  { id: "LT004", name: "RRB NTPC — CBT1 Full Mock Live", series: "RRB NTPC 2025", students: 23100, status: "live", startTime: "8:00 AM", endTime: "9:30 AM", questions: 100, marks: 100 },
+];
+
+const examCategories = [
+  { id: "C1", name: "SSC", color: "bg-orange-100 text-orange-700 border-orange-200", icon: "📋", series: 18, students: 145000 },
+  { id: "C2", name: "Banking", color: "bg-blue-100 text-blue-700 border-blue-200", icon: "🏦", series: 12, students: 89000 },
+  { id: "C3", name: "Railways", color: "bg-green-100 text-green-700 border-green-200", icon: "🚂", series: 9, students: 72000 },
+  { id: "C4", name: "NEET", color: "bg-red-100 text-red-700 border-red-200", icon: "⚕️", series: 7, students: 56000 },
+  { id: "C5", name: "JEE", color: "bg-purple-100 text-purple-700 border-purple-200", icon: "⚛️", series: 6, students: 48000 },
+  { id: "C6", name: "UPSC", color: "bg-indigo-100 text-indigo-700 border-indigo-200", icon: "🏛️", series: 5, students: 34000 },
+  { id: "C7", name: "Defence", color: "bg-gray-100 text-gray-700 border-gray-200", icon: "🛡️", series: 4, students: 28000 },
+  { id: "C8", name: "Teaching", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: "📚", series: 6, students: 21000 },
+];
+
+// ─────────────────────────────────────────────
+// Main Component
+// ─────────────────────────────────────────────
+
 export default function MockBookPage() {
-    const { isOpen } = useSidebarStore();
-const router = useRouter();
+  const { isOpen } = useSidebarStore();
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [seriesSearch, setSeriesSearch] = useState("");
+  const [seriesCategoryFilter, setSeriesCategoryFilter] = useState("all");
+  const [seriesStatusFilter, setSeriesStatusFilter] = useState("all");
   const [showOrgSwitcher, setShowOrgSwitcher] = useState(false);
 
-  // Filter quota data
-  const filteredQuotaData = aiQuotaData.filter((item) =>
-    item.organization.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<MockBookStats | null>(null);
+  const [folders, setFolders] = useState<ExamFolder[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [statsRes, foldersRes] = await Promise.all([
+          mockbookService.getStats(),
+          mockbookService.getFolders()
+        ]);
+        setStats(statsRes);
+        setFolders(foldersRes);
+      } catch (error) {
+        console.error("Failed to fetch mockbook data:", error);
+        toast.error("Failed to load platform data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const dashboardStats = [
+    {
+      label: "Platform Tests",
+      value: stats?.platformTests.toString() || "0",
+      change: "+12%",
+      icon: BookOpen,
+      color: "text-blue-600",
+      bg: "bg-blue-50"
+    },
+    {
+      label: "Total Series",
+      value: stats?.totalSeries.toString() || "0",
+      change: "+3 new",
+      icon: Package,
+      color: "text-purple-600",
+      bg: "bg-purple-50"
+    },
+    {
+      label: "Total Attempts",
+      value: stats?.totalAttempts.toLocaleString() || "0",
+      change: "+24% vs LW",
+      icon: CheckCircle2,
+      color: "text-green-600",
+      bg: "bg-green-50"
+    },
+    {
+      label: "Active Students",
+      value: stats?.activeStudents.toLocaleString() || "0",
+      change: "+1.2k today",
+      icon: Users,
+      color: "text-orange-600",
+      bg: "bg-orange-50"
+    },
+    {
+      label: "Live Right Now",
+      value: stats?.liveNow.toString() || "0",
+      change: "Peak 1.2k",
+      icon: Zap,
+      color: "text-amber-600",
+      bg: "bg-amber-50"
+    },
+    {
+      label: "Revenue (MTD)",
+      value: `₹${(stats?.revenueMTD || 0).toLocaleString()}`,
+      change: "+18.4%",
+      icon: TrendingUp,
+      color: "text-indigo-600",
+      bg: "bg-indigo-50"
+    },
+  ];
+
+  const filteredSeries = mockSeriesData.filter((s) => {
+    const matchSearch = s.name.toLowerCase().includes(seriesSearch.toLowerCase());
+    const matchCat = seriesCategoryFilter === "all" || s.category === seriesCategoryFilter;
+    const matchStatus = seriesStatusFilter === "all" || s.status === seriesStatusFilter;
+    return matchSearch && matchCat && matchStatus;
+  });
 
   const handleOrgSelect = (org: { id: string; name: string }) => {
     setShowOrgSwitcher(false);
     router.push(`/mockbook/org/${org.id}`);
   };
+
+  const liveCount = mockLiveTests.filter(t => t.status === "live").length;
 
   return (
     <div className="min-h-screen bg-neutral-bg">
@@ -311,22 +313,33 @@ const router = useRouter();
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
+
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">MockBook</h1>
                 <p className="text-gray-500 text-sm mt-1">
-                  Global oversight, AI quotas, and taxonomy management
+                  Platform-wide test series, live tests, pricing, and analytics
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <Button 
-                  onClick={() => setShowOrgSwitcher(true)}
-                  className="btn-primary"
-                >
-                  <Building2 className="w-4 h-4 mr-2" />
-                  Select Organization
-                  <ArrowRight className="w-4 h-4 ml-2" />
+                <Button variant="outline" asChild>
+                  <Link href="/mockbook/categories">
+                    <LayoutGrid className="w-4 h-4 mr-2" />
+                    Categories
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link href="/mockbook/featured">
+                    <Star className="w-4 h-4 mr-2" />
+                    Featured
+                  </Link>
+                </Button>
+                <Button className="btn-primary" asChild>
+                  <Link href="/mockbook/test-series/create">
+                    <Plus className="w-4 h-4 mr-2" />
+                    New Test Series
+                  </Link>
                 </Button>
               </div>
             </div>
@@ -352,254 +365,615 @@ const router = useRouter();
               </CardContent>
             </Card>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="kpi-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center">
-                      <BookOpen className="w-5 h-5 text-purple-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 uppercase">Total Exams</div>
-                      <div className="text-xl font-bold text-gray-900">1,247</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="kpi-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-orange-50 flex items-center justify-center">
-                      <Sparkles className="w-5 h-5 text-orange-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 uppercase">AI Credits Used</div>
-                      <div className="text-xl font-bold text-gray-900">8,421</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="kpi-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
-                      <Building2 className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 uppercase">Active Orgs</div>
-                      <div className="text-xl font-bold text-gray-900">48</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              <Card className="kpi-card">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center">
-                      <TrendingUp className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div>
-                      <div className="text-xs text-gray-500 uppercase">Tests This Month</div>
-                      <div className="text-xl font-bold text-gray-900">34,291</div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            {/* KPI Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              {dashboardStats.map((stat) => {
+                const Icon = stat.icon;
+                return (
+                  <Card key={stat.label} className="kpi-card">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-full flex items-center justify-center ${stat.color.split(" ")[0]}`}>
+                          <Icon className={`w-4 h-4 ${stat.color.split(" ")[1]}`} />
+                        </div>
+                        <div>
+                          <div className="text-[10px] text-gray-500 uppercase leading-tight">{stat.label}</div>
+                          <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
-            {/* Tabs */}
-            <Tabs defaultValue="ai-quotas" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
-                <TabsTrigger value="overview" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
-                  Overview
-                </TabsTrigger>
-                <TabsTrigger value="ai-quotas" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
-                  AI Quotas
-                </TabsTrigger>
-                <TabsTrigger value="taxonomy" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
-                  Taxonomy
-                </TabsTrigger>
-                <TabsTrigger value="marketplace" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
-                  Marketplace
-                </TabsTrigger>
-                <TabsTrigger value="results" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
-                  Results
-                </TabsTrigger>
+            {/* Main Tabs */}
+            <Tabs defaultValue="test-series" className="w-full">
+              <TabsList className="bg-white border border-gray-200 rounded-lg p-1 flex-wrap h-auto gap-1">
+                {[
+                  { value: "test-series", label: "Test Series" },
+                  { value: "live-tests", label: "Live Tests" },
+                  { value: "pricing", label: "Pricing" },
+                  { value: "analytics", label: "Analytics" },
+                ].map(tab => (
+                  <TabsTrigger key={tab.value} value={tab.value} className="data-[state=active]:bg-brand-primary data-[state=active]:text-white text-sm">
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
 
-              <TabsContent value="overview" className="mt-6">
-                <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
-                    Overview dashboard coming soon...
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              <TabsContent value="ai-quotas" className="mt-6 space-y-4">
-                {/* Search and Actions */}
+              {/* ─── TEST SERIES TAB ─── */}
+              <TabsContent value="test-series" className="mt-6 space-y-4">
+                {/* Filter Bar */}
                 <Card>
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input
-                          placeholder="Search organizations..."
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
+                          placeholder="Search series..."
+                          value={seriesSearch}
+                          onChange={(e) => setSeriesSearch(e.target.value)}
                           className="pl-9 input-field"
                         />
                       </div>
-                      <Button variant="outline" className="btn-secondary">
-                        Bulk Update Plans
-                      </Button>
+                      <Select value={seriesCategoryFilter} onValueChange={setSeriesCategoryFilter}>
+                        <SelectTrigger className="w-[150px] input-field">
+                          <SelectValue placeholder="Category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Categories</SelectItem>
+                          {examCategories.map(c => (
+                            <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select value={seriesStatusFilter} onValueChange={setSeriesStatusFilter}>
+                        <SelectTrigger className="w-[130px] input-field">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="archived">Archived</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <div className="ml-auto">
+                        <Button className="btn-primary" asChild>
+                          <Link href="/mockbook/test-series/create">
+                            <Plus className="w-4 h-4 mr-2" />
+                            Create Series
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
 
-                {/* AI Quotas Table */}
-                <Card>
-                  <CardContent className="p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Monthly Limit</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase w-[250px]">Usage</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Resets On</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {filteredQuotaData.map((item) => {
-                          const percentage = Math.round((item.usedThisMonth / item.monthlyLimit) * 100);
-                          return (
-                            <TableRow key={item.orgId} className="hover:bg-brand-primary-tint">
-                              <TableCell>
-                                <div>
-                                  <Link
-                                    href={`/organizations/${item.orgId}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-brand-primary"
-                                  >
-                                    {item.organization}
-                                  </Link>
-                                  <div className="text-xs text-gray-500">{item.orgId}</div>
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <PlanBadge plan={item.plan} />
-                              </TableCell>
-                              <TableCell>
-                                <span className="text-sm font-mono">{item.monthlyLimit.toLocaleString()}</span>
-                              </TableCell>
-                              <TableCell>
-                                <div className="space-y-1">
-                                  <QuotaProgress used={item.usedThisMonth} limit={item.monthlyLimit} />
-                                  <div className="text-xs text-gray-500 text-right">{percentage}% used</div>
-                                </div>
-                              </TableCell>
-                              <TableCell className="text-sm text-gray-600">{item.resetsOn}</TableCell>
-                              <TableCell className="text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>
-                                      <Edit className="w-4 h-4 mr-2" /> Edit Limit
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <RotateCcw className="w-4 h-4 mr-2" /> Reset Quota
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <History className="w-4 h-4 mr-2" /> View History
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          );
-                        })}
-                      </TableBody>
-                    </Table>
-                  </CardContent>
-                </Card>
+                {/* Series List */}
+                <div className="space-y-3">
+                  {filteredSeries.map((series) => (
+                    <Card key={series.id} className="hover:shadow-md transition-shadow">
+                      <CardContent className="p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-start gap-4 flex-1 min-w-0">
+                            <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center shrink-0">
+                              <BookOpen className="w-5 h-5 text-orange-600" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-semibold text-gray-900">{series.name}</span>
+                                <StatusBadge status={series.status} />
+                                {series.featured && (
+                                  <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 text-[10px]">
+                                    <Star className="w-2.5 h-2.5 mr-1" />Featured
+                                  </Badge>
+                                )}
+                                <Badge variant="outline" className="text-[10px]">{series.category}</Badge>
+                              </div>
+                              <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 flex-wrap">
+                                <span className="flex items-center gap-1">
+                                  <FileText className="w-3.5 h-3.5" />
+                                  {series.tests.toLocaleString()} tests
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Users className="w-3.5 h-3.5" />
+                                  {series.enrolled.toLocaleString()} enrolled
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
+                                  {series.freeTests} free
+                                </span>
+                                <span className="text-gray-400">Updated {series.updatedAt}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className="text-right mr-2">
+                              {series.price === 0 ? (
+                                <span className="text-green-600 font-semibold text-sm">Free</span>
+                              ) : (
+                                <span className="font-semibold text-gray-900">₹{series.price}</span>
+                              )}
+                            </div>
+                            <Button variant="outline" size="sm" asChild>
+                              <Link href={`/mockbook/test-series/${series.id}`}>
+                                <Eye className="w-3.5 h-3.5 mr-1" />
+                                Manage
+                              </Link>
+                            </Button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="w-4 h-4 mr-2" /> Edit Series
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Copy className="w-4 h-4 mr-2" /> Duplicate
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Star className="w-4 h-4 mr-2" /> {series.featured ? "Remove from Featured" : "Set as Featured"}
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <BarChart3 className="w-4 h-4 mr-2" /> Analytics
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <IndianRupee className="w-4 h-4 mr-2" /> Pricing
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem>
+                                  <Globe className="w-4 h-4 mr-2" /> View on Platform
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="w-4 h-4 mr-2" /> Delete Series
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {filteredSeries.length === 0 && (
+                  <Card>
+                    <CardContent className="p-12 text-center">
+                      <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                      <div className="text-gray-500 font-medium">No series found</div>
+                      <div className="text-gray-400 text-sm mt-1">Try adjusting your filters or create a new series</div>
+                    </CardContent>
+                  </Card>
+                )}
               </TabsContent>
 
-              <TabsContent value="taxonomy" className="mt-6">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <div>
-                      <CardTitle className="text-lg">Subject Hierarchy</CardTitle>
-                      <CardDescription>Manage global Subject → Chapter → Topic structure</CardDescription>
+              {/* ─── LIVE TESTS TAB ─── */}
+              <TabsContent value="live-tests" className="mt-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Live Tests</h2>
+                    <p className="text-sm text-gray-500">{liveCount} tests currently live</p>
+                  </div>
+                  <Button className="btn-primary">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Schedule Live Test
+                  </Button>
+                </div>
+
+                {/* Live Now */}
+                {mockLiveTests.filter(t => t.status === "live").length > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
+                      <span className="text-sm font-semibold text-red-600">LIVE NOW ({mockLiveTests.filter(t => t.status === "live").length})</span>
                     </div>
-                    <Button className="btn-primary">
-                      <Plus className="w-4 h-4 mr-2" />
-                      Add Subject
-                    </Button>
+                    <div className="space-y-3">
+                      {mockLiveTests.filter(t => t.status === "live").map((test) => (
+                        <Card key={test.id} className="border-red-200 bg-red-50/30">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-red-500 text-white text-[10px] animate-pulse">🔴 LIVE</Badge>
+                                  <span className="font-semibold text-gray-900">{test.name}</span>
+                                </div>
+                                <div className="text-sm text-gray-500 mt-1 flex items-center gap-3">
+                                  <span>{test.questions} Questions · {test.marks} Marks</span>
+                                  <span>·</span>
+                                  <span className="text-red-600 font-medium">{test.students.toLocaleString()} attempting now</span>
+                                </div>
+                                <div className="text-xs text-gray-400 mt-0.5">{test.series} · {test.startTime} – {test.endTime}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm">
+                                  <Eye className="w-3.5 h-3.5 mr-1" /> View Live
+                                </Button>
+                                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+                                  End Now
+                                </Button>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Scheduled */}
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                    <span className="text-sm font-semibold text-blue-600">UPCOMING</span>
+                  </div>
+                  <div className="space-y-3">
+                    {mockLiveTests.filter(t => t.status === "scheduled").map((test) => (
+                      <Card key={test.id}>
+                        <CardContent className="p-4">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <Badge className="bg-blue-100 text-blue-700 text-[10px]">🔵 SCHEDULED</Badge>
+                                <span className="font-semibold text-gray-900">{test.name}</span>
+                              </div>
+                              <div className="text-sm text-gray-500 mt-1">{test.questions} Questions · {test.marks} Marks</div>
+                              <div className="text-xs text-gray-400 mt-0.5">{test.series} · {test.startTime}</div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button variant="outline" size="sm">
+                                <Edit className="w-3.5 h-3.5 mr-1" /> Edit
+                              </Button>
+                              <Button variant="outline" size="sm">Reschedule</Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* ─── FREE QUIZZES TAB ─── */}
+              <TabsContent value="free-quizzes" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Free Quizzes</CardTitle>
+                    <CardDescription>Manage free quiz tests available on the platform</CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-1">
-                      {taxonomyData.map((subject) => (
-                        <TreeItem key={subject.id} name={subject.name} type="subject">
-                          {subject.chapters.map((chapter) => (
-                            <TreeItem key={chapter.id} name={chapter.name} type="chapter">
-                              {chapter.topics.map((topic) => (
-                                <TreeItem
-                                  key={topic.id}
-                                  name={topic.name}
-                                  type="topic"
-                                  questionCount={topic.questionCount}
-                                />
-                              ))}
-                              <button
-                                className="flex items-center gap-2 py-1.5 px-2 text-sm text-brand-primary hover:bg-brand-primary-tint rounded ml-10"
-                              >
-                                <Plus className="w-3 h-3" />
-                                Add Topic
-                              </button>
-                            </TreeItem>
-                          ))}
-                          <button
-                            className="flex items-center gap-2 py-1.5 px-2 text-sm text-brand-primary hover:bg-brand-primary-tint rounded ml-6"
-                          >
-                            <Plus className="w-3 h-3" />
-                            Add Chapter
-                          </button>
-                        </TreeItem>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {[
+                        { name: "Daily GK Booster — March 11", questions: 10, attempts: 38450, status: "live" },
+                        { name: "CA Booster March Week 2", questions: 25, attempts: 29100, status: "active" },
+                        { name: "SSC CGL Free Mock 1", questions: 100, attempts: 45230, status: "active" },
+                        { name: "NEET Biology Quick Test", questions: 20, attempts: 18900, status: "active" },
+                        { name: "RRB NTPC Free CBT 1 Mock", questions: 100, attempts: 61540, status: "active" },
+                        { name: "Banking Awareness Weekly", questions: 15, attempts: 12300, status: "draft" },
+                      ].map((quiz, i) => (
+                        <Card key={i} className="border hover:shadow-sm transition-shadow">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between mb-2">
+                              <StatusBadge status={quiz.status} />
+                              <Badge variant="outline" className="text-[10px]">Free</Badge>
+                            </div>
+                            <div className="font-medium text-gray-900 text-sm mt-2">{quiz.name}</div>
+                            <div className="text-xs text-gray-500 mt-1">{quiz.questions} questions</div>
+                            <div className="text-xs text-orange-600 font-medium mt-1">{quiz.attempts.toLocaleString()} attempts</div>
+                            <div className="flex gap-2 mt-3">
+                              <Button variant="outline" size="sm" className="flex-1 h-7 text-xs">Edit</Button>
+                              <Button variant="ghost" size="sm" className="h-7 text-xs">Analytics</Button>
+                            </div>
+                          </CardContent>
+                        </Card>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="marketplace" className="mt-6">
+              {/* ─── PYQ BANK TAB ─── */}
+              <TabsContent value="pyq-bank" className="mt-6">
                 <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
-                    Premium content marketplace coming soon...
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">PYQ Bank</CardTitle>
+                        <CardDescription>Import and manage Previous Year Question papers</CardDescription>
+                      </div>
+                      <Button className="btn-primary">
+                        <Plus className="w-4 h-4 mr-2" />
+                        Import PYQ Paper
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        { exam: "SSC CGL", years: ["2025", "2024", "2023", "2022"], papers: 32 },
+                        { exam: "IBPS PO", years: ["2024", "2023", "2022"], papers: 18 },
+                        { exam: "RRB NTPC", years: ["2022", "2021", "2019"], papers: 24 },
+                        { exam: "NEET UG", years: ["2025", "2024", "2023", "2022", "2021"], papers: 15 },
+                      ].map((bank, i) => (
+                        <Card key={i} className="border">
+                          <CardContent className="p-4">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="font-semibold text-gray-900">{bank.exam}</div>
+                              <Badge variant="outline">{bank.papers} papers</Badge>
+                            </div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {bank.years.map(y => (
+                                <Badge key={y} variant="secondary" className="text-[10px]">{y}</Badge>
+                              ))}
+                            </div>
+                            <Button variant="outline" size="sm" className="mt-3 w-full h-7 text-xs">
+                              Manage Papers
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </CardContent>
                 </Card>
               </TabsContent>
 
-              <TabsContent value="results" className="mt-6">
+              {/* ─── PRICING TAB ─── */}
+              <TabsContent value="pricing" className="mt-6 space-y-6">
+                {/* Series Pricing */}
                 <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
-                    Cross-org results analytics coming soon...
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle className="text-lg">Series Pricing</CardTitle>
+                        <CardDescription>Manage individual series prices and validity</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Series</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Category</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Price</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Validity</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Free Tests</TableHead>
+                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {mockSeriesData.map((series) => (
+                          <TableRow key={series.id} className="hover:bg-orange-50/30">
+                            <TableCell>
+                              <div className="font-medium text-gray-900 text-sm">{series.name}</div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="text-[10px]">{series.category}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              {series.price === 0 ? (
+                                <span className="text-green-600 font-semibold">Free</span>
+                              ) : (
+                                <span className="font-semibold">₹{series.price}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600">12 months</TableCell>
+                            <TableCell className="text-sm text-gray-600">{series.freeTests}</TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="outline" size="sm" className="h-7 text-xs">
+                                <Edit className="w-3 h-3 mr-1" /> Edit
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </CardContent>
                 </Card>
+
+                {/* Pass Subscription */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <Package className="w-5 h-5 text-orange-500" />
+                        Pass Subscription
+                      </CardTitle>
+                      <CardDescription>All-access subscription plans</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {[
+                        { plan: "Monthly Pass", price: 99, unit: "month", saves: null },
+                        { plan: "Yearly Pass", price: 799, unit: "year", saves: "Save ₹389 vs monthly" },
+                      ].map((p, i) => (
+                        <div key={i} className="flex items-center justify-between p-4 border rounded-lg hover:border-orange-300">
+                          <div>
+                            <div className="font-medium text-gray-900">{p.plan}</div>
+                            {p.saves && <div className="text-xs text-green-600 mt-0.5">{p.saves}</div>}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <div className="text-lg font-bold">₹{p.price}<span className="text-sm font-normal text-gray-500">/{p.unit}</span></div>
+                            <Button variant="outline" size="sm" className="h-7 text-xs">
+                              <Edit className="w-3 h-3 mr-1" /> Edit
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Coupon Codes */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <BadgePercent className="w-5 h-5 text-blue-500" />
+                        Coupon Codes
+                      </CardTitle>
+                      <CardDescription>Discount codes and offers</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {[
+                        { code: "NEWUSER20", discount: "20% off", usage: "1,234 used", status: "active" },
+                        { code: "MARCH15", discount: "₹150 off", usage: "456 used", status: "active" },
+                        { code: "SUMMER25", discount: "25% off", usage: "0 used", status: "draft" },
+                      ].map((coupon, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <div className="font-mono font-semibold text-gray-900">{coupon.code}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">{coupon.discount} · {coupon.usage}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <StatusBadge status={coupon.status} />
+                            <Button variant="ghost" size="icon" className="h-7 w-7">
+                              <Edit className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      <Button variant="outline" className="w-full h-8 text-sm mt-1">
+                        <Plus className="w-3.5 h-3.5 mr-1" /> Add Coupon
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
               </TabsContent>
+
+              {/* ─── ANALYTICS TAB ─── */}
+              <TabsContent value="analytics" className="mt-6 space-y-6">
+                {/* Date Range */}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">Platform Analytics</h2>
+                  <Select defaultValue="30">
+                    <SelectTrigger className="w-[160px] input-field">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Last 7 days</SelectItem>
+                      <SelectItem value="30">Last 30 days</SelectItem>
+                      <SelectItem value="90">Last 90 days</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Analytics KPIs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { label: "Daily Active Users", value: "12,450", change: "+12%", positive: true },
+                    { label: "Tests Attempted", value: "45,230", change: "+8%", positive: true },
+                    { label: "New Enrollments", value: "1,234", change: "+23%", positive: true },
+                    { label: "Revenue", value: "₹2,34,500", change: "+15%", positive: true },
+                  ].map((kpi) => (
+                    <Card key={kpi.label} className="kpi-card">
+                      <CardContent className="p-4">
+                        <div className="text-xs text-gray-500 uppercase">{kpi.label}</div>
+                        <div className="text-xl font-bold text-gray-900 mt-1">{kpi.value}</div>
+                        <div className={`text-xs mt-1 ${kpi.positive ? "text-green-500" : "text-red-500"}`}>
+                          {kpi.change} vs prev period
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Top by Enrollment */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">Top Series by Enrollment</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {mockSeriesData.sort((a, b) => b.enrolled - a.enrolled).map((s, i) => (
+                        <div key={s.id} className="flex items-center gap-3">
+                          <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center justify-center shrink-0">
+                            {i + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">{s.name}</div>
+                            <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+                              <div
+                                className="bg-orange-400 h-1.5 rounded-full"
+                                style={{ width: `${(s.enrolled / mockSeriesData[0].enrolled) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                          <div className="text-sm font-semibold text-gray-700 shrink-0">{s.enrolled.toLocaleString()}</div>
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Revenue Breakdown */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base">Revenue Breakdown</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-3">
+                        {[
+                          { label: "Individual Purchases", amount: "₹1,45,000", pct: 62, color: "bg-orange-400" },
+                          { label: "Pass Subscriptions", amount: "₹89,500", pct: 38, color: "bg-blue-400" },
+                        ].map((item) => (
+                          <div key={item.label}>
+                            <div className="flex justify-between text-sm mb-1">
+                              <span className="text-gray-700">{item.label}</span>
+                              <span className="font-semibold">{item.amount} ({item.pct}%)</span>
+                            </div>
+                            <div className="w-full bg-gray-100 rounded-full h-3">
+                              <div className={`${item.color} h-3 rounded-full`} style={{ width: `${item.pct}%` }} />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="border-t pt-3">
+                        <div className="text-sm font-semibold text-gray-900 flex justify-between">
+                          <span>Total Revenue</span>
+                          <span>₹2,34,500</span>
+                        </div>
+                      </div>
+
+                      {/* Top Attempted */}
+                      <div className="border-t pt-3">
+                        <div className="text-sm font-semibold text-gray-700 mb-2">Top by Attempts</div>
+                        {[
+                          { name: "SSC CGL Full Mock 1", attempts: 45230 },
+                          { name: "Daily GK Booster", attempts: 38450 },
+                          { name: "CA Booster March", attempts: 29100 },
+                        ].map((t, i) => (
+                          <div key={i} className="flex justify-between text-sm py-1 border-b border-gray-50">
+                            <span className="text-gray-600 truncate max-w-[200px]">{t.name}</span>
+                            <span className="font-medium">{t.attempts.toLocaleString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button variant="outline" asChild>
+                    <Link href="/mockbook/analytics">
+                      View Full Analytics
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Link>
+                  </Button>
+                </div>
+              </TabsContent>
+
             </Tabs>
           </div>
         </main>
       </div>
 
-      {/* Org Switcher Dialog */}
       <MockBookOrgSwitcher
         open={showOrgSwitcher}
         onSelect={handleOrgSelect}
+        onClose={() => setShowOrgSwitcher(false)}
       />
     </div>
   );

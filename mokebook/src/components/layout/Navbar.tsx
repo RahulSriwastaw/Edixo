@@ -39,6 +39,8 @@ import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { navItems } from "./Sidebar";
 import { cn } from "@/lib/utils";
+import { useOrganization } from "@/providers/OrganizationProvider";
+import Image from "next/image";
 
 export function Navbar() {
   const { user } = useUser();
@@ -46,11 +48,17 @@ export function Navbar() {
   const db = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
+  const { org } = useOrganization();
 
-  const userDoc = useDoc(user && db ? doc(db, "users", user.uid) : null);
+  // Only query Firestore for Firebase-authenticated users (not custom backend users)
+  const isFirebaseUser = user !== null && typeof (user as any).getIdToken === 'function';
+  const userDoc = useDoc(isFirebaseUser && db ? doc(db, "users", user!.uid) : null);
   const points = userDoc.data?.totalPoints || 0;
 
   const handleLogout = async () => {
+    // Clear custom backend token
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    
     if (auth) {
       try {
         await signOut(auth);
@@ -58,6 +66,8 @@ export function Navbar() {
       } catch (error) {
         console.error("Logout failed", error);
       }
+    } else {
+      router.push("/login");
     }
   };
 
@@ -76,8 +86,16 @@ export function Navbar() {
               <SheetContent side="left" className="p-0 w-[280px] bg-white">
                 <SheetHeader className="p-5 border-b bg-gradient-to-r from-primary/5 to-transparent">
                   <SheetTitle className="text-left font-bold text-primary flex items-center gap-2.5 text-lg">
-                    <span className="bg-primary text-white p-1.5 rounded-lg text-xs font-black">M</span>
-                    Mockbook
+                    {org?.logoUrl ? (
+                      <div className="relative w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                        <Image src={org.logoUrl} alt={org.name} fill className="object-cover" />
+                      </div>
+                    ) : (
+                      <span className="bg-primary text-white p-1.5 rounded-lg text-xs font-black w-8 h-8 flex items-center justify-center shrink-0">
+                        {org?.name?.charAt(0) || "M"}
+                      </span>
+                    )}
+                    {org?.name || "Mockbook"}
                   </SheetTitle>
                 </SheetHeader>
                 <nav className="flex-1 p-3 space-y-1 pt-4">
@@ -139,8 +157,16 @@ export function Navbar() {
             </Sheet>
           )}
           <Link href="/" className="flex items-center gap-2 font-bold text-lg tracking-tight text-primary">
-            <span className="bg-primary text-white p-1 rounded-lg text-xs font-black">M</span>
-            <span className="hidden sm:inline text-slate-800">Mockbook</span>
+            {org?.logoUrl ? (
+              <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0">
+                <Image src={org.logoUrl} alt={org.name} fill className="object-cover" />
+              </div>
+            ) : (
+              <span className="bg-primary text-white p-1 rounded-lg text-xs font-black w-7 h-7 flex items-center justify-center shrink-0">
+                {org?.name?.charAt(0) || "M"}
+              </span>
+            )}
+            <span className="hidden sm:inline text-slate-800">{org?.name || "Mockbook"}</span>
           </Link>
         </div>
 

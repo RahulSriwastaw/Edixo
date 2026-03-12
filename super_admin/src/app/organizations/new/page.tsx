@@ -119,7 +119,7 @@ export default function NewOrganizationPage() {
   const [formData, setFormData] = useState({
     // Step 1: Basic Info
     orgName: "",
-    domain: "",
+    subdomain: "",
     email: "",
     phone: "",
     address: "",
@@ -132,6 +132,7 @@ export default function NewOrganizationPage() {
     displayName: "",
     primaryColor: "#F4511E",
     logoUrl: "",
+    customDomain: "",
     // Step 5: Admin User
     adminName: "",
     adminEmail: "",
@@ -168,9 +169,11 @@ export default function NewOrganizationPage() {
         adminEmail: formData.adminEmail,
         adminPassword: formData.adminPassword,
         trialDays: 30,
+        subdomain: formData.subdomain,
+        customDomain: formData.customDomain,
       };
 
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/super-admin/organizations`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -378,13 +381,19 @@ export default function NewOrganizationPage() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label>Domain *</Label>
-                          <Input
-                            value={formData.domain}
-                            onChange={(e) => updateFormData("domain", e.target.value)}
-                            placeholder="e.g., apex-academy.com"
-                            className="input-field"
-                          />
+                          <Label>Subdomain *</Label>
+                          <div className="flex items-center">
+                            <Input
+                              value={formData.subdomain}
+                              onChange={(e) => updateFormData("subdomain", e.target.value)}
+                              placeholder="e.g., apex"
+                              className="input-field rounded-r-none"
+                            />
+                            <span className="bg-gray-100 border border-l-0 border-gray-200 px-3 py-2 rounded-r-lg text-sm text-gray-500">
+                              .eduhub.in
+                            </span>
+                          </div>
+                          <p className="text-[10px] text-gray-400 mt-1">Short name for the org URL</p>
                         </div>
                         <div className="space-y-2">
                           <Label>Contact Email *</Label>
@@ -573,6 +582,8 @@ export default function NewOrganizationPage() {
                             <Input
                               placeholder="admin.example.com"
                               className="input-field"
+                              value={formData.customDomain}
+                              onChange={(e) => updateFormData("customDomain", e.target.value)}
                             />
                           </div>
                           <p className="text-xs text-gray-500">Optional - can be configured later</p>

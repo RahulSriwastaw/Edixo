@@ -73,7 +73,7 @@ export function OrgAdminTopBar({ selectedOrg, onChangeOrg, onExitOrg }: OrgAdmin
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2 px-2">
               <Avatar className="w-8 h-8">
-                <AvatarImage src="/avatar.png" />
+                <AvatarImage />
                 <AvatarFallback className="bg-orange-500 text-white text-sm font-semibold">
                   RK
                 </AvatarFallback>

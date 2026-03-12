@@ -70,113 +70,7 @@ import { MockBookOrgBanner, MockBookOrg } from "@/components/mockbook/MockBookOr
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Mock students data
-const studentsData = [
-  {
-    id: "STU-001",
-    name: "Rahul Sharma",
-    email: "rahul@email.com",
-    phone: "+91 9876543210",
-    class: "Class 12",
-    target: "JEE 2026",
-    packs: ["JEE Gold Pack", "JEE Platinum Pack"],
-    testsTaken: 48,
-    avgScore: 72,
-    streak: 12,
-    aiPoints: 245,
-    status: "active",
-    joined: "Jan 15, 2026",
-    lastActive: "2 hours ago",
-  },
-  {
-    id: "STU-002",
-    name: "Priya Verma",
-    email: "priya@email.com",
-    phone: "+91 9876543211",
-    class: "Class 12",
-    target: "NEET 2026",
-    packs: ["NEET Complete"],
-    testsTaken: 32,
-    avgScore: 78,
-    streak: 5,
-    aiPoints: 180,
-    status: "active",
-    joined: "Feb 1, 2026",
-    lastActive: "1 day ago",
-  },
-  {
-    id: "STU-003",
-    name: "Amit Kumar",
-    email: "amit@email.com",
-    phone: "+91 9876543212",
-    class: "Class 11",
-    target: "JEE 2027",
-    packs: ["JEE Gold Pack"],
-    testsTaken: 15,
-    avgScore: 65,
-    streak: 0,
-    aiPoints: 50,
-    status: "active",
-    joined: "Feb 10, 2026",
-    lastActive: "5 days ago",
-  },
-  {
-    id: "STU-004",
-    name: "Sunita Patel",
-    email: "sunita@email.com",
-    phone: "+91 9876543213",
-    class: "Class 12",
-    target: "SSC GD",
-    packs: ["SSC GD Special"],
-    testsTaken: 8,
-    avgScore: 82,
-    streak: 3,
-    aiPoints: 95,
-    status: "active",
-    joined: "Feb 15, 2026",
-    lastActive: "3 hours ago",
-  },
-  {
-    id: "STU-005",
-    name: "Vikash Singh",
-    email: "vikash@email.com",
-    phone: "+91 9876543214",
-    class: "Class 12",
-    target: "JEE 2026",
-    packs: [],
-    testsTaken: 0,
-    avgScore: 0,
-    streak: 0,
-    aiPoints: 0,
-    status: "inactive",
-    joined: "Jan 5, 2026",
-    lastActive: "30 days ago",
-  },
-  {
-    id: "STU-006",
-    name: "Neha Gupta",
-    email: "neha@email.com",
-    phone: "+91 9876543215",
-    class: "Class 12",
-    target: "NEET 2026",
-    packs: ["NEET Complete", "JEE Gold Pack"],
-    testsTaken: 67,
-    avgScore: 85,
-    streak: 28,
-    aiPoints: 520,
-    status: "active",
-    joined: "Dec 1, 2025",
-    lastActive: "1 hour ago",
-  },
-];
 
-// Stats
-const stats = [
-  { label: "Total Students", value: 847, icon: Users, color: "blue" },
-  { label: "Active (30d)", value: 692, icon: CheckCircle2, color: "green" },
-  { label: "With Packs", value: 634, icon: Gift, color: "purple" },
-  { label: "Avg Score", value: "71%", icon: BarChart3, color: "orange" },
-];
 
 // Status Badge
 function StatusBadge({ status }: { status: string }) {
@@ -223,21 +117,51 @@ const params = useParams();
   const [packFilter, setPackFilter] = useState("all");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showAssignPackDialog, setShowAssignPackDialog] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<typeof studentsData[0] | null>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+  const [studentsList, setStudentsList] = useState<any[]>([]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    // Mock: Load org from ID
-    const mockOrg: MockBookOrg = {
-      id: orgId,
-      name: "Apex Academy",
-      plan: "Medium",
-      status: "Active",
-      students: 847,
-      mockTests: 24,
+    // Dynamic fetch: Load org & students from API
+    const fetchOrgAndStudents = async () => {
+      try {
+        const tokenMatch = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+        const token = tokenMatch ? tokenMatch[1] : '';
+        
+        const [orgRes, studentsRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations/${orgId}`, { headers: { 'Authorization': `Bearer ${token}` } }),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations/${orgId}/students`, { headers: { 'Authorization': `Bearer ${token}` } })
+        ]);
+        
+        const orgData = await orgRes.json();
+        const studentsData = await studentsRes.json();
+        
+        if (orgData.success) {
+          const orgInfo = orgData.data;
+          setSelectedOrg({
+            id: orgInfo.orgId,
+            name: orgInfo.name,
+            plan: orgInfo.plan || "SMALL",
+            status: orgInfo.status || "ACTIVE",
+            students: orgInfo._count?.students || orgInfo.studentCount || 0,
+            mockTests: orgInfo._count?.testAttempts || 0,
+            aiCredits: orgInfo.aiCredits || 0,
+          });
+        } else {
+          router.push('/mockbook');
+        }
+
+        if (studentsData.success) {
+          setStudentsList(studentsData.data || []);
+        }
+      } catch (err) {
+        console.error("Failed to load org details", err);
+        router.push('/mockbook');
+      }
     };
-    setSelectedOrg(mockOrg);
+    fetchOrgAndStudents();
+    
     // eslint-disable-next-line react-hooks/set-state-in-effect
   }, [orgId]);
 
@@ -261,15 +185,17 @@ const params = useParams();
   const hasActiveFilters = searchQuery || statusFilter !== "all" || packFilter !== "all";
 
   // Filter students
-  const filteredStudents = studentsData.filter((student) => {
+  const filteredStudents = studentsList.filter((student: any) => {
+    const sName = student.name || "";
+    const sEmail = student.email || "";
+    const sId = student.studentId || student.id || "";
     const matchesSearch = 
-      student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      student.id.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || student.status === statusFilter;
-    const matchesPack = packFilter === "all" || 
-      (packFilter === "with_pack" && student.packs.length > 0) ||
-      (packFilter === "no_pack" && student.packs.length === 0);
+      sName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      sId.toLowerCase().includes(searchQuery.toLowerCase());
+    const studentStatus = student.isActive ? "active" : "inactive";
+    const matchesStatus = statusFilter === "all" || studentStatus === statusFilter;
+    const matchesPack = packFilter === "all"; // Backend doesn't fully support packs yet
     return matchesSearch && matchesStatus && matchesPack;
   });
 
@@ -332,7 +258,16 @@ const params = useParams();
 
               {/* Stats Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, index) => {
+                {(() => {
+                  const activeCount = studentsList.filter(s => s.isActive).length;
+                  const dynamicStats = [
+                    { label: "Total Students", value: studentsList.length, icon: Users, color: "blue" },
+                    { label: "Active", value: activeCount, icon: CheckCircle2, color: "green" },
+                    { label: "With Packs", value: 0, icon: Gift, color: "purple" },
+                    { label: "Avg Score", value: "--", icon: BarChart3, color: "orange" },
+                  ];
+                  return dynamicStats;
+                })().map((stat, index) => {
                   const Icon = stat.icon;
                   return (
                     <Card key={index} className="kpi-card">
@@ -415,13 +350,13 @@ const params = useParams();
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredStudents.map((student) => (
+                      {filteredStudents.map((student: any) => (
                         <TableRow key={student.id} className="hover:bg-orange-50">
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-9 h-9">
                                 <AvatarFallback className="bg-orange-100 text-orange-600 text-sm font-medium">
-                                  {student.name.split(" ").map(n => n[0]).join("")}
+                                  {student.name ? student.name.charAt(0).toUpperCase() : "?"}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
@@ -432,21 +367,21 @@ const params = useParams();
                           </TableCell>
                           <TableCell>
                             <div>
-                              <div className="text-sm text-gray-900">{student.class}</div>
-                              <div className="text-xs text-gray-500">{student.target}</div>
+                              <div className="text-sm text-gray-900">{student.currentClass || "N/A"}</div>
+                              <div className="text-xs text-gray-500">{student.targetExam || "N/A"}</div>
                             </div>
                           </TableCell>
                           <TableCell>
-                            {student.packs.length > 0 ? (
+                            {(student.packs ? student.packs.length : 0) > 0 ? (
                               <div className="flex flex-wrap gap-1">
-                                {student.packs.slice(0, 2).map((pack) => (
+                                {(student.packs || []).slice(0, 2).map((pack) => (
                                   <Badge key={pack} variant="outline" className="text-[10px]">
                                     {pack}
                                   </Badge>
                                 ))}
-                                {student.packs.length > 2 && (
+                                {(student.packs ? student.packs.length : 0) > 2 && (
                                   <Badge variant="outline" className="text-[10px]">
-                                    +{student.packs.length - 2}
+                                    +{(student.packs ? student.packs.length : 0) - 2}
                                   </Badge>
                                 )}
                               </div>
@@ -454,30 +389,30 @@ const params = useParams();
                               <span className="text-xs text-gray-400">No pack</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-center font-medium">{student.testsTaken}</TableCell>
+                          <TableCell className="text-center font-medium">{(student.testsTaken || 0)}</TableCell>
                           <TableCell className="text-center">
                             <div>
                               <span className={cn(
                                 "font-medium",
-                                student.avgScore >= 75 ? "text-green-600" : 
-                                student.avgScore >= 50 ? "text-yellow-600" : "text-red-600"
+                                (student.avgScore || 0) >= 75 ? "text-green-600" : 
+                                (student.avgScore || 0) >= 50 ? "text-yellow-600" : "text-red-600"
                               )}>
-                                {student.avgScore}%
+                                {(student.avgScore || 0)}%
                               </span>
                             </div>
                           </TableCell>
                           <TableCell className="text-center">
-                            {student.streak > 0 ? (
+                            {(student.streak || 0) > 0 ? (
                               <div className="flex items-center justify-center gap-1">
                                 <Flame className="w-4 h-4 text-orange-500" />
-                                <span className="font-medium text-orange-600">{student.streak}</span>
+                                <span className="font-medium text-orange-600">{(student.streak || 0)}</span>
                               </div>
                             ) : (
                               <span className="text-gray-400">—</span>
                             )}
                           </TableCell>
                           <TableCell>
-                            <StatusBadge status={student.status} />
+                            <StatusBadge status={(student.isActive ? "active" : "inactive")} />
                           </TableCell>
                           <TableCell className="text-right">
                             <DropdownMenu>

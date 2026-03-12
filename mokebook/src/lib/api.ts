@@ -1,57 +1,39 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+export const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || "GK-ORG-00001";
 
-async function request(endpoint: string, options: RequestInit = {}) {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('auth_token') : null;
-
-    const headers = {
-        'Content-Type': 'application/json',
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
-        ...options.headers,
-    };
-
-    const response = await fetch(`${API_URL}${endpoint}`, {
-        ...options,
-        headers,
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(data.message || data.error || 'API Request Failed');
-    }
-    return data;
-}
-
-export const api = {
-    get: (endpoint: string) => request(endpoint, { method: 'GET' }),
-    post: (endpoint: string, body: any) => request(endpoint, { method: 'POST', body: JSON.stringify(body) }),
-    patch: (endpoint: string, body: any) => request(endpoint, { method: 'PATCH', body: JSON.stringify(body) }),
-    delete: (endpoint: string) => request(endpoint, { method: 'DELETE' }),
+// Helper to get cookies in browser
+export const getCookie = (name: string) => {
+  if (typeof document === 'undefined') return null;
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop()?.split(';').shift();
+  return null;
 };
 
-// ── CRUD helpers ───────────────────────────────────────────────────
+// Helper for authorized API calls
+export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
+  const token = getCookie('token');
+  
+  const headers = new Headers(options.headers || {});
+  headers.set('Content-Type', 'application/json');
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  // For GET requests, we can append orgId to URL if not present. 
+  // For now, passing X-Org-Id header is cleaner if backend supports it.
+  headers.set('X-Org-Id', ORG_ID);
 
-export const mockbookDB = {
-    // Exam Folders
-    getFolders: () => api.get('/mockbook/folders'),
-    createFolder: (data: any) => api.post('/mockbook/folders', data),
-    updateFolder: (id: string, data: any) => api.patch(`/mockbook/folders/${id}`, data),
-    deleteFolder: (id: string) => api.delete(`/mockbook/folders/${id}`),
+  const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
 
-    // Exam Categories
-    getCategories: (folderId?: string) => api.get(`/mockbook/categories${folderId ? `?folderId=${folderId}` : ''}`),
-    createCategory: (data: any) => api.post('/mockbook/categories', data),
-    updateCategory: (id: string, data: any) => api.patch(`/mockbook/categories/${id}`, data),
-    deleteCategory: (id: string) => api.delete(`/mockbook/categories/${id}`),
+  const res = await fetch(url, {
+    ...options,
+    headers,
+  });
 
-    // Sub Categories
-    getSubCategories: (categoryId?: string) => api.get(`/mockbook/subcategories${categoryId ? `?categoryId=${categoryId}` : ''}`),
-    createSubCategory: (data: any) => api.post('/mockbook/subcategories', data),
-    updateSubCategory: (id: string, data: any) => api.patch(`/mockbook/subcategories/${id}`, data),
-    deleteSubCategory: (id: string) => api.delete(`/mockbook/subcategories/${id}`),
-
-    // Mock Tests (Uses tests module)
-    getMockTests: (subCategoryId?: string) => api.get(`/tests${subCategoryId ? `?subCategoryId=${subCategoryId}` : ''}`),
-    createMockTest: (data: any) => api.post('/tests', data),
-    updateMockTest: (id: string, data: any) => api.patch(`/tests/${id}/status`, data), // Adjusting to match tests route
-    deleteMockTest: (id: string) => api.delete(`/tests/${id}`),
+  const data = await res.json();
+  if (!res.ok) {
+    throw new Error(data.message || 'API Error');
+  }
+  return data;
 };

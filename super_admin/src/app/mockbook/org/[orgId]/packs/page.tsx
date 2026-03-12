@@ -1,29 +1,12 @@
 "use client";
 import { useSidebarStore } from "@/store/sidebarStore";
-
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  Search,
-  Plus,
-  MoreHorizontal,
-  Eye,
-  Edit,
-  Trash2,
-  Users,
-  DollarSign,
-  Calendar,
-  CheckCircle2,
-  XCircle,
-  ChevronRight,
-  Sparkles,
-  BookOpen,
-  Clock,
-  Gift,
-  Copy,
-  Archive,
-  Play,
+  Search, Plus, MoreHorizontal, Eye, Edit, Trash2, Users,
+  DollarSign, Calendar, CheckCircle2, ChevronRight, Sparkles,
+  BookOpen, Gift, Copy, Archive, Play, Loader2, X,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -31,39 +14,19 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Progress } from "@/components/ui/progress";
 import { Switch } from "@/components/ui/switch";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { MockBookOrgSwitcher } from "@/components/mockbook/MockBookOrgSwitcher";
@@ -71,281 +34,174 @@ import { MockBookOrgBanner, MockBookOrg } from "@/components/mockbook/MockBookOr
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-// Mock packs data
-const packsData = [
-  {
-    id: "PACK-001",
-    name: "JEE Gold Pack",
-    shortDesc: "Complete JEE prep with AI analysis",
-    thumbnail: null,
-    badge: "Most Popular",
-    monthlyPrice: 999,
-    yearlyPrice: 8999,
-    yearlyMRP: 11988,
-    students: 342,
-    mockTests: 45,
-    studyPlans: 2,
-    dailyPractice: true,
-    aiPoints: 500,
-    status: "active",
-    trialDays: 3,
-    inAppPurchase: true,
-    adminAssign: true,
-    createdAt: "Jan 15, 2026",
-  },
-  {
-    id: "PACK-002",
-    name: "JEE Platinum Pack",
-    shortDesc: "Premium JEE prep with unlimited AI",
-    thumbnail: null,
-    badge: "Best Value",
-    monthlyPrice: 1499,
-    yearlyPrice: 12999,
-    yearlyMRP: 17988,
-    students: 189,
-    mockTests: 85,
-    studyPlans: 5,
-    dailyPractice: true,
-    aiPoints: 1000,
-    status: "active",
-    trialDays: 7,
-    inAppPurchase: true,
-    adminAssign: true,
-    createdAt: "Jan 20, 2026",
-  },
-  {
-    id: "PACK-003",
-    name: "NEET Complete",
-    shortDesc: "Full NEET preparation package",
-    thumbnail: null,
-    badge: "New",
-    monthlyPrice: 799,
-    yearlyPrice: 6999,
-    yearlyMRP: 9588,
-    students: 156,
-    mockTests: 32,
-    studyPlans: 3,
-    dailyPractice: true,
-    aiPoints: 400,
-    status: "active",
-    trialDays: 3,
-    inAppPurchase: true,
-    adminAssign: true,
-    createdAt: "Feb 1, 2026",
-  },
-  {
-    id: "PACK-004",
-    name: "SSC GD Special",
-    shortDesc: "SSC GD exam preparation",
-    thumbnail: null,
-    badge: null,
-    monthlyPrice: 499,
-    yearlyPrice: 3999,
-    yearlyMRP: 5988,
-    students: 87,
-    mockTests: 20,
-    studyPlans: 1,
-    dailyPractice: true,
-    aiPoints: 200,
-    status: "active",
-    trialDays: 0,
-    inAppPurchase: true,
-    adminAssign: true,
-    createdAt: "Feb 10, 2026",
-  },
-  {
-    id: "PACK-005",
-    name: "Free Trial Pack",
-    shortDesc: "Basic access for new students",
-    thumbnail: null,
-    badge: "Free",
-    monthlyPrice: 0,
-    yearlyPrice: 0,
-    yearlyMRP: 0,
-    students: 523,
-    mockTests: 5,
-    studyPlans: 0,
-    dailyPractice: false,
-    aiPoints: 50,
-    status: "active",
-    trialDays: 0,
-    inAppPurchase: false,
-    adminAssign: true,
-    createdAt: "Dec 1, 2025",
-  },
-  {
-    id: "PACK-006",
-    name: "Board Exam Prep",
-    shortDesc: "Class 10 & 12 board preparation",
-    thumbnail: null,
-    badge: null,
-    monthlyPrice: 299,
-    yearlyPrice: 2499,
-    yearlyMRP: 3588,
-    students: 0,
-    mockTests: 15,
-    studyPlans: 2,
-    dailyPractice: true,
-    aiPoints: 100,
-    status: "draft",
-    trialDays: 0,
-    inAppPurchase: true,
-    adminAssign: true,
-    createdAt: "Feb 28, 2026",
-  },
-];
-
-// Stats
-const stats = [
-  { label: "Total Packs", value: 6, icon: Gift, color: "purple" },
-  { label: "Active Packs", value: 5, icon: CheckCircle2, color: "green" },
-  { label: "Total Subscribers", value: 1297, icon: Users, color: "blue" },
-  { label: "Monthly Revenue", value: "₹9.2L", icon: DollarSign, color: "orange" },
-];
-
-// Subscribers data
-const subscribersData = [
-  { id: "STU-001", name: "Rahul Sharma", pack: "JEE Gold Pack", plan: "Monthly", purchased: "Feb 15, 2026", expires: "Mar 15, 2026", status: "active" },
-  { id: "STU-002", name: "Priya Verma", pack: "JEE Platinum Pack", plan: "Yearly", purchased: "Jan 1, 2026", expires: "Jan 1, 2027", status: "active" },
-  { id: "STU-003", name: "Amit Kumar", pack: "JEE Gold Pack", plan: "Assigned", purchased: "Mar 1, 2026", expires: "Mar 31, 2026", status: "active" },
-  { id: "STU-004", name: "Sunita Patel", pack: "NEET Complete", plan: "Monthly", purchased: "Feb 20, 2026", expires: "Mar 20, 2026", status: "active" },
-  { id: "STU-005", name: "Vikash Singh", pack: "JEE Gold Pack", plan: "Monthly", purchased: "Jan 10, 2026", expires: "Feb 10, 2026", status: "expired" },
-];
-
-// Plan Badge
-function StatusBadge({ status }: { status: string }) {
-  const config: Record<string, { label: string; className: string }> = {
-    active: { label: "Active", className: "bg-green-50 text-green-700 border-green-200" },
-    draft: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
-    archived: { label: "Archived", className: "bg-red-50 text-red-700 border-red-200" },
-  };
-  const { label, className } = config[status] || config.draft;
-  return <Badge variant="outline" className={cn("text-[10px]", className)}>{label}</Badge>;
-}
-
-// Badge Component
-function PackBadge({ badge }: { badge: string | null }) {
-  if (!badge) return null;
-  const styles: Record<string, string> = {
-    "Most Popular": "bg-orange-100 text-orange-700",
-    "Best Value": "bg-green-100 text-green-700",
-    "New": "bg-blue-100 text-blue-700",
-    "Free": "bg-purple-100 text-purple-700",
-  };
-  return <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", styles[badge] || "bg-gray-100 text-gray-700")}>{badge}</span>;
-}
-
-const getIconBgColor = (color: string) => {
-  const colors: Record<string, string> = {
-    blue: "bg-blue-50",
-    green: "bg-green-50",
-    orange: "bg-orange-50",
-    purple: "bg-purple-50",
-  };
-  return colors[color] || "bg-gray-50";
+const getToken = () => {
+  if (typeof document === "undefined") return "";
+  const m = document.cookie.match(/(?:^|;\s*)token=([^;]*)/);
+  return m ? m[1] : "";
 };
 
-const getIconColor = (color: string) => {
-  const colors: Record<string, string> = {
-    blue: "text-blue-600",
-    green: "text-green-600",
-    orange: "text-orange-600",
-    purple: "text-purple-600",
+const api = (path: string, opts?: RequestInit) =>
+  fetch(`http://localhost:4000/api${path}`, {
+    ...opts,
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}`, ...(opts?.headers || {}) },
+  }).then(r => r.json());
+
+function StatusBadge({ status }: { status: string }) {
+  const cfg: Record<string, string> = {
+    active: "bg-green-50 text-green-700 border-green-200",
+    draft: "bg-gray-50 text-gray-600 border-gray-200",
+    archived: "bg-red-50 text-red-700 border-red-200",
   };
-  return colors[color] || "text-gray-600";
+  return <Badge variant="outline" className={cn("text-[10px]", cfg[status] || cfg.draft)}>{status}</Badge>;
+}
+
+const EMPTY_FORM = {
+  name: "", shortDesc: "", description: "", badge: "none",
+  monthlyPrice: 0, yearlyPrice: 0, trialDays: 3,
+  aiPoints: 500, dailyPractice: true, status: "draft",
 };
 
 export default function PacksPage() {
-    const { isOpen } = useSidebarStore();
-const params = useParams();
+  const { isOpen } = useSidebarStore();
+  const params = useParams();
   const router = useRouter();
   const orgId = params.orgId as string;
-  
+
   const [mounted, setMounted] = useState(false);
   const [selectedOrg, setSelectedOrg] = useState<MockBookOrg | null>(null);
   const [showOrgSwitcher, setShowOrgSwitcher] = useState(false);
+  const [packsList, setPacksList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [showCreateDialog, setShowCreateDialog] = useState(false);
+
+  // Create/Edit
+  const [showDialog, setShowDialog] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [createStep, setCreateStep] = useState(1);
-  const [selectedPack, setSelectedPack] = useState<typeof packsData[0] | null>(null);
-  const [showSubscribersDialog, setShowSubscribersDialog] = useState(false);
+  const [form, setForm] = useState({ ...EMPTY_FORM });
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Delete
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
-    // Mock: Load org from ID
-    const mockOrg: MockBookOrg = {
-      id: orgId,
-      name: "Apex Academy",
-      plan: "Medium",
-      status: "Active",
-      students: 847,
-      mockTests: 24,
+    const init = async () => {
+      try {
+        const orgData = await api(`/super-admin/organizations/${orgId}`);
+        if (orgData.success) {
+          const o = orgData.data;
+          setSelectedOrg({ id: o.orgId, name: o.name, plan: o.plan || "SMALL", status: o.status || "ACTIVE", students: o._count?.students || 0, mockTests: 0, aiCredits: o.aiCredits || 0 });
+        } else {
+          router.push("/mockbook");
+          return;
+        }
+        await loadPacks();
+      } catch { router.push("/mockbook"); }
     };
-    setSelectedOrg(mockOrg);
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    init();
   }, [orgId]);
 
-  const handleOrgSelect = (org: MockBookOrg) => {
-    setSelectedOrg(org);
-    setShowOrgSwitcher(false);
-    router.push(`/mockbook/org/${org.id}/packs`);
+  const loadPacks = async () => {
+    setIsLoading(true);
+    try {
+      const d = await api(`/super-admin/mockbook/${orgId}/packs`);
+      if (d.success) setPacksList(d.data);
+    } catch { toast.error("Failed to load packs"); }
+    finally { setIsLoading(false); }
   };
 
-  const handleExitOrg = () => {
-    setSelectedOrg(null);
-    router.push("/mockbook");
+  const openCreate = () => {
+    setEditingId(null);
+    setForm({ ...EMPTY_FORM });
+    setCreateStep(1);
+    setShowDialog(true);
   };
 
-  const clearFilters = () => {
-    setSearchQuery("");
-    setStatusFilter("all");
+  const openEdit = (pack: any) => {
+    setEditingId(pack.id);
+    setForm({
+      name: pack.name,
+      shortDesc: pack.shortDesc || "",
+      description: pack.description || "",
+      badge: pack.badge || "none",
+      monthlyPrice: pack.monthlyPrice || 0,
+      yearlyPrice: pack.yearlyPrice || 0,
+      trialDays: pack.trialDays || 3,
+      aiPoints: pack.aiPoints || 500,
+      dailyPractice: pack.dailyPractice ?? true,
+      status: pack.status || "draft",
+    });
+    setCreateStep(1);
+    setShowDialog(true);
   };
 
-  const hasActiveFilters = searchQuery || statusFilter !== "all";
+  const handleSave = async () => {
+    if (!form.name.trim()) return toast.error("Pack name is required");
+    setIsSaving(true);
+    try {
+      const endpoint = editingId
+        ? `/super-admin/mockbook/${orgId}/packs/${editingId}`
+        : `/super-admin/mockbook/${orgId}/packs`;
+      const method = editingId ? "PATCH" : "POST";
+      const d = await api(endpoint, { method, body: JSON.stringify(form) });
+      if (d.success) {
+        toast.success(editingId ? "Pack updated" : "Pack created");
+        setShowDialog(false);
+        await loadPacks();
+      } else {
+        toast.error(d.message || "Failed to save pack");
+      }
+    } catch { toast.error("An error occurred"); }
+    finally { setIsSaving(false); }
+  };
 
-  // Filter packs
-  const filteredPacks = packsData.filter((pack) => {
-    const matchesSearch = pack.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === "all" || pack.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const handleDelete = async () => {
+    if (!deleteId) return;
+    setIsDeleting(true);
+    try {
+      const d = await api(`/super-admin/mockbook/${orgId}/packs/${deleteId}`, { method: "DELETE" });
+      if (d.success) {
+        setPacksList(p => p.filter(x => x.id !== deleteId));
+        toast.success("Pack deleted");
+      } else {
+        toast.error(d.message || "Failed to delete");
+      }
+    } catch { toast.error("An error occurred"); }
+    finally { setIsDeleting(false); setDeleteId(null); }
+  };
+
+  const toggleStatus = async (pack: any) => {
+    const newStatus = pack.status === "active" ? "draft" : "active";
+    const d = await api(`/super-admin/mockbook/${orgId}/packs/${pack.id}`, {
+      method: "PATCH", body: JSON.stringify({ status: newStatus }),
+    });
+    if (d.success) {
+      setPacksList(p => p.map(x => x.id === pack.id ? { ...x, status: newStatus } : x));
+      toast.success(`Pack ${newStatus === "active" ? "activated" : "archived"}`);
+    }
+  };
+
+  const filteredPacks = packsList.filter(p => {
+    const ms = (p.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const mst = statusFilter === "all" || p.status === statusFilter;
+    return ms && mst;
   });
 
-  const handleCreatePack = () => {
-    toast.success("Pack created successfully!");
-    setShowCreateDialog(false);
-    setCreateStep(1);
-  };
-
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-neutral-bg flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-      </div>
-    );
-  }
-
-  if (!selectedOrg) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-orange-50 flex items-center justify-center p-4">
-        <MockBookOrgSwitcher open={true} onSelect={handleOrgSelect} />
-      </div>
-    );
-  }
+  if (!mounted) return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div>;
+  if (!selectedOrg) return <div className="min-h-screen flex items-center justify-center p-4"><MockBookOrgSwitcher open={true} onSelect={o => { setSelectedOrg(o); router.push(`/mockbook/org/${o.id}/packs`); }} /></div>;
 
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
-        <MockBookOrgBanner
-          org={selectedOrg}
-          onSwitch={() => setShowOrgSwitcher(true)}
-          onExit={handleExitOrg}
-        >
+        <MockBookOrgBanner org={selectedOrg} onSwitch={() => setShowOrgSwitcher(true)} onExit={() => { setSelectedOrg(null); router.push("/mockbook"); }}>
           <main className="flex-1 p-6">
             <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
+
               {/* Breadcrumb */}
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
@@ -355,35 +211,37 @@ const params = useParams();
                 <span className="text-gray-900 font-medium">Packs</span>
               </div>
 
-              {/* Page Header */}
+              {/* Header */}
               <div className="flex items-center justify-between">
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Pack System</h1>
-                  <p className="text-gray-500 text-sm mt-1">
-                    Manage subscription packs for students
-                  </p>
+                  <p className="text-gray-500 text-sm mt-1">Manage subscription packs for students</p>
                 </div>
-                <Button onClick={() => setShowCreateDialog(true)} className="btn-primary">
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create Pack
+                <Button onClick={openCreate} className="btn-primary">
+                  <Plus className="w-4 h-4 mr-2" /> Create Pack
                 </Button>
               </div>
 
-              {/* Stats Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {stats.map((stat, index) => {
+              {/* Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                {[
+                  { label: "Total Packs", value: packsList.length, icon: Gift, color: "purple" },
+                  { label: "Active Packs", value: packsList.filter(p => p.status === "active").length, icon: CheckCircle2, color: "green" },
+                  { label: "Total Subscribers", value: packsList.reduce((a, p) => a + (p.students || 0), 0), icon: Users, color: "blue" },
+                  { label: "Monthly Revenue", value: `₹${packsList.filter(p => p.status === "active").reduce((a, p) => a + (p.monthlyPrice || 0), 0).toLocaleString()}`, icon: DollarSign, color: "orange" },
+                ].map((stat, i) => {
                   const Icon = stat.icon;
+                  const bg: Record<string, string> = { purple: "bg-purple-50", green: "bg-green-50", blue: "bg-blue-50", orange: "bg-orange-50" };
+                  const tc: Record<string, string> = { purple: "text-purple-600", green: "text-green-600", blue: "text-blue-600", orange: "text-orange-600" };
                   return (
-                    <Card key={index} className="kpi-card">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className={`w-10 h-10 rounded-full ${getIconBgColor(stat.color)} flex items-center justify-center`}>
-                            <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
-                          </div>
-                          <div>
-                            <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                            <div className="text-xl font-bold text-gray-900">{stat.value}</div>
-                          </div>
+                    <Card key={i} className="kpi-card">
+                      <CardContent className="p-4 flex items-center gap-3">
+                        <div className={cn("w-10 h-10 rounded-full flex items-center justify-center", bg[stat.color])}>
+                          <Icon className={cn("w-5 h-5", tc[stat.color])} />
+                        </div>
+                        <div>
+                          <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
+                          <div className="text-xl font-bold text-gray-900">{stat.value}</div>
                         </div>
                       </CardContent>
                     </Card>
@@ -393,368 +251,189 @@ const params = useParams();
 
               {/* Filter Bar */}
               <Card>
-                <CardContent className="p-4">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        placeholder="Search packs..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9 input-field"
-                      />
-                    </div>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-[130px] input-field">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="draft">Draft</SelectItem>
-                        <SelectItem value="archived">Archived</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    {hasActiveFilters && (
-                      <Button variant="ghost" onClick={clearFilters}>
-                        Clear
-                      </Button>
-                    )}
+                <CardContent className="p-4 flex flex-wrap gap-3">
+                  <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input placeholder="Search packs..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-9 input-field" />
                   </div>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[130px] input-field"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </CardContent>
               </Card>
 
-              {/* Packs Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredPacks.map((pack) => (
-                  <Card key={pack.id} className={cn(
-                    "kpi-card cursor-pointer transition-all hover:shadow-md",
-                    pack.status === "draft" && "opacity-75"
-                  )}>
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
-                            {pack.name.charAt(0)}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-gray-900">{pack.name}</span>
-                              <PackBadge badge={pack.badge} />
+              {/* Packs Grid / Empty State */}
+              {isLoading ? (
+                <div className="py-16 text-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500 mx-auto mb-3" /><p className="text-gray-400">Loading packs...</p></div>
+              ) : filteredPacks.length === 0 ? (
+                <div className="py-16 text-center border-2 border-dashed border-gray-200 rounded-2xl">
+                  <Gift className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-gray-600 font-medium">No packs yet</h3>
+                  <p className="text-gray-400 text-sm mt-1">Create your first pack to offer subscription plans to students</p>
+                  <Button className="btn-primary mt-4" onClick={openCreate}><Plus className="w-4 h-4 mr-2" />Create Pack</Button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPacks.map((pack) => (
+                    <Card key={pack.id} className={cn("kpi-card transition-all hover:shadow-md", pack.status === "draft" && "opacity-75")}>
+                      <CardContent className="p-5">
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center text-white font-bold text-lg">
+                              {pack.name.charAt(0)}
                             </div>
-                            <div className="text-xs text-gray-500 font-mono">{pack.id}</div>
+                            <div>
+                              <div className="font-semibold text-gray-900">{pack.name}</div>
+                              {pack.badge && pack.badge !== "none" && (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 font-medium">{pack.badge}</span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => { setSelectedPack(pack); setShowSubscribersDialog(true); }}>
-                              <Users className="w-4 h-4 mr-2" /> View Subscribers
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Edit className="w-4 h-4 mr-2" /> Edit Pack
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Copy className="w-4 h-4 mr-2" /> Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-orange-600">
-                              <Gift className="w-4 h-4 mr-2" /> Assign to Student
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            {pack.status === "active" ? (
-                              <DropdownMenuItem className="text-red-600">
-                                <Archive className="w-4 h-4 mr-2" /> Archive
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-8 w-8"><MoreHorizontal className="w-4 h-4" /></Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEdit(pack)}><Edit className="w-4 h-4 mr-2" />Edit Pack</DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => toggleStatus(pack)}
+                                className={pack.status === "active" ? "text-orange-600" : "text-green-600"}
+                              >
+                                {pack.status === "active" ? <><Archive className="w-4 h-4 mr-2" />Archive</> : <><Play className="w-4 h-4 mr-2" />Activate</>}
                               </DropdownMenuItem>
-                            ) : (
-                              <DropdownMenuItem className="text-green-600">
-                                <Play className="w-4 h-4 mr-2" /> Activate
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      <p className="text-sm text-gray-600 mb-4">{pack.shortDesc}</p>
-
-                      {/* Pricing */}
-                      <div className="flex items-end gap-2 mb-4">
-                        {pack.monthlyPrice > 0 ? (
-                          <>
-                            <span className="text-2xl font-bold text-gray-900">₹{pack.monthlyPrice}</span>
-                            <span className="text-gray-500 text-sm mb-1">/month</span>
-                            <span className="text-gray-400 text-sm mb-1 ml-2">
-                              or ₹{pack.yearlyPrice}/year
-                            </span>
-                          </>
-                        ) : (
-                          <span className="text-2xl font-bold text-green-600">FREE</span>
-                        )}
-                      </div>
-
-                      {/* Features */}
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <BookOpen className="w-4 h-4 text-orange-500" />
-                          <span>{pack.mockTests} Mock Tests</span>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600" onClick={() => setDeleteId(pack.id)}><Trash2 className="w-4 h-4 mr-2" />Delete</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Calendar className="w-4 h-4 text-blue-500" />
-                          <span>{pack.studyPlans} Study Plans</span>
+
+                        <p className="text-sm text-gray-600 mb-4">{pack.shortDesc || "No description"}</p>
+
+                        <div className="flex items-end gap-2 mb-4">
+                          {pack.monthlyPrice > 0 ? (
+                            <>
+                              <span className="text-2xl font-bold text-gray-900">₹{pack.monthlyPrice}</span>
+                              <span className="text-gray-500 text-sm mb-1">/month</span>
+                              <span className="text-gray-400 text-sm mb-1 ml-2">or ₹{pack.yearlyPrice}/year</span>
+                            </>
+                          ) : (
+                            <span className="text-2xl font-bold text-green-600">FREE</span>
+                          )}
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Sparkles className="w-4 h-4 text-purple-500" />
-                          <span>{pack.aiPoints} AI Points/month</span>
+
+                        <div className="space-y-1.5 mb-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2"><BookOpen className="w-4 h-4 text-orange-500" />{pack.mockTests || 0} Mock Tests included</div>
+                          <div className="flex items-center gap-2"><Sparkles className="w-4 h-4 text-purple-500" />{pack.aiPoints} AI Points/month</div>
+                          {pack.dailyPractice && <div className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-green-500" />Daily Practice enabled</div>}
                         </div>
-                        {pack.dailyPractice && (
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <CheckCircle2 className="w-4 h-4 text-green-500" />
-                            <span>Daily Practice</span>
+
+                        <div className="flex items-center justify-between pt-3 border-t">
+                          <div className="flex items-center gap-1 text-sm">
+                            <Users className="w-4 h-4 text-gray-400" />
+                            <span className="font-medium">{pack.students || 0}</span>
+                            <span className="text-gray-500">students</span>
                           </div>
-                        )}
-                      </div>
-
-                      {/* Stats Row */}
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <div className="flex items-center gap-1 text-sm">
-                          <Users className="w-4 h-4 text-gray-400" />
-                          <span className="font-medium">{pack.students}</span>
-                          <span className="text-gray-500">students</span>
+                          <StatusBadge status={pack.status} />
                         </div>
-                        <StatusBadge status={pack.status} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </div>
           </main>
         </MockBookOrgBanner>
       </div>
 
-      {/* Org Switcher */}
-      <MockBookOrgSwitcher
-        open={showOrgSwitcher}
-        onSelect={handleOrgSelect}
-        recentOrgs={selectedOrg ? [selectedOrg] : []}
-      />
+      <MockBookOrgSwitcher open={showOrgSwitcher} onSelect={o => { setSelectedOrg(o); setShowOrgSwitcher(false); router.push(`/mockbook/org/${o.id}/packs`); }} recentOrgs={selectedOrg ? [selectedOrg] : []} />
 
-      {/* Create Pack Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      {/* ── Create / Edit Dialog ── */}
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent className="sm:max-w-[620px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Pack</DialogTitle>
-            <DialogDescription>
-              Step {createStep} of 4 — {createStep === 1 && "Basic Info"}
-              {createStep === 2 && "Pricing & Duration"}
-              {createStep === 3 && "Content Access"}
-              {createStep === 4 && "AI Features & Settings"}
-            </DialogDescription>
+            <DialogTitle>{editingId ? "Edit Pack" : "Create New Pack"}</DialogTitle>
+            <DialogDescription>Step {createStep} of 3</DialogDescription>
           </DialogHeader>
 
-          {/* Step Indicator */}
-          <div className="flex items-center gap-2 py-2">
-            {[1, 2, 3, 4].map((step) => (
-              <div
-                key={step}
-                className={cn(
-                  "flex-1 h-1 rounded-full",
-                  step <= createStep ? "bg-orange-500" : "bg-gray-200"
-                )}
-              />
+          {/* Step indicator */}
+          <div className="flex gap-2 py-2">
+            {[1, 2, 3].map(s => (
+              <div key={s} className={cn("flex-1 h-1.5 rounded-full", s <= createStep ? "bg-orange-500" : "bg-gray-200")} />
             ))}
           </div>
 
+          {/* Step 1: Basic Info */}
           {createStep === 1 && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Pack Name *</Label>
-                <Input placeholder="e.g., JEE Gold Pack" className="input-field" />
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
+                <Label>Pack Name <span className="text-red-500">*</span></Label>
+                <Input placeholder="e.g. JEE Gold Pack" className="input-field" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} />
               </div>
-              <div className="space-y-2">
-                <Label>Short Description *</Label>
-                <Input placeholder="Brief description shown to students" className="input-field" />
+              <div className="space-y-1.5">
+                <Label>Short Description</Label>
+                <Input placeholder="What students get in this pack" className="input-field" value={form.shortDesc} onChange={e => setForm(p => ({ ...p, shortDesc: e.target.value }))} />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label>Full Description</Label>
-                <Textarea placeholder="Detailed pack description..." className="input-field" rows={3} />
+                <Textarea placeholder="Detailed description..." className="input-field resize-none" rows={3} value={form.description} onChange={e => setForm(p => ({ ...p, description: e.target.value }))} />
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Badge/Tag</Label>
-                  <Select>
-                    <SelectTrigger className="input-field">
-                      <SelectValue placeholder="None" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="popular">Most Popular</SelectItem>
-                      <SelectItem value="value">Best Value</SelectItem>
-                      <SelectItem value="new">New</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Thumbnail</Label>
-                  <Button variant="outline" className="w-full">
-                    Upload Image
-                  </Button>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {createStep === 2 && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Pack Type</Label>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" className="h-auto py-3 flex-col">
-                    <DollarSign className="w-4 h-4 mb-1" />
-                    <span className="text-sm">Paid Pack</span>
-                  </Button>
-                  <Button variant="outline" className="h-auto py-3 flex-col">
-                    <Gift className="w-4 h-4 mb-1" />
-                    <span className="text-sm">Free Pack</span>
-                  </Button>
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg space-y-4">
-                <div className="font-medium">Monthly Plan</div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Price (₹)</Label>
-                    <Input type="number" placeholder="999" className="input-field" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>MRP (₹) <span className="text-gray-400 font-normal">(strikethrough)</span></Label>
-                    <Input type="number" placeholder="1299" className="input-field" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 border rounded-lg space-y-4">
-                <div className="font-medium">Yearly Plan</div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Price (₹)</Label>
-                    <Input type="number" placeholder="8999" className="input-field" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>MRP (₹)</Label>
-                    <Input type="number" placeholder="11988" className="input-field" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label>Trial Duration (days)</Label>
-                <Input type="number" placeholder="3" className="input-field" />
-                <p className="text-xs text-gray-500">Set 0 for no trial</p>
-              </div>
-            </div>
-          )}
-
-          {createStep === 3 && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <Label>Included MockTests</Label>
-                <Select>
-                  <SelectTrigger className="input-field">
-                    <SelectValue placeholder="Select tests or folders..." />
-                  </SelectTrigger>
+              <div className="space-y-1.5">
+                <Label>Badge</Label>
+                <Select value={form.badge} onValueChange={v => setForm(p => ({ ...p, badge: v }))}>
+                  <SelectTrigger className="input-field"><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Tests</SelectItem>
-                    <SelectItem value="folder">Select by Folder</SelectItem>
-                    <SelectItem value="specific">Select Specific Tests</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="Most Popular">Most Popular</SelectItem>
+                    <SelectItem value="Best Value">Best Value</SelectItem>
+                    <SelectItem value="New">New</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
+            </div>
+          )}
 
-              <div className="space-y-2">
-                <Label>Included Study Plans</Label>
-                <div className="flex flex-wrap gap-2">
-                  {["90 Day JEE Plan", "60 Day Crash Course", "NEET Prep Plan"].map((plan) => (
-                    <Badge
-                      key={plan}
-                      variant="outline"
-                      className="cursor-pointer hover:bg-orange-50"
-                    >
-                      {plan}
-                    </Badge>
-                  ))}
+          {/* Step 2: Pricing */}
+          {createStep === 2 && (
+            <div className="space-y-4 py-2">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label>Monthly Price (₹)</Label>
+                  <Input type="number" placeholder="999" className="input-field" value={form.monthlyPrice || ""} onChange={e => setForm(p => ({ ...p, monthlyPrice: Number(e.target.value) }))} />
+                  <p className="text-xs text-gray-500">Set 0 for free</p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label>Yearly Price (₹)</Label>
+                  <Input type="number" placeholder="8999" className="input-field" value={form.yearlyPrice || ""} onChange={e => setForm(p => ({ ...p, yearlyPrice: Number(e.target.value) }))} />
                 </div>
               </div>
-
-              <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <div className="font-medium">Daily Practice</div>
-                  <div className="text-sm text-gray-500">Enable daily practice questions</div>
-                </div>
-                <Switch defaultChecked />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Questions per Day</Label>
-                <Input type="number" defaultValue="20" className="input-field w-24" />
+              <div className="space-y-1.5">
+                <Label>Trial Duration (days)</Label>
+                <Input type="number" placeholder="3" className="input-field w-24" value={form.trialDays} onChange={e => setForm(p => ({ ...p, trialDays: Number(e.target.value) }))} />
+                <p className="text-xs text-gray-500">Set 0 to disable trial</p>
               </div>
             </div>
           )}
 
-          {createStep === 4 && (
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
+          {/* Step 3: Features & Status */}
+          {createStep === 3 && (
+            <div className="space-y-4 py-2">
+              <div className="space-y-1.5">
                 <Label>AI Points per Month</Label>
-                <Input type="number" defaultValue="500" className="input-field w-32" />
+                <Input type="number" className="input-field w-32" value={form.aiPoints} onChange={e => setForm(p => ({ ...p, aiPoints: Number(e.target.value) }))} />
               </div>
-
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <div className="font-medium">AI Analysis</div>
-                    <div className="text-sm text-gray-500">Performance analysis and insights</div>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <div className="font-medium">AI Doubt Solver</div>
-                    <div className="text-sm text-gray-500">AI-powered doubt resolution</div>
-                  </div>
-                  <Switch defaultChecked />
-                </div>
-
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <div className="font-medium">Purchase Methods</div>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-2 pl-4">
-                  <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    <span className="text-sm">In-App Purchase</span>
-                  </label>
-                  <label className="flex items-center gap-2 p-3 border rounded-lg cursor-pointer">
-                    <input type="checkbox" defaultChecked className="rounded" />
-                    <span className="text-sm">Admin Assign</span>
-                  </label>
-                </div>
-              </div>
-
               <div className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <div className="font-medium">Status</div>
-                </div>
-                <Select defaultValue="draft">
-                  <SelectTrigger className="w-32 input-field">
-                    <SelectValue />
-                  </SelectTrigger>
+                <div><div className="font-medium">Daily Practice</div><div className="text-sm text-gray-500">Enable daily practice for students</div></div>
+                <Switch checked={form.dailyPractice} onCheckedChange={v => setForm(p => ({ ...p, dailyPractice: v }))} />
+              </div>
+              <div className="flex items-center justify-between p-4 border rounded-lg">
+                <div><div className="font-medium">Status</div></div>
+                <Select value={form.status} onValueChange={v => setForm(p => ({ ...p, status: v }))}>
+                  <SelectTrigger className="w-28 input-field"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
@@ -764,84 +443,33 @@ const params = useParams();
             </div>
           )}
 
-          <DialogFooter className="flex-col sm:flex-row gap-2">
-            {createStep > 1 && (
-              <Button variant="outline" onClick={() => setCreateStep(createStep - 1)} className="w-full sm:w-auto">
-                Back
-              </Button>
-            )}
-            {createStep < 4 ? (
-              <Button onClick={() => setCreateStep(createStep + 1)} className="btn-primary w-full sm:w-auto">
-                Next
-              </Button>
+          <DialogFooter className="gap-2">
+            {createStep > 1 && <Button variant="outline" onClick={() => setCreateStep(s => s - 1)}>Back</Button>}
+            {createStep < 3 ? (
+              <Button className="btn-primary" onClick={() => setCreateStep(s => s + 1)}>Next</Button>
             ) : (
-              <Button onClick={handleCreatePack} className="btn-primary w-full sm:w-auto">
-                Create Pack
+              <Button className="btn-primary" onClick={handleSave} disabled={isSaving}>
+                {isSaving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {editingId ? "Save Changes" : "Create Pack"}
               </Button>
             )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Subscribers Dialog */}
-      <Dialog open={showSubscribersDialog} onOpenChange={setShowSubscribersDialog}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+      {/* ── Delete Confirm ── */}
+      <Dialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
+        <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle>{selectedPack?.name} — Subscribers</DialogTitle>
-            <DialogDescription>
-              {selectedPack?.students} students enrolled
-            </DialogDescription>
+            <DialogTitle>Delete Pack</DialogTitle>
+            <DialogDescription>This will permanently delete this pack. Students who subscribed will lose access. This cannot be undone.</DialogDescription>
           </DialogHeader>
-
-          <div className="flex items-center gap-3 py-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input placeholder="Search subscribers..." className="pl-9 input-field" />
-            </div>
-            <Button className="btn-primary">
-              <Plus className="w-4 h-4 mr-2" />
-              Assign
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteId(null)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting}>
+              {isDeleting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />} Delete Pack
             </Button>
-          </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Student</TableHead>
-                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
-                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Expires</TableHead>
-                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {subscribersData.map((sub) => (
-                <TableRow key={sub.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium text-gray-900">{sub.name}</div>
-                      <div className="text-xs text-gray-500">{sub.id}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-xs">{sub.plan}</Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-gray-600">{sub.expires}</TableCell>
-                  <TableCell>
-                    <Badge className={sub.status === "active" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"}>
-                      {sub.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button variant="ghost" size="sm">Extend</Button>
-                      <Button variant="ghost" size="sm" className="text-red-600">Revoke</Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

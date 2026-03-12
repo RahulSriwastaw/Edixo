@@ -72,6 +72,9 @@ model Organization {
   autoSetConfigs          AutoSetConfig[]
   batches                 Batch[]
   bulkUploadBatches       BulkUploadBatch[]
+  examCategories          ExamCategory[]
+  examFolders             ExamFolder[]
+  examSubCategories       ExamSubCategory[]
   feeStructures           FeeStructure[]
   feeTransactions         FeeTransaction[]
   mockTests               MockTest[]
@@ -221,10 +224,6 @@ model QBankFolder {
   id                 String        @id @default(uuid())
   orgId              String?
   name               String
-  slug               String?       // lowercase-hyphen URL slug
-  description        String?
-  icon               String?       // emoji or icon name
-  color              String?       // hex color
   parentId           String?
   path               String
   depth              Int           @default(0)
@@ -235,11 +234,15 @@ model QBankFolder {
   isActive           Boolean       @default(true)
   createdAt          DateTime      @default(now())
   updatedAt          DateTime      @updatedAt
+  color              String?
+  description        String?
+  icon               String?
+  slug               String?
   org                Organization? @relation(fields: [orgId], references: [id])
   parent             QBankFolder?  @relation("FolderTree", fields: [parentId], references: [id])
   children           QBankFolder[] @relation("FolderTree")
-  questions          Question[]
   sets               QuestionSet[]
+  questions          Question[]
 
   @@unique([parentId, name, orgId])
   @@index([path])
@@ -249,52 +252,49 @@ model QBankFolder {
 }
 
 model Question {
-  id              String                   @id @default(uuid())
-  questionId      String                   @unique
-  orgId           String?
-  folderId        String?
-  topicId         String?
-  type            QuestionType             @default(MCQ_SINGLE)
-  difficulty      Difficulty               @default(MEDIUM)
-  textEn          String?      // English text
-  textHi          String?      // Hindi text
-  explanationEn   String?
-  explanationHi   String?
-  imageUrl        String?
-  tags            String[]                 @default([])
-  isGlobal        Boolean                  @default(false)
-  isApproved      Boolean                  @default(false)
-  deletedAt       DateTime?
-  createdAt       DateTime                 @default(now())
-  updatedAt       DateTime                 @updatedAt
-
-  // --- Extended Data (Airtable/Batch Sync) ---
-  recordId          String?
-  questionUniqueId  Int?         @unique
-  subjectName       String?
+  id                String                   @id @default(uuid())
+  questionId        String                   @unique
+  orgId             String?
+  folderId          String?
+  topicId           String?
+  type              QuestionType             @default(MCQ_SINGLE)
+  difficulty        Difficulty               @default(MEDIUM)
+  textEn            String?
+  textHi            String?
+  explanationEn     String?
+  explanationHi     String?
+  imageUrl          String?
+  tags              String[]                 @default([])
+  isGlobal          Boolean                  @default(false)
+  isApproved        Boolean                  @default(false)
+  deletedAt         DateTime?
+  createdAt         DateTime                 @default(now())
+  updatedAt         DateTime                 @updatedAt
+  action            String?
+  airtableTableName String?
   chapterName       String?
   collection        String?
-  previousOf        String?
-  exam              String?      @default("SSC CGL")
-  year              Int?
-  videoUrl          String?
-  currentStatus     String?      @default("UPDATED")
-  syncCode          Int?         @default(2)
-  errorDescription  String?
-  section           String?
+  currentStatus     String?                  @default("UPDATED")
   date              String?
-  airtableTableName String?
-  action            String?
-  pointCost         Int          @default(10)
-  usageCount        Int          @default(0)
-
-  options         QuestionOption[]
-  reports         QuestionReport[]
-  setItems        QuestionSetItem[]
-  folder          QBankFolder?             @relation(fields: [folderId], references: [id])
-  org             Organization?            @relation(fields: [orgId], references: [id])
-  topic           Topic?                   @relation(fields: [topicId], references: [id])
-  questionHistory StudentQuestionHistory[]
+  errorDescription  String?
+  exam              String?                  @default("SSC CGL")
+  pointCost         Int                      @default(10)
+  previousOf        String?
+  questionUniqueId  Int?                     @unique
+  recordId          String?
+  section           String?
+  subjectName       String?
+  syncCode          Int?                     @default(2)
+  usageCount        Int                      @default(0)
+  videoUrl          String?
+  year              Int?
+  options           QuestionOption[]
+  reports           QuestionReport[]
+  setItems          QuestionSetItem[]
+  folder            QBankFolder?             @relation(fields: [folderId], references: [id])
+  org               Organization?            @relation(fields: [orgId], references: [id])
+  topic             Topic?                   @relation(fields: [topicId], references: [id])
+  questionHistory   StudentQuestionHistory[]
 
   @@index([orgId])
   @@index([folderId])
@@ -341,9 +341,9 @@ model QuestionSet {
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   folderId       String?
-  folder         QBankFolder?      @relation(fields: [folderId], references: [id])
   testSections   MockTestSection[]
   items          QuestionSetItem[]
+  folder         QBankFolder?      @relation(fields: [folderId], references: [id])
   org            Organization      @relation(fields: [orgId], references: [id])
 
   @@map("question_sets")
@@ -810,7 +810,10 @@ model ExamFolder {
   sortOrder   Int            @default(0)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  orgId       String?
+  isFeatured  Boolean        @default(false)
   categories  ExamCategory[]
+  org         Organization?  @relation(fields: [orgId], references: [id])
 
   @@map("exam_folders")
 }
@@ -825,22 +828,33 @@ model ExamCategory {
   sortOrder     Int               @default(0)
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+  orgId         String?
+  discountPrice Float?
+  isFeatured    Boolean           @default(false)
+  isFree        Boolean           @default(true)
+  price         Float?
   folder        ExamFolder        @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  org           Organization?     @relation(fields: [orgId], references: [id])
   subCategories ExamSubCategory[]
 
   @@map("exam_categories")
 }
 
 model ExamSubCategory {
-  id          String       @id @default(uuid())
+  id          String            @id @default(uuid())
   categoryId  String
   name        String
   description String?
-  isActive    Boolean      @default(true)
-  sortOrder   Int          @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  category    ExamCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isActive    Boolean           @default(true)
+  sortOrder   Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  orgId       String?
+  parentId    String?
+  category    ExamCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  org         Organization?     @relation(fields: [orgId], references: [id])
+  parent      ExamSubCategory?  @relation("SubCategoryTree", fields: [parentId], references: [id])
+  children    ExamSubCategory[] @relation("SubCategoryTree")
   mockTests   MockTest[]
 
   @@map("exam_sub_categories")

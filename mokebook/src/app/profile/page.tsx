@@ -12,18 +12,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { User, Mail, Phone, Target, Calendar, Award, ShieldCheck, Loader2, Save, BookOpen, Flame } from "lucide-react";
-import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
-import { errorEmitter } from "@/firebase/error-emitter";
-import { FirestorePermissionError } from "@/firebase/errors";
 import { ProfilePictureUpload } from "@/components/profile/ProfilePictureUpload";
+import { apiFetch } from "@/lib/api";
 
 export default function ProfilePage() {
-  const { user } = useUser();
-  const db = useFirestore();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const [profileData, setProfileData] = useState({
     name: "",
@@ -31,37 +27,59 @@ export default function ProfilePage() {
     phone: "",
     primaryExam: "JEE",
     targetYear: new Date().getFullYear() + 1,
+    studentId: "",
   });
 
-  const profileRef = useDoc(user ? doc(db, "users", user.uid) : null);
-
+  // Fetch profile from backend on mount
   useEffect(() => {
-    if (profileRef.data) {
-      setProfileData({
-        name: profileRef.data.name || user?.displayName || "",
-        email: profileRef.data.email || user?.email || "",
-        phone: profileRef.data.phone || "",
-        primaryExam: profileRef.data.primaryExam || "JEE",
-        targetYear: profileRef.data.targetYear || (new Date().getFullYear() + 1),
-      });
-    }
-  }, [profileRef.data, user]);
+    const fetchProfile = async () => {
+      try {
+        setLoading(true);
+        const res = await apiFetch("/students/me");
+        const data = res.data;
+        if (data) {
+          setProfileData({
+            name: data.name || "",
+            email: data.email || data.user?.email || "",
+            phone: data.mobile || "",
+            primaryExam: "JEE", // Will be stored in backend metadata once the field is added
+            targetYear: new Date().getFullYear() + 1,
+            studentId: data.studentId || "",
+          });
+        }
+      } catch (err: any) {
+        // Student profile might not exist if this is a Firebase-auth user
+        console.warn("Could not fetch student profile:", err?.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || !db) return;
     setSaving(true);
-    const dataToSave = { ...profileData, id: user.uid, updatedAt: serverTimestamp() };
-    setDoc(doc(db, "users", user.uid), dataToSave, { merge: true })
-      .then(() => toast({ title: "Profile Updated", description: "Your changes have been saved." }))
-      .catch((err) => {
-        errorEmitter.emit('permission-error', new FirestorePermissionError({
-          path: `users/${user.uid}`,
-          operation: 'update',
-          requestResourceData: dataToSave
-        }));
-      })
-      .finally(() => setSaving(false));
+    try {
+      await apiFetch("/students/me", {
+        method: "PATCH",
+        body: JSON.stringify({
+          name: profileData.name,
+          phone: profileData.phone,
+          primaryExam: profileData.primaryExam,
+          targetYear: profileData.targetYear,
+        }),
+      });
+      toast({ title: "Profile Updated", description: "Your changes have been saved successfully." });
+    } catch (err: any) {
+      toast({
+        title: "Update Failed",
+        description: err?.message || "Could not save profile. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   };
 
   const achievements = [
@@ -69,6 +87,23 @@ export default function ProfilePage() {
     { icon: BookOpen, label: "50 Tests Done", color: "text-blue-500 bg-blue-50" },
     { icon: Award, label: "Silver League", color: "text-slate-500 bg-slate-50" },
   ];
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen bg-slate-50">
+        <Navbar />
+        <div className="flex-1 flex overflow-hidden">
+          <Sidebar />
+          <main className="flex-1 flex items-center justify-center">
+            <div className="text-center space-y-3">
+              <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
+              <p className="text-sm font-semibold text-slate-500">Loading your profile...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50">
@@ -92,11 +127,11 @@ export default function ProfilePage() {
                     <div className="flex flex-col items-center text-center space-y-3">
                       <div className="ring-4 ring-white rounded-full shadow-lg">
                         <ProfilePictureUpload
-                          currentPhotoURL={user?.photoURL}
+                          currentPhotoURL={null}
                           displayName={profileData.name}
                           email={profileData.email}
                           size="lg"
-                          onUploadSuccess={(url) => {
+                          onUploadSuccess={() => {
                             toast({ title: "Photo Updated!", description: "Your profile picture has been updated." });
                           }}
                         />
@@ -104,6 +139,11 @@ export default function ProfilePage() {
                       <div className="space-y-0.5">
                         <h2 className="text-lg font-bold text-slate-900">{profileData.name || "Student"}</h2>
                         <p className="text-xs text-slate-400">{profileData.email}</p>
+                        {profileData.studentId && (
+                          <p className="text-[11px] text-primary font-bold bg-primary/5 px-2 py-0.5 rounded-full inline-block mt-1">
+                            ID: {profileData.studentId}
+                          </p>
+                        )}
                       </div>
                       <Badge className="bg-primary/10 text-primary border-primary/20 border text-xs font-bold px-3">
                         <Award className="h-3 w-3 mr-1.5" /> Silver League
@@ -201,6 +241,8 @@ export default function ProfilePage() {
                               <SelectItem value="NEET">NEET</SelectItem>
                               <SelectItem value="UPSC">UPSC</SelectItem>
                               <SelectItem value="SSC">SSC CGL</SelectItem>
+                              <SelectItem value="Railway">Railway RRB</SelectItem>
+                              <SelectItem value="Banking">Banking (IBPS)</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -216,9 +258,9 @@ export default function ProfilePage() {
                             <SelectValue placeholder="Year" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="2024">2024</SelectItem>
                             <SelectItem value="2025">2025</SelectItem>
                             <SelectItem value="2026">2026</SelectItem>
+                            <SelectItem value="2027">2027</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

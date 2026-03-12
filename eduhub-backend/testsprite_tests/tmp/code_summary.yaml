@@ -1,0 +1,51 @@
+version: "2"
+type: backend
+tech_stack:
+  - TypeScript
+  - Node.js
+  - Express
+  - Prisma
+  - PostgreSQL
+features:
+  - name: MockBook Management API
+    description: CRUD operations for mock tests, folders, and categories
+    files:
+      - src/modules/mockbook/mockbook.routes.ts
+    endpoints:
+      - method: GET
+        path: /api/mockbook/folders
+        description: List all exam folders (categories)
+        auth_required: false
+      - method: POST
+        path: /api/mockbook/folders
+        description: Create a new exam folder
+        auth_required: true
+      - method: GET
+        path: /api/mockbook/categories
+        description: List all test series under a folder
+        auth_required: false
+      - method: POST
+        path: /api/mockbook/categories
+        description: Create a new test series
+        auth_required: true
+  - name: Super Admin API
+    description: High-level management for organizations and mock tests
+    files:
+      - src/modules/superAdmin/superAdmin.routes.ts
+    endpoints:
+      - method: GET
+        path: /api/super-admin/mockbook/:orgId/tests
+        description: List mock tests for an organization
+        auth_required: true
+      - method: POST
+        path: /api/super-admin/mockbook/:orgId/tests
+        description: Create a mock test for an organization
+        auth_required: true
+      - method: GET
+        path: /api/super-admin/organizations/:id
+        description: Get organization details
+        auth_required: true
+known_limitations:
+  - issue: Recent schema changes for hierarchy might cause sync issues
+    location: src/modules/mockbook/mockbook.routes.ts
+    impact: Potential 500 errors if database is not fully migrated

@@ -78,20 +78,60 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
       return;
     }
 
-    setUserAuthState({ user: null, isUserLoading: true, userError: null }); // Reset on auth instance change
+    setUserAuthState(prev => ({ ...prev, isUserLoading: true, userError: null }));
 
     const unsubscribe = onAuthStateChanged(
       auth,
-      (firebaseUser) => { // Auth state determined
-        setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+      async (firebaseUser) => {
+        if (firebaseUser) {
+          setUserAuthState({ user: firebaseUser, isUserLoading: false, userError: null });
+        } else {
+          // Check for custom backend token if Firebase has no user
+          const getCookie = (name: string) => {
+            if (typeof document === 'undefined') return null;
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop()?.split(';').shift();
+            return null;
+          };
+
+          const token = getCookie('token');
+          if (token) {
+            try {
+              const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+              const res = await fetch(`${API_URL}/auth/me`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+              });
+              const data = await res.json();
+              if (data.success && data.data) {
+                // Mock a Firebase User object
+                const mockUser = {
+                  uid: data.data.userId || data.data.studentId,
+                  email: data.data.email || '',
+                  displayName: data.data.name || 'Student',
+                  photoURL: data.data.photoUrl || null,
+                  emailVerified: true,
+                  isAnonymous: false,
+                  phoneNumber: data.data.mobile || null,
+                  // Add other properties if needed for TS compatibility
+                } as any as User;
+                setUserAuthState({ user: mockUser, isUserLoading: false, userError: null });
+                return;
+              }
+            } catch (err) {
+              console.error("Failed to fetch custom backend user", err);
+            }
+          }
+          setUserAuthState({ user: null, isUserLoading: false, userError: null });
+        }
       },
-      (error) => { // Auth listener error
+      (error) => {
         console.error("FirebaseProvider: onAuthStateChanged error:", error);
         setUserAuthState({ user: null, isUserLoading: false, userError: error });
       }
     );
-    return () => unsubscribe(); // Cleanup
-  }, [auth]); // Depends on the auth instance
+    return () => unsubscribe();
+  }, [auth]);
 
   // Memoize the context value
   const contextValue = useMemo((): FirebaseContextState => {

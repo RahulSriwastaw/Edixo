@@ -1,6 +1,7 @@
 
 "use client";
 
+import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
@@ -8,8 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Coins, Zap, ShieldCheck, Crown, ArrowRight, CheckCircle2, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useUser, useFirestore, useDoc } from "@/firebase";
-import { doc } from "firebase/firestore";
 import Link from "next/link";
 
 const packs = [
@@ -55,10 +54,7 @@ const individualSeries = [
 ];
 
 export default function StorePage() {
-  const { user } = useUser();
-  const db = useFirestore();
-  const userDoc = useDoc(user ? doc(db, "users", user.uid) : null);
-  const currentPoints = userDoc.data?.totalPoints || 0;
+  const [currentPoints] = useState(0); // Points will come from a wallet API endpoint when available
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8fafc]">
