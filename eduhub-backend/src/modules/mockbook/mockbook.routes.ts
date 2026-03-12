@@ -9,7 +9,7 @@ router.use(authenticate);
 // ─── Exam Folders (Categories: SSC, Railway, etc.) ────────────
 router.get('/folders', async (req, res, next) => {
     try {
-        const { orgId } = req.query;
+        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
         let org = null;
         if (orgId) {
             org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
@@ -154,7 +154,8 @@ router.delete('/folders/:id', async (req, res, next) => {
 // ─── Exam Categories (Test Series: SSC CGL 2026, etc.) ────────
 router.get('/categories', async (req, res, next) => {
     try {
-        const { folderId, orgId } = req.query;
+        const { folderId } = req.query;
+        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
         const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
 
         const where: any = {};
@@ -239,7 +240,8 @@ router.delete('/categories/:id', async (req, res, next) => {
 // ─── Exam SubCategories (Test Folders: Tier 1, Sectional, etc.)
 router.get('/subcategories', async (req, res, next) => {
     try {
-        const { categoryId, parentId, orgId } = req.query;
+        const { categoryId, parentId } = req.query;
+        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
         const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
 
         const subCategories = await prisma.examSubCategory.findMany({
@@ -317,10 +319,19 @@ router.delete('/folders/:id', async (req, res, next) => {
 });
 
 // ─── Public mock tests (MockVeda) ─────────────────────────────
-router.get('/public', async (_req, res, next) => {
+router.get('/public', async (req, res, next) => {
     try {
+        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
+        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
+
+        const where: any = { isPublic: true, status: 'LIVE' };
+        where.OR = [{ orgId: null }];
+        if (org) {
+            where.OR.push({ orgId: org.id });
+        }
+
         const tests = await prisma.mockTest.findMany({
-            where: { isPublic: true, status: 'LIVE' },
+            where,
             select: { id: true, testId: true, name: true, description: true, durationMins: true, scheduledAt: true, endsAt: true },
             orderBy: { scheduledAt: 'desc' },
             take: 50,
