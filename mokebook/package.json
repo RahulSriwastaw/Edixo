@@ -68,4 +68,7 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5"
   }
+  "scripts": {
+  "build": "next build && next export"
+}
 }
