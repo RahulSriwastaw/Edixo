@@ -6,11 +6,18 @@ export let redis: Redis;
 
 export async function connectRedis(): Promise<void> {
     return new Promise((resolve, reject) => {
+        const isTls = env.REDIS_URL.startsWith('rediss://');
+
         const client = new Redis(env.REDIS_URL, {
             retryStrategy: () => null, // don't retry — fail fast
             maxRetriesPerRequest: 1,
             lazyConnect: true,
-            connectTimeout: 3000,
+            connectTimeout: 10000, // 10s for remote connections
+            ...(isTls && {
+                tls: {
+                    rejectUnauthorized: false, // required for Upstash
+                },
+            }),
         });
 
         client.once('ready', () => {
