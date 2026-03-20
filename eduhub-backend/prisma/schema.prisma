@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -89,6 +90,7 @@ model Organization {
   students                Student[]
   whiteboardSettings      WhiteboardSettings?
   studyPlanTemplates      StudyPlanTemplate[]
+  frontendConfig          Json?
 
   @@map("organizations")
 }
@@ -296,6 +298,7 @@ model Question {
   org               Organization?            @relation(fields: [orgId], references: [id])
   topic             Topic?                   @relation(fields: [topicId], references: [id])
   questionHistory   StudentQuestionHistory[]
+  attemptAnswers    AttemptAnswer[]
 
   @@index([orgId])
   @@index([folderId])
@@ -446,6 +449,7 @@ model AttemptAnswer {
   marksAwarded    Float?
   timeTakenSecs   Int?
   attempt         TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question        Question    @relation(fields: [questionId], references: [id])
 
   @@map("attempt_answers")
 }

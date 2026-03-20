@@ -29,50 +29,85 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden md:flex flex-col w-60 bg-[#1E3A5F] shrink-0 relative z-40 shadow-xl transition-all duration-300 sticky top-[3.5rem] h-[calc(100vh-3.5rem)]">
-      <nav className="flex-1 pt-0 pb-4 custom-scrollbar overflow-y-auto w-full">
-        <div className="px-4 mb-2 mt-0">
-          <span className="text-[10px] font-semibold text-slate-400 tracking-wider">
-            MAIN MENU
-          </span>
+    <aside className="hidden md:flex flex-col w-64 border-r h-full bg-slate-50/50 backdrop-blur-xl overflow-y-auto shrink-0 relative z-40 transition-all duration-300">
+      <div className="flex-1 p-4 space-y-8">
+        {/* Navigation Group */}
+        <div className="space-y-1">
+          <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Main Menu</p>
+          {navItems.slice(0, 4).map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group text-sm font-semibold relative",
+                  isActive
+                    ? "bg-white text-primary shadow-sm shadow-primary/10 border border-slate-200/50"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm transition-all"
+                )}
+              >
+                <div className={cn(
+                  "p-1.5 rounded-lg transition-colors",
+                  isActive ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600"
+                )}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                </div>
+                <span className="truncate">{item.label}</span>
+                {isActive && (
+                  <div className="absolute left-0 w-1 h-5 bg-primary rounded-r-full" />
+                )}
+              </Link>
+            );
+          })}
         </div>
-        
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 px-4 h-11 transition-all duration-200 cursor-pointer text-sm font-medium",
-                isActive
-                  ? "bg-[#162C47] text-white border-l-[3px] border-[#F4511E]"
-                  : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border-l-[3px] border-transparent"
-              )}
-            >
-              <item.icon className={cn(
-                "h-5 w-5 shrink-0 transition-all duration-200",
-                isActive ? "text-white" : "text-slate-400"
-              )} />
-              <span className="truncate flex-1">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-      <div className="shrink-0 border-t border-white/10 p-4">
+
+        {/* AI & Insights Group */}
+        <div className="space-y-1">
+          <p className="px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">AI & Insights</p>
+          {navItems.slice(4).map((item) => {
+            const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all group text-sm font-semibold relative",
+                  isActive
+                    ? "bg-white text-primary shadow-sm shadow-primary/10 border border-slate-200/50"
+                    : "text-slate-500 hover:bg-white hover:text-slate-900 hover:shadow-sm transition-all"
+                )}
+              >
+                <div className={cn(
+                  "p-1.5 rounded-lg transition-colors",
+                  isActive ? "bg-primary/10 text-primary" : "bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600"
+                )}>
+                  <item.icon className="h-4 w-4 shrink-0" />
+                </div>
+                <span className="truncate">{item.label}</span>
+                {isActive && (
+                  <div className="absolute left-0 w-1 h-5 bg-primary rounded-r-full" />
+                )}
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Footer / Settings */}
+      <div className="p-4 border-t bg-white/50">
         <Link
           href="/settings"
           className={cn(
-            "flex items-center gap-3 px-4 h-11 transition-all duration-200 cursor-pointer text-sm font-medium",
+            "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm font-semibold group",
             pathname === "/settings"
-              ? "bg-[#162C47] text-white border-l-[3px] border-[#F4511E]"
-              : "text-slate-400 hover:bg-white/5 hover:text-slate-200 border-l-[3px] border-transparent"
+              ? "bg-white text-slate-900 shadow-sm border border-slate-200"
+              : "text-slate-500 hover:text-slate-900"
           )}
         >
-          <Settings className={cn(
-            "h-5 w-5 shrink-0 transition-all duration-200",
-            pathname === "/settings" ? "text-white" : "text-slate-400"
-          )} />
+          <div className="p-1.5 rounded-lg bg-slate-100 text-slate-400 group-hover:bg-white group-hover:text-slate-600 transition-colors">
+            <Settings className="h-4 w-4 shrink-0" />
+          </div>
           <span>Settings</span>
         </Link>
       </div>

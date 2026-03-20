@@ -66,6 +66,41 @@ export const authenticate = async (
     }
 };
 
+export const optionalAuthenticate = async (
+    req: Request,
+    _res: Response,
+    next: NextFunction
+) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader?.startsWith('Bearer ')) {
+            return next();
+        }
+
+        const token = authHeader.split(' ')[1];
+        if (!token) return next();
+
+        // Check blacklist
+        const isBlacklisted = await safeRedisGet(redisKeys.tokenBlacklist(token));
+        if (isBlacklisted) return next();
+
+        // Decode to pick the right secret
+        const decoded = jwt.decode(token) as JwtPayload | null;
+        if (!decoded) return next();
+
+        const secret = decoded.role === 'SUPER_ADMIN'
+            ? env.JWT_SUPER_ADMIN_SECRET
+            : env.JWT_SECRET;
+
+        const verified = jwt.verify(token, secret) as JwtPayload;
+        req.user = verified;
+        next();
+    } catch (err) {
+        // Log error but proceed without user
+        next();
+    }
+};
+
 export const requireSuperAdmin = (
     req: Request,
     _res: Response,

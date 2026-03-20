@@ -67,7 +67,7 @@ export default function SuperAdminLogin() {
                             <label className="text-sm font-medium">Email address</label>
                             <Input
                                 type="email"
-                                placeholder="superadmin@eduhub.in"
+                                placeholder="admin@eduhub.in"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -77,7 +77,7 @@ export default function SuperAdminLogin() {
                             <label className="text-sm font-medium">Password</label>
                             <Input
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="SuperAdmin@123"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -95,7 +95,7 @@ export default function SuperAdminLogin() {
             </Card>
 
             <p className="mt-8 text-sm text-gray-400">
-                Use <span className="font-mono text-gray-500">admin@eduhub.in</span> / <span className="font-mono text-gray-500">SuperAdmin@123</span> for demo
+                Use <span className="font-mono text-gray-500">admin@eduhub.in</span> / <span className="font-mono text-gray-500">SuperAdmin@123</span>
             </p>
         </div>
     );

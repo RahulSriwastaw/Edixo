@@ -26,6 +26,11 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     const fetchOrganizations = async () => {
+        if (typeof window !== 'undefined' && window.location.pathname.startsWith('/login')) {
+            setIsLoading(false);
+            return;
+        }
+        
         try {
             setIsLoading(true);
             const response = await api.get('/organizations');
@@ -38,8 +43,10 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
                     setSelectedOrgId(exists ? savedOrg : response.data.orgs[0].orgId);
                 }
             }
-        } catch (error) {
-            console.error("Failed to fetch organizations:", error);
+        } catch (error: any) {
+            if (error?.message !== 'No token provided') {
+                console.error("Failed to fetch organizations:", error);
+            }
         } finally {
             setIsLoading(false);
         }

@@ -23,6 +23,6 @@ export const studentAppService = {
         if (orgId) params.set('orgId', orgId);
         if (search) params.set('search', search);
         const res = await api.get(`/mockbook/admin/students?${params.toString()}`);
-        return res.data?.data || [];
+        return res.data || [];
     }
 };

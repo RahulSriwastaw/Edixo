@@ -36,6 +36,7 @@ const quickActions = [
   { title: "Study Plans", desc: "Day-wise content plans", icon: Calendar, href: "study-plans", color: "green" },
   { title: "Daily Practice", desc: "Configure daily questions", icon: Target, href: "daily-practice", color: "teal" },
   { title: "Results", desc: "Analytics and reports", icon: BarChart3, href: "results", color: "indigo" },
+  { title: "App Layout", desc: "Configure student homepage", icon: TrendingUp, href: "frontend-config", color: "pink" },
 ];
 
 
@@ -49,6 +50,7 @@ const getIconBgColor = (color: string) => {
     purple: "bg-purple-50",
     teal: "bg-teal-50",
     indigo: "bg-indigo-50",
+    pink: "bg-pink-50",
   };
   return colors[color] || "bg-gray-50";
 };
@@ -61,6 +63,7 @@ const getIconColor = (color: string) => {
     purple: "text-purple-600",
     teal: "text-teal-600",
     indigo: "text-indigo-600",
+    pink: "text-pink-600",
   };
   return colors[color] || "text-gray-600";
 };

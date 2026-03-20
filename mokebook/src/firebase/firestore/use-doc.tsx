@@ -72,6 +72,16 @@ export function useDoc<T = any>(
         setIsLoading(false);
       },
       (error: FirestoreError) => {
+        if (error.code === 'permission-denied') {
+          // Silently ignore: this happens when a custom-backend JWT user (non-Firebase)
+          // is logged in. No Firebase auth token means Firestore rules deny the request.
+          // Treat as "no data" rather than a crash.
+          setData(null);
+          setIsLoading(false);
+          setError(null);
+          return;
+        }
+
         const contextualError = new FirestorePermissionError({
           operation: 'get',
           path: memoizedDocRef.path,
@@ -81,7 +91,7 @@ export function useDoc<T = any>(
         setData(null)
         setIsLoading(false)
 
-        // trigger global error propagation
+        // trigger global error propagation only for non-permission errors
         errorEmitter.emit('permission-error', contextualError);
       }
     );

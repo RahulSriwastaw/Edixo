@@ -6,10 +6,11 @@ import { authenticate, requireOrgAccess } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 
 const router = Router();
-router.use(authenticate, requireOrgAccess);
+// Fix: Do not apply requireOrgAccess globally, as it blocks STUDENT role from accessing /me
+router.use(authenticate);
 
 // ─── GET /api/students?orgId=:orgId ─────────────────────────
-router.get('/', async (req, res, next) => {
+router.get('/', requireOrgAccess, async (req, res, next) => {
     try {
         const { page = 1, limit = 20, search, batchId, isActive } = req.query;
         const orgId = (req.user as any)?.orgDbId || (req.params as any).orgId;
@@ -51,7 +52,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // ─── POST /api/students ──────────────────────────────────────
-router.post('/', async (req, res, next) => {
+router.post('/', requireOrgAccess, async (req, res, next) => {
     try {
         const schema = z.object({
             name: z.string().min(2),
@@ -189,10 +190,10 @@ router.patch('/me', async (req, res, next) => {
 });
 
 // ─── GET /api/students/:id ───────────────────────────────────
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', requireOrgAccess, async (req, res, next) => {
     try {
         const student = await prisma.student.findUnique({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             include: {
                 batchEnrollments: { include: { batch: true } },
                 feeTransactions: { orderBy: { createdAt: 'desc' }, take: 5 },
@@ -205,7 +206,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // ─── PATCH /api/students/:id ─────────────────────────────────
-router.patch('/:id', async (req, res, next) => {
+router.patch('/:id', requireOrgAccess, async (req, res, next) => {
     try {
         const schema = z.object({
             name: z.string().min(2).optional(),
@@ -218,7 +219,7 @@ router.patch('/:id', async (req, res, next) => {
         const body = schema.parse(req.body);
 
         const student = await prisma.student.update({
-            where: { id: req.params.id },
+            where: { id: req.params.id as string },
             data: body,
         });
 

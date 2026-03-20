@@ -1,12 +1,15 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../config/database';
-import { authenticate } from '../../middleware/auth';
+import { authenticate, optionalAuthenticate } from '../../middleware/auth';
 
 const router = Router();
-router.use(authenticate);
+router.use(optionalAuthenticate);
+
 
 // ─── Exam Folders (Categories: SSC, Railway, etc.) ────────────
+
+
 router.get('/folders', async (req, res, next) => {
     try {
         const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
@@ -356,40 +359,7 @@ router.get('/:testId/leaderboard', async (req, res, next) => {
 });
 
 // ─── Analytics ────────────────────────────────────────────────
-router.get('/analytics/stats', async (req, res, next) => {
-    try {
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        
-        const [
-            totalTests,
-            totalSeries,
-            totalAttempts,
-            activeStudents,
-            totalRevenue
-        ] = await Promise.all([
-            prisma.mockTest.count({ where: { status: 'LIVE' } }),
-            prisma.examCategory.count({ where: { isActive: true } }),
-            prisma.testAttempt.count({ where: { createdAt: { gte: thirtyDaysAgo } } }),
-            prisma.student.count({ where: { isActive: true } }),
-            prisma.examCategory.aggregate({
-                _sum: { price: true },
-                where: { isFree: false }
-            }),
-        ]);
 
-        res.json({
-            success: true,
-            data: {
-                platformTests: totalTests,
-                totalSeries: totalSeries,
-                totalAttempts: totalAttempts,
-                activeStudents: activeStudents,
-                liveNow: Math.floor(Math.random() * 50) + 10, // Mock for now
-                revenueMTD: totalRevenue._sum.price || 0,
-            }
-        });
-    } catch (err) { next(err); }
-});
 
 // ─── Student Test Flow ─────────────────────────────────────────
 
@@ -397,7 +367,7 @@ router.get('/analytics/stats', async (req, res, next) => {
 router.get('/tests/:testId', async (req, res, next) => {
     try {
         const test = await prisma.mockTest.findFirst({
-            where: { testId: req.params.testId },
+            where: { OR: [{ testId: req.params.testId }, { id: req.params.testId }] },
             include: {
                 sections: {
                     include: { set: { select: { name: true } } },
@@ -414,7 +384,7 @@ router.get('/tests/:testId', async (req, res, next) => {
 router.get('/tests/:testId/questions', async (req, res, next) => {
     try {
         const test = await prisma.mockTest.findFirst({
-            where: { testId: req.params.testId },
+            where: { OR: [{ testId: req.params.testId }, { id: req.params.testId }] },
             include: {
                 sections: {
                     orderBy: { sortOrder: 'asc' },
@@ -487,25 +457,61 @@ router.get('/tests/:testId/questions', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// POST /mockbook/tests/:testId/attempts — start or submit an attempt
-router.post('/tests/:testId/attempts', async (req, res, next) => {
+// GET /mockbook/tests/:testId/my-attempts — list all attempts by this student for a test
+router.get('/tests/:testId/my-attempts', authenticate, async (req, res, next) => {
     try {
         const user = (req as any).user;
-        const { action, answers } = req.body; // action: 'start' | 'submit'
-
-        const test = await prisma.mockTest.findFirst({ where: { testId: req.params.testId } });
+        const testIdParam = req.params.testId as string;
+        const test = await prisma.mockTest.findFirst({ where: { OR: [{ testId: testIdParam }, { id: testIdParam }] } });
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
 
-        // Find the student by userId
+        const student = await prisma.student.findFirst({ where: { userId: user.id } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student' });
+
+        const attempts = await prisma.testAttempt.findMany({
+            where: { testId: test.id, studentId: student.id },
+            orderBy: { createdAt: 'asc' },
+            select: { id: true, status: true, score: true, totalMarks: true, rank: true, submittedAt: true, createdAt: true }
+        });
+
+        const result = attempts.map((a: any, idx: number) => ({ ...a, attemptNumber: idx + 1 }));
+        return res.json({ success: true, data: result });
+    } catch (err) { next(err); }
+});
+
+// POST /mockbook/tests/:testId/attempts — start or submit an attempt
+router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const { action, answers, timeTakenSecs } = req.body; // action: 'start' | 'submit'
+
+        const testIdParam = req.params.testId as string;
+        const test = await prisma.mockTest.findFirst({ where: { OR: [{ testId: testIdParam }, { id: testIdParam }] } });
+        if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
+
         const student = await prisma.student.findFirst({ where: { userId: user.id } });
         if (!student) return res.status(403).json({ success: false, message: 'Student profile not found. Please register as a student.' });
 
         if (action === 'start') {
-            // Check if an IN_PROGRESS attempt already exists
+            // Check if an IN_PROGRESS attempt already exists — resume it
             const existing = await prisma.testAttempt.findFirst({
                 where: { testId: test.id, studentId: student.id, status: 'IN_PROGRESS' }
             });
             if (existing) return res.json({ success: true, data: existing });
+
+            // Check maxAttempts limit
+            const completedCount = await prisma.testAttempt.count({
+                where: { testId: test.id, studentId: student.id, status: 'SUBMITTED' }
+            });
+            const maxAllowed = test.maxAttempts || 1;
+            if (maxAllowed > 0 && completedCount >= maxAllowed) {
+                return res.status(403).json({
+                    success: false,
+                    message: `Maximum attempts (${maxAllowed}) reached for this test.`,
+                    attemptsUsed: completedCount,
+                    maxAttempts: maxAllowed,
+                });
+            }
 
             const attempt = await prisma.testAttempt.create({
                 data: {
@@ -524,13 +530,11 @@ router.post('/tests/:testId/attempts', async (req, res, next) => {
             });
             if (!attempt) return res.status(404).json({ success: false, message: 'No active attempt found' });
 
-            // Save answers and calculate score
             let score = 0;
             const savedAnswers: any[] = [];
 
             if (answers && Array.isArray(answers)) {
                 for (const ans of answers) {
-                    // Find correct options for this question
                     const correctOptions = await prisma.questionOption.findMany({
                         where: { questionId: ans.questionId, isCorrect: true },
                         select: { id: true }
@@ -550,26 +554,51 @@ router.post('/tests/:testId/attempts', async (req, res, next) => {
                         selectedOptions: selected,
                         isCorrect,
                         marksAwarded,
+                        timeTakenSecs: ans.timeTakenSecs || 0,
                     });
                 }
-
                 await prisma.attemptAnswer.createMany({ data: savedAnswers });
             }
 
+            const finalScore = Math.max(0, score);
+
             // Calculate rank among submitted attempts
             const betterAttempts = await prisma.testAttempt.count({
-                where: { testId: test.id, score: { gt: score }, status: 'SUBMITTED' }
+                where: { testId: test.id, score: { gt: finalScore }, status: 'SUBMITTED' }
             });
+            const totalSubmitted = await prisma.testAttempt.count({
+                where: { testId: test.id, status: 'SUBMITTED' }
+            });
+            const rank = betterAttempts + 1;
+            const percentile = totalSubmitted > 0 ? parseFloat(((betterAttempts / (totalSubmitted + 1)) * 100).toFixed(1)) : 100;
 
             const updatedAttempt = await prisma.testAttempt.update({
                 where: { id: attempt.id },
                 data: {
                     status: 'SUBMITTED',
                     submittedAt: new Date(),
-                    score: Math.max(0, score),
-                    rank: betterAttempts + 1,
+                    score: finalScore,
+                    rank,
+                    percentile,
+                    timeTakenSecs: timeTakenSecs || null,
                 }
             });
+
+            // Update ranks of all other attempts for this test
+            // (async, fire-and-forget to not delay the response)
+            prisma.testAttempt.findMany({
+                where: { testId: test.id, status: 'SUBMITTED' },
+                orderBy: { score: 'desc' },
+                select: { id: true }
+            }).then(async (allAttempts: any[]) => {
+                const totalNow = allAttempts.length;
+                for (let i = 0; i < allAttempts.length; i++) {
+                    await prisma.testAttempt.update({
+                        where: { id: allAttempts[i].id },
+                        data: { rank: i + 1, percentile: parseFloat(((i / totalNow) * 100).toFixed(1)) }
+                    });
+                }
+            }).catch(() => {});
 
             return res.json({ success: true, data: updatedAttempt });
         }
@@ -578,22 +607,18 @@ router.post('/tests/:testId/attempts', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// GET /mockbook/attempts/:attemptId — get attempt result/analysis
-router.get('/attempts/:attemptId', async (req, res, next) => {
+// GET /mockbook/attempts/:attemptId — get attempt result/analysis (enriched)
+router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
     try {
         const user = (req as any).user;
         const student = await prisma.student.findFirst({ where: { userId: user.id } });
         if (!student) return res.status(403).json({ success: false, message: 'Not a student' });
 
         const attempt = await prisma.testAttempt.findUnique({
-            where: { id: req.params.attemptId },
+            where: { id: req.params.attemptId as any },
             include: {
                 test: { select: { testId: true, name: true, durationMins: true, totalMarks: true } },
-                answers: {
-                    include: {
-                        // Include question details for solutions tab
-                    }
-                }
+                answers: true
             }
         });
 
@@ -603,23 +628,65 @@ router.get('/attempts/:attemptId', async (req, res, next) => {
 
         const totalAttempted = attempt.answers.filter((a: any) => a.selectedOptions.length > 0).length;
         const correct = attempt.answers.filter((a: any) => a.isCorrect).length;
+        const incorrect = attempt.answers.filter((a: any) => !a.isCorrect && a.selectedOptions.length > 0).length;
         const accuracy = totalAttempted > 0 ? Math.round((correct / totalAttempted) * 100) : 0;
+
+        // Which attempt number is this?
+        const priorAttempts = await prisma.testAttempt.count({
+            where: { testId: attempt.testId, studentId: student.id, createdAt: { lt: attempt.createdAt } }
+        });
+        const attemptNumber = priorAttempts + 1;
+
+        // Marks distribution (score histogram for this test)
+        const allSubmitted = await prisma.testAttempt.findMany({
+            where: { testId: attempt.testId, status: 'SUBMITTED' },
+            select: { score: true, studentId: true, student: { select: { name: true } } }
+        });
+        const totalStudents = allSubmitted.length;
+
+        // Build histogram buckets
+        const test = (attempt as any).test;
+        const maxMarks = test.totalMarks || 100;
+        const bucketSize = Math.ceil(maxMarks / 10);
+        const buckets: Record<number, number> = {};
+        for (let b = 0; b <= maxMarks; b += bucketSize) { buckets[b] = 0; }
+        allSubmitted.forEach((a: any) => {
+            const bucket = Math.floor((a.score || 0) / bucketSize) * bucketSize;
+            buckets[bucket] = (buckets[bucket] || 0) + 1;
+        });
+        const marksDistribution = Object.entries(buckets).map(([marks, students]) => ({ marks: Number(marks), students }));
+
+        // Topper & average
+        const scores = allSubmitted.map((a: any) => a.score || 0).sort((x: number, y: number) => y - x);
+        const topperScore = scores[0] || 0;
+        const avgScore = scores.length > 0 ? parseFloat((scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1)) : 0;
+        const topperName = allSubmitted.find((a: any) => a.score === topperScore)?.student?.name || 'Topper';
 
         res.json({
             success: true,
             data: {
-                id: attempt.id,
-                testId: attempt.test.testId,
-                testName: attempt.test.name,
-                score: attempt.score,
-                totalMarks: attempt.totalMarks,
-                rank: attempt.rank,
+                id: (attempt as any).id,
+                testId: test.testId,
+                testName: test.name,
+                score: (attempt as any).score,
+                totalMarks: (attempt as any).totalMarks,
+                rank: (attempt as any).rank,
+                percentile: (attempt as any).percentile,
                 attempted: totalAttempted,
-                totalQuestions: attempt.answers.length,
+                totalQuestions: (attempt as any).answers.length,
                 correct,
+                incorrect,
+                unattempted: (attempt as any).answers.length - totalAttempted,
                 accuracy,
-                timeTakenSecs: attempt.timeTakenSecs,
-                submittedAt: attempt.submittedAt,
+                timeTakenSecs: (attempt as any).timeTakenSecs,
+                submittedAt: (attempt as any).submittedAt,
+                attemptNumber,
+                // Analytics
+                totalStudents,
+                marksDistribution,
+                topperScore,
+                topperName,
+                avgScore,
             }
         });
     } catch (err) { next(err); }
@@ -630,39 +697,125 @@ router.get('/attempts/:attemptId', async (req, res, next) => {
 // GET /mockbook/analytics/stats — platform-wide metrics
 router.get('/analytics/stats', async (req, res, next) => {
     try {
-        const { orgId } = req.query;
-        let orgFilter = {};
+        const { orgId, days } = req.query;
+        let orgDbId: string | undefined;
+        let orgFilter: any = {};
+        
+        let dateFilter: any = {};
+        if (days) {
+            const date = new Date();
+            date.setDate(date.getDate() - parseInt(days as string));
+            dateFilter = { createdAt: { gte: date } };
+        }
+
         if (orgId) {
             const org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
-            if (org) orgFilter = { orgId: org.id };
+            if (org) {
+                orgDbId = org.id;
+                orgFilter = { orgId: org.id };
+            }
         }
 
         const [platformTests, totalSeries, attemptsCount, studentsCount, liveNow] = await Promise.all([
             prisma.mockTest.count({ where: orgFilter }),
             prisma.examCategory.count({ where: orgFilter }),
             prisma.testAttempt.count({
-                where: orgId ? { test: { orgId: (await prisma.organization.findFirst({ where: { orgId: orgId as string } }))?.id } } : {}
+                where: {
+                    ...(orgDbId ? { test: { orgId: orgDbId } } : {}),
+                    ...dateFilter
+                }
             }),
-            prisma.user.count({ where: { role: 'STUDENT' } }),
+            prisma.user.count({ where: { role: 'STUDENT', ...dateFilter } }),
             prisma.mockTest.count({ where: { ...orgFilter, status: 'LIVE' } })
         ]);
 
+        // Calculate Top Tests by attempts
+        const topTestsRaw = await prisma.testAttempt.groupBy({
+            by: ['testId'],
+            where: {
+                ...(orgDbId ? { test: { orgId: orgDbId } } : {}),
+                ...dateFilter
+            },
+            _count: { _all: true },
+            orderBy: { _count: { testId: 'desc' } }, // Note: groupBy doesn't directly support sorting by count easily in some versions, but we'll take top results
+            take: 10
+        });
+
+        const topTests = await Promise.all(topTestsRaw.map(async (item) => {
+            const test = await prisma.mockTest.findUnique({ 
+                where: { id: item.testId },
+                select: { name: true, subCategory: { select: { name: true, category: { select: { name: true } } } } }
+            });
+            return {
+                name: test?.name || 'Unknown Test',
+                series: test?.subCategory?.category?.name || 'General',
+                count: item._count._all
+            };
+        }));
+
+        // Calculate Top Series (ExamCategory) by enrollment
+        // Note: 'Enrollment' here is defined as unique students who attempted at least one test in that series
+        const seriesAttemptCounts = await prisma.testAttempt.findMany({
+            where: {
+                ...(orgDbId ? { test: { orgId: orgDbId } } : {}),
+                ...dateFilter
+            },
+            select: {
+                studentId: true,
+                test: {
+                    select: {
+                        subCategory: {
+                            select: { categoryId: true }
+                        }
+                    }
+                }
+            }
+        });
+
+        const seriesStatsMap: Record<string, Set<string>> = {};
+        seriesAttemptCounts.forEach(att => {
+            const catId = att.test.subCategory?.categoryId;
+            if (catId) {
+                if (!seriesStatsMap[catId]) seriesStatsMap[catId] = new Set();
+                seriesStatsMap[catId].add(att.studentId);
+            }
+        });
+
+        const topSeriesIds = Object.keys(seriesStatsMap)
+            .sort((a, b) => seriesStatsMap[b].size - seriesStatsMap[a].size)
+            .slice(0, 5);
+
+        const topSeries = await Promise.all(topSeriesIds.map(async (id) => {
+            const cat = await prisma.examCategory.findUnique({ where: { id }, select: { name: true, folder: { select: { name: true } } } });
+            return {
+                name: cat?.name || 'Unknown Series',
+                category: cat?.folder?.name || 'General',
+                count: seriesStatsMap[id].size
+            };
+        }));
+
         // Mock revenue for now
-        const revenueMTD = Math.floor(Math.random() * 50000) + 100000;
+        const revenueMTD = 0; 
 
         res.json({
             success: true,
             data: {
                 platformTests,
                 totalSeries,
-                totalAttempts: attemptsCount,
-                activeStudents: studentsCount,
-                liveNow,
-                revenueMTD
+                totalAttempts: attemptsCount || 0,
+                activeStudents: studentsCount || 0,
+                liveNow: liveNow || 0,
+                revenueMTD,
+                topTests: topTests.sort((a, b) => b.count - a.count),
+                topSeries
             }
         });
-    } catch (err) { next(err); }
+    } catch (err) {
+        console.error('Analytics Error:', err);
+        next(err);
+    }
 });
+
 
 // ─── Admin: Mock Test CRUD ─────────────────────────────────────
 
@@ -682,6 +835,9 @@ router.get('/admin/tests', async (req, res, next) => {
         if (subCategoryId) where.subCategoryId = subCategoryId as string;
         if (status) where.status = status as string;
         if (search) where.name = { contains: search as string, mode: 'insensitive' };
+
+
+
         
         // Filter by categoryId (series) via subcategory
         if (categoryId) {
@@ -708,6 +864,7 @@ router.get('/admin/tests', async (req, res, next) => {
 
         res.json({ success: true, data: tests });
     } catch (err) { next(err); }
+
 });
 
 // GET /mockbook/admin/tests/:id — single test detail for admin
@@ -771,6 +928,7 @@ router.delete('/admin/tests/:id/sections/:sectionId', async (req, res, next) => 
 router.post('/admin/tests', async (req, res, next) => {
     try {
         const schema = z.object({
+
             orgId: z.string().min(1),
             subCategoryId: z.string().optional().nullable(),
             name: z.string().min(1),
@@ -973,6 +1131,109 @@ router.get('/admin/live-tests', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// GET /mockbook/admin/tests/:testId/performance — per-test analytics for admin
+router.get('/admin/tests/:testId/performance', async (req, res, next) => {
+    try {
+        const test = await prisma.mockTest.findFirst({
+            where: { OR: [{ id: req.params.testId }, { testId: req.params.testId }] },
+            select: { id: true, name: true, testId: true, totalMarks: true, durationMins: true }
+        });
+        if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
+
+        const allAttempts = await prisma.testAttempt.findMany({
+            where: { testId: test.id, status: 'SUBMITTED' },
+            include: { student: { select: { name: true, studentId: true, mobile: true } } },
+            orderBy: { score: 'desc' }
+        });
+
+        const scores = allAttempts.map((a: any) => a.score || 0);
+        const total = scores.length;
+        const topperScore = scores[0] || 0;
+        const avgScore = total > 0 ? parseFloat((scores.reduce((a: number, b: number) => a + b, 0) / total).toFixed(1)) : 0;
+        const passCount = scores.filter((s: number) => s > 0).length;
+
+        // Marks distribution histogram
+        const maxMarks = test.totalMarks || 100;
+        const bucketSize = Math.max(1, Math.ceil(maxMarks / 10));
+        const buckets: Record<number, number> = {};
+        for (let b = 0; b <= maxMarks; b += bucketSize) { buckets[b] = 0; }
+        scores.forEach((s: number) => {
+            const bucket = Math.floor(s / bucketSize) * bucketSize;
+            buckets[bucket] = (buckets[bucket] || 0) + 1;
+        });
+        const marksDistribution = Object.entries(buckets).map(([marks, count]) => ({ marks: Number(marks), students: count }));
+
+        // Per-student data (ranked)
+        const studentRows = allAttempts.map((a: any, idx: number) => ({
+            rank: idx + 1,
+            studentName: a.student?.name || 'Unknown',
+            studentId: a.student?.studentId || '',
+            phone: a.student?.mobile || '',
+            score: a.score,
+            totalMarks: a.totalMarks,
+            accuracy: a.answers ? null : null,  // answers not loaded here for perf
+            timeTakenSecs: a.timeTakenSecs,
+            submittedAt: a.submittedAt,
+            attemptId: a.id,
+        }));
+
+        res.json({
+            success: true,
+            data: {
+                test,
+                summary: { total, topperScore, avgScore, passCount },
+                marksDistribution,
+                leaderboard: studentRows.slice(0, 100),
+            }
+        });
+    } catch (err) { next(err); }
+});
+
+// GET /mockbook/admin/student-drilldown/:studentId — student detailed attempt history
+router.get('/admin/student-drilldown/:studentId', async (req, res, next) => {
+    try {
+        const studentParam = req.params.studentId as string;
+        const student = await prisma.student.findFirst({
+            where: { OR: [{ id: studentParam }, { studentId: studentParam }] },
+            select: { id: true, name: true, studentId: true, mobile: true, email: true, createdAt: true }
+        });
+        if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+
+        const attempts = await prisma.testAttempt.findMany({
+            where: { studentId: student.id, status: 'SUBMITTED' },
+            include: { test: { select: { name: true, testId: true, totalMarks: true } } },
+            orderBy: { submittedAt: 'asc' },
+            take: 100,
+        });
+
+        const trend = attempts.map((a: any, idx: number) => ({
+            attemptNumber: idx + 1,
+            testName: a.test?.name || 'Test',
+            testId: a.test?.testId,
+            score: a.score || 0,
+            totalMarks: a.totalMarks || 0,
+            accuracy: a.totalMarks ? parseFloat(((a.score / a.totalMarks) * 100).toFixed(1)) : 0,
+            rank: a.rank,
+            timeTakenSecs: a.timeTakenSecs,
+            submittedAt: a.submittedAt,
+            attemptId: a.id,
+        }));
+
+        const scores = trend.map((t: any) => t.score);
+        const bestScore = scores.length > 0 ? Math.max(...scores) : 0;
+        const avgScore = scores.length > 0 ? parseFloat((scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1)) : 0;
+
+        res.json({
+            success: true,
+            data: {
+                student,
+                summary: { totalAttempts: attempts.length, bestScore, avgScore },
+                trend,
+            }
+        });
+    } catch (err) { next(err); }
+});
+
 // GET /mockbook/analytics/student/:studentId/overall — student 30-day performance
 router.get('/analytics/student/:studentId/overall', async (req, res, next) => {
     try {
@@ -1048,16 +1309,24 @@ router.get('/attempts/:attemptId/report', async (req, res, next) => {
             include: {
                 test: true,
                 student: { select: { name: true, studentId: true } },
-                answers: true
+                answers: {
+                    include: {
+                        question: {
+                            include: {
+                                options: true
+                            }
+                        }
+                    }
+                }
             }
-        });
+        }) as any;
 
         if (!attempt) return res.status(404).json({ success: false, message: "Attempt not found" });
 
         let correct = 0, incorrect = 0, unattempted = 0;
         let totalTime = 0;
 
-        const solutions = attempt.answers.map(ans => {
+        const solutions = (attempt.answers as any[]).map((ans: any) => {
             totalTime += (ans.timeTakenSecs || 0);
             if (ans.selectedOptions.length === 0) {
                 unattempted++;

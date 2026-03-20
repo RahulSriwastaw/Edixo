@@ -25,7 +25,7 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -80,11 +80,13 @@ export default function MockTestsPage() {
         try {
             setIsLoading(true);
             const [testsData, seriesData] = await Promise.all([
-                mockbookService.getAdminTests({ orgId: selectedOrgId }),
-                mockbookService.getSeries(undefined, selectedOrgId),
+                mockbookService.getAdminTests({ orgId: selectedOrgId || undefined }),
+                mockbookService.getSeries(undefined, selectedOrgId || undefined),
             ]);
+            console.log('MockTestsPage: Loaded tests:', testsData.length, 'for org:', selectedOrgId);
             setTests(testsData);
             setSeries(seriesData);
+
         } catch (err) {
             toast.error("Failed to load tests");
         } finally {
@@ -107,9 +109,19 @@ export default function MockTestsPage() {
         const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
             t.testId.toLowerCase().includes(search.toLowerCase());
         const matchStatus = statusFilter === "all" || t.status === statusFilter;
-        const matchSeries = seriesFilter === "all" || t.subCategory?.category?.id === seriesFilter;
+        
+        let matchSeries = false;
+        if (seriesFilter === "all") {
+            matchSeries = true;
+        } else if (seriesFilter === "none") {
+            matchSeries = !t.subCategoryId;
+        } else {
+            matchSeries = t.subCategory?.category?.id === seriesFilter;
+        }
+        
         return matchSearch && matchStatus && matchSeries;
     });
+
 
     const handleCreateSubCats = async (categoryId: string) => {
         try {
@@ -243,9 +255,11 @@ export default function MockTestsPage() {
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem value="all">All Series</SelectItem>
+                                            <SelectItem value="none">No Series / Independent</SelectItem>
                                             {series.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                         </SelectContent>
                                     </Select>
+
                                     {(search || statusFilter !== "all" || seriesFilter !== "all") && (
                                         <Button variant="ghost" onClick={() => { setSearch(""); setStatusFilter("all"); setSeriesFilter("all"); }}>
                                             Clear
@@ -381,6 +395,7 @@ export default function MockTestsPage() {
                 <DialogContent className="max-w-xl">
                     <DialogHeader>
                         <DialogTitle>Create New Mock Test</DialogTitle>
+                        <DialogDescription>Fill in the details to create a new mock test. You can publish it once created.</DialogDescription>
                     </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-1.5">
@@ -467,6 +482,7 @@ export default function MockTestsPage() {
                         <DialogTitle className="flex items-center gap-2 text-red-600">
                             <AlertCircle className="w-5 h-5" /> Delete Test
                         </DialogTitle>
+                        <DialogDescription>Are you sure you want to delete this test? This action is permanent.</DialogDescription>
                     </DialogHeader>
                     <p className="text-sm text-gray-600">
                         Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? All attempts and answers will also be permanently deleted.

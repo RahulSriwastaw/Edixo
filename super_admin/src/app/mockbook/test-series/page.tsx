@@ -23,7 +23,7 @@ import {
     DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-    Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+    Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter,
 } from "@/components/ui/dialog";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
@@ -157,7 +157,8 @@ export default function TestSeriesPage() {
     };
 
     const handleCreate = async () => {
-        if (!createForm.name) return toast.error("Name is required");
+        if (!createForm.name) return toast.error("Series name is required");
+        if (!createForm.folderId) return toast.error("Please select an Exam Folder");
         setCreating(true);
         try {
             await mockbookService.createSeries({
@@ -358,7 +359,10 @@ export default function TestSeriesPage() {
             {/* Create Series Dialog */}
             <Dialog open={showCreate} onOpenChange={setShowCreate}>
                 <DialogContent className="max-w-lg">
-                    <DialogHeader><DialogTitle>Create New Test Series</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>Create New Test Series</DialogTitle>
+                        <DialogDescription>Fill in the details to create a new test series under an exam folder.</DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-1.5">
                             <Label>Series Name *</Label>
@@ -406,7 +410,10 @@ export default function TestSeriesPage() {
             {/* Edit Series Dialog */}
             <Dialog open={!!editTarget} onOpenChange={() => setEditTarget(null)}>
                 <DialogContent className="max-w-lg">
-                    <DialogHeader><DialogTitle>Edit Series — {editTarget?.name}</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>Edit Series — {editTarget?.name}</DialogTitle>
+                        <DialogDescription>Update the details for this test series.</DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-1.5">
                             <Label>Series Name</Label>
@@ -453,6 +460,7 @@ export default function TestSeriesPage() {
                         <DialogTitle className="flex items-center gap-2 text-red-600">
                             <AlertCircle className="w-5 h-5" /> Delete Series
                         </DialogTitle>
+                        <DialogDescription>This action cannot be undone.</DialogDescription>
                     </DialogHeader>
                     <p className="text-sm text-gray-600">
                         Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? This will remove the series and all its subcategories from the platform.

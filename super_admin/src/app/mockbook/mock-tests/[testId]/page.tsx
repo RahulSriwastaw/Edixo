@@ -104,7 +104,7 @@ export default function MockTestDetailPage() {
         try {
             setSetsLoading(true);
             const res = await api.get('/qbank/sets');
-            setQbankSets(res.data?.data?.sets || []);
+            setQbankSets(res.data?.sets || []);
         } catch { toast.error("Failed to load Question Bank Sets"); }
         finally { setSetsLoading(false); }
     };

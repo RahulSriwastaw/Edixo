@@ -66,7 +66,7 @@ export default function CreateMockTestFromSetsPage() {
       setLoadingOrgs(true);
       try {
         const res = await api.get('/organizations?limit=100');
-        setOrganizations(res.data?.data?.organizations || res.data?.data || []);
+        setOrganizations(res.data?.organizations || res.data || []);
       } catch (e) {
         console.error("failed to load orgs", e);
       } finally {

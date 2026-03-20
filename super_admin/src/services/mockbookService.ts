@@ -88,20 +88,20 @@ export const mockbookService = {
     getStats: async (orgId?: string): Promise<MockBookStats> => {
         const path = orgId ? `/mockbook/analytics/stats?orgId=${orgId}` : '/mockbook/analytics/stats';
         const res = await api.get(path);
-        return res.data.data;
+        return res.data;
     },
 
     getAnalytics: async (orgId?: string): Promise<any> => {
         const path = orgId ? `/mockbook/analytics/stats?orgId=${orgId}` : '/mockbook/analytics/stats';
         const res = await api.get(path);
-        return res.data.data;
+        return res.data;
     },
 
     // ─── Exam Folders (Top Category: SSC, Railway, etc.) ───────────
     getFolders: async (orgId?: string): Promise<ExamFolder[]> => {
         const path = orgId ? `/mockbook/folders?orgId=${orgId}` : '/mockbook/folders';
         const res = await api.get(path);
-        return res.data?.data || res.data || [];
+        return res.data || [];
     },
 
     createFolder: async (data: Partial<ExamFolder>) => {
@@ -128,7 +128,7 @@ export const mockbookService = {
         if (orgId) params.set('orgId', orgId);
         const path = `/mockbook/categories${params.toString() ? `?${params.toString()}` : ''}`;
         const res = await api.get(path);
-        return res.data?.data || res.data || [];
+        return res.data || [];
     },
 
     createSeries: async (data: Partial<ExamSeries>) => {
@@ -146,7 +146,7 @@ export const mockbookService = {
     // ─── Sub-Categories (Test Folders: Tier 1, Sectional, etc.) ───
     getSubCategories: async (categoryId: string): Promise<ExamSubCategory[]> => {
         const res = await api.get(`/mockbook/subcategories?categoryId=${categoryId}`);
-        return res.data?.data || res.data || [];
+        return res.data || [];
     },
 
     createSubCategory: async (data: Partial<ExamSubCategory>) => {
@@ -174,12 +174,12 @@ export const mockbookService = {
         if (filters?.status) params.set('status', filters.status);
         if (filters?.search) params.set('search', filters.search);
         const res = await api.get(`/mockbook/admin/tests?${params.toString()}`);
-        return res.data?.data || [];
+        return res.data || [];
     },
 
     getAdminTestDetail: async (id: string): Promise<MockTest> => {
         const res = await api.get(`/mockbook/admin/tests/${id}`);
-        return res.data?.data;
+        return res.data;
     },
 
     createMockTest: async (data: {
@@ -199,17 +199,17 @@ export const mockbookService = {
             ...data,
             orgId: data.orgId || ORG_ID
         });
-        return res.data?.data;
+        return res.data;
     },
 
     updateMockTest: async (id: string, data: Partial<MockTest>) => {
         const res = await api.patch(`/mockbook/admin/tests/${id}`, data);
-        return res.data?.data;
+        return res.data;
     },
 
     changeMockTestStatus: async (id: string, status: "DRAFT" | "LIVE" | "ENDED") => {
         const res = await api.patch(`/mockbook/admin/tests/${id}/status`, { status });
-        return res.data?.data;
+        return res.data;
     },
 
     deleteMockTest: async (id: string) => {
@@ -218,7 +218,7 @@ export const mockbookService = {
 
     addMockTestSection: async (testId: string, data: { setId: string; name: string; durationMins?: number }) => {
         const res = await api.post(`/mockbook/admin/tests/${testId}/sections`, data);
-        return res.data?.data;
+        return res.data;
     },
 
     removeMockTestSection: async (testId: string, sectionId: string) => {
@@ -232,7 +232,7 @@ export const mockbookService = {
         if (orgId) params.set('orgId', orgId);
         if (filters?.search) params.set('search', filters.search);
         const res = await api.get(`/mockbook/admin/students?${params.toString()}`);
-        return res.data?.data || [];
+        return res.data || [];
     },
 
     // ─── Admin Live Tests ───────────────────────────────────────────
@@ -241,28 +241,56 @@ export const mockbookService = {
         const targetOrgId = orgId || ORG_ID;
         if (targetOrgId) params.set('orgId', targetOrgId);
         const res = await api.get(`/mockbook/admin/live-tests?${params.toString()}`);
-        return res.data?.data || { live: [], scheduled: [] };
+        return res.data || { live: [], scheduled: [] };
+    },
+
+    getTestPerformance: async (testId: string): Promise<any> => {
+        const res = await api.get(`/mockbook/admin/tests/${testId}/performance`);
+        return res.data;
+    },
+
+    getStudentDrilldown: async (studentId: string): Promise<any> => {
+        const res = await api.get(`/mockbook/admin/student-drilldown/${studentId}`);
+        return res.data;
     },
 
     // ─── Leaderboard ────────────────────────────────────────────────
     getLeaderboard: async (testId: string): Promise<any[]> => {
         const res = await api.get(`/mockbook/${testId}/leaderboard`);
-        return res.data?.data || [];
+        return res.data || [];
     },
 
     // ─── Comprehensive Analytics ────────────────────────────────────
     getStudentOverallAnalytics: async (studentId: string, days: number = 30): Promise<any> => {
         const res = await api.get(`/mockbook/analytics/student/${studentId}/overall?days=${days}`);
-        return res.data?.data;
+        return res.data;
     },
 
     getAttemptReport: async (attemptId: string): Promise<any> => {
         const res = await api.get(`/mockbook/attempts/${attemptId}/report`);
-        return res.data?.data;
+        return res.data;
     },
 
     generateStudyPlan: async (studentId: string, durationInDays: number = 15): Promise<any> => {
         const res = await api.post(`/mockbook/analytics/student/${studentId}/study-plan`, { durationInDays });
-        return res.data?.data;
+        return res.data;
+    },
+
+    getFolders: async (orgId?: string): Promise<any[]> => {
+        const path = orgId ? `/mockbook/admin/folders?orgId=${orgId}` : '/mockbook/admin/folders';
+        const res = await api.get(path);
+        return res.data.data || [];
+    },
+
+    getOrganizations: async (): Promise<any[]> => {
+        const res = await api.get('/super-admin/organizations?limit=100');
+        if (res.data.success) {
+            return res.data.data.orgs.map((org: any) => ({
+                id: org.orgId,
+                name: org.name,
+                dbId: org.id
+            }));
+        }
+        return [];
     }
 };

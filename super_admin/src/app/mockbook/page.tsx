@@ -177,33 +177,49 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ─────────────────────────────────────────────
-// Mock series data (UI demonstration — will be replaced with API)
+// Type Definitions
 // ─────────────────────────────────────────────
-const mockSeriesData = [
-  { id: "S001", name: "SSC CGL Mock Test Series 2026", category: "SSC", tests: 5602, enrolled: 74636, price: 499, status: "active", featured: true, freeTests: 3, updatedAt: "2 days ago" },
-  { id: "S002", name: "RRB NTPC Graduate 2025 (CBT1+CBT2)", category: "Railways", tests: 21198, enrolled: 61540, price: 0, status: "active", featured: true, freeTests: 21198, updatedAt: "5 days ago" },
-  { id: "S003", name: "IBPS PO Complete Series 2026", category: "Banking", tests: 1240, enrolled: 45230, price: 399, status: "active", featured: false, freeTests: 2, updatedAt: "1 week ago" },
-  { id: "S004", name: "NEET 2026 Full Mock Series", category: "NEET", tests: 890, enrolled: 38900, price: 599, status: "scheduled", featured: true, freeTests: 3, updatedAt: "3 days ago" },
-  { id: "S005", name: "JEE Mains 2026 Practice Series", category: "JEE", tests: 650, enrolled: 29100, price: 449, status: "draft", featured: false, freeTests: 2, updatedAt: "10 days ago" },
-];
+interface DashboardSeries {
+  id: string;
+  folderId: string;
+  name: string;
+  category?: { name: string };
+  _count?: { mockTests: number; attempts: number };
+  price: number | null;
+  isActive: boolean;
+  isFeatured: boolean;
+  isFree: boolean;
+  createdAt: string;
+}
 
-const mockLiveTests = [
-  { id: "LT001", name: "SSC CGL Mini Live Test — March 11", series: "SSC CGL 2026", students: 12453, status: "live", startTime: "10:00 AM", endTime: "11:00 AM", questions: 50, marks: 100 },
-  { id: "LT002", name: "Banking PO Speed Test — Quant", series: "IBPS PO 2026", students: 0, status: "scheduled", startTime: "Mar 12, 9:00 AM", endTime: "Mar 12, 10:30 AM", questions: 30, marks: 60 },
-  { id: "LT003", name: "NEET Biology Booster Live", series: "NEET 2026", students: 8920, status: "live", startTime: "9:00 AM", endTime: "10:00 AM", questions: 45, marks: 180 },
-  { id: "LT004", name: "RRB NTPC — CBT1 Full Mock Live", series: "RRB NTPC 2025", students: 23100, status: "live", startTime: "8:00 AM", endTime: "9:30 AM", questions: 100, marks: 100 },
-];
 
+
+interface DashboardLiveTest {
+  id: string;
+  name: string;
+  subCategory?: { category?: { name: string } };
+  _count?: { attempts: number };
+  status: string;
+  scheduledAt: string | null;
+  endsAt: string | null;
+  durationMins: number;
+  totalMarks: number;
+}
+
+
+
+// ─────────────────────────────────────────────
+// Constants
+// ─────────────────────────────────────────────
 const examCategories = [
-  { id: "C1", name: "SSC", color: "bg-orange-100 text-orange-700 border-orange-200", icon: "📋", series: 18, students: 145000 },
-  { id: "C2", name: "Banking", color: "bg-blue-100 text-blue-700 border-blue-200", icon: "🏦", series: 12, students: 89000 },
-  { id: "C3", name: "Railways", color: "bg-green-100 text-green-700 border-green-200", icon: "🚂", series: 9, students: 72000 },
-  { id: "C4", name: "NEET", color: "bg-red-100 text-red-700 border-red-200", icon: "⚕️", series: 7, students: 56000 },
-  { id: "C5", name: "JEE", color: "bg-purple-100 text-purple-700 border-purple-200", icon: "⚛️", series: 6, students: 48000 },
-  { id: "C6", name: "UPSC", color: "bg-indigo-100 text-indigo-700 border-indigo-200", icon: "🏛️", series: 5, students: 34000 },
-  { id: "C7", name: "Defence", color: "bg-gray-100 text-gray-700 border-gray-200", icon: "🛡️", series: 4, students: 28000 },
-  { id: "C8", name: "Teaching", color: "bg-yellow-100 text-yellow-700 border-yellow-200", icon: "📚", series: 6, students: 21000 },
+  { id: "C1", name: "SSC", color: "bg-orange-100 text-orange-700 border-orange-200", icon: "📋" },
+  { id: "C2", name: "Banking", color: "bg-blue-100 text-blue-700 border-blue-200", icon: "🏦" },
+  { id: "C3", name: "Railways", color: "bg-green-100 text-green-700 border-green-200", icon: "🚂" },
+  { id: "C4", name: "NEET", color: "bg-red-100 text-red-700 border-red-200", icon: "⚕️" },
+  { id: "C5", name: "JEE", color: "bg-purple-100 text-purple-700 border-purple-200", icon: "⚛️" },
+  { id: "C6", name: "UPSC", color: "bg-indigo-100 text-indigo-700 border-indigo-200", icon: "🏛️" },
 ];
+
 
 // ─────────────────────────────────────────────
 // Main Component
@@ -222,6 +238,8 @@ export default function MockBookPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [stats, setStats] = useState<MockBookStats | null>(null);
   const [folders, setFolders] = useState<ExamFolder[]>([]);
+  const [realSeries, setRealSeries] = useState<DashboardSeries[]>([]);
+  const [liveTests, setLiveTests] = useState<DashboardLiveTest[]>([]);
 
   const selectedOrg = organizations.find(o => o.orgId === selectedOrgId);
 
@@ -229,12 +247,16 @@ export default function MockBookPage() {
     const fetchData = async () => {
       try {
         setIsLoading(true);
-        const [statsRes, foldersRes] = await Promise.all([
+        const [statsRes, foldersRes, seriesRes, liveRes] = await Promise.all([
           mockbookService.getStats(selectedOrgId || undefined),
-          mockbookService.getFolders(selectedOrgId || undefined)
+          mockbookService.getFolders(selectedOrgId || undefined),
+          mockbookService.getSeries(undefined, selectedOrgId || undefined),
+          mockbookService.getLiveAndScheduledTests(selectedOrgId || undefined)
         ]);
         setStats(statsRes);
         setFolders(foldersRes);
+        setRealSeries(seriesRes);
+        setLiveTests(liveRes.live || []);
       } catch (error) {
         console.error("Failed to fetch mockbook data:", error);
         toast.error("Failed to load platform data");
@@ -244,6 +266,7 @@ export default function MockBookPage() {
     };
     fetchData();
   }, [selectedOrgId]);
+
 
   const dashboardStats = [
     {
@@ -296,14 +319,19 @@ export default function MockBookPage() {
     },
   ];
 
-  const filteredSeries = mockSeriesData.filter((s) => {
+  const filteredSeries = realSeries.filter((s) => {
     const matchSearch = s.name.toLowerCase().includes(seriesSearch.toLowerCase());
-    const matchCat = seriesCategoryFilter === "all" || s.category === seriesCategoryFilter;
-    const matchStatus = seriesStatusFilter === "all" || s.status === seriesStatusFilter;
+    const matchCat = seriesCategoryFilter === "all" || s.category?.name === seriesCategoryFilter;
+    const matchStatus = seriesStatusFilter === "all" || 
+      (seriesStatusFilter === "active" && s.isActive) || 
+      (seriesStatusFilter === "draft" && !s.isActive);
     return matchSearch && matchCat && matchStatus;
   });
 
-  const liveCount = mockLiveTests.filter(t => t.status === "live").length;
+
+
+  const liveCount = liveTests.length;
+
 
   return (
     <div className="min-h-screen bg-neutral-bg">
@@ -477,31 +505,39 @@ export default function MockBookPage() {
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-semibold text-gray-900">{series.name}</span>
-                                <StatusBadge status={series.status} />
-                                {series.featured && (
+                                <Badge className={cn(
+                                  "text-[10px] px-2 py-0.5",
+                                  series.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200"
+                                )}>
+                                  {series.isActive ? "ACTIVE" : "INACTIVE"}
+                                </Badge>
+                                {series.isFeatured && (
                                   <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 text-[10px]">
                                     <Star className="w-2.5 h-2.5 mr-1" />Featured
                                   </Badge>
                                 )}
-                                <Badge variant="outline" className="text-[10px]">{series.category}</Badge>
+                                <Badge variant="outline" className="text-[10px]">{series.category?.name || "General"}</Badge>
+
                               </div>
                               <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 flex-wrap">
                                 <span className="flex items-center gap-1">
                                   <FileText className="w-3.5 h-3.5" />
-                                  {series.tests.toLocaleString()} tests
+                                  {(series._count?.mockTests || 0).toLocaleString()} tests
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Users className="w-3.5 h-3.5" />
-                                  {series.enrolled.toLocaleString()} enrolled
+                                  {(series._count?.attempts || 0).toLocaleString()} enrolled
                                 </span>
-                                <span className="flex items-center gap-1">
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-green-500" />
-                                  {series.freeTests} free
+                                <span className={cn("flex items-center gap-1", series.isFree ? "text-green-600 font-medium" : "text-gray-500")}>
+                                  <CheckCircle2 className={cn("w-3.5 h-3.5", series.isFree ? "text-green-500" : "text-gray-400")} />
+                                  {series.isFree ? "All Free" : "Premium"}
                                 </span>
-                                <span className="text-gray-400">Updated {series.updatedAt}</span>
+
+                                <span className="text-gray-400">ID: {series.id}</span>
                               </div>
                             </div>
                           </div>
+
                           <div className="flex items-center gap-3 shrink-0">
                             <div className="text-right mr-2">
                               {series.price === 0 ? (
@@ -530,8 +566,9 @@ export default function MockBookPage() {
                                   <Copy className="w-4 h-4 mr-2" /> Duplicate
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                  <Star className="w-4 h-4 mr-2" /> {series.featured ? "Remove from Featured" : "Set as Featured"}
+                                  <Star className="w-4 h-4 mr-2" /> {series.isFeatured ? "Remove from Featured" : "Set as Featured"}
                                 </DropdownMenuItem>
+
                                 <DropdownMenuItem>
                                   <BarChart3 className="w-4 h-4 mr-2" /> Analytics
                                 </DropdownMenuItem>
@@ -580,14 +617,15 @@ export default function MockBookPage() {
                 </div>
 
                 {/* Live Now */}
-                {mockLiveTests.filter(t => t.status === "live").length > 0 && (
+                {liveTests.length > 0 && (
                   <div>
                     <div className="flex items-center gap-2 mb-3">
                       <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-sm font-semibold text-red-600">LIVE NOW ({mockLiveTests.filter(t => t.status === "live").length})</span>
+                      <span className="text-sm font-semibold text-red-600">LIVE NOW ({liveTests.length})</span>
                     </div>
+
                     <div className="space-y-3">
-                      {mockLiveTests.filter(t => t.status === "live").map((test) => (
+                      {liveTests.map((test) => (
                         <Card key={test.id} className="border-red-200 bg-red-50/30">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
@@ -597,18 +635,22 @@ export default function MockBookPage() {
                                   <span className="font-semibold text-gray-900">{test.name}</span>
                                 </div>
                                 <div className="text-sm text-gray-500 mt-1 flex items-center gap-3">
-                                  <span>{test.questions} Questions · {test.marks} Marks</span>
+                                  <span>{test.durationMins} Mins · {test.totalMarks} Marks</span>
                                   <span>·</span>
-                                  <span className="text-red-600 font-medium">{test.students.toLocaleString()} attempting now</span>
+                                  <span className="text-red-600 font-medium">{(test._count?.attempts || 0).toLocaleString()} attempts</span>
                                 </div>
-                                <div className="text-xs text-gray-400 mt-0.5">{test.series} · {test.startTime} – {test.endTime}</div>
+                                <div className="text-xs text-gray-400 mt-0.5">
+                                  {test.subCategory?.category?.name || "Series"} · 
+                                  {test.scheduledAt ? new Date(test.scheduledAt).toLocaleTimeString() : ""} – 
+                                  {test.endsAt ? new Date(test.endsAt).toLocaleTimeString() : ""}
+                                </div>
+
                               </div>
                               <div className="flex items-center gap-2">
-                                <Button variant="outline" size="sm">
-                                  <Eye className="w-3.5 h-3.5 mr-1" /> View Live
-                                </Button>
-                                <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
-                                  End Now
+                                <Button variant="outline" size="sm" asChild>
+                                  <Link href={`/mockbook/mock-tests/${test.id}`}>
+                                    <Eye className="w-3.5 h-3.5 mr-1" /> View Details
+                                  </Link>
                                 </Button>
                               </div>
                             </div>
@@ -616,39 +658,17 @@ export default function MockBookPage() {
                         </Card>
                       ))}
                     </div>
+
                   </div>
                 )}
 
                 {/* Scheduled */}
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                    <span className="text-sm font-semibold text-blue-600">UPCOMING</span>
+                  <div className="space-y-3 p-12 text-center bg-gray-50 rounded-lg border border-dashed text-gray-400">
+                    <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                    <p>No upcoming live tests scheduled</p>
                   </div>
-                  <div className="space-y-3">
-                    {mockLiveTests.filter(t => t.status === "scheduled").map((test) => (
-                      <Card key={test.id}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <Badge className="bg-blue-100 text-blue-700 text-[10px]">🔵 SCHEDULED</Badge>
-                                <span className="font-semibold text-gray-900">{test.name}</span>
-                              </div>
-                              <div className="text-sm text-gray-500 mt-1">{test.questions} Questions · {test.marks} Marks</div>
-                              <div className="text-xs text-gray-400 mt-0.5">{test.series} · {test.startTime}</div>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Button variant="outline" size="sm">
-                                <Edit className="w-3.5 h-3.5 mr-1" /> Edit
-                              </Button>
-                              <Button variant="outline" size="sm">Reschedule</Button>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
+
                 </div>
               </TabsContent>
 
@@ -760,24 +780,25 @@ export default function MockBookPage() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {mockSeriesData.map((series) => (
+                        {realSeries.map((series) => (
                           <TableRow key={series.id} className="hover:bg-orange-50/30">
                             <TableCell>
                               <div className="font-medium text-gray-900 text-sm">{series.name}</div>
                             </TableCell>
                             <TableCell>
-                              <Badge variant="outline" className="text-[10px]">{series.category}</Badge>
+                              <Badge variant="outline" className="text-[10px]">{series.category?.name || "General"}</Badge>
                             </TableCell>
                             <TableCell>
-                              {series.price === 0 ? (
-                                <span className="text-green-600 font-semibold">Free</span>
+                              {series.price === 0 || series.price === null ? (
+                                <span className="text-green-600 font-semibold text-sm">Free</span>
                               ) : (
-                                <span className="font-semibold">₹{series.price}</span>
+                                <span className="font-semibold text-gray-900">₹{series.price}</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">12 months</TableCell>
-                            <TableCell className="text-sm text-gray-600">{series.freeTests}</TableCell>
+                            <TableCell className="text-sm text-gray-600">Lifetime</TableCell>
+                            <TableCell className="text-sm text-gray-600">{series.isFree ? "All" : "0"}</TableCell>
                             <TableCell className="text-right">
+
                               <Button variant="outline" size="sm" className="h-7 text-xs">
                                 <Edit className="w-3 h-3 mr-1" /> Edit
                               </Button>
@@ -900,25 +921,38 @@ export default function MockBookPage() {
                       <CardTitle className="text-base">Top Series by Enrollment</CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      {mockSeriesData.sort((a, b) => b.enrolled - a.enrolled).map((s, i) => (
-                        <div key={s.id} className="flex items-center gap-3">
-                          <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center justify-center shrink-0">
-                            {i + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-sm font-medium text-gray-900 truncate">{s.name}</div>
-                            <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
-                              <div
-                                className="bg-orange-400 h-1.5 rounded-full"
-                                style={{ width: `${(s.enrolled / mockSeriesData[0].enrolled) * 100}%` }}
-                              />
-                            </div>
-                          </div>
-                          <div className="text-sm font-semibold text-gray-700 shrink-0">{s.enrolled.toLocaleString()}</div>
-                        </div>
-                      ))}
+                      {realSeries.length === 0 ? (
+                        <div className="text-sm text-gray-400 py-6 text-center italic">No series data available</div>
+                      ) : (
+                        realSeries
+                          .slice()
+                          .sort((a, b) => (b._count?.attempts || 0) - (a._count?.attempts || 0))
+                          .slice(0, 5)
+                          .map((s, i) => {
+                            const maxEnroll = Math.max(...realSeries.map(rs => rs._count?.attempts || 0)) || 1;
+                            const enrollment = s._count?.attempts || 0;
+                            return (
+                              <div key={s.id} className="flex items-center gap-3">
+                                <div className="w-6 h-6 rounded-full bg-orange-100 text-orange-700 text-xs font-bold flex items-center justify-center shrink-0">
+                                  {i + 1}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-gray-900 truncate">{s.name}</div>
+                                  <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+                                    <div
+                                      className="bg-orange-400 h-1.5 rounded-full"
+                                      style={{ width: `${(enrollment / maxEnroll) * 100}%` }}
+                                    />
+                                  </div>
+                                </div>
+                                <div className="text-sm font-semibold text-gray-700 shrink-0">{enrollment.toLocaleString()}</div>
+                              </div>
+                            );
+                          })
+                      )}
                     </CardContent>
                   </Card>
+
 
                   {/* Revenue Breakdown */}
                   <Card>

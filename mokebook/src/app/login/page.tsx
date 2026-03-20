@@ -133,7 +133,7 @@ export default function LoginPage() {
           title: isLogin ? "Welcome back! 🎉" : "Account created! 🚀",
           description: isLogin ? "Redirecting to your dashboard..." : "Your learning journey has begun."
         });
-        router.push("/");
+        window.location.href = "/tests";
       } else {
         toast({
           variant: "destructive",

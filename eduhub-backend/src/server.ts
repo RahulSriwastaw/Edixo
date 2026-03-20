@@ -55,12 +55,17 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Org-View-Id', 'X-Org-Id'],
 }));
 
-// Rate Limiter
+// Rate Limiter — general API
 const limiter = rateLimit({
     windowMs: env.RATE_LIMIT_WINDOW_MS,
-    max: env.RATE_LIMIT_MAX_REQUESTS,
+    max: env.NODE_ENV === 'development' ? 100000 : env.RATE_LIMIT_MAX_REQUESTS,
     standardHeaders: true,
     legacyHeaders: false,
+    // Skip public/read-only endpoints — they're hit on every page load by HMR
+    skip: (req) =>
+      env.NODE_ENV === 'development' ||
+      req.path.startsWith('/organizations/public/') ||
+      (req.path === '/auth/me' && req.method === 'GET'),
     message: { success: false, message: 'Too many requests — please try again later.' },
 });
 app.use('/api/', limiter);
