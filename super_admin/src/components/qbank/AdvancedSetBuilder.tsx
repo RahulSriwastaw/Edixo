@@ -50,13 +50,9 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
-function getToken(): string {
-  if (typeof document === 'undefined') return '';
-  const match = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
-  return match ? match[1] : '';
-}
+// getToken removed
 
 export function AdvancedSetBuilder() {
   // --- Filter State ---
@@ -91,9 +87,9 @@ export function AdvancedSetBuilder() {
   useEffect(() => {
     const fetchOptions = async () => {
       try {
-        const token = getToken();
+        const headers = getAuthHeaders();
         const res = await fetch(`${API_URL}/qbank/filter-options`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
+            headers
         });
         const result = await res.json();
         if (result.success) {
@@ -118,9 +114,8 @@ export function AdvancedSetBuilder() {
         return;
       }
       try {
-        const token = getToken();
         const res = await fetch(`${API_URL}/qbank/chapters?subject=${encodeURIComponent(selectedSubject)}`, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
+            headers: getAuthHeaders()
         });
         const result = await res.json();
         if (result.success) {
@@ -139,22 +134,8 @@ export function AdvancedSetBuilder() {
     const fetchQuestions = async () => {
       setIsLoading(true);
       try {
-        const token = getToken();
-        const filters: Array<{ field: string, operator: string, value: any }> = [];
-        if (selectedExam !== "all") filters.push({ field: "exam", operator: "equals", value: selectedExam });
-        if (selectedSubject !== "all") filters.push({ field: "subjectName", operator: "equals", value: selectedSubject });
-        if (selectedChapter !== "all") filters.push({ field: "chapterName", operator: "equals", value: selectedChapter });
-        if (selectedYear !== "all") filters.push({ field: "year", operator: "equals", value: selectedYear });
-        if (selectedShift !== "all") filters.push({ field: "section", operator: "equals", value: selectedShift });
-
-        const url = new URL(`${API_URL}/qbank/questions`);
-        if (searchQuery) url.searchParams.append("search", searchQuery);
-        if (filters.length > 0) url.searchParams.append("filters", JSON.stringify(filters));
-        url.searchParams.append("page", page.toString());
-        url.searchParams.append("limit", "10");
-
         const res = await fetch(url.toString(), {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
+            headers: getAuthHeaders()
         });
         const result = await res.json();
         if (result.success) {
@@ -191,13 +172,9 @@ export function AdvancedSetBuilder() {
 
     setIsCreatingSet(true);
     try {
-      const token = getToken();
       const res = await fetch(`${API_URL}/qbank/sets`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           name: setName,
           durationMins: parseInt(setDuration),

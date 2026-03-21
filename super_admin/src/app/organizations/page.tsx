@@ -38,21 +38,7 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { toast } from "sonner";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
-
-function getToken(): string {
-  if (typeof document === "undefined") return "";
-  const match = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
-  return match ? match[1] : "";
-}
-
-function authHeaders() {
-  const token = getToken();
-  return {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-}
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
 function StatusBadge({ status }: { status: string }) {
   const map: Record<string, string> = {
@@ -128,7 +114,7 @@ export default function OrganizationsPage() {
       if (planFilter !== "all") params.append("plan", planFilter.toUpperCase());
 
       const res = await fetch(`${API_URL}/super-admin/organizations?${params}`, {
-        headers: authHeaders(),
+        headers: getAuthHeaders(),
       });
       if (res.ok) {
         const json = await res.json();
@@ -187,7 +173,7 @@ export default function OrganizationsPage() {
   async function callAPI(path: string, method: string, body?: object) {
     const res = await fetch(`${API_URL}/super-admin/organizations/${path}`, {
       method,
-      headers: authHeaders(),
+      headers: getAuthHeaders(),
       body: body ? JSON.stringify(body) : undefined,
     });
     const data = await res.json();

@@ -78,6 +78,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { toast } from "sonner";
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
 // Unique IDs for this org (Placeholder for now)
 const uniqueIDs: any[] = [];
@@ -196,7 +197,7 @@ function OrganizationDetailInner() {
 
   const fetchFrontendConfig = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/organizations/public/${orgId}`);
+      const res = await fetch(`${API_URL}/organizations/public/${orgId}`);
       const data = await res.json();
       if (data.success && data.data.frontendConfig) {
         const fc = data.data.frontendConfig;
@@ -228,9 +229,9 @@ function OrganizationDetailInner() {
         testimonials,
         whySection: { title: whyTitle, items: whyItems },
       };
-      const res = await fetch(`http://localhost:4000/api/organizations/${orgId}/frontend-config`, {
+      const res = await fetch(`${API_URL}/organizations/${orgId}/frontend-config`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -242,10 +243,8 @@ function OrganizationDetailInner() {
 
   const fetchOrgDetails = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}`
-        }
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -271,10 +270,8 @@ function OrganizationDetailInner() {
 
   const fetchStaff = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/staff`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}`
-        }
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/staff`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) setStaffData(data.data);
@@ -283,10 +280,8 @@ function OrganizationDetailInner() {
 
   const fetchStudents = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/students`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}`
-        }
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/students`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) setStudentsData(data.data);
@@ -295,10 +290,8 @@ function OrganizationDetailInner() {
 
   const fetchAuditLogs = async () => {
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/audit`, {
-        headers: {
-          'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}`
-        }
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/audit`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) setAuditLogs(data.data);
@@ -320,7 +313,7 @@ function OrganizationDetailInner() {
   const handleSuspend = async () => {
     if (!orgData) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/status`, {
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -344,9 +337,9 @@ function OrganizationDetailInner() {
   const handleDelete = async () => {
     if (!orgData) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}`, {
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}` }
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) { toast.success(`${orgData.name} deleted`); router.push('/organizations'); }
@@ -358,9 +351,9 @@ function OrganizationDetailInner() {
   const handleActivate = async () => {
     if (!orgData) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/status`, {
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/status`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ status: 'ACTIVE' })
       });
       const data = await res.json();
@@ -373,9 +366,9 @@ function OrganizationDetailInner() {
   const handleChangePlan = async () => {
     if (!orgData) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/plan`, {
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/plan`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ plan: newPlan })
       });
       const data = await res.json();
@@ -388,9 +381,9 @@ function OrganizationDetailInner() {
   const handleExtendTrial = async () => {
     if (!orgData) return;
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}/extend-trial`, {
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}/extend-trial`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}` },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ days: Number(trialDays) })
       });
       const data = await res.json();
@@ -403,12 +396,9 @@ function OrganizationDetailInner() {
   const handleUpdateOrg = async (fields: any) => {
     setSaving(true);
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations/${orgId}`, {
+      const res = await fetch(`${API_URL}/super-admin/organizations/${orgId}`, {
         method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${document.cookie.split('sb_token=')[1]?.split(';')[0]}`
-        },
+headers: getAuthHeaders(),
         body: JSON.stringify(fields)
       });
       const data = await res.json();

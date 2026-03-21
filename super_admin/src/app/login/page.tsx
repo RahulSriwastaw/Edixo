@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { toast } from "sonner";
 import { Building2 } from "lucide-react";
 
+import { API_URL } from "@/lib/api-config";
+
 export default function SuperAdminLogin() {
     const router = useRouter();
     const [email, setEmail] = useState("");
@@ -19,8 +21,7 @@ export default function SuperAdminLogin() {
         setLoading(true);
 
         try {
-            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
-            const res = await fetch(`${apiUrl}/auth/login`, {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

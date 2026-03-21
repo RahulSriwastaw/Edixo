@@ -51,6 +51,22 @@ app.use(cors({
             return callback(null, true);
         }
 
+        // Extra check for subdomains of allowed base domains
+        const isPlatformSubdomain = staticOrigins.some(so => {
+            try {
+                const soUrl = new URL(so);
+                const originUrl = new URL(origin);
+                // Allow if it's a subdomain of an allowed base domain (e.g. superadmin.mockveda.com of mockveda.com)
+                return originUrl.hostname.endsWith(soUrl.hostname);
+            } catch {
+                return false;
+            }
+        });
+
+        if (isPlatformSubdomain) {
+            return callback(null, true);
+        }
+
         // 2. Check Cache (Redis)
         const cacheKey = `cors_allowed:${origin}`;
         try {

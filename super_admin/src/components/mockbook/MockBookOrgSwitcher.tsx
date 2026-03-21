@@ -12,6 +12,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
 interface Organization {
   id: string;
@@ -37,11 +38,7 @@ export function MockBookOrgSwitcher({ open, onSelect, onClose, recentOrgs = [] }
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const getToken = () => {
-    if (typeof document === 'undefined') return '';
-    const match = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
-    return match ? match[1] : '';
-  };
+  // getToken removed
 
   useEffect(() => {
     setMounted(true);
@@ -51,8 +48,8 @@ export function MockBookOrgSwitcher({ open, onSelect, onClose, recentOrgs = [] }
   const fetchOrganizations = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`http://localhost:4000/api/super-admin/organizations?limit=100`, {
-        headers: { 'Authorization': `Bearer ${getToken()}` }
+      const res = await fetch(`${API_URL}/super-admin/organizations?limit=100`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {

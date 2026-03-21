@@ -71,8 +71,7 @@ import { toast } from "sonner";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 
-// Global API utility
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
 const FILTER_FIELDS = [
   { value: "subjectName", label: "Subject" },
@@ -99,11 +98,7 @@ const FILTER_OPERATORS = [
   { value: "isNotEmpty", label: "Is not empty" },
 ];
 
-function getToken(): string {
-  if (typeof document === 'undefined') return '';
-  const match = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
-  return match ? match[1] : '';
-}
+// getToken removed
 
 
 
@@ -212,7 +207,7 @@ export function QuestionsList() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = getToken();
+        const headers = getAuthHeaders();
         setIsLoading(true);
         const url = new URL(`${API_URL}/qbank/questions`);
         if (scopeFilter !== "all") url.searchParams.append("scope", scopeFilter);
@@ -230,8 +225,8 @@ export function QuestionsList() {
         url.searchParams.append("limit", "10");
 
         const [qRes, sRes] = await Promise.all([
-          fetch(url.toString(), { headers: token ? { Authorization: `Bearer ${token}` } : {} }),
-          fetch(`${API_URL}/qbank/sets`, { headers: token ? { Authorization: `Bearer ${token}` } : {} })
+          fetch(url.toString(), { headers }),
+          fetch(`${API_URL}/qbank/sets`, { headers })
         ]);
 
         if (qRes.ok) {
@@ -365,13 +360,9 @@ export function QuestionsList() {
 
     setImportLoading(true);
     try {
-      const token = getToken();
       const response = await fetch(`${API_URL}/qbank/bulk-upload`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           fileName: importFile.name,
           rows: importRows,

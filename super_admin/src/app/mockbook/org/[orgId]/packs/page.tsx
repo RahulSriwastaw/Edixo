@@ -33,17 +33,14 @@ import { MockBookOrgSwitcher } from "@/components/mockbook/MockBookOrgSwitcher";
 import { MockBookOrgBanner, MockBookOrg } from "@/components/mockbook/MockBookOrgBanner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
-const getToken = () => {
-  if (typeof document === "undefined") return "";
-  const m = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
-  return m ? m[1] : "";
-};
+// getToken removed
 
 const api = (path: string, opts?: RequestInit) =>
-  fetch(`http://localhost:4000/api${path}`, {
+  fetch(`${API_URL}${path}`, {
     ...opts,
-    headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}`, ...(opts?.headers || {}) },
+    headers: { ...getAuthHeaders(), ...(opts?.headers || {}) },
   }).then(r => r.json());
 
 function StatusBadge({ status }: { status: string }) {

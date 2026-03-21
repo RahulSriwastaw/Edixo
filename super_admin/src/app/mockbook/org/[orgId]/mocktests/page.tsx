@@ -70,6 +70,7 @@ import { MockBookOrgSwitcher } from "@/components/mockbook/MockBookOrgSwitcher";
 import { MockBookOrgBanner, MockBookOrg } from "@/components/mockbook/MockBookOrgBanner";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
 
 
@@ -183,8 +184,8 @@ const params = useParams();
         const token = tokenMatch ? tokenMatch[1] : '';
         
         // Fetch Org Details
-        const orgRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/super-admin/organizations/${orgId}`, { 
-          headers: { 'Authorization': `Bearer ${token}` } 
+        const orgRes = await fetch(`${API_URL}/super-admin/organizations/${orgId}`, { 
+          headers: getAuthHeaders() 
         });
         const orgData = await orgRes.json();
         
@@ -205,8 +206,8 @@ const params = useParams();
         }
 
         // Fetch Initial Hierarchy (Exam Folders / Categories)
-        const foldersRes = await fetch(`http://localhost:4000/api/mockbook/folders?orgId=${orgId}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
+        const foldersRes = await fetch(`${API_URL}/mockbook/folders?orgId=${orgId}`, {
+          headers: getAuthHeaders()
         });
         const foldersData = await foldersRes.json();
         if (foldersData.success) {
@@ -225,8 +226,8 @@ const params = useParams();
 
   const fetchTests = async (folderId: string | null) => {
     try {
-      const testsRes = await fetch(`http://localhost:4000/api/mockbook/admin/tests?orgId=${orgId}${folderId ? `&categoryId=${folderId}` : ''}`, {
-        headers: { 'Authorization': `Bearer ${document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/)?.[1] || ''}` }
+      const testsRes = await fetch(`${API_URL}/mockbook/admin/tests?orgId=${orgId}${folderId ? `&categoryId=${folderId}` : ''}`, {
+        headers: getAuthHeaders()
       });
       const testsData = await testsRes.json();
       if (testsData.success) {
@@ -241,8 +242,8 @@ const params = useParams();
     try {
       const tokenMatch = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
       const token = tokenMatch ? tokenMatch[1] : '';
-      const res = await fetch(`http://localhost:4000/api/mockbook/categories?folderId=${examFolderId}&orgId=${orgId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${API_URL}/mockbook/categories?folderId=${examFolderId}&orgId=${orgId}`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -257,8 +258,8 @@ const params = useParams();
     try {
       const tokenMatch = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
       const token = tokenMatch ? tokenMatch[1] : '';
-      const res = await fetch(`http://localhost:4000/api/mockbook/subcategories?categoryId=${seriesId}${parentId ? `&parentId=${parentId}` : '&parentId=null'}&orgId=${orgId}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await fetch(`${API_URL}/mockbook/subcategories?categoryId=${seriesId}${parentId ? `&parentId=${parentId}` : '&parentId=null'}&orgId=${orgId}`, {
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -320,7 +321,7 @@ const params = useParams();
       const tokenMatch = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
       const token = tokenMatch ? tokenMatch[1] : '';
       
-      let url = 'http://localhost:4000/api/mockbook/';
+      let url = `${API_URL}/mockbook/`;
       let body: any = { name: newFolderName, orgId };
 
       if (newFolderType === 'category') {
@@ -346,8 +347,8 @@ const params = useParams();
         setNewFolderName("");
         // Refresh current level
         if (newFolderType === 'category') {
-          const foldersRes = await fetch(`http://localhost:4000/api/mockbook/folders?orgId=${orgId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
+          const foldersRes = await fetch(`${API_URL}/mockbook/folders?orgId=${orgId}`, {
+            headers: getAuthHeaders()
           });
           const foldersData = await foldersRes.json();
           setExamFolders(foldersData.data || []);
@@ -370,14 +371,14 @@ const params = useParams();
       const tokenMatch = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
       const token = tokenMatch ? tokenMatch[1] : '';
       
-      let url = `http://localhost:4000/api/mockbook/`;
+      let url = `${API_URL}/mockbook/`;
       if (type === 'category') url += `folders/${id}`;
       else if (type === 'series') url += `categories/${id}`;
       else url += `subcategories/${id}`;
 
       const res = await fetch(url, {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
@@ -404,8 +405,8 @@ const params = useParams();
       setIsLoadingSets(true);
       const tokenMatch = document.cookie.match(/(?:^|;\s*)sb_token=([^;]*)/);
       const token = tokenMatch ? tokenMatch[1] : '';
-      const response = await fetch(`http://localhost:4000/api/qbank/sets?limit=50`, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      const response = await fetch(`${API_URL}/qbank/sets?limit=50`, {
+        headers: getAuthHeaders()
       });
       if (response.ok) {
         const resData = await response.json();
@@ -447,12 +448,9 @@ const params = useParams();
         shuffleQuestions: testForm.shuffleQuestions === "yes",
       };
 
-      const response = await fetch(`http://localhost:4000/api/mockbook/admin/tests`, {
+      const response = await fetch(`${API_URL}/mockbook/admin/tests`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(payload)
       });
 
