@@ -15,7 +15,7 @@ export default function LibraryLessonsPage() {
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <header className="bg-white border-b p-4">
             <div className="max-w-4xl mx-auto flex items-center gap-4">
               <Button variant="ghost" size="icon" onClick={() => router.back()} className="h-9 w-9">

@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -8,7 +7,6 @@ import {
   Bell,
   Search,
   User,
-  Menu,
   Coins,
   LogOut,
   LayoutDashboard,
@@ -26,14 +24,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetHeader,
-  SheetTitle,
-  SheetClose
-} from "@/components/ui/sheet";
 import { useUser, useAuth, useDoc, useFirestore } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
@@ -74,72 +64,8 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60 shrink-0 transition-all duration-300">
       <div className="flex h-16 items-center justify-between gap-4 px-4 md:px-8 max-w-full">
-        {/* Left: Logo + Mobile Menu */}
-        <div className="flex items-center gap-4">
-          {user && (
-            <Sheet>
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden h-10 w-10 rounded-xl hover:bg-slate-100 transition-all duration-200">
-                  <Menu className="h-5 w-5 text-slate-600" />
-                </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="p-0 w-[300px] bg-white border-r-0">
-                <SheetHeader className="p-6 border-b">
-                  <SheetTitle className="text-left font-bold text-primary flex items-center gap-3 text-xl">
-                    {org?.logoUrl ? (
-                      <div className="relative w-10 h-10 rounded-xl overflow-hidden shrink-0 shadow-sm">
-                        <Image src={org.logoUrl} alt={org.name} fill className="object-cover" />
-                      </div>
-                    ) : (
-                      <span className="bg-primary text-white p-2 rounded-xl text-sm font-black w-10 h-10 flex items-center justify-center shrink-0 shadow-lg shadow-primary/20">
-                        {org?.name?.charAt(0) || "M"}
-                      </span>
-                    )}
-                    <span className="text-slate-900 tracking-tight">{org?.name || "Mockbook"}</span>
-                  </SheetTitle>
-                </SheetHeader>
-                <nav className="flex-1 p-4 space-y-1.5">
-                  {navItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== "/" && pathname?.startsWith(item.href));
-                    return (
-                      <SheetClose asChild key={item.href}>
-                        <Link
-                          href={item.href}
-                          className={cn(
-                            "flex items-center gap-3 px-4 py-3 rounded-xl transition-all text-sm font-semibold",
-                            isActive
-                              ? "bg-primary/5 text-primary"
-                              : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
-                          )}
-                        >
-                          <item.icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary" : "text-slate-400")} />
-                          {item.label}
-                        </Link>
-                      </SheetClose>
-                    );
-                  })}
-                </nav>
-                {/* User info at bottom */}
-                {user && (
-                  <div className="absolute bottom-0 left-0 right-0 p-6 border-t bg-slate-50/50">
-                    <div className="flex items-center gap-4">
-                      <div className="w-11 h-11 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-200 overflow-hidden shrink-0">
-                        {user.photoURL ? (
-                          <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
-                        ) : (
-                          <User className="h-5 w-5 text-slate-400" />
-                        )}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-slate-900 truncate">{user.displayName || userDoc.data?.name || "Student"}</p>
-                        <p className="text-xs text-slate-500 truncate">{user.email || "Guest Account"}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </SheetContent>
-            </Sheet>
-          )}
+        {/* Left: Logo */}
+        <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-3 group">
             {org?.logoUrl ? (
               <div className="relative w-9 h-9 rounded-xl overflow-hidden shrink-0 transition-transform group-hover:scale-105">

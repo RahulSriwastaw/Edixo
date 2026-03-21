@@ -144,7 +144,7 @@ export default function SettingsPage() {
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar pb-16 md:pb-0">
           <div className="max-w-5xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

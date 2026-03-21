@@ -64,7 +64,8 @@ router.post('/register', async (req, res, next) => {
                 if (!orgId) {
                     const origin = req.headers.origin;
                     if (origin) {
-                        const domain = origin.replace(/^https?:\/\//, "").replace(/\/$/, "");
+                        // Extract hostname (strip protocol and port)
+                        const domain = origin.replace(/^https?:\/\//, "").split(':')[0].replace(/\/$/, "");
                         const detectedOrg = await tx.organization.findFirst({
                             where: {
                                 OR: [

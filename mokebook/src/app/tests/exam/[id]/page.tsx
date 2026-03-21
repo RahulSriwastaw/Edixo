@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 // TCS iON standard palette shapes
 const PaletteShapes = {
@@ -60,6 +61,7 @@ interface Question {
 
 export default function ExamPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const params = useParams();
   const testId = params?.id ? String(params.id) : "";
 
@@ -180,24 +182,30 @@ export default function ExamPage() {
   };
 
   const markForReviewAndNext = () => {
-    setQState(prev => ({
-      ...prev,
-      [currentIdx]: {
-        ...prev[currentIdx],
-        status: prev[currentIdx].answer !== null ? "marked_answered" : "marked"
-      }
-    }));
+    setQState(prev => {
+      const current = prev[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
+      return {
+        ...prev,
+        [currentIdx]: {
+          ...current,
+          status: current.answer !== null ? "marked_answered" : "marked"
+        }
+      };
+    });
     if (currentIdx < questions.length - 1) navigateTo(currentIdx + 1);
   };
 
   const saveAndNext = () => {
-    setQState(prev => ({
-      ...prev,
-      [currentIdx]: {
-        ...prev[currentIdx],
-        status: prev[currentIdx].answer !== null ? "answered" : "not_answered"
-      }
-    }));
+    setQState(prev => {
+      const current = prev[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
+      return {
+        ...prev,
+        [currentIdx]: {
+          ...current,
+          status: current.answer !== null ? "answered" : "not_answered"
+        }
+      };
+    });
     if (currentIdx < questions.length - 1) navigateTo(currentIdx + 1);
   };
 
@@ -216,15 +224,30 @@ export default function ExamPage() {
         body: JSON.stringify({ action: "submit", answers }),
       });
 
-      const attemptResult = res.data;
-      // Navigate to results with the real attempt ID
-      window.location.href = `/tests/results/${attemptResult?.id || attemptResult?.attemptId || ""}`;
-    } catch (err) {
+      if (res.success && res.data) {
+        toast({
+          title: "Test Submitted",
+          description: "Your test has been submitted successfully.",
+        });
+        // Use router.push for better SPA feel
+        const targetId = res.data.id || res.data.attemptId;
+        router.push(`/tests/results/${targetId}`);
+      } else {
+        throw new Error(res.message || "Failed to submit test");
+      }
+    } catch (err: any) {
       console.error("Submit failed:", err);
-      // Still navigate to results even on error
-      window.location.href = `/tests`;
+      toast({
+        variant: "destructive",
+        title: "Submission Failed",
+        description: err.message || "There was an error submitting your test. Returning to dashboard.",
+      });
+      // Redirect to dashboard as a last resort
+      router.push("/tests");
+    } finally {
+      setSubmitting(false);
     }
-  }, [questions, qState, testId, submitting]);
+  }, [questions, qState, testId, submitting, router, toast]);
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {

@@ -64,7 +64,7 @@ export default function LibraryPage() {
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <header className="bg-white border-b sticky top-0 z-20 px-3 md:px-4 py-3 shadow-sm">
             <div className="max-w-5xl mx-auto space-y-3">
               <div className="flex items-center justify-between px-1">

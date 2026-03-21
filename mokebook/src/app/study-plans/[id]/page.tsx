@@ -212,7 +212,7 @@ export default function StudyPlanDetailPage() {
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 md:ml-0 p-3 md:p-6 space-y-6 overflow-y-auto">
+        <main className="flex-1 md:ml-0 p-3 md:p-6 space-y-6 overflow-y-auto pb-16 md:pb-0">
           <div className="max-w-5xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
               <Button variant="ghost" onClick={() => router.back()} className="h-8 px-2 text-xs font-bold text-slate-500 hover:text-primary transition-colors">

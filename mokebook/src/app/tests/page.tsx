@@ -7,19 +7,29 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Search, BookOpen, Clock, Zap, HelpCircle, BookMarked,
   Users, Flame, Loader2, ChevronRight, Filter, Sparkles,
   Lock, PlayCircle, ChevronLeft, BarChart3, Target,
-  FileText, Trophy, Bookmark, Layers, ArrowRight,
+  FileText, Trophy, Bookmark, Layers, ArrowRight, CheckCircle2,
+  Star, ChevronDown, ChevronUp, Quote, Award, TrendingUp,
 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useOrganization } from "@/providers/OrganizationProvider";
 import { useUser } from "@/firebase";
+
+// ── My Series static data (enrolled series) ──────────────────────────────────
+const MY_SERIES = [
+  { id: "1", name: "RRB Group D Mock Test Series", progress: 45, tests: 45, totalTests: 100, icon: Zap, color: "bg-red-500", status: "active", lastActivity: "2h ago" },
+  { id: "2", name: "SSC CGL Tier-I Mega Pack", progress: 12, tests: 12, totalTests: 45, icon: Award, color: "bg-blue-500", status: "active", lastActivity: "1d ago" },
+  { id: "3", name: "Current Affairs 2024 Daily", progress: 88, tests: 88, totalTests: 100, icon: TrendingUp, color: "bg-orange-500", status: "active", lastActivity: "3h ago" },
+  { id: "4", name: "Physics: Laws of Motion", progress: 100, tests: 20, totalTests: 20, icon: Zap, color: "bg-green-500", status: "completed", lastActivity: "5d ago" },
+];
 
 const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || "MOCKVEDA-001";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
@@ -65,11 +75,45 @@ const DEFAULT_BANNERS = [
   },
 ];
 
+const DEFAULT_WHY_ITEMS = [
+  { icon: "🎯", title: "Real Exam Pattern", desc: "Every test mirrors the exact pattern and difficulty of the actual exam." },
+  { icon: "📊", title: "Your Performance Analysis", desc: "Get detailed analytics with percentile, rank, and topic-wise breakdown." },
+  { icon: "🤖", title: "AI-Powered Prep", desc: "Personalized weak-area identification and adaptive practice sessions." },
+];
+
+const DEFAULT_FAQS = [
+  { q: "Can I attempt tests on my phone?", a: "Yes! Our platform is fully optimized for mobile browsers. No app download needed." },
+  { q: "Are the mock tests free?", a: "We offer both free and premium tests. Free tests are available to all registered users." },
+  { q: "How is my percentile calculated?", a: "Your percentile is calculated based on real-time comparison with all students who attempted the same test." },
+  { q: "Can I review my answers after submission?", a: "Yes, a detailed solution review with explanations is available immediately after submission." },
+];
+
+// ── FAQ Item Component ────────────────────────────────────────────────────────
+function FaqItem({ q, a }: { q: string; a: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border border-slate-200 rounded-xl overflow-hidden">
+      <button
+        className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+        onClick={() => setOpen(o => !o)}
+      >
+        <span className="text-sm font-bold text-slate-800">{q}</span>
+        {open ? <ChevronUp className="h-4 w-4 text-slate-400 shrink-0" /> : <ChevronDown className="h-4 w-4 text-slate-400 shrink-0" />}
+      </button>
+      {open && (
+        <div className="px-5 pb-4">
+          <p className="text-sm text-slate-500 leading-relaxed">{a}</p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function TestSeriesPage() {
   const { org } = useOrganization();
   const { user } = useUser();
   const [categorySearch, setCategorySearch] = useState("");
-  const [activeTab, setActiveTab] = useState<string>("");
+  const [activeCategoryTab, setActiveCategoryTab] = useState<string>("");
   const [activeBanner, setActiveBanner] = useState(0);
   const [frontendConfig, setFrontendConfig] = useState<any>(null);
 
@@ -78,6 +122,7 @@ export default function TestSeriesPage() {
   const [seriesByFolder, setSeriesByFolder] = useState<Record<string, any[]>>({});
   const [liveTests, setLiveTests] = useState<any[]>([]);
   const [enrolledSeries, setEnrolledSeries] = useState<any[]>([]);
+  const [recentSeries, setRecentSeries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const bannerInterval = useRef<any>(null);
 
@@ -98,7 +143,7 @@ export default function TestSeriesPage() {
         const fRes = await apiFetch("/mockbook/folders");
         const fetchedFolders = fRes.data || [];
         setFolders(fetchedFolders);
-        if (fetchedFolders.length > 0) setActiveTab(fetchedFolders[0].id);
+        if (fetchedFolders.length > 0) setActiveCategoryTab(fetchedFolders[0].id);
 
         // 3. Series
         const sRes = await apiFetch("/mockbook/categories");
@@ -113,10 +158,16 @@ export default function TestSeriesPage() {
         const pubRes = await apiFetch("/mockbook/public");
         setLiveTests(pubRes.data || []);
 
-        // 5. Enrolled (mock data for now)
+        // 5. Recent tests (use first 4 from public for demo)
+        const allSeries = (sRes.data || []).slice(0, 4);
+        setRecentSeries(allSeries);
+
+        // 6. Enrolled (mock data)
         setEnrolledSeries([
           { id: "1", name: "SSC CGL Tier 1 Mock Tests 2026", progress: 45, testsLeft: 18, image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&q=80" },
           { id: "2", name: "Reasoning Special Sectional Series", progress: 12, testsLeft: 24, image: "https://images.unsplash.com/photo-1518133910546-b6c2fb7d79e3?w=400&q=80" },
+          { id: "3", name: "Banking & SSC GK Capsule 2026", progress: 67, testsLeft: 8, image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=400&q=80" },
+          { id: "4", name: "English Grammar & Comprehension", progress: 30, testsLeft: 12, image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=400&q=80" },
         ]);
       } catch (err) {
         console.error("Failed to load tests data", err);
@@ -140,22 +191,107 @@ export default function TestSeriesPage() {
   const heroText: string = frontendConfig?.heroText || "Ready to level up? 🚀";
   const heroSubText: string = frontendConfig?.heroSubText || "We've analyzed your performance. Today is a great day to attempt a Full-Length Mock.";
   const stats: any[] = frontendConfig?.stats?.length ? frontendConfig.stats : [
-    { label: "Active Students", value: "0+" },
-    { label: "Mock Tests", value: "0+" },
-    { label: "Success Rate", value: "0%" },
-    { label: "AI Study Plans", value: "0+" },
+    { label: "Active Students", value: "50K+" },
+    { label: "Mock Tests", value: "12K+" },
+    { label: "Success Rate", value: "92%" },
+    { label: "AI Study Plans", value: "25K+" },
   ];
+  const whyItems: any[] = frontendConfig?.whySection?.items?.length ? frontendConfig.whySection.items : DEFAULT_WHY_ITEMS;
+  const whyTitle: string = frontendConfig?.whySection?.title || "Why Choose Our Test Series?";
+  const testimonials: any[] = frontendConfig?.testimonials || [];
+  const faqs: any[] = frontendConfig?.faqs?.length ? frontendConfig.faqs : DEFAULT_FAQS;
 
   const filteredFolders = folders.filter(cat => cat.name.toLowerCase().includes(categorySearch.toLowerCase()));
-
   const displayName = (user as any)?.displayName || "Student";
+  const [activeTab, setActiveTab] = useState<"discover" | "my-series">("discover");
+  const [mySeriesSearch, setMySeriesSearch] = useState("");
+  const filteredMySeries = MY_SERIES.filter(s => s.name.toLowerCase().includes(mySeriesSearch.toLowerCase()));
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: "#F0F2F8" }}>
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
+
+          {/* ── TAB SWITCHER ──────────────────────────────────────────────── */}
+          <div className="sticky top-0 z-20 bg-white border-b border-slate-200 px-4 md:px-8">
+            <div className="flex gap-1 pt-1">
+              {(["discover", "my-series"] as const).map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={cn(
+                    "px-5 py-3 text-sm font-bold capitalize border-b-2 transition-all",
+                    activeTab === tab
+                      ? "border-violet-600 text-violet-700"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
+                  )}
+                >
+                  {tab === "discover" ? "Discover" : "My Series"}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── MY SERIES TAB ─────────────────────────────────────────────── */}
+          {activeTab === "my-series" && (
+            <div className="p-4 md:p-8 space-y-6 max-w-7xl mx-auto">
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <div className="relative flex-1 w-full">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <input
+                    placeholder="Search your enrolled series..."
+                    className="w-full pl-10 pr-4 h-11 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-400"
+                    value={mySeriesSearch}
+                    onChange={e => setMySeriesSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+              {filteredMySeries.length === 0 ? (
+                <div className="py-24 text-center space-y-4">
+                  <BookOpen className="h-12 w-12 text-slate-200 mx-auto" />
+                  <p className="text-slate-500 font-semibold">No enrolled series found.</p>
+                  <button onClick={() => setActiveTab("discover")} className="text-violet-600 font-bold text-sm hover:underline">
+                    Browse Test Series →
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredMySeries.map(series => (
+                    <Link key={series.id} href={`/tests/series/${series.id}`} className="group block">
+                      <Card className="hover:shadow-lg transition-all border-none bg-white overflow-hidden flex flex-col shadow-sm h-full">
+                        <div className={cn("h-1.5 w-full", series.color)} />
+                        <CardContent className="p-5 space-y-4 flex-1 flex flex-col">
+                          <div className="flex justify-between items-start">
+                            <Badge className={cn("text-[9px] font-bold uppercase h-5 px-2", series.status === "completed" ? "bg-green-50 text-green-700 border-green-100" : "bg-blue-50 text-blue-700 border-blue-100")}>
+                              {series.status === "completed" ? <span className="flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Completed</span> : "In Progress"}
+                            </Badge>
+                            <span className="text-[10px] font-bold text-slate-400">{series.lastActivity}</span>
+                          </div>
+                          <h3 className="text-sm font-bold leading-snug group-hover:text-violet-600 transition-colors flex-1 line-clamp-2">{series.name}</h3>
+                          <div className="space-y-1.5 mt-auto">
+                            <div className="flex justify-between text-[11px] font-bold">
+                              <span className="text-slate-500">{series.tests}/{series.totalTests} Tests</span>
+                              <span className="text-violet-600">{series.progress}%</span>
+                            </div>
+                            <Progress value={series.progress} className="h-1.5 bg-slate-100" />
+                          </div>
+                          <div className="w-full h-9 flex items-center justify-center text-xs font-bold rounded-xl bg-slate-900 text-white group-hover:bg-violet-600 transition-all">
+                            {series.status === "completed" ? "Review Analysis" : "Continue Test"}
+                            <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── DISCOVER TAB ─────────────────────────────────────────────── */}
+          {activeTab === "discover" && <>
 
           {/* ── PROMO BANNER CAROUSEL ─────────────────────────────────────── */}
           <div className="relative overflow-hidden" style={{ minHeight: "220px" }}>
@@ -290,6 +426,54 @@ export default function TestSeriesPage() {
               ))}
             </div>
 
+            {/* ── YOUR RECENT TEST SERIES ──────────────────────────────────── */}
+            {recentSeries.length > 0 && (
+              <section className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-black text-slate-900 flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
+                      <Clock className="h-4 w-4" />
+                    </div>
+                    Your Recent Test Series
+                  </h2>
+                  <Button variant="ghost" className="text-violet-600 font-bold hover:bg-violet-50 rounded-xl text-sm gap-1">
+                    View All <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+                <ScrollArea className="w-full">
+                  <div className="flex gap-4 pb-4">
+                    {recentSeries.map((series: any) => (
+                      <Link key={series.id} href={`/tests/series/${series.id}`} className="group block shrink-0">
+                        <div className="w-64 bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-lg hover:-translate-y-1 transition-all duration-300 overflow-hidden">
+                          <div className="relative h-28 bg-gradient-to-br from-violet-100 to-violet-200">
+                            {series.icon ? (
+                              <Image src={series.icon} alt={series.name} fill className="object-cover" />
+                            ) : (
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <BookOpen className="h-10 w-10 text-violet-400" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="p-4">
+                            <p className="font-bold text-sm text-slate-900 line-clamp-2 group-hover:text-violet-700 transition-colors">{series.name}</p>
+                            <div className="flex items-center gap-2 mt-2">
+                              <Badge className="bg-violet-50 text-violet-700 text-[10px] font-black px-2 h-4 rounded-full border-none">
+                                {series.isFree ? "FREE" : "PREMIUM"}
+                              </Badge>
+                            </div>
+                            <Button size="sm" className="w-full mt-3 h-8 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold border-none text-xs">
+                              Continue
+                            </Button>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </section>
+            )}
+
             {/* ── MY LEARNING PATH ──────────────────────────────────────── */}
             <section className="space-y-4">
               <div className="flex items-center justify-between">
@@ -297,17 +481,17 @@ export default function TestSeriesPage() {
                   <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
                     <BookOpen className="h-4 w-4" />
                   </div>
-                  My Learning Path
+                  Your Enrolled Series
                 </h2>
                 <Button variant="ghost" className="text-violet-600 font-bold hover:bg-violet-50 rounded-xl text-sm gap-1">
                   View All <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
                 {enrolledSeries.map(series => (
                   <Link key={series.id} href={`/tests/series/${series.id}`} className="group">
                     <div className="bg-white rounded-2xl border border-slate-200/70 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 p-4 flex gap-4 items-start">
-                      <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-slate-100 shadow-inner">
+                      <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0 bg-slate-100 shadow-inner">
                         <Image src={series.image} alt={series.name} fill className="object-cover group-hover:scale-110 transition-transform duration-500" />
                       </div>
                       <div className="flex-1 min-w-0 py-0.5 space-y-2">
@@ -328,11 +512,6 @@ export default function TestSeriesPage() {
                     </div>
                   </Link>
                 ))}
-                {enrolledSeries.length === 0 && (
-                  <div className="col-span-full py-10 text-center bg-white rounded-2xl border border-dashed border-slate-200">
-                    <p className="text-sm text-slate-400 font-medium">No active enrolments. Explore categories below!</p>
-                  </div>
-                )}
               </div>
             </section>
 
@@ -344,7 +523,7 @@ export default function TestSeriesPage() {
                     <div className="w-8 h-8 rounded-xl bg-red-100 text-red-600 flex items-center justify-center">
                       <Flame className="h-4 w-4" />
                     </div>
-                    Live Arena
+                    Live Tests & Free Quizzes
                     <span className="ml-1 flex h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                   </h2>
                   <Button variant="ghost" className="text-violet-600 font-bold hover:bg-violet-50 rounded-xl text-sm gap-1">
@@ -383,14 +562,14 @@ export default function TestSeriesPage() {
               </section>
             )}
 
-            {/* ── EXPLORE EXAM SERIES ─────────────────────────────────────── */}
+            {/* ── TEST SERIES BY CATEGORIES ────────────────────────────────── */}
             <section className="space-y-4">
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <h2 className="text-lg font-black text-slate-900 flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-xl bg-violet-100 text-violet-600 flex items-center justify-center">
                     <Layers className="h-4 w-4" />
                   </div>
-                  Explore Exam Series
+                  Test Series by Categories
                 </h2>
                 <div className="flex items-center gap-2">
                   <div className="relative">
@@ -415,33 +594,38 @@ export default function TestSeriesPage() {
                     <p className="text-sm text-slate-500 font-bold tracking-widest uppercase">Loading Catalog...</p>
                   </div>
                 ) : (
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="flex flex-col lg:flex-row h-full">
-                    {/* Category tab list */}
+                  <div className="flex flex-col lg:flex-row h-full">
+                    {/* Vertical Category Sidebar */}
                     <div className="w-full lg:w-56 bg-slate-50/80 lg:border-r border-b lg:border-b-0 border-slate-200 p-3 shrink-0">
                       <p className="hidden lg:block text-[10px] font-black text-slate-400 uppercase tracking-widest px-3 mb-3">Categories</p>
-                      <TabsList className="flex lg:flex-col items-stretch justify-start h-auto bg-transparent gap-1 overflow-x-auto no-scrollbar">
+                      <div className="flex lg:flex-col items-stretch justify-start gap-1 overflow-x-auto no-scrollbar">
                         {filteredFolders.length > 0 ? filteredFolders.map(cat => (
-                          <TabsTrigger
+                          <button
                             key={cat.id}
-                            value={cat.id}
-                            className="flex-shrink-0 lg:w-full justify-start text-sm font-bold px-4 py-3 data-[state=active]:bg-white data-[state=active]:text-violet-700 data-[state=active]:shadow-md data-[state=active]:border data-[state=active]:border-violet-100 border border-transparent rounded-xl whitespace-nowrap transition-all duration-200 group"
+                            onClick={() => setActiveCategoryTab(cat.id)}
+                            className={cn(
+                              "flex-shrink-0 lg:w-full flex items-center justify-between text-sm font-bold px-4 py-3 rounded-xl whitespace-nowrap transition-all duration-200",
+                              activeCategoryTab === cat.id
+                                ? "bg-white text-violet-700 shadow-md border border-violet-100"
+                                : "text-slate-500 hover:bg-white hover:text-slate-900 border border-transparent"
+                            )}
                           >
                             <span className="lg:flex-1 text-left">{cat.name}</span>
-                            <ChevronRight className="hidden lg:block h-3.5 w-3.5 opacity-0 group-data-[state=active]:opacity-100 transition-opacity text-violet-400" />
-                          </TabsTrigger>
+                            <ChevronRight className={cn("hidden lg:block h-3.5 w-3.5 transition-opacity text-violet-400", activeCategoryTab === cat.id ? "opacity-100" : "opacity-0")} />
+                          </button>
                         )) : (
                           <div className="p-8 text-center w-full">
                             <HelpCircle className="h-6 w-6 text-slate-200 mx-auto mb-1" />
                             <p className="text-xs text-slate-400 font-bold">No results</p>
                           </div>
                         )}
-                      </TabsList>
+                      </div>
                     </div>
 
                     {/* Content area */}
                     <div className="flex-1 p-5 md:p-7 bg-white">
-                      {folders.map(cat => (
-                        <TabsContent key={cat.id} value={cat.id} className="mt-0 outline-none animate-in fade-in slide-in-from-bottom-1.5 duration-300">
+                      {folders.filter(c => c.id === activeCategoryTab).map(cat => (
+                        <div key={cat.id} className="animate-in fade-in slide-in-from-bottom-1.5 duration-300">
                           {seriesByFolder[cat.id]?.length > 0 ? (
                             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
                               {seriesByFolder[cat.id].map((series: any) => (
@@ -500,14 +684,93 @@ export default function TestSeriesPage() {
                               <Button variant="outline" className="rounded-xl font-bold border-slate-200 text-sm">Notify Me</Button>
                             </div>
                           )}
-                        </TabsContent>
+                        </div>
                       ))}
+                      {folders.length === 0 && !loading && (
+                        <div className="flex flex-col items-center justify-center py-24 text-center space-y-4">
+                          <Loader2 className="h-8 w-8 text-slate-200" />
+                          <p className="text-sm text-slate-400 font-medium">No categories found.</p>
+                        </div>
+                      )}
                     </div>
-                  </Tabs>
+                  </div>
                 )}
               </div>
             </section>
+
+            {/* ── WHY CHOOSE US ───────────────────────────────────────────── */}
+            {whyItems.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-black text-slate-900">{whyTitle}</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {whyItems.map((item: any, i: number) => (
+                    <div key={i} className="bg-white rounded-2xl border border-slate-200/70 shadow-sm p-6 flex flex-col items-start gap-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+                      <div className="w-12 h-12 rounded-2xl bg-violet-50 flex items-center justify-center text-2xl">
+                        {item.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-black text-slate-900 text-sm mb-1">{item.title}</h3>
+                        <p className="text-xs text-slate-500 leading-relaxed">{item.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* ── TESTIMONIALS ────────────────────────────────────────────── */}
+            {testimonials.length > 0 && (
+              <section className="space-y-4">
+                <h2 className="text-lg font-black text-slate-900">Hear directly from our students</h2>
+                <ScrollArea className="w-full">
+                  <div className="flex gap-4 pb-4">
+                    {testimonials.map((t: any, i: number) => (
+                      <div key={i} className="w-80 shrink-0 bg-white rounded-2xl border border-slate-200/70 shadow-sm p-5 space-y-3">
+                        <Quote className="h-6 w-6 text-violet-200" />
+                        <p className="text-sm text-slate-600 leading-relaxed italic">"{t.text}"</p>
+                        <div className="flex items-center gap-3 pt-2 border-t border-slate-50">
+                          {t.avatar ? (
+                            <div className="relative w-9 h-9 rounded-full overflow-hidden bg-slate-100">
+                              <Image src={t.avatar} alt={t.name} fill className="object-cover" />
+                            </div>
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-400 to-purple-600 flex items-center justify-center text-white font-black text-sm">
+                              {t.name.charAt(0)}
+                            </div>
+                          )}
+                          <div>
+                            <p className="text-sm font-black text-slate-900">{t.name}</p>
+                            {t.role && <p className="text-[10px] text-slate-400 font-bold">{t.role}</p>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <ScrollBar orientation="horizontal" />
+                </ScrollArea>
+              </section>
+            )}
+
+            {/* ── FAQ ─────────────────────────────────────────────────────── */}
+            <section className="space-y-4">
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="md:w-1/3 space-y-3">
+                  <h2 className="text-lg font-black text-slate-900">Frequently Asked Questions</h2>
+                  <p className="text-sm text-slate-500 leading-relaxed">
+                    Everything you need to know about our test series platform. Can't find what you're looking for? <Link href="/profile" className="text-violet-600 font-bold hover:underline">Contact support.</Link>
+                  </p>
+                </div>
+                <div className="md:flex-1 space-y-3">
+                  {faqs.map((faq: any, i: number) => (
+                    <FaqItem key={i} q={faq.q} a={faq.a} />
+                  ))}
+                </div>
+              </div>
+            </section>
+
           </div>
+          </> /* end discover tab */}
+
         </main>
       </div>
     </div>

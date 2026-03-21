@@ -69,7 +69,7 @@ export default function PracticePage() {
         <Navbar />
         <div className="flex-1 flex overflow-hidden">
           <Sidebar />
-          <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar">
+          <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar pb-16 md:pb-0">
             <div className="max-w-5xl mx-auto space-y-8">
               <header className="text-center space-y-4 pt-4 md:pt-8">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/15 text-primary text-xs font-bold uppercase tracking-widest">
@@ -162,7 +162,7 @@ export default function PracticePage() {
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar">
+        <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar pb-16 md:pb-0">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">

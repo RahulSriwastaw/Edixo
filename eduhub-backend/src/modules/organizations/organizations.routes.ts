@@ -68,7 +68,7 @@ router.put('/:orgId/frontend-config', async (req, res, next) => {
         const configSchema = z.object({
             promoBanners: z.array(z.object({
                 id: z.string(),
-                imageUrl: z.string(),
+                imageUrl: z.string().optional(),
                 linkUrl: z.string().optional(),
                 title: z.string().optional(),
                 subtitle: z.string().optional(),
@@ -90,6 +90,28 @@ router.put('/:orgId/frontend-config', async (req, res, next) => {
                 label: z.string(),
                 value: z.string(),
             })).optional(),
+            whySection: z.object({
+                title: z.string().optional(),
+                items: z.array(z.object({
+                    icon: z.string(),
+                    title: z.string(),
+                    desc: z.string(),
+                })).optional(),
+            }).optional(),
+            testimonials: z.array(z.object({
+                name: z.string(),
+                role: z.string().optional(),
+                text: z.string(),
+                avatar: z.string().optional(),
+            })).optional(),
+            faqs: z.array(z.object({
+                q: z.string(),
+                a: z.string(),
+            })).optional(),
+            footerLinks: z.array(z.object({
+                label: z.string(),
+                url: z.string(),
+            })).optional(),
         });
         const config = configSchema.parse(req.body);
 
@@ -98,9 +120,13 @@ router.put('/:orgId/frontend-config', async (req, res, next) => {
         });
         if (!org) throw new AppError('Organization not found', 404);
 
+        // Merge with existing config so partial updates don't wipe other fields
+        const existing = (org.frontendConfig as Record<string, any>) || {};
+        const merged = { ...existing, ...config };
+
         const updated = await prisma.organization.update({
             where: { id: org.id },
-            data: { frontendConfig: config },
+            data: { frontendConfig: merged },
         });
         res.json({ success: true, data: updated.frontendConfig });
     } catch (err) { next(err); }

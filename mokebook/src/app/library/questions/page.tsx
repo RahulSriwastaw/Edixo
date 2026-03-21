@@ -73,7 +73,7 @@ export default function LibraryQuestionsPage() {
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
           <header className="bg-white border-b p-3 md:p-4 sticky top-0 z-20 shadow-sm">
             <div className="max-w-5xl mx-auto space-y-4">
               <div className="flex items-center gap-3">

@@ -63,8 +63,8 @@ app.use(cors({
 
         // 3. Check Database for Custom Domains or Subdomains
         try {
-            // Trim protocol and slash for comparison if needed, but origins usually include protocol
-            const domain = origin.replace(/^https?:\/\//, "").replace(/\/$/, "");
+            // Trim protocol and port for comparison
+            const domain = origin.replace(/^https?:\/\//, "").split(':')[0].replace(/\/$/, "");
             
             const org = await prisma.organization.findFirst({
                 where: {

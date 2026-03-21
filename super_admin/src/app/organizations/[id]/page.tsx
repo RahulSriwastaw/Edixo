@@ -159,6 +159,25 @@ function OrganizationDetailInner() {
 
   const [saving, setSaving] = useState(false);
 
+  // ── Mockbook Frontend Config State ────────────────────────────
+  const [frontendConfig, setFrontendConfig] = useState<any>(null);
+  const [fcSaving, setFcSaving] = useState(false);
+  // banners
+  const [banners, setBanners] = useState<any[]>([]);
+  // quick links
+  const [quickLinks, setQuickLinks] = useState<any[]>([]);
+  // hero
+  const [heroText, setHeroText] = useState('');
+  const [heroSubText, setHeroSubText] = useState('');
+  const [stats, setStats] = useState<{label: string, value: string}[]>([]);
+  // faqs
+  const [faqs, setFaqs] = useState<{q: string, a: string}[]>([]);
+  // testimonials
+  const [testimonials, setTestimonials] = useState<{name: string, role: string, text: string, avatar: string}[]>([]);
+  // why section
+  const [whyTitle, setWhyTitle] = useState('Why Choose Us?');
+  const [whyItems, setWhyItems] = useState<{icon: string, title: string, desc: string}[]>([]);
+
   useEffect(() => {
     fetchAllData();
   }, [orgId]);
@@ -169,9 +188,56 @@ function OrganizationDetailInner() {
       fetchOrgDetails(),
       fetchStaff(),
       fetchStudents(),
-      fetchAuditLogs()
+      fetchAuditLogs(),
+      fetchFrontendConfig(),
     ]);
     setLoading(false);
+  };
+
+  const fetchFrontendConfig = async () => {
+    try {
+      const res = await fetch(`http://localhost:4000/api/organizations/public/${orgId}`);
+      const data = await res.json();
+      if (data.success && data.data.frontendConfig) {
+        const fc = data.data.frontendConfig;
+        setFrontendConfig(fc);
+        setBanners(fc.promoBanners || []);
+        setQuickLinks(fc.quickLinks || []);
+        setHeroText(fc.heroText || '');
+        setHeroSubText(fc.heroSubText || '');
+        setStats(fc.stats || []);
+        setFaqs(fc.faqs || []);
+        setTestimonials(fc.testimonials || []);
+        setWhyTitle(fc.whySection?.title || 'Why Choose Us?');
+        setWhyItems(fc.whySection?.items || []);
+      }
+    } catch (err) { console.error('Failed to load frontend config', err); }
+  };
+
+  const handleSaveFrontendConfig = async () => {
+    setFcSaving(true);
+    try {
+      const token = document.cookie.split('sb_token=')[1]?.split(';')[0];
+      const payload = {
+        promoBanners: banners,
+        quickLinks,
+        heroText,
+        heroSubText,
+        stats,
+        faqs,
+        testimonials,
+        whySection: { title: whyTitle, items: whyItems },
+      };
+      const res = await fetch(`http://localhost:4000/api/organizations/${orgId}/frontend-config`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      if (data.success) { toast.success('Mockbook config saved!'); }
+      else toast.error(data.message || 'Failed to save config');
+    } catch { toast.error('Connection error'); }
+    finally { setFcSaving(false); }
   };
 
   const fetchOrgDetails = async () => {
@@ -493,6 +559,9 @@ function OrganizationDetailInner() {
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
                   Settings
+                </TabsTrigger>
+                <TabsTrigger value="mockbook-config" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
+                  📱 Mockbook Config
                 </TabsTrigger>
               </TabsList>
 
@@ -1230,6 +1299,191 @@ function OrganizationDetailInner() {
                       </div>
                     </CardContent>
                   </Card>
+                </div>
+              </TabsContent>
+
+              {/* ── MOCKBOOK CONFIG TAB ───────────────────────────────── */}
+              <TabsContent value="mockbook-config" className="mt-6">
+                <div className="space-y-6">
+
+                  {/* Hero Section */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Hero Section</CardTitle>
+                      <CardDescription>Greeting text shown to logged-in students</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Hero Heading</Label>
+                        <Input value={heroText} onChange={e => setHeroText(e.target.value)} placeholder="Ready to level up? 🚀" className="input-field" />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Hero Sub Text</Label>
+                        <Input value={heroSubText} onChange={e => setHeroSubText(e.target.value)} placeholder="Today is a great day to attempt a Full-Length Mock." className="input-field" />
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Stats */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div><CardTitle>Platform Stats</CardTitle><CardDescription>Shown below the hero section</CardDescription></div>
+                      <Button className="btn-primary" size="sm" onClick={() => setStats(s => [...s, { label: '', value: '' }])}>
+                        + Add Stat
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {stats.map((stat, i) => (
+                        <div key={i} className="flex gap-2 items-center">
+                          <Input placeholder="Label" value={stat.label} onChange={e => setStats(s => s.map((x, j) => j===i ? {...x, label: e.target.value} : x))} className="input-field" />
+                          <Input placeholder="Value (e.g. 50K+)" value={stat.value} onChange={e => setStats(s => s.map((x, j) => j===i ? {...x, value: e.target.value} : x))} className="input-field" />
+                          <Button variant="outline" size="icon" className="text-red-500 border-red-200 shrink-0" onClick={() => setStats(s => s.filter((_,j)=>j!==i))}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {stats.length === 0 && <p className="text-sm text-gray-400">No stats added. Click &quot;Add Stat&quot; to add one.</p>}
+                    </CardContent>
+                  </Card>
+
+                  {/* Promo Banners */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div><CardTitle>Promo Banners</CardTitle><CardDescription>Rotating banners on the test series page</CardDescription></div>
+                      <Button className="btn-primary" size="sm" onClick={() => setBanners(b => [...b, { id: `banner-${Date.now()}`, title: '', subtitle: '', badgeText: '', ctaText: 'Explore', linkUrl: '/tests', gradient: 'from-violet-600 via-purple-600 to-blue-600' }])}>
+                        + Add Banner
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {banners.map((b, i) => (
+                        <div key={b.id} className="border border-gray-200 rounded-xl p-4 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold text-gray-700">Banner {i+1}</span>
+                            <Button variant="ghost" size="sm" className="text-red-500 h-7" onClick={() => setBanners(prev => prev.filter((_,j)=>j!==i))}>Remove</Button>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div><Label className="text-xs">Title</Label><Input value={b.title} onChange={e => setBanners(prev => prev.map((x,j)=>j===i?{...x,title:e.target.value}:x))} className="input-field mt-1" /></div>
+                            <div><Label className="text-xs">Badge Text</Label><Input value={b.badgeText} onChange={e => setBanners(prev => prev.map((x,j)=>j===i?{...x,badgeText:e.target.value}:x))} className="input-field mt-1" /></div>
+                            <div><Label className="text-xs">Subtitle</Label><Input value={b.subtitle} onChange={e => setBanners(prev => prev.map((x,j)=>j===i?{...x,subtitle:e.target.value}:x))} className="input-field mt-1" /></div>
+                            <div><Label className="text-xs">CTA Button Text</Label><Input value={b.ctaText} onChange={e => setBanners(prev => prev.map((x,j)=>j===i?{...x,ctaText:e.target.value}:x))} className="input-field mt-1" /></div>
+                            <div><Label className="text-xs">Link URL</Label><Input value={b.linkUrl} onChange={e => setBanners(prev => prev.map((x,j)=>j===i?{...x,linkUrl:e.target.value}:x))} className="input-field mt-1" /></div>
+                            <div><Label className="text-xs">Gradient (Tailwind)</Label><Input value={b.gradient} onChange={e => setBanners(prev => prev.map((x,j)=>j===i?{...x,gradient:e.target.value}:x))} placeholder="from-violet-600 via-purple-600 to-blue-600" className="input-field mt-1" /></div>
+                          </div>
+                          <div className={`h-8 rounded-lg bg-gradient-to-br ${b.gradient || 'from-violet-600 to-blue-600'}`} />
+                        </div>
+                      ))}
+                      {banners.length === 0 && <p className="text-sm text-gray-400">No banners. Default banners will be shown to students.</p>}
+                    </CardContent>
+                  </Card>
+
+                  {/* Quick Links */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div><CardTitle>Quick Links</CardTitle><CardDescription>Icon shortcuts shown below banners</CardDescription></div>
+                      <Button className="btn-primary" size="sm" onClick={() => setQuickLinks(q => [...q, { id: `ql-${Date.now()}`, icon: '📝', label: '', linkUrl: '/tests' }])}>
+                        + Add Link
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {quickLinks.map((ql, i) => (
+                        <div key={ql.id} className="flex gap-2 items-center">
+                          <Input placeholder="Icon (emoji)" value={ql.icon} onChange={e => setQuickLinks(q => q.map((x,j)=>j===i?{...x,icon:e.target.value}:x))} className="input-field w-20" />
+                          <Input placeholder="Label" value={ql.label} onChange={e => setQuickLinks(q => q.map((x,j)=>j===i?{...x,label:e.target.value}:x))} className="input-field" />
+                          <Input placeholder="URL" value={ql.linkUrl} onChange={e => setQuickLinks(q => q.map((x,j)=>j===i?{...x,linkUrl:e.target.value}:x))} className="input-field" />
+                          <Button variant="outline" size="icon" className="text-red-500 border-red-200 shrink-0" onClick={() => setQuickLinks(q => q.filter((_,j)=>j!==i))}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {quickLinks.length === 0 && <p className="text-sm text-gray-400">No quick links. Default links will be shown.</p>}
+                    </CardContent>
+                  </Card>
+
+                  {/* Why Us Section */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div><CardTitle>Why Choose Us</CardTitle><CardDescription>Trust-building section shown on the test series page</CardDescription></div>
+                      <Button className="btn-primary" size="sm" onClick={() => setWhyItems(w => [...w, { icon: '🏆', title: '', desc: '' }])}>
+                        + Add Item
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Section Title</Label>
+                        <Input value={whyTitle} onChange={e => setWhyTitle(e.target.value)} className="input-field" />
+                      </div>
+                      {whyItems.map((item, i) => (
+                        <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500">Item {i+1}</span>
+                            <Button variant="ghost" size="sm" className="text-red-500 h-6 text-xs" onClick={() => setWhyItems(w => w.filter((_,j)=>j!==i))}>Remove</Button>
+                          </div>
+                          <div className="flex gap-2">
+                            <Input placeholder="Icon" value={item.icon} onChange={e => setWhyItems(w => w.map((x,j)=>j===i?{...x,icon:e.target.value}:x))} className="input-field w-20" />
+                            <Input placeholder="Title" value={item.title} onChange={e => setWhyItems(w => w.map((x,j)=>j===i?{...x,title:e.target.value}:x))} className="input-field" />
+                          </div>
+                          <Input placeholder="Description" value={item.desc} onChange={e => setWhyItems(w => w.map((x,j)=>j===i?{...x,desc:e.target.value}:x))} className="input-field" />
+                        </div>
+                      ))}
+                    </CardContent>
+                  </Card>
+
+                  {/* Testimonials */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div><CardTitle>Student Testimonials</CardTitle><CardDescription>Shown as social proof to students</CardDescription></div>
+                      <Button className="btn-primary" size="sm" onClick={() => setTestimonials(t => [...t, { name: '', role: '', text: '', avatar: '' }])}>
+                        + Add Testimonial
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {testimonials.map((t, i) => (
+                        <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500">Testimonial {i+1}</span>
+                            <Button variant="ghost" size="sm" className="text-red-500 h-6 text-xs" onClick={() => setTestimonials(prev => prev.filter((_,j)=>j!==i))}>Remove</Button>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2">
+                            <Input placeholder="Student Name" value={t.name} onChange={e => setTestimonials(prev => prev.map((x,j)=>j===i?{...x,name:e.target.value}:x))} className="input-field" />
+                            <Input placeholder="Role (e.g., SSC CGL 2025 Qualifier)" value={t.role} onChange={e => setTestimonials(prev => prev.map((x,j)=>j===i?{...x,role:e.target.value}:x))} className="input-field" />
+                          </div>
+                          <Input placeholder="Testimonial text..." value={t.text} onChange={e => setTestimonials(prev => prev.map((x,j)=>j===i?{...x,text:e.target.value}:x))} className="input-field" />
+                          <Input placeholder="Avatar URL (optional)" value={t.avatar} onChange={e => setTestimonials(prev => prev.map((x,j)=>j===i?{...x,avatar:e.target.value}:x))} className="input-field" />
+                        </div>
+                      ))}
+                      {testimonials.length === 0 && <p className="text-sm text-gray-400">No testimonials added.</p>}
+                    </CardContent>
+                  </Card>
+
+                  {/* FAQs */}
+                  <Card>
+                    <CardHeader className="flex flex-row items-center justify-between">
+                      <div><CardTitle>FAQs</CardTitle><CardDescription>Frequently Asked Questions shown at the bottom of Test Series page</CardDescription></div>
+                      <Button className="btn-primary" size="sm" onClick={() => setFaqs(f => [...f, { q: '', a: '' }])}>
+                        + Add FAQ
+                      </Button>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      {faqs.map((faq, i) => (
+                        <div key={i} className="border border-gray-100 rounded-xl p-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-gray-500">Q{i+1}</span>
+                            <Button variant="ghost" size="sm" className="text-red-500 h-6 text-xs" onClick={() => setFaqs(f => f.filter((_,j)=>j!==i))}>Remove</Button>
+                          </div>
+                          <Input placeholder="Question" value={faq.q} onChange={e => setFaqs(f => f.map((x,j)=>j===i?{...x,q:e.target.value}:x))} className="input-field" />
+                          <Input placeholder="Answer" value={faq.a} onChange={e => setFaqs(f => f.map((x,j)=>j===i?{...x,a:e.target.value}:x))} className="input-field" />
+                        </div>
+                      ))}
+                      {faqs.length === 0 && <p className="text-sm text-gray-400">No FAQs added.</p>}
+                    </CardContent>
+                  </Card>
+
+                  {/* Save Button */}
+                  <div className="flex justify-end">
+                    <Button className="btn-primary h-12 px-10" onClick={handleSaveFrontendConfig} disabled={fcSaving}>
+                      {fcSaving ? 'Saving...' : 'Save Mockbook Config'}
+                    </Button>
+                  </div>
                 </div>
               </TabsContent>
             </Tabs>

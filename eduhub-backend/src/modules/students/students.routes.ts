@@ -136,7 +136,7 @@ router.get('/me', async (req, res, next) => {
         if (!req.user) throw new AppError('Unauthorized', 401);
         
         const student = await prisma.student.findFirst({
-            where: { userId: (req.user as any).id },
+            where: { userId: (req.user as any).userId },
             include: {
                 batchEnrollments: { include: { batch: true } },
             },
@@ -165,7 +165,7 @@ router.patch('/me', async (req, res, next) => {
         });
         const body = schema.parse(req.body);
 
-        const student = await prisma.student.findFirst({ where: { userId: (req.user as any).id } });
+        const student = await prisma.student.findFirst({ where: { userId: (req.user as any).userId } });
         if (!student) throw new AppError('Student profile not found', 404);
 
         const updated = await prisma.student.update({
@@ -180,7 +180,7 @@ router.patch('/me', async (req, res, next) => {
         // Also update User mobile if provided
         if (body.phone) {
             await prisma.user.update({
-                where: { id: (req.user as any).id },
+                where: { id: (req.user as any).userId },
                 data: { mobile: body.phone }
             });
         }
