@@ -1357,7 +1357,7 @@ router.get('/attempts/:attemptId/report', authenticate, async (req, res, next) =
         const student = await prisma.student.findFirst({ where: { userId: user.userId } });
         if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
 
-        const attemptId = req.params.attemptId;
+        const attemptId = req.params.attemptId as string;
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: attemptId },
             include: {
