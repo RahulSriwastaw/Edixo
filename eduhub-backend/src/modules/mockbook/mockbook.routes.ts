@@ -657,8 +657,8 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
 router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
     try {
         const user = (req as any).user;
-        const student = await prisma.student.findFirst({ where: { userId: user.id } });
-        if (!student) return res.status(403).json({ success: false, message: 'Not a student' });
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
 
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: req.params.attemptId as any },
@@ -1351,8 +1351,12 @@ router.get('/analytics/student/:studentId/overall', async (req, res, next) => {
 });
 
 // GET /mockbook/attempts/:attemptId/report — detailed post-test single attempt report
-router.get('/attempts/:attemptId/report', async (req, res, next) => {
+router.get('/attempts/:attemptId/report', authenticate, async (req, res, next) => {
     try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
+
         const attemptId = req.params.attemptId;
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: attemptId },
@@ -1371,7 +1375,7 @@ router.get('/attempts/:attemptId/report', async (req, res, next) => {
             }
         }) as any;
 
-        if (!attempt) return res.status(404).json({ success: false, message: "Attempt not found" });
+        if (!attempt || attempt.studentId !== student.id) return res.status(404).json({ success: false, message: "Attempt not found or unauthorized" });
 
         let correct = 0, incorrect = 0, unattempted = 0;
         let totalTime = 0;
