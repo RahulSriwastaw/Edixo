@@ -626,34 +626,6 @@ router.get('/dashboard', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ─── GET /api/qbank/sets ─────────────────────────────────────
-router.get('/sets', async (req, res, next) => {
-    try {
-        const org = await prisma.organization.findFirst({ where: { orgId: req.user!.orgId } });
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
-        const sets = await prisma.questionSet.findMany({
-            where: isSuperAdmin ? {} : { orgId: org?.id },
-            include: { _count: { select: { items: true } } },
-            orderBy: { createdAt: 'desc' }
-        });
-
-        const formattedSets = sets.map(s => ({
-            id: s.id,
-            name: s.name,
-            code: s.setId,
-            password: s.pin,
-            subject: 'Multiple',
-            questions: s._count.items,
-            visibility: 'org_only',
-            usedBy: 0,
-            created: s.createdAt?.toLocaleDateString('en-IN') || 'N/A'
-        }));
-
-        res.json({ success: true, data: { sets: formattedSets, total: sets.length } });
-    } catch (err) { next(err); }
-});
-
 // ─── GET /api/qbank/usage-logs ───────────────────────────────
 router.get('/usage-logs', async (req, res, next) => {
     try {

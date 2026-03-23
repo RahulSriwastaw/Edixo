@@ -1,6 +1,6 @@
 "use client";
 
-import type { CanvasElement } from "../hooks/useExportStudio";
+import { useExportStudio, type CanvasElement } from "../hooks/useExportStudio";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -29,6 +29,19 @@ const maskShapes = [
 ];
 
 export function ImageProperties({ element }: Props) {
+  const { updateElement } = useExportStudio();
+
+  const handleChange = (field: string, value: unknown) => {
+    if (field.startsWith("style.")) {
+      const styleField = field.split(".")[1];
+      updateElement(element.id, {
+        style: { ...element.style, [styleField]: value },
+      });
+    } else {
+      updateElement(element.id, { [field]: value });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <h3 className="text-sm font-semibold text-gray-800">Image Properties</h3>
@@ -91,7 +104,8 @@ export function ImageProperties({ element }: Props) {
             type="range"
             min={0}
             max={100}
-            defaultValue={Math.round(element.opacity * 100)}
+            value={Math.round(element.opacity * 100)}
+            onChange={(e) => handleChange("opacity", parseInt(e.target.value) / 100)}
             className="w-full"
           />
         </div>
@@ -161,19 +175,39 @@ export function ImageProperties({ element }: Props) {
         <div className="grid grid-cols-2 gap-2">
           <div className="space-y-1">
             <span className="text-[10px] text-gray-400">X</span>
-            <Input type="number" value={Math.round(element.position.x)} className="h-8 text-sm" />
+            <Input
+              type="number"
+              value={Math.round(element.position.x)}
+              onChange={(e) => updateElement(element.id, { position: { ...element.position, x: parseInt(e.target.value) } })}
+              className="h-8 text-sm"
+            />
           </div>
           <div className="space-y-1">
             <span className="text-[10px] text-gray-400">Y</span>
-            <Input type="number" value={Math.round(element.position.y)} className="h-8 text-sm" />
+            <Input
+              type="number"
+              value={Math.round(element.position.y)}
+              onChange={(e) => updateElement(element.id, { position: { ...element.position, y: parseInt(e.target.value) } })}
+              className="h-8 text-sm"
+            />
           </div>
           <div className="space-y-1">
             <span className="text-[10px] text-gray-400">Width</span>
-            <Input type="number" value={Math.round(element.size.width)} className="h-8 text-sm" />
+            <Input
+              type="number"
+              value={Math.round(element.size.width)}
+              onChange={(e) => updateElement(element.id, { size: { ...element.size, width: parseInt(e.target.value) } })}
+              className="h-8 text-sm"
+            />
           </div>
           <div className="space-y-1">
             <span className="text-[10px] text-gray-400">Height</span>
-            <Input type="number" value={Math.round(element.size.height)} className="h-8 text-sm" />
+            <Input
+              type="number"
+              value={Math.round(element.size.height)}
+              onChange={(e) => updateElement(element.id, { size: { ...element.size, height: parseInt(e.target.value) } })}
+              className="h-8 text-sm"
+            />
           </div>
         </div>
       </div>

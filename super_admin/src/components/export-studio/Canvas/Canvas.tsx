@@ -107,17 +107,20 @@ export function Canvas() {
 
         <div className="h-full flex items-center gap-2 overflow-x-auto flex-1">
           {pages.map((page, index) => (
-            <button
+            <div
               key={page.id}
               onClick={() => setCurrentPage(index)}
-              className={`relative flex-shrink-0 w-12 h-16 rounded border-2 transition-all ${
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === "Enter" && setCurrentPage(index)}
+              className={`relative flex-shrink-0 w-12 h-16 rounded border-2 transition-all cursor-pointer ${
                 index === currentPageIndex
                   ? "border-[#F4511E] ring-2 ring-orange-200"
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
               {/* Thumbnail preview */}
-              <div className="absolute inset-1 bg-white rounded-sm overflow-hidden">
+              <div className="absolute inset-1 bg-white rounded-sm overflow-hidden pointer-events-none">
                 {/* Mini elements */}
                 {page.elements.slice(0, 5).map((el, i) => (
                   <div
@@ -153,12 +156,12 @@ export function Canvas() {
                     e.stopPropagation();
                     deletePage(index);
                   }}
-                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
+                  className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-red-500 text-white flex items-center justify-center hover:bg-red-600 transition-colors z-10"
                 >
                   <Trash2 className="w-2.5 h-2.5" />
                 </button>
               )}
-            </button>
+            </div>
           ))}
         </div>
 

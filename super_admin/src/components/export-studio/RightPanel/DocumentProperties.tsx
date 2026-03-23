@@ -53,7 +53,7 @@ export function DocumentProperties() {
       <div className="space-y-1.5">
         <Label className="text-xs text-gray-500">Background Color</Label>
         <div className="flex gap-2">
-          <Input type="color" value="#ffffff" className="w-10 h-9 p-1" />
+          <Input type="color" value="#ffffff" onChange={() => {}} className="w-10 h-9 p-1" />
           <Input value="#FFFFFF" className="flex-1 h-9 text-sm font-mono" readOnly />
         </div>
       </div>

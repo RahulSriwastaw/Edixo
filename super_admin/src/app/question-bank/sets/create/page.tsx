@@ -439,16 +439,21 @@ function CreateSetContent() {
                   description: description || "",
                   subject: "General",
                   chapter: "General",
-                  questions: questions.map((q, index) => ({
-                    id: q.id,
-                    text: stripHtml(q.question_eng || q.question_hin || ''),
-                    difficulty: q.difficulty,
-                    type: q.type,
-                    options: [q.option1_eng, q.option2_eng, q.option3_eng, q.option4_eng].filter(Boolean) as string[],
-                    answer: q.answer,
-                    explanation: stripHtml(q.solution_eng || q.solution_hin || ''),
-                    marks: 2,
-                  })),
+                  questions: questions.map((q, index) => {
+                    const mappedOptions = q.options?.length ? q.options : [];
+                    const correctIndex = mappedOptions.findIndex((opt:any) => opt.isCorrect);
+                    const answerChar = correctIndex >= 0 ? String.fromCharCode(65 + correctIndex) : undefined;
+                    return {
+                      id: q.id,
+                      text: stripHtml(q.question_eng || q.question_hin || ''),
+                      difficulty: q.difficulty,
+                      type: q.type,
+                      options: mappedOptions.map((opt:any) => stripHtml(opt.textEn || opt.textHi || '')),
+                      answer: answerChar,
+                      explanation: stripHtml(q.solution_eng || q.solution_hin || ''),
+                      marks: q.pointCost || 2,
+                    };
+                  }),
                 }}
               />
             </div>

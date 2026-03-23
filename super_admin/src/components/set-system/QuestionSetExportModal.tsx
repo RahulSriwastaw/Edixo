@@ -139,6 +139,7 @@ export function QuestionSetExportModal({
 }: QuestionSetExportModalProps) {
   // Export state
   const [selectedFormat, setSelectedFormat] = useState<string>("pdf");
+  const [selectedCloudFormat, setSelectedCloudFormat] = useState<string>("canva");
   const [activeTab, setActiveTab] = useState<string>("download");
   const [isExporting, setIsExporting] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -824,7 +825,7 @@ export function QuestionSetExportModal({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] p-0 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b bg-gradient-to-r from-[#F4511E]/5 to-[#1E3A5F]/5">
           <div>
@@ -842,7 +843,7 @@ export function QuestionSetExportModal({
         </div>
 
         {/* Content */}
-        <div className="flex flex-col h-[calc(90vh-130px)]">
+        <div className="flex-1 overflow-hidden flex flex-col">
           {isExporting ? (
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
@@ -913,18 +914,23 @@ export function QuestionSetExportModal({
                     {cloudFormats.map((format) => (
                       <button
                         key={format.id}
-                        onClick={() => {
-                          if (format.id === "canva") {
-                            handleCanvaExport();
-                          } else {
-                            handleGoogleExport(format.id);
-                          }
-                        }}
-                        className="w-full flex items-center gap-3 p-2.5 rounded-lg border border-gray-200 hover:border-[#F4511E] hover:bg-orange-50 transition-all bg-white"
+                        onClick={() => setSelectedCloudFormat(format.id)}
+                        className={cn(
+                          "w-full flex items-center gap-3 p-2.5 rounded-lg border text-left transition-all",
+                          selectedCloudFormat === format.id
+                            ? "border-[#F4511E] bg-orange-50"
+                            : "border-gray-200 hover:border-gray-300 bg-white"
+                        )}
                       >
-                        <format.icon className="w-4 h-4 text-gray-500" />
+                        <format.icon className={cn(
+                          "w-4 h-4",
+                          selectedCloudFormat === format.id ? "text-[#F4511E]" : "text-gray-500"
+                        )} />
                         <div className="text-left">
-                          <div className="text-sm font-medium text-gray-700">
+                          <div className={cn(
+                            "text-sm font-medium",
+                            selectedCloudFormat === format.id ? "text-[#F4511E]" : "text-gray-700"
+                          )}>
                             {format.label}
                             {format.isNew && (
                               <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">NEW</span>
@@ -1477,22 +1483,39 @@ export function QuestionSetExportModal({
         </div>
 
         {/* Footer */}
-        {!isExporting && !isComplete && activeTab === "download" && (
-          <div className="flex justify-between items-center p-4 border-t bg-gray-50">
+        {!isExporting && !isComplete && (
+          <div className="flex justify-between items-center p-4 border-t bg-gray-50 shrink-0">
             <div className="text-sm text-gray-500">
-              {questionSet.questions.length} questions • {selectedFormat.toUpperCase()} format
+              {activeTab === "download" ? (
+                <>{questionSet.questions.length} questions • {selectedFormat.toUpperCase()} format</>
+              ) : (
+                <>{questionSet.questions.length} questions • {cloudFormats.find(f => f.id === selectedCloudFormat)?.label} Export</>
+              )}
             </div>
             <div className="flex gap-3">
               <Button variant="outline" onClick={handleClose}>
                 Cancel
               </Button>
-              <Button
-                className="bg-[#F4511E] hover:bg-[#E64A19] gap-2"
-                onClick={handleExport}
-              >
-                <Download className="w-4 h-4" />
-                Export {exportFormats.find(f => f.id === selectedFormat)?.label || "PDF"}
-              </Button>
+              {activeTab === "download" ? (
+                <Button
+                  className="bg-[#F4511E] hover:bg-[#E64A19] gap-2"
+                  onClick={handleExport}
+                >
+                  <Download className="w-4 h-4" />
+                  Download {exportFormats.find(f => f.id === selectedFormat)?.label || "PDF"}
+                </Button>
+              ) : (
+                <Button
+                  className="bg-[#F4511E] hover:bg-[#E64A19] gap-2"
+                  onClick={() => {
+                    if (selectedCloudFormat === "canva") handleCanvaExport();
+                    else handleGoogleExport(selectedCloudFormat);
+                  }}
+                >
+                  <Globe className="w-4 h-4" />
+                  Edit with {cloudFormats.find(f => f.id === selectedCloudFormat)?.label || "Canva"}
+                </Button>
+              )}
             </div>
           </div>
         )}

@@ -199,6 +199,7 @@ export function TextProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.position.x)}
+              onChange={(e) => handleChange("position.x", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -207,6 +208,7 @@ export function TextProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.position.y)}
+              onChange={(e) => handleChange("position.y", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -215,6 +217,7 @@ export function TextProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.size.width)}
+              onChange={(e) => handleChange("size.width", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -223,6 +226,7 @@ export function TextProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.size.height)}
+              onChange={(e) => handleChange("size.height", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -233,6 +237,7 @@ export function TextProperties({ element }: Props) {
             <Input
               type="number"
               value={element.rotation}
+              onChange={(e) => handleChange("rotation", parseInt(e.target.value))}
               className="h-8 text-sm"
               min={-360}
               max={360}
@@ -243,6 +248,7 @@ export function TextProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.opacity * 100)}
+              onChange={(e) => handleChange("opacity", parseInt(e.target.value) / 100)}
               className="h-8 text-sm"
               min={0}
               max={100}

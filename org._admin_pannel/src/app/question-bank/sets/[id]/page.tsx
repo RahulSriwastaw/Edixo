@@ -235,9 +235,11 @@ export default function SetDetailPage() {
                       <Button variant="outline" onClick={() => setShowShareModal(true)}>
                         <Share2 className="w-4 h-4 mr-2" /> Share
                       </Button>
-                      <Button variant="outline" onClick={() => setShowExportModal(true)}>
-                        <Download className="w-4 h-4 mr-2" /> Export
-                      </Button>
+                      <Link href={`/question-bank/sets/${setId}/export`}>
+                        <Button variant="outline">
+                          <Download className="w-4 h-4 mr-2" /> Export
+                        </Button>
+                      </Link>
                       <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
                         <Trash2 className="w-4 h-4 mr-2" /> Delete
                       </Button>
@@ -511,31 +513,7 @@ export default function SetDetailPage() {
         />
       )}
 
-      {/* Export Modal */}
-      {data && (
-        <QuestionSetExportModal
-          open={showExportModal}
-          onOpenChange={setShowExportModal}
-          questionSet={{
-            id: data?.id,
-            set_code: data?.code,
-            name: data?.name,
-            description: data?.description || "",
-            subject: data?.subject,
-            chapter: data?.chapter || "",
-            questions: questions.map((q: any) => ({
-              id: q.id,
-              text: q.question_eng || q.question_hin || "",
-              difficulty: q.difficulty || "medium",
-              type: q.type || "mcq",
-              options: q.type === 'mcq' ? [q.option1_eng, q.option2_eng, q.option3_eng, q.option4_eng].filter(Boolean) : undefined,
-              answer: q.answer || '1',
-              explanation: q.solution_eng || 'No explanation available.',
-              marks: q.marks || 2,
-            })),
-          }}
-        />
-      )}
+
     </div>
   );
 }

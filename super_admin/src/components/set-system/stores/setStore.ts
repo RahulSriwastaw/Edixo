@@ -13,6 +13,7 @@ interface Question {
   pointCost: number;
   usageCount: number;
   answer: string;
+  options?: any[];
   option1_hin?: string;
   option1_eng?: string;
   option2_hin?: string;

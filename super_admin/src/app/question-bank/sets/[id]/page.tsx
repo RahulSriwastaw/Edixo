@@ -136,7 +136,10 @@ export default function SetDetailPage() {
               difficulty: item.question.difficulty?.toLowerCase() || 'medium',
               type: item.question.type === 'MCQ_SINGLE' ? 'mcq' :
                 item.question.type === 'MCQ_MULTIPLE' ? 'multi_select' :
-                  item.question.type === 'DESCRIPTIVE' ? 'integer' : 'mcq'
+                  item.question.type === 'DESCRIPTIVE' ? 'integer' : 'mcq',
+              options: item.question.options || [],
+              explanation: item.question.explanationEn || item.question.explanationHi || '',
+              marks: item.question.pointCost || 2
             })) || []
           });
         }
@@ -270,9 +273,11 @@ export default function SetDetailPage() {
                   <Button variant="outline" onClick={() => setShowShareModal(true)}>
                     <Share2 className="w-4 h-4 mr-2" /> Share
                   </Button>
-                  <Button variant="outline" onClick={() => setShowExportModal(true)}>
-                    <Download className="w-4 h-4 mr-2" /> Export
-                  </Button>
+                  <Link href={`/question-bank/sets/${setId}/export`}>
+                    <Button variant="outline">
+                      <Download className="w-4 h-4 mr-2" /> Export
+                    </Button>
+                  </Link>
                   <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
                     <Trash2 className="w-4 h-4 mr-2" /> Delete
                   </Button>
@@ -579,29 +584,7 @@ export default function SetDetailPage() {
         contentType="set"
       />
 
-      {/* Export Modal */}
-      <QuestionSetExportModal
-        open={showExportModal}
-        onOpenChange={setShowExportModal}
-        questionSet={{
-          id: setData.id,
-          set_code: setData.setId,
-          name: setData.name,
-          description: setData.description || "",
-          subject: "General",
-          chapter: "General",
-          questions: setData.questions?.map((q: any, index: number) => ({
-            id: q.id,
-            text: q.text,
-            difficulty: q.difficulty,
-            type: q.type,
-            options: q.type === 'mcq' ? ['Option A', 'Option B', 'Option C', 'Option D'] : undefined,
-            answer: q.type === 'mcq' ? 'A' : q.type === 'integer' ? '42' : undefined,
-            explanation: 'This is the explanation for the question.',
-            marks: 2,
-          })) || [],
-        }}
-      />
+
     </div>
   );
 }
