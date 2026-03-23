@@ -22,7 +22,7 @@ export const studentAppService = {
         const params = new URLSearchParams();
         if (orgId) params.set('orgId', orgId);
         if (search) params.set('search', search);
-        const res = await api.get(`/mockbook/admin/students?${params.toString()}`);
+        const res = await api.get(`/super-admin/mockbook/students?${params.toString()}`);
         return res.data || [];
     }
 };

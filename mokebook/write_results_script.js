@@ -1,3 +1,5 @@
+const fs = require('fs');
+const content = `
 "use client";
 
 import { useState, useEffect } from "react";
@@ -12,11 +14,7 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-  Cell
+  ResponsiveContainer
 } from "recharts";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -53,8 +51,9 @@ export default function TestbookAnalysisPage() {
   const [attemptData, setAttemptData] = useState<any>(null);
   const [reportData, setReportData] = useState<any>(null);
   const [allAttempts, setAllAttempts] = useState<any[]>([]);
-  const [chapterData, setChapterData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Helper flags
   const bestAttempt = allAttempts.reduce((prev, current) => (prev && prev.score > current.score) ? prev : current, null);
 
   useEffect(() => {
@@ -63,7 +62,7 @@ export default function TestbookAnalysisPage() {
         setLoading(true);
 
         if (attemptId === 'latest' && urlTestId) {
-            const myAttRes = await apiFetch(`/mockbook/tests/${urlTestId}/my-attempts`);
+            const myAttRes = await apiFetch(\`/mockbook/tests/\${urlTestId}/my-attempts\`);
             const attempts = myAttRes.data || [];
             if (attempts.length === 0) {
                setLoading(false);
@@ -72,26 +71,24 @@ export default function TestbookAnalysisPage() {
             const latest = attempts[attempts.length - 1];
             attemptId = latest.id;
             setAllAttempts(attempts);
-            router.replace(`/tests/results/${attemptId}`);
+            router.replace(\`/tests/results/\${attemptId}\`);
             return; 
         }
 
         if (attemptId && attemptId !== 'latest') {
-          const attRes = await apiFetch(`/mockbook/attempts/${attemptId}`);
+          const attRes = await apiFetch(\`/mockbook/attempts/\${attemptId}\`);
           const data = attRes.data;
           setAttemptData(data || null);
 
           if (data?.testId) {
-            const [lbRes, myAttRes, reportRes, chapterRes] = await Promise.all([
-              apiFetch(`/mockbook/${data.testId}/leaderboard`),
-              allAttempts.length > 0 ? Promise.resolve({data: allAttempts}) : apiFetch(`/mockbook/tests/${data.testId}/my-attempts`),
-              apiFetch(`/mockbook/attempts/${attemptId}/report`).catch(() => ({data: null})),
-              apiFetch(`/mockbook/attempts/${attemptId}/analytics/chapters`).catch(() => ({data: []}))
+            const [lbRes, myAttRes, reportRes] = await Promise.all([
+              apiFetch(\`/mockbook/\${data.testId}/leaderboard\`),
+              allAttempts.length > 0 ? Promise.resolve({data: allAttempts}) : apiFetch(\`/mockbook/tests/\${data.testId}/my-attempts\`),
+              apiFetch(\`/mockbook/attempts/\${attemptId}/report\`).catch(() => ({data: null}))
             ]);
             setLeaderboard(lbRes.data || []);
             setAllAttempts(myAttRes.data || []);
             setReportData(reportRes.data || null);
-            setChapterData(chapterRes.data || []);
           }
         }
       } catch (err) {
@@ -123,9 +120,9 @@ export default function TestbookAnalysisPage() {
       );
   }
 
-  const topperScore = leaderboard.length > 0 ? leaderboard[0].score : (attemptData.totalMarks || 50);
+  const topperScore = attemptData.topperScore || 0;
   const myScore = attemptData.score || 0;
-  const cutoff = attemptData.passingMarks || Math.round((attemptData.totalMarks || 50) * 0.4); 
+  const cutoff = 32; 
   const lessThanCutoff = Math.max(0, cutoff - myScore);
 
   return (
@@ -139,14 +136,14 @@ export default function TestbookAnalysisPage() {
            </div>
            <div className="flex items-center gap-4 text-xs font-bold text-gray-500">
               <button 
-                onClick={() => router.push(`/tests/instructions/${attemptData.testId}`)}
+                onClick={() => router.push(\`/tests/instructions/\${attemptData.testId}\`)}
                 className="flex items-center gap-1.5 text-[#1a73e8] bg-blue-50 px-3 py-1.5 rounded transition-colors hover:bg-blue-100"
               >
                   Reattempt This Test <ArrowRight className="h-3.5 w-3.5" />
               </button>
               <span className="hidden sm:inline border-r border-gray-300 pr-4">Rate this Test: <Star className="h-3 w-3 inline text-gray-300 ml-1"/><Star className="h-3 w-3 inline text-gray-300"/><Star className="h-3 w-3 inline text-gray-300"/><Star className="h-3 w-3 inline text-gray-300"/><Star className="h-3 w-3 inline text-gray-300"/></span>
               <button onClick={() => router.push('/tests')} className="hidden sm:inline hover:text-[#1a73e8]">Go to Tests</button>
-              <button onClick={() => router.push(`/tests/solutions/${attemptId}`)} className={cn("hidden sm:inline transition-colors hover:text-[#1a73e8]", activeTab === 'solutions' && "text-[#1a73e8]")}>Solutions</button>
+              <button onClick={() => setActiveTab('solutions')} className={cn("hidden sm:inline transition-colors hover:text-[#1a73e8]", activeTab === 'solutions' && "text-[#1a73e8]")}>Solutions</button>
            </div>
         </div>
       </div>
@@ -158,21 +155,18 @@ export default function TestbookAnalysisPage() {
                 {allAttempts.map((att) => {
                     const isBest = bestAttempt?.id === att.id && allAttempts.length > 1;
                     const isActive = att.id === attemptId;
-                    const isLatest = att.id === allAttempts[allAttempts.length - 1].id;
                     
                     return (
                        <button
                          key={att.id}
-                         onClick={() => router.replace(`/tests/results/${att.id}`)}
+                         onClick={() => router.replace(\`/tests/results/\${att.id}\`)}
                          className={cn(
-                            "px-6 py-3 text-xs font-bold font-sans transition-colors relative flex items-center gap-1.5",
+                            "px-6 py-3 text-xs font-bold font-sans transition-colors relative",
                             isActive ? "text-[#1a73e8]" : "text-gray-500 hover:text-gray-900 border-transparent",
                          )}
                        >
                          Attempt {att.attemptNumber}
-                         {isBest && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded ml-1 font-black uppercase tracking-widest flex items-center gap-0.5"><Star className="h-2 w-2 fill-emerald-600"/> Best</span>}
-                         {isLatest && !isBest && <span className="text-[10px] bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded ml-1 font-black uppercase tracking-widest">Latest</span>}
-                         
+                         {isBest && <Star className="h-2.5 w-2.5 inline text-emerald-500 ml-1 mb-0.5 fill-emerald-500"/>}
                          {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1a73e8]" />}
                        </button>
                     )
@@ -194,11 +188,11 @@ export default function TestbookAnalysisPage() {
                    </h3>
                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                        {[
-                           { val: `${attemptData.rank || 0} / ${Math.max(attemptData.totalStudents || 1, attemptData.rank || 1)}`, label: "Rank", color: "bg-pink-500", icon: Trophy, wrapper: "bg-pink-50" },
-                           { val: `${attemptData.score || 0} / ${attemptData.totalMarks || 0}`, label: "Score", color: "bg-purple-500", icon: Award, wrapper: "bg-purple-50" },
-                           { val: `${attemptData.attempted || 0} / ${attemptData.totalQuestions || 0}`, label: "Attempted", color: "bg-sky-500", icon: Zap, wrapper: "bg-sky-50" },
-                           { val: `${attemptData.accuracy || 0}%`, label: "Accuracy", color: "bg-emerald-500", icon: CheckCircle2, wrapper: "bg-emerald-50" },
-                           { val: `${attemptData.percentile || 0}%`, label: "Percentile", color: "bg-indigo-500", icon: TrendingUp, wrapper: "bg-indigo-50" }
+                           { val: \`\${attemptData.rank || 0} / \${Math.max(attemptData.totalStudents || 1, attemptData.rank || 1)}\`, label: "Rank", color: "bg-pink-500", icon: Trophy, wrapper: "bg-pink-50" },
+                           { val: \`\${attemptData.score || 0} / \${attemptData.totalMarks || 0}\`, label: "Score", color: "bg-purple-500", icon: Award, wrapper: "bg-purple-50" },
+                           { val: \`\${attemptData.attempted || 0} / \${attemptData.totalQuestions || 0}\`, label: "Attempted", color: "bg-sky-500", icon: Zap, wrapper: "bg-sky-50" },
+                           { val: \`\${attemptData.accuracy || 0}%\`, label: "Accuracy", color: "bg-emerald-500", icon: CheckCircle2, wrapper: "bg-emerald-50" },
+                           { val: \`\${attemptData.percentile || 0}%\`, label: "Percentile", color: "bg-indigo-500", icon: TrendingUp, wrapper: "bg-indigo-50" }
                        ].map((m, i) => (
                            <div key={i} className="flex flex-col items-center gap-3 text-center">
                                <div className={cn("w-12 h-12 rounded-full flex items-center justify-center relative", m.wrapper)}>
@@ -222,15 +216,11 @@ export default function TestbookAnalysisPage() {
                                <TrendingUp className="h-5 w-5" />
                            </div>
                            <div>
-                               <p className={cn("text-[10px] font-bold uppercase tracking-widest leading-none mb-1", myScore >= cutoff ? "text-emerald-600" : "text-gray-500")}>
-                                   Cutoff: {cutoff}
+                               <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest leading-none mb-1">
+                                   {cutoff} Cutoff Cleared
                                </p>
                                <h2 className="text-xl font-bold text-gray-800 tracking-tight">
-                                   {myScore >= cutoff ? (
-                                       <>You cleared the cutoff by <span className="text-emerald-500">{myScore - cutoff} Marks ▲</span> !</>
-                                   ) : (
-                                       <>You scored <span className="text-red-500">{cutoff - myScore} Marks ▼</span> less than cutoff !</>
-                                   )}
+                                   You scored <span className="text-red-500">{myScore} Marks ▼</span> less than cutoff !
                                </h2>
                            </div>
                        </div>
@@ -269,32 +259,11 @@ export default function TestbookAnalysisPage() {
                                       </TableRow>
                                   </TableHeader>
                                   <TableBody>
-                                      {attemptData?.sectionStats?.map((sec: any, i: number) => {
-                                          const attempted = sec.correct + sec.incorrect;
-                                          const total = attempted + sec.unattempted;
-                                          const score = parseFloat((sec.correct * 1 - sec.incorrect * 0.33).toFixed(2));
-                                          const acc = attempted > 0 ? Math.round((sec.correct / attempted) * 100) : 0;
-                                          return (
-                                              <TableRow key={i} className="bg-white">
-                                                  <TableCell className="font-bold text-gray-900 py-3">{sec.name}</TableCell>
-                                                  <TableCell className="py-3">
-                                                      <span className="font-bold text-gray-900">{score}</span>
-                                                  </TableCell>
-                                                  <TableCell className="font-bold text-gray-900 py-3">{attempted} <span className="text-gray-400">/ {total}</span></TableCell>
-                                                  <TableCell className="font-bold text-gray-900 py-3">{acc}%</TableCell>
-                                                  <TableCell className="font-bold text-gray-900 py-3">-</TableCell>
-                                              </TableRow>
-                                          );
-                                      })}
-                                      <TableRow className="bg-gray-50/50">
+                                      <TableRow className="bg-white">
                                           <TableCell className="font-bold text-gray-900 py-3">Overall</TableCell>
                                           <TableCell className="py-3">
                                               <span className="font-bold text-gray-900">{myScore}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span>
-                                              {(attemptData.passingMarks && attemptData.passingMarks > 0) && (
-                                                   <div className="text-[9px] flex items-center gap-1 mt-0.5 font-bold" style={{color: myScore >= (attemptData.passingMarks || 0) ? '#10b981' : '#ef4444'}}>
-                                                       <ArrowRight className="h-2 w-2 rotate-90" /> {attemptData.passingMarks} cut-off
-                                                   </div>
-                                              )}
+                                              <div className="text-[9px] text-red-500 flex items-center gap-1 mt-0.5 font-bold"><ArrowRight className="h-2 w-2 rotate-90" /> 32-35 cut-off</div>
                                           </TableCell>
                                           <TableCell className="font-bold text-gray-900 py-3">{attemptData.attempted || 0} <span className="text-gray-400">/ {attemptData.totalQuestions || 0}</span></TableCell>
                                           <TableCell className="font-bold text-gray-900 py-3">{attemptData.accuracy || 0}%</TableCell>
@@ -309,87 +278,21 @@ export default function TestbookAnalysisPage() {
                        </section>
 
                        <section>
-                           <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1 mb-4">
-                               Question Distribution <AlertCircle className="h-3 w-3 text-gray-400" />
-                           </h3>
-                           <div className="border border-gray-200 rounded p-4 h-[300px] relative bg-white">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  {attemptData?.sectionStats?.length > 0 ? (
-                                    <BarChart data={attemptData.sectionStats} margin={{ top: 20, right: 30, left: 0, bottom: 5 }}>
-                                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                      <XAxis dataKey="name" tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={{stroke: '#e2e8f0'}} tickLine={false} />
-                                      <YAxis allowDecimals={false} tick={{ fontSize: 10, fill: '#94a3b8', dx: -10 }} axisLine={{stroke: '#e2e8f0'}} tickLine={false} />
-                                      <Tooltip contentStyle={{ border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', fontSize: '11px', borderRadius: '4px' }} />
-                                      <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '10px' }} />
-                                      <Bar dataKey="correct" name="Correct" stackId="a" fill="#10b981" barSize={40} />
-                                      <Bar dataKey="incorrect" name="Wrong" stackId="a" fill="#ef4444" />
-                                      <Bar dataKey="unattempted" name="Unattempted" stackId="a" fill="#cbd5e1" radius={[4, 4, 0, 0]} />
-                                    </BarChart>
-                                  ) : (
-                                    <div className="h-full flex items-center justify-center text-xs text-slate-400 font-semibold italic">
-                                      Not enough data available.
-                                    </div>
-                                  )}
-                                </ResponsiveContainer>
-                           </div>
-                       </section>
-
-                       {chapterData && chapterData.length > 0 && (
-                            <section>
-                                <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1 mb-4">
-                                    Chapter-wise Analysis <AlertCircle className="h-3 w-3 text-gray-400" />
-                                </h3>
-                                <div className="overflow-hidden border border-gray-200 rounded text-xs select-none">
-                                    <Table>
-                                        <TableHeader className="bg-gray-50/80">
-                                            <TableRow>
-                                                <TableHead className="font-bold text-gray-500 uppercase py-2.5 text-[10px]">Chapter</TableHead>
-                                                <TableHead className="font-bold text-gray-500 uppercase py-2.5 text-[10px]">Total</TableHead>
-                                                <TableHead className="font-bold text-gray-500 uppercase py-2.5 text-[10px]">Correct</TableHead>
-                                                <TableHead className="font-bold text-gray-500 uppercase py-2.5 text-[10px]">Wrong</TableHead>
-                                                <TableHead className="font-bold text-gray-500 uppercase py-2.5 text-[10px]">Accuracy</TableHead>
-                                                <TableHead className="font-bold text-gray-500 uppercase py-2.5 text-[10px]">Time</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {chapterData.map((chap, i) => (
-                                                <TableRow key={i} className="bg-white">
-                                                    <TableCell className="font-bold text-gray-900 py-3">{chap.name}</TableCell>
-                                                    <TableCell className="font-bold text-gray-900 py-3">{chap.total}</TableCell>
-                                                    <TableCell className="font-bold text-emerald-600 py-3">{chap.correct}</TableCell>
-                                                    <TableCell className="font-bold text-red-500 py-3">{chap.incorrect}</TableCell>
-                                                    <TableCell className="font-bold text-gray-900 py-3">{chap.accuracy}%</TableCell>
-                                                    <TableCell className="font-bold text-gray-900 py-3">
-                                                        {Math.floor((chap.timeSpentSecs || 0)/60).toString().padStart(2,'0')}:
-                                                        {((chap.timeSpentSecs || 0)%60).toString().padStart(2,'0')} 
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-                            </section>
-                        )}
-
-                        <section>
                            <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1 mb-6">
                                Rank Predictor <AlertCircle className="h-3 w-3 text-gray-400" />
                            </h3>
                            <div className="border border-gray-100 rounded p-8 bg-white relative mt-10 shadow-sm">
                                
                                <div className="w-full h-1 bg-gray-200 relative mt-4">
-                                  {[0, 0.2, 0.4, 0.6, 0.8, 1].map((ratio) => {
-                                      const t = Math.round(ratio * (attemptData.totalMarks || 100));
-                                      return (
-                                        <div key={t} className="absolute top-1 text-[9px] text-gray-400 font-bold" style={{left: `${ratio*100}%`, transform: 'translateX(-50%)'}}>
-                                           <div className="h-2 w-px bg-gray-300 mx-auto mb-1"></div>
-                                           {t}
-                                        </div>
-                                      );
-                                  })}
+                                  {[0,10,20,30,40,50].map((t) => (
+                                     <div key={t} className="absolute top-1 text-[9px] text-gray-400 font-bold" style={{left: \`\${(t/50)*100}%\`, transform: 'translateX(-50%)'}}>
+                                        <div className="h-2 w-px bg-gray-300 mx-auto mb-1"></div>
+                                        {t}
+                                     </div>
+                                  ))}
 
-                                  <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded bg-gray-800 border-2 border-white shadow-sm" style={{left: `${Math.min(100, Math.max(0, (myScore/(attemptData.totalMarks || 100))*100))}%`, transform: 'translate(-50%, -50%)'}} />
-                                  <div className="absolute -top-8 px-2 py-1 bg-gray-900 text-white rounded text-[9px] font-bold" style={{left: `${Math.min(100, Math.max(0, (myScore/(attemptData.totalMarks || 100))*100))}%`, transform: 'translateX(-50%)'}}>
+                                  <div className="absolute top-1/2 -translate-y-1/2 w-4 h-4 rounded bg-gray-800 border-2 border-white shadow-sm" style={{left: \`\${Math.min(100, Math.max(0, (myScore/50)*100))}%\`, transform: 'translate(-50%, -50%)'}} />
+                                  <div className="absolute -top-8 px-2 py-1 bg-gray-900 text-white rounded text-[9px] font-bold" style={{left: \`\${Math.min(100, Math.max(0, (myScore/50)*100))}%\`, transform: 'translateX(-50%)'}}>
                                       Rank {attemptData.rank || 0}
                                   </div>
                                </div>
@@ -416,36 +319,30 @@ export default function TestbookAnalysisPage() {
                                   </TableHeader>
                                   <TableBody>
                                       <TableRow className="bg-white">
-                                           <TableCell className="font-bold text-gray-900 py-4 border-r border-gray-100">You</TableCell>
-                                           <TableCell className="py-4"><span className="font-bold text-gray-900">{myScore}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">{attemptData.accuracy || 0}%</TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">{attemptData.correct || 0}<span className="text-emerald-500"> / {attemptData.totalQuestions || 0}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">{attemptData.incorrect || 0}<span className="text-gray-400"> / {attemptData.totalQuestions || 0}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">
-                                               {Math.floor((attemptData.timeTakenSecs || 0)/60).toString().padStart(2,'0')}:
-                                               {((attemptData.timeTakenSecs || 0)%60).toString().padStart(2,'0')} <span className="text-gray-400 font-normal"> / {Math.floor((attemptData.totalMarks || 60))} min</span>
-                                           </TableCell>
-                                       </TableRow>
-                                       <TableRow className="bg-purple-50/30">
-                                           <TableCell className="font-bold text-gray-900 py-4 border-r border-gray-100">{attemptData.topperName || 'Topper'}</TableCell>
-                                           <TableCell className="py-4"><span className="font-bold text-purple-600">{attemptData.topperScore || 0}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span></TableCell>
-                                           <TableCell className="font-bold text-purple-600 py-4">{attemptData.topperAccuracy || 0}%</TableCell>
-                                           <TableCell className="font-bold text-emerald-600 py-4">{attemptData.topperCorrect || 0}<span className="text-emerald-500"> / {attemptData.totalQuestions || 0}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">{attemptData.topperIncorrect || 0}<span className="text-gray-400"> / {attemptData.totalQuestions || 0}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">
-                                               {Math.floor((attemptData.topperTimeTakenSecs || 0)/60).toString().padStart(2,'0')}:
-                                               {((attemptData.topperTimeTakenSecs || 0)%60).toString().padStart(2,'0')} <span className="text-gray-400 font-normal"> / {Math.floor((attemptData.totalMarks || 60))} min</span>
-                                           </TableCell>
-                                       </TableRow>
-                                       <TableRow className="bg-gray-50/50">
-                                           <TableCell className="font-bold text-gray-900 py-4 border-r border-gray-100">Avg</TableCell>
-                                           <TableCell className="py-4"><span className="font-bold text-gray-600">{attemptData.avgScore || Math.round(myScore * 0.8)}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-600 py-4">{Math.round((attemptData.accuracy || 0) * 0.8)}%</TableCell>
-                                           <TableCell className="font-bold text-emerald-600 py-4">{Math.round((attemptData.correct || 0) * 0.8)}<span className="text-emerald-500"> / {attemptData.totalQuestions || 0}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">{Math.round((attemptData.incorrect || 0) * 1.2)}<span className="text-gray-400"> / {attemptData.totalQuestions || 0}</span></TableCell>
-                                           <TableCell className="font-bold text-gray-900 py-4">- <span className="text-gray-400 font-normal"></span></TableCell>
-                                       </TableRow>
-                                   </TableBody>
+                                          <TableCell className="font-bold text-gray-900 py-4 border-r border-gray-100">You</TableCell>
+                                          <TableCell className="py-4"><span className="font-bold text-gray-900">{myScore}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">{attemptData.accuracy || 0}%</TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">{attemptData.correct || 0}<span className="text-emerald-500"> / {attemptData.totalQuestions || 0}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">{attemptData.incorrect || 0}<span className="text-gray-400"> / {attemptData.totalQuestions || 0}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">00:00 <span className="text-gray-400 font-normal"> / 60 min</span></TableCell>
+                                      </TableRow>
+                                      <TableRow className="bg-purple-50/30">
+                                          <TableCell className="font-bold text-gray-900 py-4 border-r border-gray-100">Topper</TableCell>
+                                          <TableCell className="py-4"><span className="font-bold text-purple-600">{topperScore}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span></TableCell>
+                                          <TableCell className="font-bold text-purple-600 py-4">100%</TableCell>
+                                          <TableCell className="font-bold text-emerald-600 py-4">{Math.round((topperScore/(attemptData.totalMarks||1))*(attemptData.totalQuestions||0))}<span className="text-emerald-500"> / {attemptData.totalQuestions || 0}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">0<span className="text-gray-400"> / {attemptData.totalQuestions || 0}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">17:37 <span className="text-gray-400 font-normal"> / 60 min</span></TableCell>
+                                      </TableRow>
+                                      <TableRow className="bg-gray-50/50">
+                                          <TableCell className="font-bold text-gray-900 py-4 border-r border-gray-100">Avg</TableCell>
+                                          <TableCell className="py-4"><span className="font-bold text-gray-600">{attemptData.avgScore || 0}</span> <span className="text-gray-400">/ {attemptData.totalMarks || 50}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-600 py-4">63%</TableCell>
+                                          <TableCell className="font-bold text-emerald-600 py-4">11<span className="text-emerald-500"> / {attemptData.totalQuestions || 0}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">2<span className="text-gray-400"> / {attemptData.totalQuestions || 0}</span></TableCell>
+                                          <TableCell className="font-bold text-gray-900 py-4">17:03 <span className="text-gray-400 font-normal"> / 60 min</span></TableCell>
+                                      </TableRow>
+                                  </TableBody>
                                </Table>
                            </div>
                        </section>
@@ -461,7 +358,7 @@ export default function TestbookAnalysisPage() {
                                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                       <XAxis dataKey="marks" tick={{ fontSize: 9, fill: '#94a3b8' }} axisLine={{stroke: '#e2e8f0'}} tickLine={false} />
                                       <YAxis dataKey="students" allowDecimals={false} tick={{ fontSize: 9, fill: '#94a3b8', dx: -10 }} axisLine={{stroke: '#e2e8f0'}} tickLine={false} />
-                                      <Tooltip contentStyle={{ border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', fontSize: '11px', borderRadius: '4px' }} formatter={(value) => [value, "Students"]} labelFormatter={(label) => `Score: ${label}`} />
+                                      <Tooltip contentStyle={{ border: 'none', boxShadow: '0 4px 10px rgba(0,0,0,0.1)', fontSize: '11px', borderRadius: '4px' }} formatter={(value) => [value, "Students"]} labelFormatter={(label) => \`Score: \${label}\`} />
                                       <Line type="linear" dataKey="students" stroke="#00d8ff" strokeWidth={2} dot={{ fill: '#00d8ff', strokeWidth: 0, r: 4 }} activeDot={{ r: 6 }} />
                                     </LineChart>
                                   ) : (
@@ -530,3 +427,5 @@ export default function TestbookAnalysisPage() {
     </div>
   );
 }
+`;
+fs.writeFileSync('d:\\RahulProjects\\New EduHub\\mokebook\\src\\app\\tests\\results\\[id]\\page.tsx', content, 'utf8');

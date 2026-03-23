@@ -380,7 +380,7 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
       const totalMarks = totalQuestions * state.marksCorrect;
 
       // Step 1: Create the mock test
-      const testRes = await fetch(`${API_URL}/mockbook/admin/tests`, {
+      const testRes = await fetch(`${API_URL}/super-admin/mockbook/tests`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -413,7 +413,7 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
       // Step 2: Add sections (question sets) to the test
       for (const section of state.sections) {
         if (!section.setDbId) continue;
-        await fetch(`${API_URL}/mockbook/admin/tests/${createdTest.id}/sections`, {
+        await fetch(`${API_URL}/super-admin/mockbook/tests/${createdTest.id}/sections`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -428,7 +428,7 @@ export const useMockTestCreationStore = create<MockTestCreationState>((set, get)
       }
 
       // Step 3: Set status to LIVE
-      await fetch(`${API_URL}/mockbook/admin/tests/${createdTest.id}/status`, {
+      await fetch(`${API_URL}/super-admin/mockbook/tests/${createdTest.id}/status`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

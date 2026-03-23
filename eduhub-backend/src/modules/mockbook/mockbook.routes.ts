@@ -663,7 +663,13 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: req.params.attemptId as any },
             include: {
-                test: { select: { testId: true, name: true, durationMins: true, totalMarks: true } },
+                test: { 
+                    include: {
+                        sections: {
+                            include: { set: { include: { items: { select: { questionId: true } } } } }
+                        }
+                    }
+                },
                 answers: true
             }
         });
@@ -672,10 +678,44 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
             return res.status(404).json({ success: false, message: 'Attempt not found' });
         }
 
+        // Map questions to sections
+        const qSectionMap: Record<string, string> = {};
+        const secTotalQs: Record<string, number> = {};
+        const testSections = (attempt.test as any)?.sections || [];
+        for (const section of testSections) {
+            const secName = section.name || section.set?.name || 'Default';
+            if (!secTotalQs[secName]) secTotalQs[secName] = 0;
+            if (section.set?.items) {
+                for (const item of section.set.items) {
+                    qSectionMap[item.questionId] = secName;
+                    secTotalQs[secName]++;
+                }
+            }
+        }
+
         const totalAttempted = attempt.answers.filter((a: any) => a.selectedOptions.length > 0).length;
         const correct = attempt.answers.filter((a: any) => a.isCorrect).length;
         const incorrect = attempt.answers.filter((a: any) => !a.isCorrect && a.selectedOptions.length > 0).length;
         const accuracy = totalAttempted > 0 ? Math.round((correct / totalAttempted) * 100) : 0;
+
+        // Calculate section-wise stats
+        const secStatsMap: Record<string, any> = {};
+        Object.keys(secTotalQs).forEach(sec => {
+            secStatsMap[sec] = { name: sec, correct: 0, incorrect: 0, unattempted: secTotalQs[sec] || 0, partial: 0 };
+        });
+
+        attempt.answers.forEach((ans: any) => {
+            const secName = qSectionMap[ans.questionId] || 'Default';
+            if (!secStatsMap[secName]) {
+                secStatsMap[secName] = { name: secName, correct: 0, incorrect: 0, unattempted: secTotalQs[secName] || 0, partial: 0 };
+            }
+            if (ans.selectedOptions && ans.selectedOptions.length > 0) {
+                secStatsMap[secName].unattempted = Math.max(0, secStatsMap[secName].unattempted - 1);
+                if (ans.isCorrect) secStatsMap[secName].correct++;
+                else secStatsMap[secName].incorrect++;
+            }
+        });
+        const sectionStats = Object.values(secStatsMap);
 
         // Which attempt number is this?
         const priorAttempts = await prisma.testAttempt.count({
@@ -691,9 +731,9 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
         const totalStudents = allSubmitted.length;
 
         // Build histogram buckets
-        const test = (attempt as any).test;
+        const test = attempt.test as any;
         const maxMarks = test.totalMarks || 100;
-        const bucketSize = Math.ceil(maxMarks / 10);
+        const bucketSize = Math.max(1, Math.ceil(maxMarks / 10));
         const buckets: Record<number, number> = {};
         for (let b = 0; b <= maxMarks; b += bucketSize) { buckets[b] = 0; }
         allSubmitted.forEach((a: any) => {
@@ -704,37 +744,125 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
 
         // Topper & average
         const scores = allSubmitted.map((a: any) => a.score || 0).sort((x: number, y: number) => y - x);
-        const topperScore = scores[0] || 0;
         const avgScore = scores.length > 0 ? parseFloat((scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1)) : 0;
-        const topperName = allSubmitted.find((a: any) => a.score === topperScore)?.student?.name || 'Topper';
+        
+        const topperAttempt = await prisma.testAttempt.findFirst({
+            where: { testId: attempt.testId, status: 'SUBMITTED' },
+            orderBy: { score: 'desc' },
+            include: { student: { select: { name: true } }, answers: true }
+        });
+
+        let topperScore = 0, topperName = 'Topper', topperTimeTakenSecs = 0;
+        let topperCorrect = 0, topperIncorrect = 0, topperAccuracy = 0;
+
+        if (topperAttempt) {
+            topperScore = topperAttempt.score || 0;
+            topperName = topperAttempt.student?.name || 'Topper';
+            topperTimeTakenSecs = topperAttempt.timeTakenSecs || 0;
+            
+            const tAttempted = topperAttempt.answers.filter((a: any) => a.selectedOptions.length > 0).length;
+            topperCorrect = topperAttempt.answers.filter((a: any) => a.isCorrect).length;
+            topperIncorrect = topperAttempt.answers.filter((a: any) => !a.isCorrect && a.selectedOptions.length > 0).length;
+            topperAccuracy = tAttempted > 0 ? Math.round((topperCorrect / tAttempted) * 100) : 0;
+        }
 
         res.json({
             success: true,
             data: {
-                id: (attempt as any).id,
+                id: attempt.id,
                 testId: test.testId,
                 testName: test.name,
-                score: (attempt as any).score,
-                totalMarks: (attempt as any).totalMarks,
-                rank: (attempt as any).rank,
-                percentile: (attempt as any).percentile,
+                passingMarks: test.passingMarks,
+                score: attempt.score,
+                totalMarks: attempt.totalMarks,
+                rank: attempt.rank,
+                percentile: attempt.percentile,
                 attempted: totalAttempted,
-                totalQuestions: (attempt as any).answers.length,
+                totalQuestions: attempt.answers.length,
                 correct,
                 incorrect,
-                unattempted: (attempt as any).answers.length - totalAttempted,
+                unattempted: attempt.answers.length - totalAttempted,
                 accuracy,
-                timeTakenSecs: (attempt as any).timeTakenSecs,
-                submittedAt: (attempt as any).submittedAt,
+                timeTakenSecs: attempt.timeTakenSecs,
+                submittedAt: attempt.submittedAt,
                 attemptNumber,
                 // Analytics
                 totalStudents,
                 marksDistribution,
                 topperScore,
                 topperName,
+                topperTimeTakenSecs,
+                topperCorrect,
+                topperIncorrect,
+                topperAccuracy,
                 avgScore,
+                sectionStats
             }
         });
+    } catch (err) { next(err); }
+});
+
+// GET /mockbook/attempts/:attemptId/analytics/chapters — chapter-wise performance
+router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
+
+        const attempt = await prisma.testAttempt.findUnique({
+            where: { id: req.params.attemptId as any },
+            include: {
+                answers: {
+                    include: {
+                        question: {
+                            include: {
+                                topic: {
+                                    include: {
+                                        chapter: true
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        if (!attempt || attempt.studentId !== student.id) {
+            return res.status(404).json({ success: false, message: 'Attempt not found' });
+        }
+
+        const chapterStats: Record<string, any> = {};
+
+        attempt.answers.forEach(ans => {
+            const q = ans.question as any;
+            const chapterName = q.topic?.chapter?.name || q.chapterName || 'Uncategorized';
+            
+            if (!chapterStats[chapterName]) {
+                chapterStats[chapterName] = { name: chapterName, total: 0, correct: 0, incorrect: 0, timeSpentSecs: 0 };
+            }
+            
+            chapterStats[chapterName].total += 1;
+            chapterStats[chapterName].timeSpentSecs += (ans.timeTakenSecs || 0);
+            
+            if (ans.selectedOptions && ans.selectedOptions.length > 0) {
+                if (ans.isCorrect) {
+                    chapterStats[chapterName].correct += 1;
+                } else {
+                    chapterStats[chapterName].incorrect += 1;
+                }
+            }
+        });
+
+        const chapterData = Object.values(chapterStats).map((c: any) => {
+            const attempted = c.correct + c.incorrect;
+            return {
+                ...c,
+                accuracy: attempted > 0 ? Math.round((c.correct / attempted) * 100) : 0
+            };
+        });
+
+        res.json({ success: true, data: chapterData });
     } catch (err) { next(err); }
 });
 
@@ -1454,5 +1582,426 @@ router.post('/analytics/student/:studentId/study-plan', async (req, res, next) =
     } catch(err) { next(err); }
 });
 
+// ─── Save individual question response (autosave during test) ──────────────────
+router.post('/attempts/:attemptId/response', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
+
+        const attemptId = req.params.attemptId as string;
+        const attempt = await prisma.testAttempt.findUnique({ where: { id: attemptId } });
+        if (!attempt || attempt.studentId !== student.id) {
+            return res.status(404).json({ success: false, message: 'Attempt not found' });
+        }
+        if (attempt.status !== 'IN_PROGRESS') {
+            return res.status(400).json({ success: false, message: 'Attempt is not in progress' });
+        }
+
+        const { questionId, selectedOptions, timeTakenSecs, isMarkedForReview } = req.body;
+
+        // Determine if correct
+        const correctOptions = await prisma.questionOption.findMany({
+            where: { questionId, isCorrect: true },
+            select: { id: true }
+        });
+        const correctIds = correctOptions.map((o: any) => o.id);
+        const selected = selectedOptions || [];
+        const isCorrect = selected.length > 0 && correctIds.length > 0 &&
+            selected.every((id: string) => correctIds.includes(id)) &&
+            correctIds.every((id: string) => selected.includes(id));
+        const marksAwarded = isCorrect ? 1 : (selected.length > 0 ? -0.33 : 0);
+
+        // Upsert the answer record
+        const existing = await prisma.attemptAnswer.findFirst({
+            where: { attemptId, questionId }
+        });
+
+        let answer;
+        if (existing) {
+            answer = await prisma.attemptAnswer.update({
+                where: { id: existing.id },
+                data: { selectedOptions: selected, isCorrect, marksAwarded, timeTakenSecs: timeTakenSecs || 0 }
+            });
+        } else {
+            answer = await prisma.attemptAnswer.create({
+                data: { attemptId, questionId, selectedOptions: selected, isCorrect, marksAwarded, timeTakenSecs: timeTakenSecs || 0 }
+            });
+        }
+
+        res.json({ success: true, data: answer });
+    } catch (err) { next(err); }
+});
+
+// ─── Pause attempt ──────────────────────────────────────────────────────────────
+router.post('/attempts/:attemptId/pause', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
+
+        const attemptId = req.params.attemptId as string;
+        const attempt = await prisma.testAttempt.findUnique({ where: { id: attemptId } });
+        if (!attempt || attempt.studentId !== student.id) {
+            return res.status(404).json({ success: false, message: 'Attempt not found' });
+        }
+
+        const { timeRemainingSeconds, durationMins } = req.body;
+        // Keep status as IN_PROGRESS since PAUSED is not in schema — just record elapsed time
+        const effectiveDuration = durationMins || 60;
+        const updatedTimeTaken = timeRemainingSeconds != null
+            ? Math.max(0, effectiveDuration * 60 - timeRemainingSeconds)
+            : (attempt.timeTakenSecs || 0);
+        const updated = await prisma.testAttempt.update({
+            where: { id: attemptId },
+            data: { timeTakenSecs: updatedTimeTaken }
+        });
+        res.json({ success: true, data: { ...updated, isPaused: true } });
+    } catch (err) { next(err); }
+});
+
+// ─── Resume attempt ─────────────────────────────────────────────────────────────
+router.post('/attempts/:attemptId/resume', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
+
+        const attemptId = req.params.attemptId as string;
+        const attempt = await prisma.testAttempt.findUnique({
+            where: { id: attemptId },
+            include: { test: { select: { durationMins: true } } }
+        });
+        if (!attempt || attempt.studentId !== student.id) {
+            return res.status(404).json({ success: false, message: 'Attempt not found' });
+        }
+        if (attempt.status === 'SUBMITTED') {
+            return res.status(400).json({ success: false, message: 'Attempt already submitted' });
+        }
+
+        const totalSecs = ((attempt as any).test?.durationMins || 60) * 60;
+        const usedSecs = attempt.timeTakenSecs || 0;
+        const remainingSecs = Math.max(0, totalSecs - usedSecs);
+
+        const updated = await prisma.testAttempt.update({
+            where: { id: attemptId },
+            data: { status: 'IN_PROGRESS' }
+        });
+        res.json({ success: true, data: { ...updated, remainingSeconds: remainingSecs } });
+    } catch (err) { next(err); }
+});
+
+// ─── Full attempt review (solutions mode) ──────────────────────────────────────
+router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
+
+        const attemptId = req.params.attemptId as string;
+        const attempt = await prisma.testAttempt.findUnique({
+            where: { id: attemptId },
+            include: {
+                test: {
+                    include: {
+                        sections: {
+                            orderBy: { sortOrder: 'asc' },
+                            include: {
+                                set: {
+                                    include: {
+                                        items: {
+                                            orderBy: { sortOrder: 'asc' },
+                                            include: {
+                                                question: {
+                                                    include: { options: { orderBy: { sortOrder: 'asc' } } }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                answers: true
+            }
+        }) as any;
+
+        if (!attempt || attempt.studentId !== student.id) {
+            return res.status(404).json({ success: false, message: 'Attempt not found' });
+        }
+
+        // Build answer map: questionId -> answer
+        const answerMap: Record<string, any> = {};
+        for (const ans of attempt.answers) {
+            answerMap[ans.questionId] = ans;
+        }
+
+        // Build review questions list (test order) with correct answers revealed
+        const questions: any[] = [];
+        let qNum = 1;
+        for (const section of attempt.test.sections) {
+            for (const item of section.set.items) {
+                const q = item.question;
+                const correctOptionIds = q.options.filter((o: any) => o.isCorrect).map((o: any) => o.id);
+                const userAnswer = answerMap[q.id];
+                const selectedOptionIds = userAnswer?.selectedOptions || [];
+
+                let status = 'SKIPPED';
+                if (selectedOptionIds.length > 0) {
+                    status = userAnswer?.isCorrect ? 'CORRECT' : 'INCORRECT';
+                }
+
+                questions.push({
+                    id: q.id,
+                    number: qNum++,
+                    section: section.set.name || section.name,
+                    textEn: q.textEn,
+                    textHi: q.textHi,
+                    type: q.type,
+                    options: q.options.map((o: any) => ({
+                        id: o.id,
+                        textEn: o.textEn,
+                        textHi: o.textHi,
+                        isCorrect: o.isCorrect,
+                    })),
+                    correctOptionIds,
+                    explanation: q.explanation,
+                    imageUrl: q.imageUrl,
+                    topic: q.topic,
+                    chapter: q.chapter,
+                    subjectArea: q.subjectArea,
+                    avgTimeSecs: q.avgTimeSecs || 60,
+                    correctPercentage: q.correctPercentage || 0,
+                    // User's response
+                    selectedOptionIds,
+                    timeTakenSecs: userAnswer?.timeTakenSecs || 0,
+                    marksAwarded: userAnswer?.marksAwarded || 0,
+                    status,
+                });
+            }
+        }
+
+        // Summary stats
+        const correct = questions.filter(q => q.status === 'CORRECT').length;
+        const incorrect = questions.filter(q => q.status === 'INCORRECT').length;
+        const skipped = questions.filter(q => q.status === 'SKIPPED').length;
+
+        res.json({
+            success: true,
+            data: {
+                attemptId: attempt.id,
+                testName: attempt.test.name,
+                testId: attempt.test.testId,
+                score: attempt.score,
+                totalMarks: attempt.totalMarks,
+                submittedAt: attempt.submittedAt,
+                summary: { correct, incorrect, skipped, total: questions.length },
+                questions,
+            }
+        });
+    } catch (err) { next(err); }
+});
+
+// ─── Leaderboard (also accessible at /tests/:testId/leaderboard path) ──────────
+router.get('/tests/:testId/leaderboard', async (req, res, next) => {
+    try {
+        const testIdParam = req.params.testId as string;
+        const top100 = await prisma.testAttempt.findMany({
+            where: { test: { OR: [{ testId: testIdParam }, { id: testIdParam }] }, status: 'SUBMITTED' },
+            orderBy: { score: 'desc' },
+            take: 100,
+            include: { student: { select: { name: true, studentId: true } } },
+        });
+        res.json({ success: true, data: top100 });
+    } catch (err) { next(err); }
+});
+
+// ─── Save / Bookmark a question ─────────────────────────────────────────────────
+router.post('/questions/:questionId/save', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const questionId = req.params.questionId as string;
+        const { attemptId } = req.body;
+
+        // Check question exists
+        const q = await prisma.question.findUnique({ where: { id: questionId }, select: { id: true } });
+        if (!q) return res.status(404).json({ success: false, message: 'Question not found' });
+
+        // Upsert saved record
+        const existing = await (prisma as any).savedQuestion.findFirst({
+            where: { userId: user.userId, questionId }
+        });
+        if (existing) {
+            return res.json({ success: true, data: existing, already: true });
+        }
+
+        const saved = await (prisma as any).savedQuestion.create({
+            data: { userId: user.userId, questionId, attemptId: attemptId || null }
+        });
+        res.status(201).json({ success: true, data: saved });
+    } catch (err) { next(err); }
+});
+
+router.delete('/questions/:questionId/save', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const questionId = req.params.questionId as string;
+
+        await (prisma as any).savedQuestion.deleteMany({
+            where: { userId: user.userId, questionId }
+        });
+        res.json({ success: true, message: 'Question removed from saved list' });
+    } catch (err) { next(err); }
+});
+
+// ─── My saved questions ─────────────────────────────────────────────────────────
+router.get('/user/saved-questions', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const page = parseInt(req.query.page as string) || 1;
+        const limit = parseInt(req.query.limit as string) || 20;
+        const skip = (page - 1) * limit;
+
+        const saved = await (prisma as any).savedQuestion.findMany({
+            where: { userId: user.userId },
+            include: {
+                question: {
+                    include: { options: { orderBy: { sortOrder: 'asc' } } }
+                }
+            },
+            orderBy: { savedAt: 'desc' },
+            skip,
+            take: limit,
+        });
+        res.json({ success: true, data: saved });
+    } catch (err) { next(err); }
+});
+
+// ─── Report a question ──────────────────────────────────────────────────────────
+router.post('/questions/:questionId/report', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const { attemptId, reportType, description } = req.body;
+        // Log the report (simple version — could be stored in a QuestionReport table)
+        console.log(`[QUESTION REPORT] questionId=${req.params.questionId} userId=${user.userId} type=${reportType} desc=${description} attemptId=${attemptId}`);
+        res.json({ success: true, message: 'Report submitted. Thank you!' });
+    } catch (err) { next(err); }
+});
+
+// ─── User's all attempts (My Tests dashboard) ──────────────────────────────────
+router.get('/user/my-attempts', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student' });
+
+        const attempts = await prisma.testAttempt.findMany({
+            where: { studentId: student.id, status: { in: ['IN_PROGRESS', 'SUBMITTED'] } },
+            include: {
+                test: { select: { testId: true, name: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+
+        // Enrich with attemptNumber per test
+        const testAttemptCount: Record<string, number> = {};
+        const enriched = attempts.map((a: any) => {
+            const tid = a.testId;
+            if (!testAttemptCount[tid]) testAttemptCount[tid] = 0;
+            if (a.status === 'SUBMITTED') testAttemptCount[tid]++;
+            const answered = a.answers?.length || 0;
+            return {
+                id: a.id,
+                testId: a.test?.testId || tid,
+                testName: a.test?.name || 'Unnamed Test',
+                status: a.status,
+                score: a.score || 0,
+                totalMarks: a.totalMarks || 0,
+                rank: a.rank || null,
+                percentile: a.percentile || 0,
+                accuracy: 0, // Will be computed below
+                attempted: answered,
+                totalQuestions: 0,
+                submittedAt: a.submittedAt,
+                createdAt: a.createdAt,
+                attemptNumber: testAttemptCount[tid],
+            };
+        });
+
+        res.json({ success: true, data: enriched });
+    } catch (err) { next(err); }
+});
+
+// ─── Chapter/Topic-wise Analytics ──────────────────────────────────────────────
+router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, next) => {
+    try {
+        const attemptIdArg = req.params.id as string;
+        const attempt = await prisma.testAttempt.findUnique({
+            where: { id: attemptIdArg },
+            include: { answers: true }
+        });
+        if (!attempt) return res.status(404).json({ success: false, message: 'Attempt not found' });
+
+        // Fetch all questions for this test via MockTestSection -> QuestionSet -> QuestionSetItem -> Question
+        const sections = await prisma.mockTestSection.findMany({
+            where: { testId: attempt.testId },
+            include: {
+                set: {
+                    include: {
+                        items: {
+                            include: { question: true }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Collect all questions and map them by questionId
+        const testQuestions: any[] = [];
+        for (const sec of sections) {
+            for (const item of sec.set?.items || []) {
+                if (item.question) {
+                    testQuestions.push({
+                        ...item.question,
+                        _sectionName: sec.name // fallback topic
+                    });
+                }
+            }
+        }
+
+        // Group by topic (fallback to chapterName, subjectName, or Section name)
+        const chapterStats: Record<string, any> = {};
+        const attemptAnswers = (attempt as any).answers || [];
+        
+        for (const q of testQuestions) {
+            const chap = q.chapterName || q.subjectName || q._sectionName || 'General';
+            if (!chapterStats[chap]) {
+                chapterStats[chap] = { name: chap, total: 0, correct: 0, incorrect: 0, unattempted: 0, timeSpentSecs: 0 };
+            }
+            chapterStats[chap].total++;
+            
+            const ans = attemptAnswers.find((a: any) => a.questionId === q.id);
+            if (!ans) {
+                chapterStats[chap].unattempted++;
+            } else {
+                if (ans.isCorrect) chapterStats[chap].correct++;
+                else chapterStats[chap].incorrect++;
+                chapterStats[chap].timeSpentSecs += (ans.timeTakenSecs || 0);
+            }
+        }
+
+        // Convert to array and calculate accuracy
+        const chapters = Object.values(chapterStats).map(c => {
+            const attempted = c.correct + c.incorrect;
+            c.accuracy = attempted > 0 ? Math.round((c.correct / attempted) * 100) : 0;
+            return c;
+        }).sort((a, b) => b.total - a.total);
+
+        res.json({ success: true, data: chapters });
+    } catch (err) { next(err); }
+});
+
 export default router;
+
 

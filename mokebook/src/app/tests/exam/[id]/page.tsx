@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
   ArrowLeft, AlertTriangle, User as UserIcon,
-  ChevronLeft, ChevronRight, Menu, Maximize, Loader2
+  ChevronLeft, ChevronRight, Menu, Maximize, Loader2,
+  PauseCircle, FileText, X, Flag
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { apiFetch, isAuthenticated } from "@/lib/api";
@@ -81,6 +82,22 @@ export default function ExamPage() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [displayName, setDisplayName] = useState("Student");
   const [showSubmitModal, setShowSubmitModal] = useState(false);
+  const [showQPaperModal, setShowQPaperModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
+  const [reportType, setReportType] = useState("wrong_answer");
+  const [lang, setLang] = useState<"en" | "hi">("en");
+
+  // Per-question timer
+  const qStartTimeRef = useRef<number>(Date.now());
+  const qTimeSpent = useRef<Record<number, number>>({}); // idx -> seconds spent
+
+  // Read language set on instructions page
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const saved = sessionStorage.getItem("testLanguage");
+      if (saved === "hindi") setLang("hi");
+    }
+  }, []);
 
   // Auth guard — redirect to login if no token
   useEffect(() => {
@@ -168,13 +185,21 @@ export default function ExamPage() {
     return `${h.toString().padStart(2,'0')} : ${m.toString().padStart(2,'0')} : ${s.toString().padStart(2,'0')}`;
   };
 
+  const recordQuestionTime = useCallback(() => {
+    const elapsed = Math.round((Date.now() - qStartTimeRef.current) / 1000);
+    qTimeSpent.current[currentIdx] = (qTimeSpent.current[currentIdx] || 0) + elapsed;
+    qStartTimeRef.current = Date.now();
+  }, [currentIdx]);
+
   const navigateTo = (idx: number) => {
+    recordQuestionTime();
     setQState(prev => {
       const copy = { ...prev };
       if (copy[idx]?.status === "not_visited") copy[idx].status = "not_answered";
       return copy;
     });
     setCurrentIdx(idx);
+    qStartTimeRef.current = Date.now();
   };
 
   const handleSelectOption = (optIdx: number, optId: string) => {
@@ -205,19 +230,86 @@ export default function ExamPage() {
     if (currentIdx < questions.length - 1) navigateTo(currentIdx + 1);
   };
 
+  // Autosave response when saving
+  const autosaveResponse = useCallback(async (idx: number, optionId: string | null, questionId: string, timeSecs: number) => {
+    if (!attemptId) return;
+    try {
+      await apiFetch(`/mockbook/attempts/${attemptId}/response`, {
+        method: "POST",
+        body: JSON.stringify({
+          questionId,
+          selectedOptions: optionId ? [optionId] : [],
+          timeTakenSecs: timeSecs,
+        }),
+      });
+    } catch { /* Silently fail — submit will resend all answers */ }
+  }, [attemptId]);
+
   const saveAndNext = () => {
+    const current = qState[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
+    recordQuestionTime();
+    const timeSecs = qTimeSpent.current[currentIdx] || 0;
+    const q = questions[currentIdx];
+    if (q) autosaveResponse(currentIdx, current.optionId, q.id, timeSecs);
+
     setQState(prev => {
-      const current = prev[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
+      const cur = prev[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
       return {
         ...prev,
         [currentIdx]: {
-          ...current,
-          status: current.answer !== null ? "answered" : "not_answered"
+          ...cur,
+          status: cur.answer !== null ? "answered" : "not_answered"
         }
       };
     });
     if (currentIdx < questions.length - 1) navigateTo(currentIdx + 1);
   };
+
+  // Pause test — save elapsed time and go back
+  const handlePause = useCallback(async () => {
+    if (!attemptId) { router.push("/tests"); return; }
+    try {
+      recordQuestionTime();
+      await apiFetch(`/mockbook/attempts/${attemptId}/pause`, {
+        method: "POST",
+        body: JSON.stringify({ timeRemainingSeconds: secondsLeft, durationMins }),
+      });
+    } catch { } finally {
+      router.push("/tests");
+    }
+  }, [attemptId, secondsLeft, durationMins, recordQuestionTime, router]);
+
+  // Report question
+  const handleReport = async () => {
+    const q = questions[currentIdx];
+    if (!q) return;
+    try {
+      await apiFetch(`/mockbook/questions/${q.id}/report`, {
+        method: "POST",
+        body: JSON.stringify({ attemptId, reportType }),
+      });
+      toast({ title: "Report submitted", description: "Thank you for your feedback!" });
+    } catch { } finally { setShowReportModal(false); }
+  };
+
+  // Keyboard shortcuts: 1-4 = select option, N = save & next, M = mark for review
+  useEffect(() => {
+    if (!isReady) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      const key = e.key;
+      const currentQ = questions[currentIdx];
+      if (!currentQ) return;
+      if (["1", "2", "3", "4"].includes(key)) {
+        const optIdx = parseInt(key) - 1;
+        if (currentQ.options[optIdx]) handleSelectOption(optIdx, currentQ.options[optIdx].id);
+      }
+      if (key.toLowerCase() === "n") saveAndNext();
+      if (key.toLowerCase() === "m") markForReviewAndNext();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [isReady, currentIdx, questions, qState]);
 
   const handleSubmit = useCallback(async () => {
     if (submitting) return;
@@ -545,13 +637,25 @@ export default function ExamPage() {
 
             <div className="p-3 bg-white border-t border-gray-300 flex flex-col gap-2 shrink-0">
               <div className="flex items-center justify-between gap-2">
-                <button className="flex-1 bg-[#a5dff3] hover:bg-[#8ecee6] border border-[#6ac9e6] text-gray-800 text-[11px] font-semibold py-2 px-2 shadow-sm rounded-sm transition-colors">
-                  Question Paper
+                <button
+                  onClick={() => setShowQPaperModal(true)}
+                  className="flex-1 bg-[#a5dff3] hover:bg-[#8ecee6] border border-[#6ac9e6] text-gray-800 text-[11px] font-semibold py-2 px-2 shadow-sm rounded-sm transition-colors flex items-center justify-center gap-1"
+                >
+                  <FileText className="h-3 w-3" /> Question Paper
                 </button>
-                <button className="flex-1 bg-[#a5dff3] hover:bg-[#8ecee6] border border-[#6ac9e6] text-gray-800 text-[11px] font-semibold py-2 px-2 shadow-sm rounded-sm transition-colors">
-                  Instructions
+                <button
+                  onClick={() => setShowReportModal(true)}
+                  className="flex-1 bg-[#a5dff3] hover:bg-[#8ecee6] border border-[#6ac9e6] text-gray-800 text-[11px] font-semibold py-2 px-2 shadow-sm rounded-sm transition-colors flex items-center justify-center gap-1"
+                >
+                  <Flag className="h-3 w-3" /> Report
                 </button>
               </div>
+              <button
+                onClick={handlePause}
+                className="w-full text-gray-700 text-[12px] font-semibold py-2 rounded-sm border border-gray-300 bg-gray-50 hover:bg-gray-100 transition-colors flex items-center justify-center gap-1.5"
+              >
+                <PauseCircle className="h-4 w-4 text-amber-500" /> Pause &amp; Exit
+              </button>
               <button
                 className="w-full text-white text-[13px] font-semibold py-2.5 rounded-sm shadow-sm opacity-90 hover:opacity-100 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                 style={{ backgroundColor: brandColor }}
@@ -646,6 +750,80 @@ export default function ExamPage() {
                   {submitting ? "Submitting..." : "Confirm Submit"}
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUESTION PAPER MODAL */}
+      {showQPaperModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-[90%] max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <div className="bg-slate-800 px-6 py-4 flex items-center justify-between shrink-0">
+              <h2 className="text-white text-lg font-bold">Question Paper</h2>
+              <button onClick={() => setShowQPaperModal(false)} className="text-slate-300 hover:text-white">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="overflow-y-auto p-4 space-y-2 flex-1">
+              {questions.map((q, i) => {
+                const s = qState[i] || { status: "not_visited" };
+                return (
+                  <div
+                    key={q.id}
+                    className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 cursor-pointer transition-colors"
+                    onClick={() => { setShowQPaperModal(false); navigateTo(i); }}
+                  >
+                    <span className={cn(
+                      "w-7 h-7 rounded-full flex-shrink-0 flex items-center justify-center text-xs font-bold",
+                      s.status === "answered" ? "bg-green-500 text-white" :
+                      s.status === "not_answered" ? "bg-red-500 text-white" :
+                      s.status?.includes("marked") ? "bg-purple-500 text-white" :
+                      "bg-gray-200 text-gray-600"
+                    )}>{q.number}</span>
+                    <div
+                      className="flex-1 text-sm text-gray-700 leading-snug"
+                      dangerouslySetInnerHTML={{ __html: q.text?.substring(0, 120) + (q.text?.length > 120 ? "…" : "") }}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* REPORT MODAL */}
+      {showReportModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-[90%] max-w-sm p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-900">Report Question #{questions[currentIdx]?.number}</h3>
+              <button onClick={() => setShowReportModal(false)}><X className="h-4 w-4 text-gray-400" /></button>
+            </div>
+            <div className="space-y-2">
+              {[
+                { value: "wrong_answer", label: "Wrong correct answer" },
+                { value: "bad_question", label: "Poorly worded question" },
+                { value: "wrong_explanation", label: "Wrong explanation" },
+                { value: "other", label: "Other issue" },
+              ].map(opt => (
+                <label key={opt.value} className="flex items-center gap-3 cursor-pointer py-1">
+                  <input type="radio" name="reportType" value={opt.value} checked={reportType === opt.value}
+                    onChange={e => setReportType(e.target.value)} className="accent-[#1a73e8]" />
+                  <span className="text-sm text-gray-700">{opt.label}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setShowReportModal(false)}
+                className="flex-1 px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50">
+                Cancel
+              </button>
+              <button onClick={handleReport}
+                className="flex-1 px-4 py-2 text-sm font-semibold bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0]">
+                Submit
+              </button>
             </div>
           </div>
         </div>

@@ -86,39 +86,39 @@ export interface AdminStudent {
 export const mockbookService = {
     // ─── Stats & Analytics ─────────────────────────────────────────
     getStats: async (orgId?: string): Promise<MockBookStats> => {
-        const path = orgId ? `/mockbook/analytics/stats?orgId=${orgId}` : '/mockbook/analytics/stats';
+        const path = orgId ? `/super-admin/mockbook/analytics?orgId=${orgId}` : '/super-admin/mockbook/analytics';
         const res = await api.get(path);
         return res.data;
     },
 
     getAnalytics: async (orgId?: string): Promise<any> => {
-        const path = orgId ? `/mockbook/analytics/stats?orgId=${orgId}` : '/mockbook/analytics/stats';
+        const path = orgId ? `/super-admin/mockbook/analytics?orgId=${orgId}` : '/super-admin/mockbook/analytics';
         const res = await api.get(path);
         return res.data;
     },
 
     // ─── Exam Folders (Top Category: SSC, Railway, etc.) ───────────
     getFolders: async (orgId?: string): Promise<ExamFolder[]> => {
-        const path = orgId ? `/mockbook/folders?orgId=${orgId}` : '/mockbook/folders';
+        const path = orgId ? `/super-admin/mockbook/categories?orgId=${orgId}` : '/super-admin/mockbook/categories';
         const res = await api.get(path);
         return res.data || [];
     },
 
     createFolder: async (data: Partial<ExamFolder>) => {
-        return api.post('/mockbook/folders', data);
+        return api.post('/super-admin/mockbook/categories', data);
     },
 
     updateFolder: async (id: string, data: Partial<ExamFolder>) => {
-        return api.patch(`/mockbook/folders/${id}`, data);
+        return api.patch(`/super-admin/mockbook/categories/${id}`, data);
     },
 
     deleteFolder: async (id: string) => {
-        return api.delete(`/mockbook/folders/${id}`);
+        return api.delete(`/super-admin/mockbook/categories/${id}`);
     },
 
     // ─── Exam Series (Test Series: SSC CGL 2026, etc.) ─────────────
     getSeriesDetail: async (id: string): Promise<any> => {
-        const res = await api.get(`/mockbook/categories/${id}`);
+        const res = await api.get(`/super-admin/mockbook/test-series/${id}`);
         return res.data;
     },
 
@@ -126,39 +126,39 @@ export const mockbookService = {
         const params = new URLSearchParams();
         if (folderId) params.set('folderId', folderId);
         if (orgId) params.set('orgId', orgId);
-        const path = `/mockbook/categories${params.toString() ? `?${params.toString()}` : ''}`;
+        const path = `/super-admin/mockbook/test-series${params.toString() ? `?${params.toString()}` : ''}`;
         const res = await api.get(path);
         return res.data || [];
     },
 
     createSeries: async (data: Partial<ExamSeries>) => {
-        return api.post('/mockbook/categories', data);
+        return api.post('/super-admin/mockbook/test-series', data);
     },
 
     updateSeries: async (id: string, data: Partial<ExamSeries>) => {
-        return api.patch(`/mockbook/categories/${id}`, data);
+        return api.patch(`/super-admin/mockbook/test-series/${id}`, data);
     },
 
     deleteSeries: async (id: string) => {
-        return api.delete(`/mockbook/categories/${id}`);
+        return api.delete(`/super-admin/mockbook/test-series/${id}`);
     },
 
     // ─── Sub-Categories (Test Folders: Tier 1, Sectional, etc.) ───
     getSubCategories: async (categoryId: string): Promise<ExamSubCategory[]> => {
-        const res = await api.get(`/mockbook/subcategories?categoryId=${categoryId}`);
+        const res = await api.get(`/super-admin/mockbook/test-series?categoryId=${categoryId}`);
         return res.data || [];
     },
 
     createSubCategory: async (data: Partial<ExamSubCategory>) => {
-        return api.post('/mockbook/subcategories', data);
+        return api.post('/super-admin/mockbook/test-series', data);
     },
 
     updateSubCategory: async (id: string, data: Partial<ExamSubCategory>) => {
-        return api.patch(`/mockbook/subcategories/${id}`, data);
+        return api.patch(`/super-admin/mockbook/test-series/${id}`, data);
     },
 
     deleteSubCategory: async (id: string) => {
-        return api.delete(`/mockbook/subcategories/${id}`);
+        return api.delete(`/super-admin/mockbook/test-series/${id}`);
     },
 
     // ─── Admin Mock Tests ──────────────────────────────────────────
@@ -173,12 +173,12 @@ export const mockbookService = {
         if (filters?.subCategoryId) params.set('subCategoryId', filters.subCategoryId);
         if (filters?.status) params.set('status', filters.status);
         if (filters?.search) params.set('search', filters.search);
-        const res = await api.get(`/mockbook/admin/tests?${params.toString()}`);
+        const res = await api.get(`/super-admin/mockbook/tests?${params.toString()}`);
         return res.data || [];
     },
 
     getAdminTestDetail: async (id: string): Promise<MockTest> => {
-        const res = await api.get(`/mockbook/admin/tests/${id}`);
+        const res = await api.get(`/super-admin/mockbook/tests/${id}`);
         return res.data;
     },
 
@@ -195,7 +195,7 @@ export const mockbookService = {
         endsAt?: string | null;
         maxAttempts?: number;
     }) => {
-        const res = await api.post('/mockbook/admin/tests', { 
+        const res = await api.post('/super-admin/mockbook/tests', { 
             ...data,
             orgId: data.orgId || ORG_ID
         });
@@ -203,26 +203,26 @@ export const mockbookService = {
     },
 
     updateMockTest: async (id: string, data: Partial<MockTest>) => {
-        const res = await api.patch(`/mockbook/admin/tests/${id}`, data);
+        const res = await api.patch(`/super-admin/mockbook/tests/${id}`, data);
         return res.data;
     },
 
     changeMockTestStatus: async (id: string, status: "DRAFT" | "LIVE" | "ENDED") => {
-        const res = await api.patch(`/mockbook/admin/tests/${id}/status`, { status });
+        const res = await api.patch(`/super-admin/mockbook/tests/${id}/status`, { status });
         return res.data;
     },
 
     deleteMockTest: async (id: string) => {
-        return api.delete(`/mockbook/admin/tests/${id}`);
+        return api.delete(`/super-admin/mockbook/tests/${id}`);
     },
 
     addMockTestSection: async (testId: string, data: { setId: string; name: string; durationMins?: number }) => {
-        const res = await api.post(`/mockbook/admin/tests/${testId}/sections`, data);
+        const res = await api.post(`/super-admin/mockbook/tests/${testId}/sections`, data);
         return res.data;
     },
 
     removeMockTestSection: async (testId: string, sectionId: string) => {
-        return api.delete(`/mockbook/admin/tests/${testId}/sections/${sectionId}`);
+        return api.delete(`/super-admin/mockbook/tests/${testId}/sections/${sectionId}`);
     },
 
     // ─── Admin Students ─────────────────────────────────────────────
@@ -231,7 +231,7 @@ export const mockbookService = {
         const orgId = filters?.orgId || ORG_ID;
         if (orgId) params.set('orgId', orgId);
         if (filters?.search) params.set('search', filters.search);
-        const res = await api.get(`/mockbook/admin/students?${params.toString()}`);
+        const res = await api.get(`/super-admin/mockbook/students?${params.toString()}`);
         return res.data || [];
     },
 
@@ -240,57 +240,40 @@ export const mockbookService = {
         const params = new URLSearchParams();
         const targetOrgId = orgId || ORG_ID;
         if (targetOrgId) params.set('orgId', targetOrgId);
-        const res = await api.get(`/mockbook/admin/live-tests?${params.toString()}`);
+        const res = await api.get(`/super-admin/mockbook/live-tests?${params.toString()}`);
         return res.data || { live: [], scheduled: [] };
     },
 
     getTestPerformance: async (testId: string): Promise<any> => {
-        const res = await api.get(`/mockbook/admin/tests/${testId}/performance`);
+        const res = await api.get(`/super-admin/mockbook/tests/${testId}/performance`);
         return res.data;
     },
 
     getStudentDrilldown: async (studentId: string): Promise<any> => {
-        const res = await api.get(`/mockbook/admin/student-drilldown/${studentId}`);
+        const res = await api.get(`/super-admin/mockbook/students/${studentId}`);
         return res.data;
     },
 
     // ─── Leaderboard ────────────────────────────────────────────────
     getLeaderboard: async (testId: string): Promise<any[]> => {
-        const res = await api.get(`/mockbook/${testId}/leaderboard`);
+        const res = await api.get(`/super-admin/mockbook/leaderboards/${testId}`);
         return res.data || [];
     },
 
     // ─── Comprehensive Analytics ────────────────────────────────────
     getStudentOverallAnalytics: async (studentId: string, days: number = 30): Promise<any> => {
-        const res = await api.get(`/mockbook/analytics/student/${studentId}/overall?days=${days}`);
+        const res = await api.get(`/super-admin/mockbook/analytics/student/${studentId}/overall?days=${days}`);
         return res.data;
     },
 
     getAttemptReport: async (attemptId: string): Promise<any> => {
-        const res = await api.get(`/mockbook/attempts/${attemptId}/report`);
+        const res = await api.get(`/super-admin/mockbook/analytics/${attemptId}/report`);
         return res.data;
     },
 
     generateStudyPlan: async (studentId: string, durationInDays: number = 15): Promise<any> => {
-        const res = await api.post(`/mockbook/analytics/student/${studentId}/study-plan`, { durationInDays });
+        const res = await api.post(`/super-admin/mockbook/analytics/student/${studentId}/study-plan`, { durationInDays });
         return res.data;
     },
 
-    getFolders: async (orgId?: string): Promise<any[]> => {
-        const path = orgId ? `/mockbook/admin/folders?orgId=${orgId}` : '/mockbook/admin/folders';
-        const res = await api.get(path);
-        return res.data.data || [];
-    },
-
-    getOrganizations: async (): Promise<any[]> => {
-        const res = await api.get('/super-admin/organizations?limit=100');
-        if (res.data.success) {
-            return res.data.data.orgs.map((org: any) => ({
-                id: org.orgId,
-                name: org.name,
-                dbId: org.id
-            }));
-        }
-        return [];
-    }
 };

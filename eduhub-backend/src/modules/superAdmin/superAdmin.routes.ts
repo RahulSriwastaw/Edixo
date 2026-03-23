@@ -4,9 +4,11 @@ import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/database';
 import { authenticate, requireSuperAdmin } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
+import mockbookRoutes from './mockbook/superAdminMockbook.routes';
 
 const router = Router();
 router.use(authenticate, requireSuperAdmin);
+router.use('/mockbook', mockbookRoutes);
 
 // ─── GET /api/super-admin/dashboard ─────────────────────────
 router.get('/dashboard', async (_req, res, next) => {
@@ -918,6 +920,159 @@ router.patch('/organizations/:orgId/personalization', async (req, res, next) => 
         });
 
         res.json({ success: true, data: settings, message: 'Personalization settings updated' });
+    } catch (err) { next(err); }
+});
+
+// ─── MockBook Test Series (Super Admin) ─────────────────────
+router.get('/mockbook/test-series', async (req, res, next) => {
+    try {
+        const { search, categoryId } = req.query;
+        const where: any = {};
+        if (search) where.name = { contains: search as string, mode: 'insensitive' };
+        if (categoryId) where.categoryId = categoryId as string;
+
+        const series = await prisma.examSubCategory.findMany({
+            where,
+            include: {
+                category: { select: { name: true } },
+                org: { select: { name: true } },
+                _count: { select: { mockTests: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ success: true, data: series });
+    } catch (err) { next(err); }
+});
+
+router.post('/mockbook/test-series', async (req, res, next) => {
+    try {
+        const schema = z.object({
+            orgId: z.string(),
+            categoryId: z.string(),
+            name: z.string().min(2),
+            description: z.string().optional(),
+            price: z.number().optional(),
+            isFree: z.boolean().optional(),
+            status: z.enum(['active', 'draft']).optional()
+        });
+        const body = schema.parse(req.body);
+        const folder = await prisma.examFolder.findFirst({ where: { orgId: body.orgId }});
+        if (!folder) throw new AppError("Organization must have an exam folder first", 400);
+
+        const series = await prisma.examSubCategory.create({
+            data: {
+                orgId: body.orgId,
+                categoryId: body.categoryId,
+                name: body.name,
+                description: body.description || '',
+                isActive: body.status === 'active',
+            }
+        });
+        res.json({ success: true, data: series });
+    } catch (err) { next(err); }
+});
+
+router.put('/mockbook/test-series/:id', async (req, res, next) => {
+    try {
+        const body = req.body;
+        const series = await prisma.examSubCategory.update({
+            where: { id: req.params.id },
+            data: {
+                name: body.name,
+                description: body.description,
+                categoryId: body.categoryId,
+                isActive: body.status === 'active',
+            }
+        });
+        res.json({ success: true, data: series });
+    } catch (err) { next(err); }
+});
+
+router.delete('/mockbook/test-series/:id', async (req, res, next) => {
+    try {
+        await prisma.examSubCategory.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: "Deleted" });
+    } catch (err) { next(err); }
+});
+
+// ─── MockBook Tests (Super Admin) ─────────────────────────
+router.get('/mockbook/tests', async (req, res, next) => {
+    try {
+        const { search, status, orgId } = req.query;
+        const where: any = {};
+        if (search) where.name = { contains: search as string, mode: 'insensitive' };
+        if (status) where.status = status as string;
+        if (orgId) where.orgId = orgId as string;
+
+        const tests = await prisma.mockTest.findMany({
+            where,
+            include: {
+                org: { select: { name: true } },
+                subCategory: { select: { name: true } },
+                _count: { select: { attempts: true, sections: true } }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ success: true, data: tests });
+    } catch (err) { next(err); }
+});
+
+router.post('/mockbook/tests', async (req, res, next) => {
+    try {
+        const schema = z.object({
+            orgId: z.string(),
+            subCategoryId: z.string().optional(),
+            name: z.string().min(2),
+            description: z.string().optional(),
+            durationMins: z.number().min(1),
+            totalMarks: z.number().min(0),
+            status: z.enum(['DRAFT', 'SCHEDULED', 'LIVE', 'ENDED']).optional(),
+        });
+        const body = schema.parse(req.body);
+
+        // Auto-generate testId
+        const testId = String(Math.floor(100000 + Math.random() * 900000));
+        const pin = String(Math.floor(100000 + Math.random() * 900000));
+
+        const test = await prisma.mockTest.create({
+            data: {
+                testId,
+                pin,
+                orgId: body.orgId,
+                subCategoryId: body.subCategoryId || null,
+                name: body.name,
+                description: body.description || '',
+                durationMins: body.durationMins,
+                totalMarks: body.totalMarks,
+                status: body.status || 'DRAFT',
+            }
+        });
+        res.status(201).json({ success: true, data: test });
+    } catch (err) { next(err); }
+});
+
+router.put('/mockbook/tests/:id', async (req, res, next) => {
+    try {
+        const body = req.body;
+        const test = await prisma.mockTest.update({
+            where: { id: req.params.id },
+            data: {
+                name: body.name,
+                description: body.description,
+                subCategoryId: body.subCategoryId || null,
+                durationMins: body.durationMins,
+                totalMarks: body.totalMarks,
+                status: body.status,
+            }
+        });
+        res.json({ success: true, data: test });
+    } catch (err) { next(err); }
+});
+
+router.delete('/mockbook/tests/:id', async (req, res, next) => {
+    try {
+        await prisma.mockTest.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: "Deleted" });
     } catch (err) { next(err); }
 });
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Loader2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Clock, HelpCircle, BarChart3, BookOpen } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 
 const PaletteKey = [
@@ -13,30 +13,61 @@ const PaletteKey = [
   { color: "#9c27b0", border: "transparent", textColor: "#fff", label: "You have answered the question, marked it for review." },
 ];
 
+interface TestMeta {
+  id: string;
+  testId: string;
+  name: string;
+  durationMins: number;
+  totalMarks: number;
+  status: string;
+  sections?: { name: string; set?: { items?: any[] } }[];
+}
+
 export default function TestInstructionsPage() {
   const params = useParams();
   const router = useRouter();
   const [displayName, setDisplayName] = useState("Student");
   const [step, setStep] = useState(1);
-  const [language, setLanguage] = useState("");
+  const [language, setLanguage] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("testLanguage") || "";
+    }
+    return "";
+  });
   const [declared, setDeclared] = useState(false);
   const [isNavigating, setIsNavigating] = useState(false);
+  const [testMeta, setTestMeta] = useState<TestMeta | null>(null);
+  const [loadingMeta, setLoadingMeta] = useState(true);
 
   const testId = params?.id ? String(params.id) : "demo-test";
 
+  // Load student profile
   useEffect(() => {
     apiFetch("/students/me").then(res => {
       if (res.data?.name) setDisplayName(res.data.name);
     }).catch(() => {});
   }, []);
 
+  // Load test metadata
+  useEffect(() => {
+    if (!testId) return;
+    setLoadingMeta(true);
+    apiFetch(`/mockbook/tests/${testId}`)
+      .then(res => setTestMeta(res.data || null))
+      .catch(() => {})
+      .finally(() => setLoadingMeta(false));
+  }, [testId]);
+
   const handleBegin = () => {
     if (step === 1) { setStep(2); return; }
     if (language && declared) {
+      sessionStorage.setItem("testLanguage", language);
       setIsNavigating(true);
       setTimeout(() => { window.location.href = `/tests/exam/${testId}`; }, 300);
     }
   };
+
+  const questionCount = testMeta?.sections?.reduce((acc, sec) => acc + (sec.set?.items?.length || 0), 0) || 0;
 
   return (
     <div className="flex flex-col h-screen bg-white font-sans overflow-hidden" style={{ fontSize: 13 }}>
@@ -51,7 +82,7 @@ export default function TestInstructionsPage() {
           </div>
           <span className="text-gray-300 text-xs">|</span>
           <span className="text-gray-600 text-xs font-medium truncate max-w-xs">
-            {step === 1 ? "General Instructions" : "Test Instructions"}
+            {loadingMeta ? "Loading..." : (testMeta?.name || (step === 1 ? "General Instructions" : "Test Instructions"))}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -121,14 +152,37 @@ export default function TestInstructionsPage() {
             </div>
           ) : (
             <div className="p-6 max-w-2xl" style={{ fontSize: 13, lineHeight: 1.6 }}>
+              {/* Test info cards */}
+              {testMeta && (
+                <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex flex-col items-center text-center">
+                    <Clock className="h-5 w-5 text-[#1a73e8] mb-1" />
+                    <span className="text-xs font-bold text-gray-900">{testMeta.durationMins} Minutes</span>
+                    <span className="text-[10px] text-gray-500">Duration</span>
+                  </div>
+                  <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex flex-col items-center text-center">
+                    <BarChart3 className="h-5 w-5 text-[#1a73e8] mb-1" />
+                    <span className="text-xs font-bold text-gray-900">{testMeta.totalMarks} Marks</span>
+                    <span className="text-[10px] text-gray-500">Total Marks</span>
+                  </div>
+                  {questionCount > 0 && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-3 flex flex-col items-center text-center">
+                      <BookOpen className="h-5 w-5 text-[#1a73e8] mb-1" />
+                      <span className="text-xs font-bold text-gray-900">{questionCount} Questions</span>
+                      <span className="text-[10px] text-gray-500">Total</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <p className="font-bold text-gray-900 mb-3">Read the following instructions carefully.</p>
               <ol className="list-decimal pl-5 space-y-2 text-gray-700">
-                <li>The test contains questions.</li>
+                <li>The test contains <strong>{questionCount || "multiple"}</strong> questions.</li>
                 <li>Each question has 4 options out of which only one is correct.</li>
-                <li>You have to finish the test in the allotted time.</li>
+                <li>You have to finish the test in the allotted time of <strong>{testMeta?.durationMins || "–"} minutes</strong>.</li>
                 <li>You will be awarded marks for each correct answer and marks will be deducted for each wrong answer.</li>
                 <li>There is no negative marking for unattempted questions.</li>
-                <li>You can write this test only once. Complete the test before you submit or close the browser.</li>
+                <li>You can reattempt this test after submission.</li>
               </ol>
 
               <div className="mt-5">
@@ -171,6 +225,12 @@ export default function TestInstructionsPage() {
             {displayName.charAt(0).toUpperCase()}
           </div>
           <p className="text-sm font-semibold text-gray-700 mt-2 text-center px-2 leading-tight">{displayName}</p>
+          {testMeta && (
+            <div className="mt-4 px-3 text-center space-y-1">
+              <p className="text-[10px] text-gray-500 font-medium leading-tight">Test ID</p>
+              <p className="text-[11px] font-mono font-bold text-gray-700">{testMeta.testId}</p>
+            </div>
+          )}
         </div>
       </div>
 
