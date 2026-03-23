@@ -18,7 +18,8 @@ import {
   ChevronLeft,
   Loader2,
   PackageCheck,
-  ListFilter
+  ListFilter,
+  Globe2
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
 import { API_URL, getAuthHeaders } from "@/lib/api-config";
+import { SuperPagination } from "@/components/ui/super-pagination";
 
 // getToken removed
 
@@ -117,7 +119,9 @@ export function AdvancedSetBuilder() {
   const [selectedQuestionIds, setSelectedQuestionIds] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [displayLanguage, setDisplayLanguage] = useState<'both' | 'en' | 'hi'>('both');
 
   // --- Cart & Set Creation State ---
   const [showCart, setShowCart] = useState(false);
@@ -190,7 +194,7 @@ export function AdvancedSetBuilder() {
         if (selectedSource !== "all") url.searchParams.append("source", selectedSource);
         if (filters.length > 0) url.searchParams.append("filters", JSON.stringify(filters));
         url.searchParams.append("page", page.toString());
-        url.searchParams.append("limit", "10");
+        url.searchParams.append("limit", limit.toString());
 
         const res = await fetch(url.toString(), {
             headers: getAuthHeaders()
@@ -209,7 +213,7 @@ export function AdvancedSetBuilder() {
     
     const debounce = setTimeout(fetchQuestions, 300);
     return () => clearTimeout(debounce);
-  }, [selectedExam, selectedSubject, selectedChapter, selectedYear, selectedShift, selectedDifficulty, selectedType, selectedSource, filters, searchQuery, page]);
+  }, [selectedExam, selectedSubject, selectedChapter, selectedYear, selectedShift, selectedDifficulty, selectedType, selectedSource, filters, searchQuery, page, limit]);
 
   // --- Selection Helpers ---
   const toggleSelection = (id: string) => {
@@ -274,6 +278,32 @@ export function AdvancedSetBuilder() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg">
+            <Globe2 className="w-4 h-4 text-slate-500 ml-2" />
+            <div className="flex bg-slate-100 p-0.5 rounded-md gap-0.5">
+              <Button 
+                variant="ghost" 
+                onClick={() => setDisplayLanguage('en')}
+                className={cn("h-7 px-3 text-xs", displayLanguage === 'en' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-slate-500 hover:text-slate-700")}
+              >
+                English
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setDisplayLanguage('hi')}
+                className={cn("h-7 px-3 text-xs", displayLanguage === 'hi' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-slate-500 hover:text-slate-700")}
+              >
+                हिंदी
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => setDisplayLanguage('both')}
+                className={cn("h-7 px-3 text-xs", displayLanguage === 'both' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-slate-500 hover:text-slate-700")}
+              >
+                Both
+              </Button>
+            </div>
+          </div>
           <Button 
             variant={selectedQuestionIds.length > 0 ? "default" : "outline"}
             className={cn(
@@ -538,9 +568,19 @@ export function AdvancedSetBuilder() {
                             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
                                {q.exam} • {q.subjectName} • {q.year || 'N/A'}
                             </span>
-                            <p className="text-sm font-medium text-slate-700 line-clamp-2 leading-relaxed">
-                               {stripHtml(q.textEn || q.textHi || "")}
-                            </p>
+                            {displayLanguage !== 'hi' && q.textEn && (
+                              <p className="text-sm font-medium text-slate-700 line-clamp-2 leading-relaxed">
+                                {stripHtml(q.textEn)}
+                              </p>
+                            )}
+                            {displayLanguage !== 'en' && q.textHi && (
+                              <p className={cn("text-sm font-medium text-slate-700 line-clamp-2 leading-relaxed", displayLanguage === 'both' && q.textEn && "mt-1 pt-1 border-t border-slate-100 text-slate-600")}>
+                                {stripHtml(q.textHi)}
+                              </p>
+                            )}
+                            {!q.textEn && !q.textHi && (
+                              <p className="text-sm font-medium text-slate-400 italic">No text available</p>
+                            )}
                             <div className="flex items-center gap-2 mt-0.5">
                                {q.chapterName && (
                                  <Badge variant="secondary" className="text-[9px] h-4 bg-slate-100 text-slate-500 border-none font-normal">
@@ -585,31 +625,15 @@ export function AdvancedSetBuilder() {
             </div>
 
             {/* Pagination footer */}
-            <div className="p-4 border-t flex items-center justify-between shrink-0 bg-slate-50/50">
-              <span className="text-xs text-slate-500">
-                Showing {(page - 1) * 10 + 1} to {Math.min(page * 10, totalQuestions)} of {totalQuestions}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 w-8 p-0" 
-                    disabled={page === 1}
-                    onClick={() => setPage(page - 1)}
-                >
-                    <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div className="text-sm font-medium px-2">Page {page}</div>
-                <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="h-8 w-8 p-0"
-                    disabled={page * 10 >= totalQuestions}
-                    onClick={() => setPage(page + 1)}
-                >
-                    <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
+            <div className="p-2 border-t mt-auto bg-slate-50/50">
+              <SuperPagination 
+                currentPage={page} 
+                totalPages={Math.ceil(totalQuestions / limit)} 
+                pageSize={limit} 
+                onPageChange={setPage} 
+                onPageSizeChange={(newLimit) => { setLimit(newLimit); setPage(1); }} 
+                totalItems={totalQuestions} 
+              />
             </div>
           </Card>
         </main>
@@ -658,7 +682,11 @@ export function AdvancedSetBuilder() {
                         return (
                           <div key={id} className="p-3 flex items-center justify-between group">
                             <span className="text-xs text-slate-600 font-medium line-clamp-1 flex-1">
-                                {question ? stripHtml(question.textEn || question.textHi) : id}
+                                {question ? (
+                                    displayLanguage === 'en' ? stripHtml(question.textEn || question.textHi) :
+                                    displayLanguage === 'hi' ? stripHtml(question.textHi || question.textEn) :
+                                    stripHtml(question.textEn || question.textHi)
+                                ) : id}
                             </span>
                             <Button 
                                 variant="ghost" 
@@ -706,9 +734,19 @@ export function AdvancedSetBuilder() {
           </DialogHeader>
           <div className="py-4 space-y-6">
              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
-                <div className="text-lg font-medium text-slate-800 leading-relaxed">
-                   {stripHtml(previewQuestion?.textEn || previewQuestion?.textHi || "")}
-                </div>
+                {displayLanguage !== 'hi' && previewQuestion?.textEn && (
+                  <div className="text-lg font-medium text-slate-800 leading-relaxed">
+                     {stripHtml(previewQuestion.textEn)}
+                  </div>
+                )}
+                {displayLanguage !== 'en' && previewQuestion?.textHi && (
+                  <div className={cn("text-lg font-medium text-slate-800 leading-relaxed", displayLanguage === 'both' && previewQuestion?.textEn && "mt-2 pt-2 border-t border-slate-200 text-slate-700")}>
+                     {stripHtml(previewQuestion.textHi)}
+                  </div>
+                )}
+                {!previewQuestion?.textEn && !previewQuestion?.textHi && (
+                  <div className="text-lg font-medium text-slate-400 italic">No text available</div>
+                )}
              </div>
 
              {previewQuestion?.options && (
@@ -729,8 +767,20 @@ export function AdvancedSetBuilder() {
                         )}>
                           {String.fromCharCode(65 + idx)}
                         </div>
-                        <span className="text-sm font-medium">{stripHtml(opt.textEn || opt.textHi)}</span>
-                        {opt.isCorrect && <CheckCircle2 className="w-4 h-4 ml-auto text-green-500" />}
+                        <div className="flex-1 flex flex-col gap-1">
+                          {displayLanguage !== 'hi' && opt.textEn && (
+                            <span className="text-sm font-medium">{stripHtml(opt.textEn)}</span>
+                          )}
+                          {displayLanguage !== 'en' && opt.textHi && (
+                            <span className={cn("text-sm font-medium", displayLanguage === 'both' && opt.textEn && "text-slate-500 text-xs pt-1 mt-1 border-t border-slate-100")}>
+                              {stripHtml(opt.textHi)}
+                            </span>
+                          )}
+                          {!opt.textEn && !opt.textHi && (
+                            <span className="text-sm font-medium italic text-slate-400">Empty Option</span>
+                          )}
+                        </div>
+                        {opt.isCorrect && <CheckCircle2 className="w-4 h-4 ml-auto text-green-500 shrink-0" />}
                       </div>
                     ))}
                  </div>
@@ -741,7 +791,14 @@ export function AdvancedSetBuilder() {
                <div className="space-y-2">
                   <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Explanation</label>
                   <div className="p-4 bg-brand-primary/5 rounded-xl text-sm text-slate-600 leading-relaxed italic border border-brand-primary/10">
-                    {stripHtml(previewQuestion.explanationEn || previewQuestion.explanationHi)}
+                    {displayLanguage !== 'hi' && previewQuestion.explanationEn && (
+                      <p>{stripHtml(previewQuestion.explanationEn)}</p>
+                    )}
+                    {displayLanguage !== 'en' && previewQuestion.explanationHi && (
+                      <p className={cn(displayLanguage === 'both' && previewQuestion.explanationEn && "mt-2 pt-2 border-t border-brand-primary/10 text-slate-500")}>
+                        {stripHtml(previewQuestion.explanationHi)}
+                      </p>
+                    )}
                   </div>
                </div>
              )}
