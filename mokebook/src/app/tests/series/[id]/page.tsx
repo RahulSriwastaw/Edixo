@@ -15,20 +15,20 @@ import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const CATEGORY_META: Record<string, { gradient: string; icon: string }> = {
-  default:     { gradient: "from-indigo-600 to-indigo-800",   icon: "📚" },
-  railways:    { gradient: "from-blue-600 to-blue-800",       icon: "🚂" },
-  rrb:         { gradient: "from-blue-600 to-blue-800",       icon: "🚂" },
-  ssc:         { gradient: "from-red-500 to-red-700",         icon: "📋" },
-  banking:     { gradient: "from-teal-600 to-teal-800",      icon: "🏦" },
-  insurance:   { gradient: "from-teal-600 to-teal-800",      icon: "🏦" },
-  defence:     { gradient: "from-green-700 to-green-900",    icon: "🎖️" },
-  police:      { gradient: "from-green-600 to-green-800",    icon: "🛡️" },
-  state:       { gradient: "from-amber-500 to-amber-700",    icon: "🏛️" },
-  teaching:    { gradient: "from-pink-500 to-pink-700",      icon: "🎓" },
-  civil:       { gradient: "from-purple-600 to-purple-800",  icon: "⚖️" },
-  upsc:        { gradient: "from-purple-600 to-purple-800",  icon: "⚖️" },
-  engineering: { gradient: "from-orange-500 to-orange-700",  icon: "🔧" },
-  gate:        { gradient: "from-orange-500 to-orange-700",  icon: "🔧" },
+  default:     { gradient: "from-[#0f1b2d] to-[#1a73e8]",   icon: "📚" },
+  railways:    { gradient: "from-[#1e2a3b] to-[#1a73e8]",   icon: "🚂" },
+  rrb:         { gradient: "from-[#1e2a3b] to-[#1a73e8]",   icon: "🚂" },
+  ssc:         { gradient: "from-[#0f1b2d] to-[#1a73e8]",   icon: "📋" },
+  banking:     { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🏦" },
+  insurance:   { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🏦" },
+  defence:     { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🎖️" },
+  police:      { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🛡️" },
+  state:       { gradient: "from-[#92400e] to-[#1a73e8]",   icon: "🏛️" },
+  teaching:    { gradient: "from-[#831843] to-[#1a73e8]",   icon: "🎓" },
+  civil:       { gradient: "from-[#3730a3] to-[#1a73e8]",   icon: "⚖️" },
+  upsc:        { gradient: "from-[#3730a3] to-[#1a73e8]",   icon: "⚖️" },
+  engineering: { gradient: "from-[#0f172a] to-[#1a73e8]",   icon: "🔧" },
+  gate:        { gradient: "from-[#0f172a] to-[#1a73e8]",   icon: "🔧" },
 };
 
 function getCatMeta(name: string) {
@@ -54,11 +54,11 @@ function FaqItem({ q, a }: { q: string; a: string }) {
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       <button
-        className="w-full flex items-center justify-between py-3.5 text-left hover:text-[#F4511E] transition-colors gap-4"
+        className="w-full flex items-center justify-between py-3.5 text-left hover:text-[#1a73e8] transition-colors gap-4"
         onClick={() => setOpen(o => !o)}
       >
         <span className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-          <span className="text-[#F4511E] font-black">?</span>
+          <span className="text-[#1a73e8] font-black">?</span>
           {q}
         </span>
         {open
@@ -67,7 +67,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
         }
       </button>
       {open && (
-        <div className="pb-4 px-5 bg-[#FAFAFA] rounded-lg mb-2">
+        <div className="pb-4 px-5 bg-[#F8FAFC] rounded-lg mb-2">
           <p className="text-sm text-gray-600 leading-relaxed pt-2">{a}</p>
         </div>
       )}
@@ -78,42 +78,44 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 function PaywallModal({ onClose, seriesName }: { onClose: () => void; seriesName: string }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="bg-gradient-to-br from-[#F4511E] to-[#D03B12] p-6 text-white">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white">
-            <X className="h-5 w-5" />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+        <div className="bg-gradient-to-br from-[#0f1b2d] to-[#1a73e8] p-8 text-white relative">
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 p-1.5 rounded-full transition-colors">
+            <X className="h-4 w-4" />
           </button>
-          <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center mb-3">
-            <Lock className="h-6 w-6 text-white" />
+          <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-md border border-white/10">
+            <Shield className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-xl font-bold mb-1">Unlock Full Access</h2>
-          <p className="text-white/80 text-sm">Get access to all premium tests in {seriesName}</p>
+          <h2 className="text-2xl font-black mb-1">Unlock Full Access</h2>
+          <p className="text-white/80 text-sm font-medium">Get access to all premium tests in {seriesName}</p>
         </div>
 
-        <div className="p-6">
-          <div className="space-y-3 mb-6">
+        <div className="p-8">
+          <div className="space-y-4 mb-8">
             {[
               "All mock tests + chapter tests",
               "Detailed solutions & analytics",
               "Rank predictor & leaderboard",
               "Compare with toppers",
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <CheckCircle2 className="h-4 w-4 text-[#F4511E] shrink-0" />
+              <div key={i} className="flex items-center gap-3 text-sm font-bold text-slate-700">
+                <div className="p-1 bg-blue-50 rounded-full">
+                   <CheckCircle2 className="h-3.5 w-3.5 text-[#1a73e8] shrink-0" />
+                </div>
                 {item}
               </div>
             ))}
           </div>
 
-          <button className="w-full bg-[#F4511E] hover:bg-[#D03B12] text-white font-bold py-3 rounded-xl transition-colors mb-3">
-            Purchase Access
+          <button className="w-full h-12 bg-[#1a73e8] text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all mb-4">
+            Purchase Pass
           </button>
           <button
             onClick={onClose}
-            className="w-full border border-gray-200 text-gray-600 font-bold py-3 rounded-xl hover:bg-gray-50 transition-colors text-sm"
+            className="w-full h-11 border-2 border-slate-100 text-slate-500 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all"
           >
-            Start with free tests first →
+            Start with free tests first
           </button>
         </div>
       </div>
@@ -139,98 +141,93 @@ function TestCard({
   const isLive = test.status === "LIVE";
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-sm transition-shadow">
-      <div className="p-4">
-        {/* Badges row */}
-        <div className="flex items-center gap-2 mb-2">
-          {isLive && (
-            <span className="bg-red-500 text-white text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded animate-pulse">LIVE NOW</span>
-          )}
-          {isFree ? (
-            <span className="bg-emerald-50 text-emerald-600 border border-emerald-200 text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded">🆓 FREE</span>
-          ) : !isAccessible ? (
-            <span className="bg-gray-100 text-gray-500 text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded flex items-center gap-0.5">
-              <Lock className="h-2 w-2" /> LOCKED
-            </span>
-          ) : null}
-          {hasAttempt && isAccessible && (
-            <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black tracking-widest px-1.5 py-0.5 rounded flex items-center gap-0.5">
-              <CheckCircle2 className="h-2 w-2" /> COMPLETED
-            </span>
-          )}
-        </div>
-
-        {/* Title */}
-        <h3 className="font-bold text-sm text-gray-900 leading-snug mb-2">{test.name}</h3>
-
-        {/* Stats */}
-        <div className="flex items-center gap-3 text-[11px] font-bold text-gray-500 mb-3">
-          <span className="flex items-center gap-1"><Clock className="h-3 w-3 text-gray-400" /> {test.durationMins} Mins</span>
-          <span className="flex items-center gap-1"><BarChart3 className="h-3 w-3 text-gray-400" /> {test.totalMarks} Marks</span>
-          <span className="flex items-center gap-1"><Globe2 className="h-3 w-3 text-gray-400" /> EN+HI</span>
-        </div>
-
-        {/* Previous attempt row */}
-        {hasAttempt && isAccessible && (
-          <div className="flex items-center gap-2 mb-3 text-[11px] font-bold">
-            <span className="text-gray-500">Last attempt:</span>
-            {test.lastScore != null && (
-              <span className={cn(
-                "px-1.5 py-0.5 rounded font-black",
-                test.lastScore >= (test.totalMarks * 0.6) ? "bg-emerald-50 text-emerald-600" :
-                test.lastScore >= (test.totalMarks * 0.4) ? "bg-amber-50 text-amber-600" :
-                "bg-red-50 text-red-500"
-              )}>
-                {test.lastScore}/{test.totalMarks}
+    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden hover:shadow-md hover:border-blue-200 transition-all group">
+      <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        
+        {/* Left: Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            {isLive && (
+              <span className="bg-red-500 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 uppercase">
+                <span className="w-1 h-1 bg-white rounded-full animate-pulse" />
+                Live Now
               </span>
             )}
-            {test.lastRank && (
-              <span className="bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">Rank #{test.lastRank}</span>
+            {isFree ? (
+              <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black tracking-widest px-2 py-0.5 rounded uppercase">Free</span>
+            ) : !isAccessible ? (
+              <span className="bg-slate-50 text-slate-400 text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 uppercase">
+                <Lock className="h-2.5 w-2.5" /> Locked
+              </span>
+            ) : null}
+            {hasAttempt && isAccessible && (
+              <span className="bg-blue-50 text-[#1a73e8] text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 uppercase">
+                <CheckCircle2 className="h-2.5 w-2.5" /> Completed
+              </span>
             )}
           </div>
-        )}
 
-        <div className="h-px bg-gray-100 my-3" />
+          <h3 className="font-black text-sm text-[#0f1b2d] leading-snug group-hover:text-[#1a73e8] transition-colors mb-2 line-clamp-1">{test.name}</h3>
 
-        {/* CTA row */}
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4 text-[11px] font-bold text-slate-400">
+            <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {test.durationMins} Mins</span>
+            <span className="flex items-center gap-1.5"><BarChart3 className="h-3.5 w-3.5" /> {test.totalMarks} Marks</span>
+            <span className="flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5" /> EN + HI</span>
+          </div>
+
+          {hasAttempt && isAccessible && (
+            <div className="mt-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-tighter">
+               <span className="text-slate-400">Last Score:</span>
+               <span className={cn(
+                  "px-2 py-0.5 rounded",
+                  test.lastScore >= (test.totalMarks * 0.6) ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
+               )}>
+                  {test.lastScore}/{test.totalMarks}
+               </span>
+               <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded">Rank #{test.lastRank || "-"}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Right: CTA */}
+        <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0">
           {isAccessible ? (
             <>
               {inProgress ? (
                 <button
                   onClick={() => router.push(`/tests/instructions/${test.testId}`)}
-                  className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs h-9 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 md:w-32 h-10 bg-amber-500 text-white font-black text-[11px] uppercase tracking-widest rounded-lg transition-all hover:bg-amber-600 active:scale-95 flex items-center justify-center gap-1"
                 >
-                  Resume Test → <PlayCircle className="h-3.5 w-3.5" />
+                  Resume <PlayCircle className="h-3.5 w-3.5" />
                 </button>
               ) : hasAttempt ? (
-                <>
+                <div className="flex gap-2 w-full md:w-auto">
                   <button
                     onClick={() => router.push(`/tests/instructions/${test.testId}`)}
-                    className="flex-1 bg-[#F4511E] hover:bg-[#D03B12] text-white font-bold text-xs h-9 rounded-lg transition-colors flex items-center justify-center gap-1"
+                    className="flex-1 md:w-32 h-10 bg-[#1a73e8] text-white font-black text-[11px] uppercase tracking-widest rounded-lg transition-all hover:opacity-90 active:scale-95 shadow-md shadow-blue-500/10"
                   >
-                    Attempt {(test.attempts || 0) + 1} →
+                    Attempt {(test.attempts || 0) + 1}
                   </button>
                   <button
                     onClick={() => router.push(`/tests/solutions/latest?testId=${test.testId}`)}
-                    className="px-3 border border-gray-300 text-gray-700 font-bold text-xs h-9 rounded-lg hover:bg-gray-50 transition-colors whitespace-nowrap"
+                    className="h-10 px-4 border-2 border-slate-100 text-slate-500 font-black text-[11px] uppercase tracking-widest rounded-lg hover:border-blue-200 hover:text-[#1a73e8] transition-all"
                   >
                     Solutions
                   </button>
-                </>
+                </div>
               ) : (
                 <button
                   onClick={() => router.push(`/tests/instructions/${test.testId}`)}
-                  className="flex-1 bg-[#F4511E] hover:bg-[#D03B12] text-white font-bold text-xs h-9 rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  className="flex-1 md:w-36 h-10 bg-[#1a73e8] text-white font-black text-[11px] uppercase tracking-widest rounded-lg transition-all hover:opacity-90 active:scale-95 shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5"
                 >
-                  Begin Test <ArrowRight className="h-3.5 w-3.5" />
+                  Start Test <ArrowRight className="h-4 w-4" />
                 </button>
               )}
             </>
           ) : (
             <button
               onClick={onLockedClick}
-              className="flex-1 bg-gray-100 text-gray-400 font-bold text-xs h-9 rounded-lg flex items-center justify-center gap-1.5 hover:bg-gray-200 transition-colors"
+              className="flex-1 md:w-44 h-10 bg-slate-50 text-slate-400 font-black text-[11px] uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 hover:bg-slate-100 transition-all border border-slate-100"
             >
               <Lock className="h-3.5 w-3.5" /> Unlock to Attempt
             </button>
@@ -296,61 +293,67 @@ export default function SeriesDetailPage() {
   const catMeta = getCatMeta(data?.name || "");
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F5F5F5]">
+    <div className="flex flex-col min-h-screen bg-[#F0F2F8] text-[#0f1b2d] font-sans antialiased">
       <Navbar />
       <div className="flex-1 flex overflow-hidden w-full">
         <Sidebar />
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 lg:pb-12">
 
           {loading ? (
-            <div className="py-40 flex items-center justify-center">
-              <Loader2 className="h-8 w-8 animate-spin text-[#F4511E]" />
+            <div className="py-40 flex flex-col items-center justify-center space-y-4">
+              <Loader2 className="h-10 w-10 animate-spin text-[#1a73e8] opacity-20" />
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Initialising Test Series...</p>
             </div>
           ) : !data ? (
-            <div className="py-24 text-center">
-              <FileText className="h-10 w-10 text-gray-200 mx-auto mb-4" />
-              <p className="text-base font-bold text-gray-900 mb-1">Series not found</p>
-              <p className="text-sm text-gray-500 mb-6">The test series might have been moved or deleted.</p>
-              <button onClick={() => router.push("/tests")} className="bg-[#F4511E] text-white px-6 py-2 rounded-lg text-sm font-bold hover:bg-[#D03B12]">
-                Browse All Tests
-              </button>
+            <div className="py-24 text-center px-6">
+              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
+                <FileText className="h-8 w-8 text-slate-200" />
+              </div>
+              <h1 className="text-xl font-black text-slate-800 mb-2">Series not found</h1>
+              <p className="text-sm text-slate-400 mb-8 max-w-xs mx-auto">This test series might have been moved or doesn't exist anymore.</p>
+              <Link href="/tests" className="inline-flex h-11 px-8 bg-[#1a73e8] text-white rounded-xl items-center justify-center text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all">
+                Browse All Exams
+              </Link>
             </div>
           ) : (
             <>
               {/* Breadcrumb */}
-              <div className="bg-white border-b border-gray-100 px-6 py-2 flex items-center gap-1.5 text-[11px] font-bold text-gray-400 uppercase tracking-widest">
-                <Link href="/tests" className="hover:text-[#F4511E] transition-colors">Test Series</Link>
+              <div className="bg-white border-b border-slate-100 px-6 py-2.5 flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky top-0 z-20">
+                <Link href="/tests" className="hover:text-[#1a73e8] transition-colors">Test Series</Link>
                 <ChevronRight className="h-3 w-3" />
-                <span className="text-gray-700 line-clamp-1">{data.name}</span>
+                <span className="text-slate-600 line-clamp-1">{data.name}</span>
               </div>
 
               {/* HERO SECTION */}
-              <div className={cn("w-full bg-gradient-to-br relative overflow-hidden", catMeta.gradient)} style={{ minHeight: 200 }}>
+              <div className={cn("w-full bg-gradient-to-br relative overflow-hidden", catMeta.gradient)} style={{ minHeight: 240 }}>
                 {/* Decorative circles */}
-                <div className="absolute right-0 top-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-                <div className="absolute left-1/2 bottom-0 w-40 h-40 bg-white/5 rounded-full translate-y-1/2" />
+                <div className="absolute right-0 top-0 w-[400px] h-[400px] bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+                <div className="absolute left-[30%] bottom-[-50px] w-64 h-64 bg-white/5 rounded-full blur-3xl" />
 
-                <div className="relative px-6 py-8 md:px-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 max-w-5xl">
-                  <div className="flex items-center gap-5">
+                <div className="relative px-6 py-10 md:px-10 flex flex-col md:flex-row items-center md:items-center justify-between gap-8 max-w-6xl mx-auto">
+                  <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
                     {/* Logo */}
-                    <div className="w-16 h-16 rounded-2xl bg-white shadow-lg flex items-center justify-center shrink-0 text-3xl">
+                    <div className="w-24 h-24 rounded-3xl bg-white shadow-2xl flex items-center justify-center shrink-0 text-5xl">
                       {catMeta.icon}
                     </div>
                     <div>
-                      <div className="flex items-center gap-2 mb-1.5">
+                      <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-3">
                         {data.isFree ? (
-                          <span className="text-[10px] font-black tracking-widest bg-emerald-400 text-white px-2 py-0.5 rounded">FREE SERIES</span>
+                          <span className="text-[10px] font-black tracking-widest bg-emerald-500 text-white px-2.5 py-0.5 rounded uppercase">Free Series</span>
                         ) : (
-                          <span className="text-[10px] font-black tracking-widest bg-white/20 text-white px-2 py-0.5 rounded flex items-center gap-1">
-                            <Lock className="h-2.5 w-2.5" /> PREMIUM
+                          <span className="text-[10px] font-black tracking-widest bg-white/10 text-white px-2.5 py-0.5 rounded flex items-center gap-1 uppercase border border-white/10 backdrop-blur-md">
+                            <Lock className="h-2.5 w-2.5" /> Premium
                           </span>
                         )}
+                        <span className="text-[10px] font-black tracking-widest bg-white text-[#1a73e8] px-2.5 py-0.5 rounded uppercase flex items-center gap-1.5 shadow-sm">
+                           <Shield className="h-3 w-3" /> 100% Verified
+                        </span>
                       </div>
-                      <h1 className="text-2xl md:text-3xl font-bold text-white leading-tight">{data.name}</h1>
-                      <div className="flex items-center gap-3 mt-2 text-white/70 text-xs font-medium">
-                        <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-300 text-amber-300" /> 4.8</span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1"><Users className="h-3 w-3" /> 12K+ Enrolled</span>
+                      <h1 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">{data.name}</h1>
+                      <div className="flex items-center justify-center md:justify-start gap-4 mt-3 text-white/80 text-xs font-bold uppercase tracking-widest">
+                        <span className="flex items-center gap-1.5"><Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> 4.8 Rating</span>
+                        <span className="opacity-30">|</span>
+                        <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> 12.5k Enrolled</span>
                       </div>
                     </div>
                   </div>
@@ -358,36 +361,31 @@ export default function SeriesDetailPage() {
                   {!data.isFree && (
                     <button
                       onClick={() => setPaywallOpen(true)}
-                      className="shrink-0 bg-white text-[#F4511E] font-bold px-6 py-3 rounded-xl hover:bg-gray-50 transition-colors text-sm shadow"
+                      className="shrink-0 h-14 px-8 bg-white text-[#1a73e8] font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-slate-50 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-2"
                     >
-                      🔓 Unlock Full Access
+                      🔓 Unlock Series
                     </button>
                   )}
                 </div>
 
                 {/* Quick stats bar */}
-                <div className="relative bg-black/20 backdrop-blur-sm px-6 py-2.5 flex items-center gap-6 text-white/90 text-xs font-bold overflow-x-auto">
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">📝 <span>{totalTests}</span> Tests</span>
-                  <span className="opacity-40">|</span>
-                  <span className="flex items-center gap-1.5 whitespace-nowrap text-emerald-300">🆓 <span>{freeCount}</span> Free</span>
-                  <span className="opacity-40">|</span>
-                  <span className="flex items-center gap-1.5 whitespace-nowrap">🌐 Hindi + English</span>
+                <div className="relative bg-[#0f1b2d]/40 backdrop-blur-md px-6 py-3 flex items-center justify-center md:justify-start gap-10 text-white text-[11px] font-black uppercase tracking-widest border-t border-white/5 overflow-x-auto no-scrollbar">
+                  <span className="flex items-center gap-2 whitespace-nowrap"><FileText className="h-4 w-4 opacity-50" /> <span>{totalTests}</span> Tests</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap text-emerald-400"><Zap className="h-4 w-4 opacity-50" /> <span>{freeCount}</span> Free</span>
+                  <span className="flex items-center gap-2 whitespace-nowrap"><Globe2 className="h-4 w-4 opacity-50" /> Hindi + English</span>
                   {data.description && (
-                    <>
-                      <span className="opacity-40">|</span>
-                      <span className="opacity-70 line-clamp-1">{data.description}</span>
-                    </>
+                    <span className="opacity-60 font-bold normal-case text-xs truncate max-w-sm hidden lg:block">{data.description}</span>
                   )}
                 </div>
               </div>
 
               {/* Main content */}
-              <div className="p-4 md:p-6 flex flex-col lg:flex-row gap-6 items-start max-w-[1400px] mx-auto">
-                <div className="w-full lg:flex-1 min-w-0 space-y-4">
+              <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-8 items-start max-w-7xl mx-auto">
+                <div className="w-full lg:flex-1 min-w-0 space-y-6">
 
                   {/* TAB NAV */}
-                  <div className="bg-white border border-gray-200 rounded-xl overflow-x-auto no-scrollbar">
-                    <div className="flex items-center px-2">
+                  <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto no-scrollbar shadow-sm sticky top-14 z-10">
+                    <div className="flex items-center px-4">
                       {TABS.map(tab => {
                         const count = tab === "All Tests" ? totalTests
                           : tab === "Free" ? freeCount
@@ -397,20 +395,25 @@ export default function SeriesDetailPage() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={cn(
-                              "px-4 py-3.5 text-xs font-bold whitespace-nowrap transition-colors border-b-[3px] flex items-center gap-1.5",
+                              "px-6 py-4 text-[12px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
                               activeTab === tab
-                                ? "border-[#F4511E] text-[#F4511E]"
-                                : "border-transparent text-gray-500 hover:text-gray-900"
+                                ? "text-[#1a73e8]"
+                                : "text-slate-400 hover:text-slate-700"
                             )}
                           >
-                            {tab}
-                            {count > 0 && (
-                              <span className={cn(
-                                "text-[10px] px-1.5 py-0.5 rounded-full font-black",
-                                activeTab === tab ? "bg-[#FFF3F0] text-[#F4511E]" : "bg-gray-100 text-gray-500"
-                              )}>
-                                {count}
-                              </span>
+                            <span className="flex items-center gap-2">
+                              {tab}
+                              {count > 0 && (
+                                <span className={cn(
+                                  "text-[10px] px-1.5 py-0.5 rounded-md font-black",
+                                  activeTab === tab ? "bg-blue-50 text-[#1a73e8]" : "bg-slate-50 text-slate-400"
+                                )}>
+                                  {count}
+                                </span>
+                              )}
+                            </span>
+                            {activeTab === tab && (
+                               <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1a73e8] rounded-full" />
                             )}
                           </button>
                         );
@@ -420,12 +423,14 @@ export default function SeriesDetailPage() {
 
                   {/* TEST LIST */}
                   {filteredTests.length === 0 ? (
-                    <div className="bg-white border border-gray-200 rounded-xl py-16 text-center">
-                      <FileText className="h-8 w-8 text-gray-200 mx-auto mb-2" />
-                      <p className="text-sm font-bold text-gray-500">No tests in this section yet</p>
+                    <div className="bg-white border border-slate-100 rounded-2xl py-20 text-center shadow-sm">
+                      <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-50">
+                        <FileText className="h-8 w-8 text-slate-200" />
+                      </div>
+                      <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No tests available in this section</p>
                     </div>
                   ) : (
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       {filteredTests.map((test, i) => (
                         <TestCard
                           key={test.id}
@@ -439,25 +444,33 @@ export default function SeriesDetailPage() {
                   )}
 
                   {/* ABOUT & FAQ ACCORDION */}
-                  <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+                  <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
                     <button
                       onClick={() => setAboutOpen(o => !o)}
-                      className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-gray-50 transition-colors"
+                      className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors"
                     >
-                      <span className="font-bold text-sm text-gray-900 flex items-center gap-2">
-                        ℹ️ About This Series
+                      <span className="font-black text-sm text-slate-800 flex items-center gap-3 uppercase tracking-widest">
+                        <div className="p-1.5 bg-blue-50 rounded-lg">
+                           <BookOpen className="h-4 w-4 text-[#1a73e8]" />
+                        </div>
+                        About This Test Series
                       </span>
-                      {aboutOpen ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+                      {aboutOpen ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
                     </button>
 
                     {aboutOpen && (
-                      <div className="px-5 pb-5 border-t border-gray-100">
-                        <p className="text-sm text-gray-600 leading-relaxed mt-4 mb-6">
-                          {data.description || "Prepare for your exam with our comprehensive mock test series. Each test is carefully crafted by subject matter experts to match the exact pattern and difficulty of the actual examination."}
-                        </p>
+                      <div className="px-6 pb-8 border-t border-slate-50">
+                        <div className="prose prose-slate prose-sm max-w-none pt-6 mb-8 text-slate-600 font-medium">
+                          <p className="leading-relaxed">
+                            {data.description || "Prepare for your exam with our comprehensive mock test series. Each test is carefully crafted by subject matter experts to match the exact pattern and difficulty of the actual examination. Detailed performance analytics and solutions are provided to help you improve your score with every attempt."}
+                          </p>
+                        </div>
 
-                        <h4 className="text-sm font-bold text-gray-900 mb-3">Frequently Asked Questions</h4>
-                        <div className="space-y-0">
+                        <div className="flex items-center gap-3 mb-6">
+                           <div className="h-[2px] w-8 bg-[#1a73e8]" />
+                           <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-[2px]">Frequently Asked Questions</h4>
+                        </div>
+                        <div className="space-y-1">
                           {DEFAULT_FAQS.map((faq, i) => <FaqItem key={i} q={faq.q} a={faq.a} />)}
                         </div>
                       </div>
@@ -467,24 +480,24 @@ export default function SeriesDetailPage() {
                 </div>
 
                 {/* Right sidebar */}
-                <aside className="w-full lg:w-[300px] shrink-0 space-y-4">
-                  <div className="bg-white border border-gray-200 rounded-xl p-5">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-[#F4511E] flex items-center gap-1.5 mb-2">
-                      <Zap className="h-3 w-3" /> Why Study With Us?
+                <aside className="w-full lg:w-[350px] shrink-0 space-y-6">
+                  <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
+                    <p className="text-[11px] font-black uppercase tracking-[2px] text-[#1a73e8] flex items-center gap-2 mb-6">
+                      <Zap className="h-4 w-4" /> Why Study With Us?
                     </p>
-                    <div className="space-y-4 mt-3">
+                    <div className="space-y-6">
                       {[
-                        { icon: Award, label: "Latest Exam Pattern", desc: "Updated for 2025 exam formats." },
-                        { icon: Shield, label: "Real Exam Interface", desc: "Matches the actual exam portal." },
-                        { icon: BarChart3, label: "Detailed Analytics", desc: "In-depth explanations for all questions." },
+                        { icon: Award, label: "Latest Exam Pattern", desc: "Updated for 2025 exam formats and syllabus changes." },
+                        { icon: Shield, label: "Real Exam Interface", desc: "Experience the actual CBT exam environment." },
+                        { icon: BarChart3, label: "Detailed Analytics", desc: "Rank predictor and subject-wise score analytics." },
                       ].map((item, i) => (
-                        <div key={i} className="flex items-start gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-[#FFF3F0] flex items-center justify-center shrink-0">
-                            <item.icon className="h-4 w-4 text-[#F4511E]" />
+                        <div key={i} className="flex items-start gap-4">
+                          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-50">
+                            <item.icon className="h-5 w-5 text-[#1a73e8]" />
                           </div>
                           <div>
-                            <p className="text-xs font-bold text-gray-900">{item.label}</p>
-                            <p className="text-[11px] text-gray-500 mt-0.5">{item.desc}</p>
+                            <p className="text-[13px] font-black text-slate-800 leading-tight mb-1">{item.label}</p>
+                            <p className="text-[11px] text-slate-400 font-bold leading-normal">{item.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -492,18 +505,32 @@ export default function SeriesDetailPage() {
                   </div>
 
                   {!data.isFree && (
-                    <div className="bg-gradient-to-br from-[#F4511E] to-[#D03B12] rounded-xl p-5 text-white">
-                      <Lock className="h-6 w-6 mb-3 opacity-80" />
-                      <h4 className="font-bold text-sm mb-1">Get Full Access</h4>
-                      <p className="text-xs text-white/70 mb-4">Unlock all {totalTests} tests in this series.</p>
-                      <button
-                        onClick={() => setPaywallOpen(true)}
-                        className="w-full bg-white text-[#F4511E] font-bold text-xs py-2.5 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        Unlock Now →
-                      </button>
+                    <div className="bg-gradient-to-br from-[#0f1b2d] to-[#1a73e8] rounded-2xl p-6 text-white shadow-xl shadow-blue-500/10 relative overflow-hidden group">
+                       <div className="absolute right-[-20%] top-[-20%] w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
+                      <div className="relative z-10">
+                        <Shield className="h-8 w-8 mb-4 opacity-50" />
+                        <h4 className="text-lg font-black leading-tight mb-2">Get Full Pro Access</h4>
+                        <p className="text-[11px] text-white/70 font-bold mb-6">Unlock all {totalTests} premium tests and detailed chapter-wise analytics.</p>
+                        <button
+                          onClick={() => setPaywallOpen(true)}
+                          className="w-full h-11 bg-white text-[#1a73e8] font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-lg active:scale-95"
+                        >
+                          Unlock All Now
+                        </button>
+                      </div>
                     </div>
                   )}
+
+                  <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
+                     <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3">Community Choice</p>
+                     <p className="text-[12px] text-slate-700 font-bold leading-relaxed mb-4">"The best mock tests I've found so far. The interface is exactly like the real SSC exam."</p>
+                     <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center border border-emerald-100">
+                           <Users className="h-3.5 w-3.5 text-emerald-500" />
+                        </div>
+                        <p className="text-[11px] font-black text-slate-500 uppercase tracking-tighter">— Rahul S., SSC Topper 2024</p>
+                     </div>
+                  </div>
                 </aside>
               </div>
             </>
@@ -514,6 +541,11 @@ export default function SeriesDetailPage() {
       {paywallOpen && (
         <PaywallModal onClose={() => setPaywallOpen(false)} seriesName={data?.name || "this series"} />
       )}
+
+      <style jsx global>{`
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+      `}</style>
     </div>
   );
 }

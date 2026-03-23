@@ -13,10 +13,11 @@
     --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
-    /* Testbook Blue */
-    --primary: 214 89% 52%;
+    
+    /* Testbook Blue Palette */
+    --primary: 214 89% 52%; /* #1a73e8 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 30% 95%;
+    --secondary: 214 30% 95%; /* #F0F2F8-ish tint */
     --secondary-foreground: 214 47% 20%;
     --muted: 214 30% 95%;
     --muted-foreground: 215 16% 47%;
@@ -27,23 +28,20 @@
     --border: 214 31% 91%;
     --input: 214 31% 91%;
     --ring: 214 89% 52%;
-    --radius: 0.75rem;
+    --radius: 0.5rem; /* Compact 8px */
     
-    /* Testbook palette */
+    /* Testbook specific names */
     --tb-navy: #0f1b2d;
-    --tb-navy-2: #1a2a40;
     --tb-blue: #1a73e8;
-    --tb-blue-light: #4a94f8;
     --tb-surface: #F0F2F8;
     --tb-card: #ffffff;
-    --tb-border: #e2e8f0;
-    
-    /* Premium Shadows */
+    --tb-border: #eef2f6;
+
+    /* Compact Shadows */
     --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
-    --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.08);
-    --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-    --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.2);
+    --shadow: 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
   }
   
   .dark {

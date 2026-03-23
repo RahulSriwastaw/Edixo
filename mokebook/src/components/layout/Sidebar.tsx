@@ -75,14 +75,14 @@ export function Sidebar() {
   return (
     <>
       <aside
-        className="hidden md:flex flex-col w-52 shrink-0 fixed top-14 bottom-0 left-0 z-40 overflow-hidden bg-white"
-        style={{ borderRight: "1px solid #e5e7eb" }}
+        className="hidden md:flex flex-col w-52 shrink-0 fixed top-14 bottom-0 left-0 z-40 overflow-hidden bg-[#0f1b2d]"
+        style={{ borderRight: "1px solid rgba(255,255,255,0.05)" }}
       >
-        <div className="flex-1 overflow-y-auto py-2" style={{ scrollbarWidth: "none" }}>
+        <div className="flex-1 overflow-y-auto py-3 no-scrollbar">
           {GROUPS.map((group, gi) => (
-            <div key={gi} className={group.label ? "mb-1" : ""}>
+            <div key={gi} className={group.label ? "mb-2" : ""}>
               {group.label && (
-                <p className="px-4 pt-3 pb-1 text-[10px] font-bold tracking-widest uppercase text-gray-400 select-none">
+                <p className="px-5 pt-4 pb-2 text-[10px] font-black tracking-[2px] uppercase text-slate-500 select-none opacity-80">
                   {group.label}
                 </p>
               )}
@@ -93,19 +93,19 @@ export function Sidebar() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      "relative flex items-center gap-2.5 mx-1.5 px-3 py-2 rounded-md text-sm transition-all duration-100",
+                      "relative flex items-center gap-3 mx-2 px-3.5 py-2.5 rounded-lg text-sm transition-all duration-200 group/item",
                       active
-                        ? "bg-[#e8f0fe] text-[#1a73e8] font-semibold"
-                        : "text-gray-600 hover:bg-gray-100 hover:text-gray-900 font-medium"
+                        ? "bg-blue-500/15 text-[#4a9eff] font-bold"
+                        : "text-slate-400 hover:bg-white/5 hover:text-slate-100 font-medium"
                     )}
                   >
                     {active && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-[#1a73e8]" />
+                      <span className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-[4px] h-6 rounded-r-full bg-[#1a73e8] shadow-lg shadow-blue-500/50" />
                     )}
-                    <item.icon className="h-4 w-4 shrink-0" strokeWidth={active ? 2.5 : 1.8} />
-                    <span className="text-[13px] truncate flex-1 leading-none">{item.label}</span>
+                    <item.icon className={cn("h-4 w-4 shrink-0 transition-colors", active ? "text-[#4a9eff]" : "text-slate-500 group-hover/item:text-slate-300")} strokeWidth={active ? 2.5 : 2} />
+                    <span className="text-[13px] truncate flex-1 leading-none tracking-tight">{item.label}</span>
                     {item.badge && (
-                      <span className={cn("text-[9px] font-black text-white px-1.5 py-[2px] rounded-full shrink-0", item.badgeColor || "bg-blue-500")}>
+                      <span className={cn("text-[9px] font-black text-white px-1.5 py-[2px] rounded-md shrink-0 shadow-sm", item.badgeColor || "bg-[#1a73e8]")}>
                         {item.badge}
                       </span>
                     )}
@@ -115,21 +115,34 @@ export function Sidebar() {
             </div>
           ))}
         </div>
+        
+        {/* Bottom decorative section or PRO upgrade */}
+        <div className="p-4 mt-auto">
+           <div className="bg-white/5 rounded-xl p-3 border border-white/5 group hover:border-blue-500/30 transition-all cursor-pointer">
+              <p className="text-[10px] font-black text-blue-400 uppercase tracking-widest mb-1">Mockbook Pro</p>
+              <p className="text-[11px] text-slate-400 font-bold leading-tight">Unlock 5000+ Premium Mock Tests</p>
+           </div>
+        </div>
       </aside>
 
       <div className="hidden md:block w-52 shrink-0" />
 
+      {/* MOBILE BOTTOM NAV */}
       <nav
-        className="md:hidden fixed bottom-0 left-0 right-0 z-50 flex items-stretch h-[56px] bg-white"
-        style={{ borderTop: "1px solid #e5e7eb", boxShadow: "0 -2px 12px rgba(0,0,0,0.06)" }}
+        className="md:hidden fixed bottom-1 left-3 right-3 z-50 flex items-stretch h-[60px] bg-white rounded-2xl border border-slate-100 shadow-2xl shadow-black/10 px-2"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
       >
         {MOBILE_TABS.map((item) => {
           const active = isActive(item.href, pathname);
           return (
-            <Link key={item.href} href={item.href} className="flex-1 flex flex-col items-center justify-center gap-[3px] relative">
-              {active && <span className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-[2px] rounded-full bg-[#1a73e8]" />}
-              <item.icon className="h-[20px] w-[20px]" strokeWidth={active ? 2.5 : 1.8} style={{ color: active ? "#1a73e8" : "#94a3b8" }} />
-              <span className="text-[10px] font-bold" style={{ color: active ? "#1a73e8" : "#94a3b8" }}>{item.label}</span>
+            <Link key={item.href} href={item.href} className="flex-1 flex flex-col items-center justify-center gap-1 relative overflow-hidden active:scale-90 transition-transform">
+              {active && (
+                <span className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[3px] rounded-b-full bg-[#1a73e8] animate-in slide-in-from-top duration-300" />
+              )}
+              <div className={cn("p-1.5 rounded-xl transition-all", active ? "bg-blue-50" : "bg-transparent")}>
+                <item.icon className="h-[20px] w-[20px]" strokeWidth={active ? 2.5 : 2} style={{ color: active ? "#1a73e8" : "#94a3b8" }} />
+              </div>
+              <span className={cn("text-[10px] font-black uppercase tracking-tighter", active ? "text-[#1a73e8]" : "text-[#94a3b8]")}>{item.label}</span>
             </Link>
           );
         })}
