@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { prisma } from '../../config/database';
 import { authenticate, requireOrgAccess } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
+import { syncAirtableQuestions } from './qbank.controller';
 
 const router = Router();
 router.use(authenticate, requireOrgAccess);
@@ -139,6 +140,9 @@ router.get('/folders', async (req, res, next) => {
         next(err);
     }
 });
+
+// ─── POST /api/qbank/sync-airtable ────────────────────────────
+router.post('/sync-airtable', syncAirtableQuestions);
 
 // ─── GET /api/qbank/folders/:id ──────────────────────────────
 router.get('/folders/:id', async (req, res, next) => {
@@ -683,7 +687,7 @@ router.get('/usage-logs', async (req, res, next) => {
 // ─── GET /api/qbank/questions ────────────────────────────────
 router.get('/questions', async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, folderId, includeSubfolders = 'false', difficulty, type, search, scope = 'all', filters, groupBy } = req.query;
+        const { page = 1, limit = 20, folderId, includeSubfolders = 'false', difficulty, type, search, scope = 'all', filters, groupBy, exam, subject, chapter, year, shift, source } = req.query;
         const org = await prisma.organization.findFirst({ where: { orgId: req.user!.orgId } });
         const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
         const skip = (Number(page) - 1) * Number(limit);
@@ -726,8 +730,14 @@ router.get('/questions', async (req, res, next) => {
             }
         }
 
+        if (exam && exam !== 'all') where.exam = exam;
+        if (subject && subject !== 'all') where.subjectName = subject;
+        if (chapter && chapter !== 'all') where.chapterName = chapter;
+        if (year && year !== 'all') where.year = Number(year);
+        if (shift && shift !== 'all') where.shift = shift;
         if (difficulty && difficulty !== 'all') where.difficulty = difficulty;
         if (type && type !== 'all') where.type = type;
+        if (source && source !== 'all') where.airtableTableName = source;
         if (search) {
             where.OR = [
                 { textEn: { contains: search as string, mode: 'insensitive' } },
@@ -1530,11 +1540,12 @@ router.get('/filter-options', async (req, res, next) => {
         const where: any = { deletedAt: null };
         if (!isSuperAdmin) where.orgId = org?.id;
 
-        const [exams, subjects, years, sections] = await Promise.all([
+        const [exams, subjects, years, sections, sources] = await Promise.all([
             prisma.question.findMany({ where, select: { exam: true }, distinct: ['exam'] }),
             prisma.question.findMany({ where, select: { subjectName: true }, distinct: ['subjectName'] }),
             prisma.question.findMany({ where, select: { year: true }, distinct: ['year'] }),
             prisma.question.findMany({ where, select: { section: true }, distinct: ['section'] }),
+            prisma.question.findMany({ where, select: { airtableTableName: true }, distinct: ['airtableTableName'] }),
         ]);
 
         res.json({
@@ -1544,6 +1555,7 @@ router.get('/filter-options', async (req, res, next) => {
                 subjects: subjects.map(s => s.subjectName).filter(Boolean).sort(),
                 years: years.map(y => y.year).filter(Boolean).sort((a, b) => (b || 0) - (a || 0)),
                 shifts: sections.map(s => s.section).filter(Boolean).sort(),
+                sources: sources.map(s => s.airtableTableName).filter(Boolean).sort(),
             }
         });
     } catch (err) { next(err); }

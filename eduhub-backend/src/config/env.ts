@@ -56,6 +56,10 @@ const envSchema = z.object({
     // Rate limiting
     RATE_LIMIT_WINDOW_MS: z.coerce.number().default(900000),
     RATE_LIMIT_MAX_REQUESTS: z.coerce.number().default(100),
+
+    // Airtable (Source of Truth for QBank)
+    AIRTABLE_API_KEY: z.string().optional(),
+    AIRTABLE_BASE_ID: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

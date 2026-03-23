@@ -17,7 +17,8 @@ import {
   Check,
   ChevronLeft,
   Loader2,
-  PackageCheck
+  PackageCheck,
+  ListFilter
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,29 @@ import { API_URL, getAuthHeaders } from "@/lib/api-config";
 
 // getToken removed
 
+const FILTER_FIELDS = [
+  { value: "textEn", label: "Question Text (English)" },
+  { value: "textHi", label: "Question Text (Hindi)" },
+  { value: "subjectName", label: "Subject" },
+  { value: "chapterName", label: "Chapter" },
+  { value: "exam", label: "Exam Category" },
+  { value: "type", label: "Question Type" },
+  { value: "difficulty", label: "Difficulty/Level" },
+  { value: "year", label: "Year" },
+  { value: "shift", label: "Shift/Section" },
+  { value: "tags", label: "Tags/Keywords" },
+  { value: "airtableTableName", label: "Airtable Source" },
+];
+
+const FILTER_OPERATORS = [
+  { value: "contains", label: "Contains" },
+  { value: "equals", label: "Equals" },
+  { value: "startsWith", label: "Starts With" },
+  { value: "endsWith", label: "Ends With" },
+  { value: "isEmpty", label: "Is Empty" },
+  { value: "isNotEmpty", label: "Is Not Empty" },
+];
+
 export function AdvancedSetBuilder() {
   // --- Filter State ---
   const [exams, setExams] = useState<string[]>([]);
@@ -61,13 +85,32 @@ export function AdvancedSetBuilder() {
   const [chapters, setChapters] = useState<string[]>([]);
   const [years, setYears] = useState<number[]>([]);
   const [shifts, setShifts] = useState<string[]>([]);
+  const [sources, setSources] = useState<string[]>([]);
 
   const [selectedExam, setSelectedExam] = useState("all");
   const [selectedSubject, setSelectedSubject] = useState("all");
   const [selectedChapter, setSelectedChapter] = useState("all");
   const [selectedYear, setSelectedYear] = useState("all");
   const [selectedShift, setSelectedShift] = useState("all");
+  const [selectedDifficulty, setSelectedDifficulty] = useState("all");
+  const [selectedType, setSelectedType] = useState("all");
+  const [selectedSource, setSelectedSource] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const [filters, setFilters] = useState<Array<{ id: string, field: string, operator: string, value: string }>>([]);
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+
+  const addFilter = () => {
+    setFilters([...filters, { id: Math.random().toString(36).substr(2, 9), field: "subjectName", operator: "equals", value: "" }]);
+  };
+
+  const updateFilter = (id: string, key: string, value: string) => {
+    setFilters(filters.map(f => f.id === id ? { ...f, [key]: value } : f));
+  };
+
+  const removeFilter = (id: string) => {
+    setFilters(filters.filter(f => f.id !== id));
+  };
 
   // --- Questions & Selection State ---
   const [questions, setQuestions] = useState<any[]>([]);
@@ -97,6 +140,7 @@ export function AdvancedSetBuilder() {
           setSubjects(result.data.subjects);
           setYears(result.data.years);
           setShifts(result.data.shifts);
+          setSources(result.data.sources || []);
         }
       } catch (err) {
         console.error("Failed to fetch filter options", err);
@@ -134,6 +178,20 @@ export function AdvancedSetBuilder() {
     const fetchQuestions = async () => {
       setIsLoading(true);
       try {
+        const url = new URL(`${API_URL}/qbank/questions`);
+        if (searchQuery) url.searchParams.append("search", searchQuery);
+        if (selectedExam !== "all") url.searchParams.append("exam", selectedExam);
+        if (selectedSubject !== "all") url.searchParams.append("subject", selectedSubject);
+        if (selectedChapter !== "all") url.searchParams.append("chapter", selectedChapter);
+        if (selectedYear !== "all") url.searchParams.append("year", selectedYear.toString());
+        if (selectedShift !== "all") url.searchParams.append("shift", selectedShift);
+        if (selectedDifficulty !== "all") url.searchParams.append("difficulty", selectedDifficulty);
+        if (selectedType !== "all") url.searchParams.append("type", selectedType);
+        if (selectedSource !== "all") url.searchParams.append("source", selectedSource);
+        if (filters.length > 0) url.searchParams.append("filters", JSON.stringify(filters));
+        url.searchParams.append("page", page.toString());
+        url.searchParams.append("limit", "10");
+
         const res = await fetch(url.toString(), {
             headers: getAuthHeaders()
         });
@@ -151,7 +209,7 @@ export function AdvancedSetBuilder() {
     
     const debounce = setTimeout(fetchQuestions, 300);
     return () => clearTimeout(debounce);
-  }, [selectedExam, selectedSubject, selectedChapter, selectedYear, selectedShift, searchQuery, page]);
+  }, [selectedExam, selectedSubject, selectedChapter, selectedYear, selectedShift, selectedDifficulty, selectedType, selectedSource, filters, searchQuery, page]);
 
   // --- Selection Helpers ---
   const toggleSelection = (id: string) => {
@@ -273,6 +331,20 @@ export function AdvancedSetBuilder() {
                 </Select>
               </div>
 
+              {/* Airtable Source Select */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Airtable Source</label>
+                <Select value={selectedSource} onValueChange={setSelectedSource}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Sources" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sources</SelectItem>
+                    {sources.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Subject Select */}
               <div className="space-y-2">
                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Subject</label>
@@ -333,16 +405,68 @@ export function AdvancedSetBuilder() {
                 </Select>
               </div>
 
+              {/* Question Type Select */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Question Type</label>
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="mcq">MCQ</SelectItem>
+                    <SelectItem value="integer">Integer</SelectItem>
+                    <SelectItem value="multi_select">Multi-select</SelectItem>
+                    <SelectItem value="true_false">True/False</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Difficulty Select */}
+              <div className="space-y-2">
+                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Difficulty Level</label>
+                <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="All Levels" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Advanced Filters Button */}
+              <div className="pt-2">
+                <Button 
+                  variant="outline" 
+                  className={cn("w-full gap-2", filters.length > 0 && "bg-orange-50 border-orange-200 text-[#F4511E] hover:bg-orange-100")}
+                  onClick={() => setShowFilterDialog(true)}
+                >
+                  <ListFilter className="w-4 h-4" />
+                  Advanced Rules
+                  {filters.length > 0 && (
+                    <Badge variant="secondary" className="ml-1 bg-orange-100 text-orange-700 hover:bg-orange-100">{filters.length}</Badge>
+                  )}
+                </Button>
+              </div>
+
               <Button 
                 variant="ghost" 
-                className="w-full text-slate-500 h-8 text-xs hover:text-red-600"
+                className="w-full text-slate-500 h-8 text-xs hover:text-red-600 mt-2"
                 onClick={() => {
                   setSelectedExam("all");
                   setSelectedSubject("all");
                   setSelectedChapter("all");
                   setSelectedYear("all");
                   setSelectedShift("all");
+                  setSelectedDifficulty("all");
+                  setSelectedType("all");
+                  setSelectedSource("all");
                   setSearchQuery("");
+                  setFilters([]);
                 }}
               >
                 Reset All Filters
@@ -637,6 +761,148 @@ export function AdvancedSetBuilder() {
               {selectedQuestionIds.includes(previewQuestion?.id || '') ? "Remove from Selection" : "Add to Selection"}
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Advanced Filter Dialog */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl">
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 px-6 py-5 border-b border-orange-100">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2.5 text-xl text-gray-900">
+                <div className="p-2 bg-white rounded-lg shadow-sm border border-orange-200">
+                  <ListFilter className="w-5 h-5 text-[#F4511E]" />
+                </div>
+                Advanced Filters
+              </DialogTitle>
+              <DialogDescription className="text-gray-600 font-medium">
+                Build precise queries to find exactly what you need.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="p-6 bg-gray-50/50 min-h-[300px] max-h-[60vh] overflow-y-auto custom-scrollbar">
+            {filters.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border-2 border-dashed border-gray-200 rounded-xl">
+                <div className="w-16 h-16 bg-orange-50 text-orange-400 rounded-full flex items-center justify-center mb-4 ring-8 ring-orange-50/50">
+                  <Filter className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">No filters applied</h3>
+                <p className="text-gray-500 text-center text-sm max-w-[280px] mb-6">
+                  Start building your query by adding your first filter rule below.
+                </p>
+                <Button onClick={addFilter} className="bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-md shadow-orange-500/20 rounded-full px-6">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Rule
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filters.map((filter, index) => (
+                  <div key={filter.id} className="group flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-orange-200 hover:shadow-md transition-all">
+                    
+                    {/* Operator Logic Badge */}
+                    <div className="flex items-center pt-1 sm:pt-0 sm:w-20 shrink-0">
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 ${index === 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
+                      >
+                        {index === 0 ? "WHERE" : "AND"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex flex-1 flex-col sm:flex-row gap-3 w-full">
+                      {/* Field Selection */}
+                      <Select value={filter.field} onValueChange={(val) => updateFilter(filter.id, "field", val)}>
+                        <SelectTrigger className="w-full sm:w-[180px] bg-gray-50/50 border-gray-200 hover:bg-white focus:ring-[#F4511E]">
+                          <SelectValue placeholder="Select Field" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FILTER_FIELDS.map(f => (
+                            <SelectItem key={f.value} value={f.value} className="cursor-pointer">{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Operator Selection */}
+                      <Select value={filter.operator} onValueChange={(val) => updateFilter(filter.id, "operator", val)}>
+                        <SelectTrigger className="w-full sm:w-[160px] bg-gray-50/50 border-gray-200 hover:bg-white focus:ring-[#F4511E]">
+                          <SelectValue placeholder="Condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FILTER_OPERATORS.map(f => (
+                            <SelectItem key={f.value} value={f.value} className="cursor-pointer font-medium">{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Value Input */}
+                      {!["isEmpty", "isNotEmpty"].includes(filter.operator) ? (
+                        <div className="relative flex-1 w-full">
+                          <Input
+                            placeholder="Type value..."
+                            value={filter.value}
+                            onChange={(e) => updateFilter(filter.id, "value", e.target.value)}
+                            className="w-full bg-white border-gray-200 focus-visible:ring-[#F4511E]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 hidden sm:block"></div>
+                      )}
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="w-full sm:w-auto flex justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeFilter(filter.id)} 
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity rounded-lg h-10 w-10 sm:h-9 sm:w-9 shrink-0"
+                        title="Remove condition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <button 
+                  onClick={addFilter} 
+                  className="w-full mt-2 flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/50 text-gray-500 hover:text-[#F4511E] rounded-xl font-medium transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add another condition
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => setFilters([])}
+              className="w-full sm:w-auto text-gray-500 hover:text-gray-900"
+              disabled={filters.length === 0}
+            >
+              Clear All
+            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFilterDialog(false)}
+                className="flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1 sm:flex-none bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-md shadow-orange-500/20" 
+                onClick={() => setShowFilterDialog(false)}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Apply Filters
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

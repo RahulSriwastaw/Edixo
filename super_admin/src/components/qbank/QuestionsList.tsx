@@ -66,6 +66,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { SuperPagination } from "@/components/ui/super-pagination";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sidebar } from "@/components/admin/Sidebar";
@@ -158,7 +159,7 @@ function stripHtml(html?: string, truncate = false): string {
 
 
 
-export function QuestionsList() {
+export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const folderId = searchParams.get("folderId");
@@ -179,7 +180,7 @@ export function QuestionsList() {
   const [scopeFilter, setScopeFilter] = useState("all");
 
   // Advanced Filters & Grouping state
-  const [filters, setFilters] = useState<Array<{ id: string, field: string, operator: string, value: string }>>([]);
+  const [filters, setFilters] = useState<Array<{ id: string, field: string, operator: string, value: string }>>(defaultFilters);
   const [groupBy, setGroupBy] = useState<string>("none");
   const [showFilterDialog, setShowFilterDialog] = useState(false);
 
@@ -197,11 +198,13 @@ export function QuestionsList() {
 
   const [previewQuestion, setPreviewQuestion] = useState<any | null>(null);
   const [previewLang, setPreviewLang] = useState<"hin" | "eng">("eng");
+  const [tableLang, setTableLang] = useState<"eng" | "hin">("eng");
   const [showAddToSetDialog, setShowAddToSetDialog] = useState(false);
   const [selectedSetId, setSelectedSetId] = useState<string>("");
   const [questionSetSearchQuery, setQuestionSetSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
   useEffect(() => {
@@ -222,7 +225,7 @@ export function QuestionsList() {
         if (groupBy !== "none") url.searchParams.append("groupBy", groupBy);
 
         url.searchParams.append("page", page.toString());
-        url.searchParams.append("limit", "10");
+        url.searchParams.append("limit", pageSize.toString());
 
         const [qRes, sRes] = await Promise.all([
           fetch(url.toString(), { headers }),
@@ -245,7 +248,7 @@ export function QuestionsList() {
       }
     };
     fetchData();
-  }, [searchQuery, scopeFilter, difficultyFilter, typeFilter, page, filters, groupBy]);
+  }, [searchQuery, scopeFilter, difficultyFilter, typeFilter, page, pageSize, filters, groupBy]);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importRows, setImportRows] = useState<any[]>([]);
   const [importPreview, setImportPreview] = useState<any[] | null>(null);
@@ -500,6 +503,18 @@ export function QuestionsList() {
                 </SelectContent>
               </Select>
 
+              {/* Language Display Toggle */}
+              <Select value={tableLang} onValueChange={(v: "eng" | "hin") => setTableLang(v)}>
+                <SelectTrigger className="w-[130px] input-field bg-purple-50/50 border-purple-200 text-purple-700 font-medium">
+                  <Languages className="w-4 h-4 mr-2" />
+                  <SelectValue placeholder="Language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="eng">English</SelectItem>
+                  <SelectItem value="hin">Hindi (हिन्दी)</SelectItem>
+                </SelectContent>
+              </Select>
+
               {/* Group By Dropdown */}
               <Select value={groupBy} onValueChange={setGroupBy}>
                 <SelectTrigger className="w-[150px] input-field bg-brand-primary/5 border-brand-primary/20 text-brand-primary font-medium">
@@ -628,10 +643,10 @@ export function QuestionsList() {
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Badge className="bg-purple-50 text-purple-600 text-[10px] shrink-0">
-                              <Languages className="w-3 h-3 mr-1" /> अ/A
+                              <Languages className="w-3 h-3 mr-1" /> {tableLang === "eng" ? "A" : "अ"}
                             </Badge>
                             <span className="text-sm text-gray-700 line-clamp-2 max-w-[280px]">
-                              {stripHtml(question.textEn || question.textHi || "", true)}
+                              {stripHtml(tableLang === "eng" ? (question.textEn || question.textHi || "") : (question.textHi || question.textEn || ""), true)}
                             </span>
                           </div>
                         </TableCell>
@@ -704,25 +719,15 @@ export function QuestionsList() {
         </Card>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">
-            Showing {totalQuestions === 0 ? 0 : (page - 1) * 10 + 1}–{Math.min(page * 10, totalQuestions)} of {totalQuestions}
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled={page === 1} onClick={() => setPage(page - 1)}>
-              <ChevronLeft className="w-4 h-4 mr-1" />
-              Prev
-            </Button>
-            <div className="flex items-center gap-1">
-              <Button variant="outline" size="sm" className="w-8 h-8 p-0 bg-[#F4511E] text-white hover:bg-[#E64A19]">
-                {page}
-              </Button>
-            </div>
-            <Button variant="outline" size="sm" disabled={page * 10 >= totalQuestions} onClick={() => setPage(page + 1)}>
-              Next
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
-          </div>
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4 pb-2">
+          <SuperPagination
+            currentPage={page}
+            totalPages={Math.ceil(totalQuestions / pageSize)}
+            pageSize={pageSize}
+            totalItems={totalQuestions}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
         </div>
       </div>
 
@@ -1078,86 +1083,143 @@ export function QuestionsList() {
 
       {/* Advanced Filter Dialog */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <ListFilter className="w-5 h-5 text-orange-600" />
-              Advanced Filters
-            </DialogTitle>
-            <DialogDescription>
-              Build complex queries to filter your questions across all available fields.
-            </DialogDescription>
-          </DialogHeader>
+        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl">
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 px-6 py-5 border-b border-orange-100">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2.5 text-xl text-gray-900">
+                <div className="p-2 bg-white rounded-lg shadow-sm border border-orange-200">
+                  <ListFilter className="w-5 h-5 text-[#F4511E]" />
+                </div>
+                Advanced Filters
+              </DialogTitle>
+              <DialogDescription className="text-gray-600 font-medium">
+                Build precise queries to find exactly what you need.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-          <div className="space-y-4 py-4 min-h-[30vh]">
+          <div className="p-6 bg-gray-50/50 min-h-[300px] max-h-[60vh] overflow-y-auto custom-scrollbar">
             {filters.length === 0 ? (
-              <div className="text-center py-10 bg-gray-50 border border-dashed rounded-lg">
-                <p className="text-gray-500 mb-4">No filters applied. Add a rule to get started.</p>
-                <Button variant="outline" onClick={addFilter} className="bg-white">
+              <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border-2 border-dashed border-gray-200 rounded-xl">
+                <div className="w-16 h-16 bg-orange-50 text-orange-400 rounded-full flex items-center justify-center mb-4 ring-8 ring-orange-50/50">
+                  <Filter className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">No filters applied</h3>
+                <p className="text-gray-500 text-center text-sm max-w-[280px] mb-6">
+                  Start building your query by adding your first filter rule below.
+                </p>
+                <Button onClick={addFilter} className="bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-md shadow-orange-500/20 rounded-full px-6">
                   <Plus className="w-4 h-4 mr-2" />
-                  Add Filter Rule
+                  Add First Rule
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {filters.map((filter, index) => (
-                  <div key={filter.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 p-3 rounded-lg border">
-                    <span className="text-xs font-semibold text-gray-500 w-12 text-center shrink-0">
-                      {index === 0 ? "WHERE" : "AND"}
-                    </span>
-                    <Select value={filter.field} onValueChange={(val) => updateFilter(filter.id, "field", val)}>
-                      <SelectTrigger className="w-[160px] bg-white">
-                        <SelectValue placeholder="Field" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FILTER_FIELDS.map(f => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div key={filter.id} className="group flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-orange-200 hover:shadow-md transition-all">
+                    
+                    {/* Operator Logic Badge */}
+                    <div className="flex items-center pt-1 sm:pt-0 sm:w-20 shrink-0">
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 ${index === 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
+                      >
+                        {index === 0 ? "WHERE" : "AND"}
+                      </Badge>
+                    </div>
 
-                    <Select value={filter.operator} onValueChange={(val) => updateFilter(filter.id, "operator", val)}>
-                      <SelectTrigger className="w-[160px] bg-white">
-                        <SelectValue placeholder="Operator" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FILTER_OPERATORS.map(f => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <div className="flex flex-1 flex-col sm:flex-row gap-3 w-full">
+                      {/* Field Selection */}
+                      <Select value={filter.field} onValueChange={(val) => updateFilter(filter.id, "field", val)}>
+                        <SelectTrigger className="w-full sm:w-[180px] bg-gray-50/50 border-gray-200 hover:bg-white focus:ring-[#F4511E]">
+                          <SelectValue placeholder="Select Field" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FILTER_FIELDS.map(f => (
+                            <SelectItem key={f.value} value={f.value} className="cursor-pointer">{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    {!["isEmpty", "isNotEmpty"].includes(filter.operator) ? (
-                      <Input
-                        placeholder="Value..."
-                        value={filter.value}
-                        onChange={(e) => updateFilter(filter.id, "value", e.target.value)}
-                        className="flex-1 bg-white min-w-[120px]"
-                      />
-                    ) : (
-                      <div className="flex-1"></div>
-                    )}
+                      {/* Operator Selection */}
+                      <Select value={filter.operator} onValueChange={(val) => updateFilter(filter.id, "operator", val)}>
+                        <SelectTrigger className="w-full sm:w-[160px] bg-gray-50/50 border-gray-200 hover:bg-white focus:ring-[#F4511E]">
+                          <SelectValue placeholder="Condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FILTER_OPERATORS.map(f => (
+                            <SelectItem key={f.value} value={f.value} className="cursor-pointer font-medium">{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                    <Button variant="ghost" size="icon" onClick={() => removeFilter(filter.id)} className="shrink-0 text-gray-400 hover:text-red-500 hover:bg-red-50">
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      {/* Value Input */}
+                      {!["isEmpty", "isNotEmpty"].includes(filter.operator) ? (
+                        <div className="relative flex-1 w-full">
+                          <Input
+                            placeholder="Type value..."
+                            value={filter.value}
+                            onChange={(e) => updateFilter(filter.id, "value", e.target.value)}
+                            className="w-full bg-white border-gray-200 focus-visible:ring-[#F4511E]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 hidden sm:block"></div>
+                      )}
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="w-full sm:w-auto flex justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeFilter(filter.id)} 
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity rounded-lg h-10 w-10 sm:h-9 sm:w-9 shrink-0"
+                        title="Remove condition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
 
-                <Button variant="ghost" size="sm" onClick={addFilter} className="mt-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50">
-                  <Plus className="w-4 h-4 mr-1" />
-                  Add condition
-                </Button>
+                <button 
+                  onClick={addFilter} 
+                  className="w-full mt-2 flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/50 text-gray-500 hover:text-[#F4511E] rounded-xl font-medium transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add another condition
+                </button>
               </div>
             )}
           </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setFilters([])}>Clear</Button>
-            <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white" onClick={() => setShowFilterDialog(false)}>
-              Apply Filters
+          <div className="px-6 py-4 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => setFilters([])}
+              className="w-full sm:w-auto text-gray-500 hover:text-gray-900"
+              disabled={filters.length === 0}
+            >
+              Clear All
             </Button>
-          </DialogFooter>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFilterDialog(false)}
+                className="flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1 sm:flex-none bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-md shadow-orange-500/20" 
+                onClick={() => setShowFilterDialog(false)}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Apply Filters
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

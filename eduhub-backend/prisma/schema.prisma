@@ -302,6 +302,7 @@ model Question {
 
   @@index([orgId])
   @@index([folderId])
+  @@index([recordId])
   @@map("questions")
 }
 

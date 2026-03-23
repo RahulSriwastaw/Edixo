@@ -37,6 +37,7 @@ import {
   Search,
   Target,
   MousePointer2,
+  Database,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -87,6 +88,7 @@ const navigation: NavGroup[] = [
         icon: <BookOpen className="w-5 h-5" />,
         children: [
           { label: "Dashboard", href: "/question-bank", icon: <LayoutGrid className="w-4 h-4" /> },
+          { label: "Airtable Sync", href: "/question-bank/airtable", icon: <Database className="w-4 h-4" /> },
           { label: "Questions", href: "/question-bank/questions", icon: <FileText className="w-4 h-4" /> },
           { label: "Create Question", href: "/question-bank/create", icon: <PlusCircle className="w-4 h-4" /> },
           { label: "Question Sets", href: "/question-bank/sets", icon: <Layers className="w-4 h-4" /> },
