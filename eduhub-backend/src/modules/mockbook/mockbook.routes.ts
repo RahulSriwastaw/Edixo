@@ -660,8 +660,21 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
         const student = await prisma.student.findFirst({ where: { userId: user.userId } });
         if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
 
+        const attemptIdParam = req.params.attemptId as string;
+        let attemptId = attemptIdParam;
+
+        if (attemptIdParam === 'latest') {
+            const latest = await prisma.testAttempt.findFirst({
+                where: { studentId: student.id, status: 'SUBMITTED' },
+                orderBy: { submittedAt: 'desc' },
+                select: { id: true }
+            });
+            if (!latest) return res.status(404).json({ success: false, message: 'No submitted attempts found' });
+            attemptId = latest.id;
+        }
+
         const attempt = await prisma.testAttempt.findUnique({
-            where: { id: req.params.attemptId as any },
+            where: { id: attemptId },
             include: {
                 test: { 
                     include: {
@@ -1485,7 +1498,19 @@ router.get('/attempts/:attemptId/report', authenticate, async (req, res, next) =
         const student = await prisma.student.findFirst({ where: { userId: user.userId } });
         if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
 
-        const attemptId = req.params.attemptId as string;
+        const attemptIdParam = req.params.attemptId as string;
+        let attemptId = attemptIdParam;
+
+        if (attemptIdParam === 'latest') {
+            const latest = await prisma.testAttempt.findFirst({
+                where: { studentId: student.id, status: 'SUBMITTED' },
+                orderBy: { submittedAt: 'desc' },
+                select: { id: true }
+            });
+            if (!latest) return res.status(404).json({ success: false, message: 'No submitted attempts found' });
+            attemptId = latest.id;
+        }
+
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: attemptId },
             include: {
@@ -1698,7 +1723,17 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
         const student = await prisma.student.findFirst({ where: { userId: user.userId } });
         if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
 
-        const attemptId = req.params.attemptId as string;
+        let attemptId = req.params.attemptId as string;
+        if (attemptId === 'latest') {
+            const latest = await prisma.testAttempt.findFirst({
+                where: { studentId: student.id, status: 'SUBMITTED' },
+                orderBy: { submittedAt: 'desc' },
+                select: { id: true }
+            });
+            if (!latest) return res.status(404).json({ success: false, message: 'No submitted attempts found' });
+            attemptId = latest.id;
+        }
+
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: attemptId },
             include: {
@@ -1936,7 +1971,21 @@ router.get('/user/my-attempts', authenticate, async (req, res, next) => {
 // ─── Chapter/Topic-wise Analytics ──────────────────────────────────────────────
 router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, next) => {
     try {
-        const attemptIdArg = req.params.id as string;
+        const user = (req as any).user;
+        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        if (!student) return res.status(403).json({ success: false, message: 'Not a student' });
+
+        let attemptIdArg = req.params.id as string;
+        if (attemptIdArg === 'latest') {
+            const latest = await prisma.testAttempt.findFirst({
+                where: { studentId: student.id, status: 'SUBMITTED' },
+                orderBy: { submittedAt: 'desc' },
+                select: { id: true }
+            });
+            if (!latest) return res.status(404).json({ success: false, message: 'No submitted attempts found' });
+            attemptIdArg = latest.id;
+        }
+
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: attemptIdArg },
             include: { answers: true }
