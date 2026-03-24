@@ -7,9 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useExportStudio } from "../hooks/useExportStudio";
 import { toast } from "sonner";
+import { Document, Packer, Paragraph, TextRun, AlignmentType, HeadingLevel } from "docx";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
 
 export function ExportModal() {
-  const { showExportModal, exportFormat, toggleExportModal, title, pages, dataBindings } = useExportStudio();
+  const { 
+    showExportModal, 
+    exportFormat, 
+    toggleExportModal, 
+    title, 
+    pages, 
+    dataBindings,
+    layoutSettings,
+    setLayoutSettings
+  } = useExportStudio();
+  
   const [quality, setQuality] = useState<"high" | "medium" | "compressed">("high");
   const [pageRange, setPageRange] = useState<"all" | "current" | "range">("all");
   const [rangeFrom, setRangeFrom] = useState(1);
@@ -26,6 +39,8 @@ export function ExportModal() {
 
   // Generate HTML content from pages
   const generateHtmlContent = useCallback(() => {
+    const { showWatermark, watermarkText, showGridInExport, gridSize } = layoutSettings;
+    
     const html = `
 <!DOCTYPE html>
 <html lang="en">
@@ -42,10 +57,33 @@ export function ExportModal() {
       background: white; 
       margin: 0 auto 20px; 
       box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
-      padding: 40px;
+      padding: 0px; /* Use absolute positioning for everything */
       position: relative;
+      overflow: hidden;
     }
     .element { position: absolute; }
+    .watermark {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-45deg);
+      font-size: 80px;
+      color: rgba(0,0,0,0.05);
+      white-space: nowrap;
+      pointer-events: none;
+      z-index: 0;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+    .grid {
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(to right, #eee 1px, transparent 1px), linear-gradient(to bottom, #eee 1px, transparent 1px);
+      background-size: ${gridSize}px ${gridSize}px;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
     @media print {
       body { background: white; padding: 0; }
       .page { box-shadow: none; margin: 0; page-break-after: always; }
@@ -55,6 +93,9 @@ export function ExportModal() {
 <body>
 ${pages.map((page, pageIndex) => `
   <div class="page" style="background: ${page.background}">
+    ${showGridInExport ? '<div class="grid"></div>' : ''}
+    ${showWatermark ? `<div class="watermark">${watermarkText}</div>` : ''}
+    
     ${page.elements.map(el => {
       const style = `
         left: ${el.position.x}px;
@@ -68,24 +109,54 @@ ${pages.map((page, pageIndex) => `
         font-size: ${el.content.fontSize || 14}px;
         font-weight: ${el.content.fontWeight || 'normal'};
         text-align: ${el.content.textAlign || 'left'};
+        z-index: 1;
       `;
       
       if (el.type === 'text') {
         return `<div class="element" style="${style}">${el.content.text || ''}</div>`;
       } else if (el.type === 'shape') {
-        return `<div class="element" style="${style}; background: ${el.style.fill || '#f0f0f0'}; border: ${el.style.strokeWidth || 0}px solid ${el.style.stroke || 'transparent'}; border-radius: ${el.style.borderRadius || 0}px;"></div>`;
-      } else if (el.type === 'image') {
-        return `<img class="element" src="${el.content.src || ''}" alt="${el.content.alt || ''}" style="${style}" />`;
+        const renderStyle = `${style}; background: ${el.style.fill || '#f0f0f0'}; border: ${el.style.strokeWidth || 0}px solid ${el.style.stroke || 'transparent'}; border-radius: ${el.style.borderRadius || 0}px; display: flex; align-items: center; justify-content: center;`;
+        return `<div class="element" style="${renderStyle}"></div>`;
+      } else if (el.role === 'qr_code' || el.type === 'image') {
+        const imgStyle = `${style}; object-fit: contain;`;
+        return `<img class="element" src="${el.content.src || ''}" alt="${el.content.alt || ''}" style="${imgStyle}" />`;
       }
       return '';
     }).join('')}
-    ${includePageNumbers ? `<div style="position: absolute; bottom: 20px; right: 40px; font-size: 12px; color: #666;">Page ${pageIndex + 1} of ${pages.length}</div>` : ''}
+    ${includePageNumbers ? `<div style="position: absolute; bottom: 20px; right: 40px; font-size: 10px; color: #999; z-index: 10;">Page ${pageIndex + 1} of ${pages.length + (layoutSettings.includeAnswerKey ? 1 : 0)}</div>` : ''}
   </div>
 `).join('')}
+
+${layoutSettings.includeAnswerKey ? `
+  <div class="page" style="background: white; padding: 60px; position: relative; min-height: 1123px;">
+    <h1 style="text-align: center; margin-bottom: 40px; color: #1E3A5F; font-family: 'DM Serif Display', serif;">Answer Key</h1>
+    <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 15px;">
+      ${pages.flatMap(p => p.elements)
+        .filter(el => el.role === 'question_text')
+        .map((el, i) => {
+          const qNumMatch = el.content.text?.match(/Q(\d+)/);
+          const qNum = qNumMatch ? qNumMatch[1] : (i + 1);
+          const qIdPrefix = el.id.split('_text')[0];
+          
+          // Improved logic: Find option_label that has the correct color or whose optId is linked to isCorrect
+          const correctOpt = pages.flatMap(p => p.elements)
+            .find(optEl => optEl.id.startsWith(qIdPrefix) && optEl.role === 'option_label' && (optEl.style.color === '#16A34A' || optEl.style.color === '#22C55E'));
+          
+          const answer = correctOpt?.content.text?.replace(/[()]/g, '') || '?';
+          return `
+            <div style="border: 1px solid #f0f0f0; border-radius: 6px; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; background: #fafafa;">
+              <span style="font-weight: 600; font-size: 13px; color: #444;">Q${qNum}</span> 
+              <span style="color: #16A34A; font-weight: 800; font-size: 14px;">${answer}</span>
+            </div>`;
+        }).join('')}
+    </div>
+    ${includePageNumbers ? `<div style="position: absolute; bottom: 20px; right: 40px; font-size: 10px; color: #999;">Page ${pages.length + 1} of ${pages.length + 1}</div>` : ''}
+  </div>
+` : ''}
 </body>
 </html>`;
     return html;
-  }, [pages, title, includePageNumbers]);
+  }, [pages, title, includePageNumbers, layoutSettings]);
 
   // Generate CSV content from data bindings
   const generateCsvContent = useCallback(() => {
@@ -93,6 +164,70 @@ ${pages.map((page, pageIndex) => `
     const values = dataBindings.map(b => `"${b.value}"`).join(',');
     return `${headers}\n${values}`;
   }, [dataBindings]);
+
+  // Generate Word Content
+  const generateDocx = useCallback(async () => {
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            text: title,
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+          }),
+          ...pages.flatMap((page) => {
+            const textElements = page.elements
+              .filter(el => el.type === 'text')
+              .sort((a, b) => a.position.y - b.position.y || a.position.x - b.position.x);
+            
+            return textElements.map(el => {
+              const lines = (el.content.text || "").split('\n');
+              return new Paragraph({
+                children: lines.map((line, i) => new TextRun({
+                  text: line,
+                  break: i > 0 ? 1 : undefined,
+                  size: (el.content.fontSize || 12) * 2,
+                  bold: el.content.fontWeight === 'bold' || el.content.fontWeight === '600' || el.content.fontWeight === '700',
+                })),
+                spacing: { after: 200 }
+              });
+            });
+          })
+        ]
+      }]
+    });
+
+    return await Packer.toBlob(doc);
+  }, [pages, title]);
+
+  // Generate Excel Content
+  const generateXlsx = useCallback(() => {
+    const rows: any[] = [];
+    pages.forEach((page) => {
+      const questions = page.elements.filter(el => el.role === 'question_text');
+      questions.forEach(qEl => {
+        const qIdPrefix = qEl.id.split('_text')[0];
+        const options = page.elements.filter(el => el.id.startsWith(qIdPrefix) && el.role === 'option_text');
+        const correctOpt = page.elements.find(el => el.id.startsWith(qIdPrefix) && el.role === 'option_label' && (el.style.color === '#16A34A' || el.style.color === '#22C55E'));
+        
+        const row: any = {
+          "Question": qEl.content.text,
+        };
+        options.forEach((opt, idx) => {
+          row[`Option ${String.fromCharCode(65 + idx)}`] = opt.content.text;
+        });
+        row["Correct Answer"] = correctOpt?.content.text?.replace(/[()]/g, '') || "";
+        rows.push(row);
+      });
+    });
+
+    const worksheet = XLSX.utils.json_to_sheet(rows);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Questions");
+    const buffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    return new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  }, [pages]);
 
   // Generate JSON content
   const generateJsonContent = useCallback(() => {
@@ -108,16 +243,10 @@ ${pages.map((page, pageIndex) => `
   }, [pages, title, dataBindings]);
 
   // Actual download function
-  const performDownload = useCallback((content: string, filename: string, mimeType: string) => {
-    const blob = new Blob([content], { type: mimeType });
+  const performDownload = useCallback((content: string | Blob, filename: string, mimeType: string) => {
+    const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+    saveAs(blob, filename);
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
     setDownloadUrl(url);
   }, []);
 
@@ -162,17 +291,23 @@ ${pages.map((page, pageIndex) => `
           performDownload(content, filename, mimeType);
           break;
 
-        case 'xlsx':
         case 'docx':
+          const docBlob = await generateDocx();
+          saveAs(docBlob, `${filenameBase}.docx`);
+          break;
+
+        case 'xlsx':
+          const xlsxBlob = generateXlsx();
+          saveAs(xlsxBlob, `${filenameBase}.xlsx`);
+          break;
+
         case 'pptx':
-          // For these formats, we'll export as JSON that can be imported
-          // In production, you'd use proper libraries like xlsx, docx, pptxgenjs
+          // For PPT, we'll still use JSON for now or just alert
           content = generateJsonContent();
-          filename = `${filenameBase}_${format}_data.json`;
+          filename = `${filenameBase}_pptx_data.json`;
           mimeType = 'application/json';
           performDownload(content, filename, mimeType);
-          
-          toast.info(`${format.toUpperCase()} export requires server-side processing. Downloaded as JSON data.`);
+          toast.info(`PowerPoint export requires server-side processing. Downloaded as JSON data.`);
           break;
 
         case 'png':
@@ -328,18 +463,26 @@ ${pages.map((page, pageIndex) => `
                 ✅ {formatLabels[exportFormat || "pdf"]} ready!
               </p>
               <p className="text-sm text-gray-500 mb-6">
-                {title}.{exportFormat === 'csv' ? 'csv' : exportFormat === 'template' ? 'json' : 'html'}
+                {title}.{exportFormat || 'pdf'}
               </p>
               <div className="flex gap-3 justify-center flex-wrap">
                 <Button 
                   className="bg-[#F4511E] hover:bg-[#E64A19] gap-2"
-                  onClick={() => {
-                    const content = exportFormat === 'csv' ? generateCsvContent() : generateHtmlContent();
-                    performDownload(
-                      content,
-                      `${title}.${exportFormat === 'csv' ? 'csv' : 'html'}`,
-                      exportFormat === 'csv' ? 'text/csv' : 'text/html'
-                    );
+                  onClick={async () => {
+                    const filenameBase = title.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                    if (exportFormat === 'docx') {
+                      const blob = await generateDocx();
+                      performDownload(blob, `${filenameBase}.docx`, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+                    } else if (exportFormat === 'xlsx') {
+                      const blob = generateXlsx();
+                      performDownload(blob, `${filenameBase}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                    } else if (exportFormat === 'csv') {
+                      performDownload(generateCsvContent(), `${filenameBase}.csv`, 'text/csv');
+                    } else if (exportFormat === 'template') {
+                      performDownload(generateJsonContent(), `${filenameBase}_template.json`, 'application/json');
+                    } else {
+                      performDownload(generateHtmlContent(), `${filenameBase}.html`, 'text/html');
+                    }
                     toast.success('Downloaded!');
                   }}
                 >
@@ -446,6 +589,42 @@ ${pages.map((page, pageIndex) => `
                       className="w-4 h-4"
                     />
                     <span className="text-sm text-gray-600">Include date/timestamp</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={layoutSettings.showWatermark}
+                      onChange={(e) => setLayoutSettings({ showWatermark: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-600">Include watermark</span>
+                  </label>
+                  {layoutSettings.showWatermark && (
+                    <Input
+                      type="text"
+                      value={layoutSettings.watermarkText}
+                      onChange={(e) => setLayoutSettings({ watermarkText: e.target.value })}
+                      placeholder="Watermark text"
+                      className="h-8 mt-1"
+                    />
+                  )}
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={layoutSettings.showGridInExport}
+                      onChange={(e) => setLayoutSettings({ showGridInExport: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-600">Show grid in export</span>
+                  </label>
+                  <label className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={layoutSettings.includeAnswerKey}
+                      onChange={(e) => setLayoutSettings({ includeAnswerKey: e.target.checked })}
+                      className="w-4 h-4"
+                    />
+                    <span className="text-sm text-gray-600">Include answer key</span>
                   </label>
                   <label className="flex items-center gap-2 cursor-pointer">
                     <input

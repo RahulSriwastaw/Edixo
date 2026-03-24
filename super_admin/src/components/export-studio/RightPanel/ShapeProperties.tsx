@@ -11,16 +11,21 @@ interface Props {
 }
 
 export function ShapeProperties({ element }: Props) {
-  const { updateElement } = useExportStudio();
+  const { updateElement, updateElementsByRole, bulkEditMode } = useExportStudio();
 
   const handleChange = (field: string, value: unknown) => {
+    let updates = {};
     if (field.startsWith("style.")) {
       const styleField = field.split(".")[1];
-      updateElement(element.id, {
-        style: { ...element.style, [styleField]: value },
-      });
+      updates = { style: { ...element.style, [styleField]: value } };
     } else {
-      updateElement(element.id, { [field]: value });
+      updates = { [field]: value };
+    }
+
+    if (bulkEditMode && element.role) {
+      updateElementsByRole(element.role, updates);
+    } else {
+      updateElement(element.id, updates);
     }
   };
 
@@ -130,7 +135,7 @@ export function ShapeProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.position.x)}
-              onChange={(e) => updateElement(element.id, { position: { ...element.position, x: parseInt(e.target.value) } })}
+              onChange={(e) => handleChange("position.x", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -139,7 +144,7 @@ export function ShapeProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.position.y)}
-              onChange={(e) => updateElement(element.id, { position: { ...element.position, y: parseInt(e.target.value) } })}
+              onChange={(e) => handleChange("position.y", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -148,7 +153,7 @@ export function ShapeProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.size.width)}
-              onChange={(e) => updateElement(element.id, { size: { ...element.size, width: parseInt(e.target.value) } })}
+              onChange={(e) => handleChange("size.width", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>
@@ -157,7 +162,7 @@ export function ShapeProperties({ element }: Props) {
             <Input
               type="number"
               value={Math.round(element.size.height)}
-              onChange={(e) => updateElement(element.id, { size: { ...element.size, height: parseInt(e.target.value) } })}
+              onChange={(e) => handleChange("size.height", parseInt(e.target.value))}
               className="h-8 text-sm"
             />
           </div>

@@ -8,9 +8,10 @@ interface Props {
   element: CanvasElementType;
   isSelected: boolean;
   onClick: (e: React.MouseEvent) => void;
+  onMouseDown: (e: React.MouseEvent) => void;
 }
 
-export function CanvasElement({ element, isSelected, onClick }: Props) {
+export function CanvasElement({ element, isSelected, onClick, onMouseDown }: Props) {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
@@ -27,16 +28,20 @@ export function CanvasElement({ element, isSelected, onClick }: Props) {
       case "text":
         return (
           <div
-            className="w-full h-full flex items-center overflow-hidden"
+            className="w-full h-full flex overflow-hidden"
             style={{
               fontFamily: element.content.fontFamily || "DM Sans",
               fontSize: element.content.fontSize || 16,
               fontWeight: element.content.fontWeight || "normal",
               fontStyle: element.content.fontStyle || "normal",
               textAlign: element.content.textAlign || "left",
+              justifyContent: element.content.textAlign === "center" ? "center" : element.content.textAlign === "right" ? "flex-end" : "flex-start",
+              alignItems: "flex-start",
               color: element.style.color || "#111827",
               lineHeight: element.style.lineHeight || 1.5,
               letterSpacing: element.style.letterSpacing || 0,
+              whiteSpace: "pre-wrap",
+              wordBreak: "break-word",
             }}
           >
             {isEditing ? (
@@ -57,6 +62,7 @@ export function CanvasElement({ element, isSelected, onClick }: Props) {
               />
             ) : (
               <span
+                style={{ whiteSpace: "pre-wrap", display: "block", width: "100%" }}
                 dangerouslySetInnerHTML={{
                   __html: element.content.text || "Text",
                 }}
@@ -203,6 +209,7 @@ export function CanvasElement({ element, isSelected, onClick }: Props) {
         opacity: element.opacity,
       }}
       onClick={onClick}
+      onMouseDown={onMouseDown}
       onDoubleClick={handleDoubleClick}
     >
       {/* Element Content */}

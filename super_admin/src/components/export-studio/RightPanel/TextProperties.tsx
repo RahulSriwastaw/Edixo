@@ -31,21 +31,24 @@ const fonts = [
 ];
 
 export function TextProperties({ element }: Props) {
-  const { updateElement, dataBindings } = useExportStudio();
+  const { updateElement, updateElementsByRole, bulkEditMode, dataBindings } = useExportStudio();
 
   const handleChange = (field: string, value: unknown) => {
+    let updates = {};
     if (field.startsWith("content.")) {
       const contentField = field.split(".")[1];
-      updateElement(element.id, {
-        content: { ...element.content, [contentField]: value },
-      });
+      updates = { content: { ...element.content, [contentField]: value } };
     } else if (field.startsWith("style.")) {
       const styleField = field.split(".")[1];
-      updateElement(element.id, {
-        style: { ...element.style, [styleField]: value },
-      });
+      updates = { style: { ...element.style, [styleField]: value } };
     } else {
-      updateElement(element.id, { [field]: value });
+      updates = { [field]: value };
+    }
+
+    if (bulkEditMode && element.role) {
+      updateElementsByRole(element.role, updates);
+    } else {
+      updateElement(element.id, updates);
     }
   };
 

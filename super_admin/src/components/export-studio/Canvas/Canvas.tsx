@@ -1,12 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, ChevronLeft, ChevronRight, Trash2, Copy } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { Plus, ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useExportStudio } from "../hooks/useExportStudio";
 import { CanvasElement } from "./CanvasElement";
 
-// A4 dimensions at 96dpi (pixels)
 const PAGE_SIZES: Record<string, { width: number; height: number }> = {
   a4_portrait: { width: 794, height: 1123 },
   a4_landscape: { width: 1123, height: 794 },
@@ -26,31 +25,114 @@ export function Canvas() {
     zoom,
     selectedIds,
     selectElement,
+    selectMultipleElements,
     deselectAll,
     setCurrentPage,
     addPage,
     deletePage,
+    updateElement,
+    layoutSettings,
+    bulkEditMode,
+    showGrid,
   } = useExportStudio();
 
   const [isDragging, setIsDragging] = useState(false);
+  const dragStartPos = useRef({ x: 0, y: 0 });
+  const initialElementsPos = useRef<Record<string, { x: number; y: number }>>({});
+  
   const currentPage = pages[currentPageIndex];
   const size = PAGE_SIZES[pageSize] || PAGE_SIZES.a4_portrait;
 
   const handleCanvasClick = (e: React.MouseEvent) => {
-    // Deselect if clicking on canvas background
     if (e.target === e.currentTarget) {
       deselectAll();
     }
   };
 
-  const handleElementClick = (id: string, e: React.MouseEvent) => {
+  const handleElementMouseDown = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    selectElement(id, e.shiftKey);
+    
+    const clickedEl = currentPage.elements.find(el => el.id === id);
+    let idsToMove = selectedIds;
+
+    if (bulkEditMode && clickedEl?.role) {
+      // Select all elements with the same role across ALL pages
+      idsToMove = pages.flatMap(p => p.elements)
+        .filter(el => el.role === clickedEl.role)
+        .map(el => el.id);
+      
+      selectMultipleElements(idsToMove);
+    } else {
+      // Select the element if not already selected
+      if (!selectedIds.includes(id)) {
+        selectElement(id, e.shiftKey);
+        idsToMove = [...selectedIds, id];
+      }
+    }
+
+    // Start dragging
+    setIsDragging(true);
+    dragStartPos.current = { x: e.clientX, y: e.clientY };
+    
+    // Store initial positions of all selected elements (from all pages)
+    const initialPos: Record<string, { x: number; y: number }> = {};
+    const allElements = pages.flatMap(p => p.elements);
+
+    idsToMove.forEach(sid => {
+      const el = allElements.find(e => e.id === sid);
+      if (el && !el.locked) {
+        initialPos[sid] = { ...el.position };
+      }
+    });
+    
+    initialElementsPos.current = initialPos;
   };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+
+      const deltaX = (e.clientX - dragStartPos.current.x) / (zoom / 100);
+      const deltaY = (e.clientY - dragStartPos.current.y) / (zoom / 100);
+
+      const { snapToGrid, gridSize } = layoutSettings;
+
+      Object.keys(initialElementsPos.current).forEach(id => {
+        const initialPos = initialElementsPos.current[id];
+        let newX = initialPos.x + deltaX;
+        let newY = initialPos.y + deltaY;
+
+        if (snapToGrid) {
+          newX = Math.round(newX / gridSize) * gridSize;
+          newY = Math.round(newY / gridSize) * gridSize;
+        } else {
+          newX = Math.round(newX);
+          newY = Math.round(newY);
+        }
+
+        updateElement(id, {
+          position: { x: newX, y: newY }
+        });
+      });
+    };
+
+    const handleMouseUp = () => {
+      setIsDragging(false);
+    };
+
+    if (isDragging) {
+      window.addEventListener("mousemove", handleMouseMove);
+      window.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isDragging, zoom, updateElement]);
 
   return (
     <div className="flex-1 flex flex-col bg-[#F0F0F0] overflow-hidden">
-      {/* Canvas Area */}
       <div
         className="flex-1 overflow-auto flex items-start justify-center p-8"
         onClick={handleCanvasClick}
@@ -64,27 +146,55 @@ export function Canvas() {
             transformOrigin: "top center",
           }}
         >
-          {/* Grid overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none opacity-30"
-            style={{
-              backgroundImage:
-                "linear-gradient(to right, #e5e7eb 1px, transparent 1px), linear-gradient(to bottom, #e5e7eb 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-            }}
-          />
+          {/* Grid Background */}
+          {showGrid && (
+            <div
+              className="absolute inset-0 pointer-events-none opacity-[0.15]"
+              style={{
+                backgroundImage:
+                  `linear-gradient(to right, #ccc 1px, transparent 1px), linear-gradient(to bottom, #ccc 1px, transparent 1px)`,
+                backgroundSize: `${layoutSettings.gridSize}px ${layoutSettings.gridSize}px`,
+              }}
+            />
+          )}
 
-          {/* Render elements */}
+          {/* Margin Guides */}
+          {layoutSettings.showMargins && (
+            <div 
+              className="absolute pointer-events-none border border-dashed border-blue-400 opacity-40"
+              style={{
+                top: layoutSettings.pageMargins.top,
+                left: layoutSettings.pageMargins.left,
+                right: layoutSettings.pageMargins.right,
+                bottom: layoutSettings.pageMargins.bottom,
+              }}
+            />
+          )}
+
           {currentPage.elements.map((element) => (
             <CanvasElement
               key={element.id}
               element={element}
               isSelected={selectedIds.includes(element.id)}
-              onClick={(e) => handleElementClick(element.id, e)}
+              onClick={(e) => {}} 
+              onMouseDown={(e) => handleElementMouseDown(element.id, e)}
             />
           ))}
 
-          {/* Page number watermark */}
+          {layoutSettings.numColumns === 2 && (
+            <>
+              <div 
+                className="absolute inset-y-0 left-1/2 -translate-x-1/2 border-l border-dashed border-orange-300 pointer-events-none z-10"
+                style={{ height: size.height }}
+              />
+              {/* Column margins (Gutter visualization) */}
+              <div 
+                className="absolute inset-y-0 left-1/2 -translate-x-1/2 bg-orange-500/5 pointer-events-none"
+                style={{ width: layoutSettings.columnGap, height: size.height }}
+              />
+            </>
+          )}
+
           {pages.length > 1 && (
             <div className="absolute bottom-4 right-4 text-xs text-gray-300 font-mono">
               Page {currentPageIndex + 1} of {pages.length}
@@ -93,7 +203,6 @@ export function Canvas() {
         </div>
       </div>
 
-      {/* Page Thumbnails Strip */}
       <div className="h-20 bg-white border-t border-gray-200 flex items-center px-4 gap-2 overflow-x-auto">
         <Button
           variant="outline"
@@ -119,9 +228,7 @@ export function Canvas() {
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
-              {/* Thumbnail preview */}
               <div className="absolute inset-1 bg-white rounded-sm overflow-hidden pointer-events-none">
-                {/* Mini elements */}
                 {page.elements.slice(0, 5).map((el, i) => (
                   <div
                     key={i}
@@ -134,22 +241,12 @@ export function Canvas() {
                       backgroundColor: el.type === "shape" ? el.style.fill : "transparent",
                       fontSize: "2px",
                     }}
-                  >
-                    {el.type === "text" && (
-                      <span className="opacity-30 truncate">
-                        {el.content.text?.slice(0, 5)}
-                      </span>
-                    )}
-                  </div>
+                  />
                 ))}
               </div>
-
-              {/* Page number */}
               <span className="absolute -bottom-4 left-1/2 -translate-x-1/2 text-[10px] text-gray-400">
                 {index + 1}
               </span>
-
-              {/* Delete button (only if more than 1 page) */}
               {pages.length > 1 && (
                 <button
                   onClick={(e) => {
@@ -165,7 +262,6 @@ export function Canvas() {
           ))}
         </div>
 
-        {/* Navigation */}
         <div className="flex-shrink-0 flex items-center gap-1">
           <Button
             variant="ghost"

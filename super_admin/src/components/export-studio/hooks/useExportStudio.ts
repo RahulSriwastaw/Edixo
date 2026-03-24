@@ -11,6 +11,63 @@ export type PageSize =
   | "social_1_1"
   | "custom";
 
+export interface PageMargins {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+}
+
+export interface LayoutSettings {
+  numColumns: number;
+  columnGap: number;
+  showQuestionBox: boolean;
+  showOptionBox: boolean;
+  questionPadding: number;
+  optionPadding: number;
+  optionGap: number;
+  itemGap: number;
+  questionToOptionsGap: number;
+  pageMargins: PageMargins;
+  snapToGrid: boolean;
+  showMargins: boolean;
+  gridSize: number;
+  watermarkText: string;
+  showWatermark: boolean;
+  includeAnswerKey: boolean;
+  showGridInExport: boolean;
+  showEn: boolean;
+  showHi: boolean;
+  showSolutions: boolean;
+  fontSize: number;
+  questionBoldness: string;
+  optionBoldness: string;
+  solutionBoldness: string;
+  answerBold: boolean;
+  showQR: boolean;
+  showPreviousYearTag: boolean;
+  showExplanation: boolean;
+  hideQuestion: boolean;
+  hideOption: boolean;
+  showAnswerWidget: boolean;
+  firstLogo: string;
+  secondLogo: string;
+  showHeader: boolean;
+  showBook: boolean;
+  showAnswerWithDesc: boolean;
+  questionOpacity: boolean;
+  optionOpacity: boolean;
+  pyTagOffsetX: number;
+  pyTagOffsetY: number;
+  pyTagFontSize: number;
+  pyTagColor: string;
+  primaryLanguage: 'en' | 'hi';
+  explanationFontSize: number;
+  explanationColor: string;
+  explanationLanguage: 'en' | 'hi' | 'both';
+  solutionFontSize: number;
+}
+
 export type ElementType = "text" | "image" | "shape" | "chart" | "table" | "line" | "qr_code";
 
 export type LeftTabType = "templates" | "elements" | "media" | "text" | "charts" | "data" | "tables";
@@ -35,6 +92,7 @@ export interface CanvasElement {
   locked: boolean;
   content: ElementContent;
   style: ElementStyle;
+  role?: string; // e.g. 'question_text', 'option_text', 'header'
   dataBinding?: string; // Variable key like {{student_name}}
 }
 
@@ -133,6 +191,7 @@ interface ExportStudioState {
   exportProgress: number | null;
   lastSavedAt: Date | null;
   isDirty: boolean;
+  bulkEditMode: boolean;
 
   // Data bindings
   sourceData: Record<string, unknown>;
@@ -143,6 +202,11 @@ interface ExportStudioState {
     logo: string;
     color: string;
   };
+  availableSubjects: string[];
+  selectedSubject: string;
+  setAvailableSubjects: (subjects: string[]) => void;
+  setSelectedSubject: (subject: string) => void;
+  layoutSettings: LayoutSettings;
   
   // Actions
   setTitle: (title: string) => void;
@@ -152,18 +216,32 @@ interface ExportStudioState {
   toggleAIPanel: () => void;
   togglePreview: () => void;
   toggleExportModal: (format?: string) => void;
+  toggleBulkEditMode: () => void;
+  setLayoutSettings: (settings: Partial<LayoutSettings>) => void;
+  resetLayoutSettings: () => void;
   
   // Element actions
   addElement: (element: CanvasElement, pageIndex?: number) => void;
   updateElement: (id: string, updates: Partial<CanvasElement>) => void;
+  updateElementsByRole: (role: string, updates: Partial<CanvasElement>) => void;
   removeElement: (id: string) => void;
   selectElement: (id: string, multi?: boolean) => void;
+  selectMultipleElements: (ids: string[]) => void;
   deselectAll: () => void;
   
   // Page actions
   addPage: () => void;
   deletePage: (index: number) => void;
   setCurrentPage: (index: number) => void;
+  clearPages: () => void;
+  setPages: (pages: Page[]) => void;
+  
+  // Bulk actions
+  alignElements: (ids: string[], type: 'left' | 'right' | 'top' | 'bottom' | 'center' | 'middle') => void;
+  distributeElements: (ids: string[], type: 'horizontal' | 'vertical') => void;
+  reorderElements: (ids: string[], action: 'forward' | 'backward' | 'front' | 'back') => void;
+  matchSize: (ids: string[], dimension: 'width' | 'height' | 'both') => void;
+  deleteMultipleElements: (ids: string[]) => void;
   
   // History
   undo: () => void;
@@ -206,13 +284,70 @@ const initialState = {
   exportProgress: null,
   lastSavedAt: null,
   isDirty: false,
+  bulkEditMode: false,
   sourceData: {},
   sourceModule: "",
   dataBindings: [],
   orgBranding: {
-    name: "EduHub",
-    logo: "/logo.png",
+    name: "EduHub Organization",
+    logo: "",
     color: "#F4511E",
+  },
+  availableSubjects: [],
+  selectedSubject: "All Subjects",
+  layoutSettings: {
+    numColumns: 1,
+    columnGap: 20,
+    showQuestionBox: false,
+    showOptionBox: true,
+    questionPadding: 10,
+    optionPadding: 5,
+    optionGap: 4,
+    itemGap: 15,
+    questionToOptionsGap: 8,
+    pageMargins: {
+      top: 20,
+      right: 20,
+      bottom: 20,
+      left: 20,
+    },
+    snapToGrid: false,
+    showMargins: true,
+    gridSize: 10,
+    watermarkText: "EDUCATIONAL HUB",
+    showWatermark: false,
+    includeAnswerKey: true,
+    showGridInExport: false,
+    showEn: true,
+    showHi: true,
+    showSolutions: true,
+    fontSize: 12,
+    questionBoldness: "500",
+    optionBoldness: "400",
+    solutionBoldness: "400",
+    answerBold: false,
+    showQR: false,
+    showPreviousYearTag: false,
+    showExplanation: false,
+    hideQuestion: false,
+    hideOption: false,
+    showAnswerWidget: false,
+    firstLogo: "",
+    secondLogo: "",
+    showHeader: true,
+    showBook: false,
+    showAnswerWithDesc: false,
+    questionOpacity: false,
+    optionOpacity: false,
+    pyTagOffsetX: 0,
+    pyTagOffsetY: 0,
+    pyTagFontSize: 9,
+    pyTagColor: "#F4511E",
+    primaryLanguage: 'en' as 'en' | 'hi',
+    explanationFontSize: 10,
+    explanationColor: "#6B7280",
+    explanationLanguage: 'both' as 'en' | 'hi' | 'both',
+    solutionFontSize: 10,
   },
 };
 
@@ -230,6 +365,15 @@ export const useExportStudio = create<ExportStudioState>((set, get) => ({
     showExportModal: !state.showExportModal,
     exportFormat: format || null 
   })),
+  toggleBulkEditMode: () => set((state) => ({ bulkEditMode: !state.bulkEditMode })),
+  setLayoutSettings: (updates) => set((state) => ({
+    layoutSettings: { ...state.layoutSettings, ...updates },
+    isDirty: true
+  })),
+  resetLayoutSettings: () => set({
+    layoutSettings: { ...initialState.layoutSettings },
+    isDirty: true
+  }),
 
   // Element actions
   addElement: (element, pageIndex) => {
@@ -251,19 +395,50 @@ export const useExportStudio = create<ExportStudioState>((set, get) => ({
   },
 
   updateElement: (id, updates) => {
-    const { pages, currentPageIndex } = get();
+    const { pages } = get();
     
     set({
-      pages: pages.map((page, i) =>
-        i === currentPageIndex
-          ? {
-              ...page,
-              elements: page.elements.map((el) =>
-                el.id === id ? { ...el, ...updates } : el
-              ),
-            }
-          : page
-      ),
+      pages: pages.map((page) => ({
+        ...page,
+        elements: page.elements.map((el) => {
+          if (el.id === id) {
+            // Deep merge essential parts
+            return {
+              ...el,
+              ...updates,
+              position: updates.position ? { ...el.position, ...updates.position } : el.position,
+              size: updates.size ? { ...el.size, ...updates.size } : el.size,
+              content: updates.content ? { ...el.content, ...updates.content } : el.content,
+              style: updates.style ? { ...el.style, ...updates.style } : el.style,
+            };
+          }
+          return el;
+        }),
+      })),
+      isDirty: true,
+    });
+  },
+
+  updateElementsByRole: (role, updates) => {
+    const { pages } = get();
+    set({
+      pages: pages.map((page) => ({
+        ...page,
+        elements: page.elements.map((el) => {
+          if (el.role === role) {
+            // Deep merge essential parts
+            return {
+              ...el,
+              ...updates,
+              position: updates.position ? { ...el.position, ...updates.position } : el.position,
+              size: updates.size ? { ...el.size, ...updates.size } : el.size,
+              content: updates.content ? { ...el.content, ...updates.content } : el.content,
+              style: updates.style ? { ...el.style, ...updates.style } : el.style,
+            };
+          }
+          return el;
+        }),
+      })),
       isDirty: true,
     });
   },
@@ -298,7 +473,13 @@ export const useExportStudio = create<ExportStudioState>((set, get) => ({
     }
   },
 
+  selectMultipleElements: (ids) => set({ selectedIds: ids }),
+
   deselectAll: () => set({ selectedIds: [] }),
+
+  // Subjects
+  setAvailableSubjects: (subjects) => set({ availableSubjects: subjects }),
+  setSelectedSubject: (subject) => set({ selectedSubject: subject }),
 
   // Page actions
   addPage: () => {
@@ -337,6 +518,26 @@ export const useExportStudio = create<ExportStudioState>((set, get) => ({
   },
 
   setCurrentPage: (index) => set({ currentPageIndex: index }),
+
+  clearPages: () => set({
+    pages: [
+      {
+        id: `page_${Date.now()}`,
+        elements: [],
+        background: "#ffffff",
+      },
+    ],
+    currentPageIndex: 0,
+    selectedIds: [],
+    isDirty: true
+  }),
+
+  setPages: (pages) => set({ 
+    pages, 
+    currentPageIndex: 0,
+    selectedIds: [],
+    isDirty: true 
+  }),
 
   // History
   saveToHistory: (action) => {
@@ -391,6 +592,187 @@ export const useExportStudio = create<ExportStudioState>((set, get) => ({
   // Data
   setDataBindings: (bindings) => set({ dataBindings: bindings }),
   
+  // Bulk actions
+  alignElements: (ids, type) => {
+    const { pages, currentPageIndex } = get();
+    const currentPage = pages[currentPageIndex];
+    if (!currentPage) return;
+    
+    const selectedElements = currentPage.elements.filter(el => ids.includes(el.id));
+    if (selectedElements.length < 2) return;
+
+    let targetValue = 0;
+    
+    // Bounds calculation
+    const xs = selectedElements.map(el => el.position.x);
+    const ys = selectedElements.map(el => el.position.y);
+    const rights = selectedElements.map(el => el.position.x + el.size.width);
+    const bottoms = selectedElements.map(el => el.position.y + el.size.height);
+
+    const minX = Math.min(...xs);
+    const maxX = Math.max(...rights);
+    const minY = Math.min(...ys);
+    const maxY = Math.max(...bottoms);
+
+    set({
+      pages: pages.map((page, i) => {
+        if (i !== currentPageIndex) return page;
+        return {
+          ...page,
+          elements: page.elements.map(el => {
+            if (!ids.includes(el.id)) return el;
+            
+            const newPos = { ...el.position };
+            switch (type) {
+              case 'left': newPos.x = minX; break;
+              case 'right': newPos.x = maxX - el.size.width; break;
+              case 'top': newPos.y = minY; break;
+              case 'bottom': newPos.y = maxY - el.size.height; break;
+              case 'center': newPos.x = minX + (maxX - minX) / 2 - el.size.width / 2; break;
+              case 'middle': newPos.y = minY + (maxY - minY) / 2 - el.size.height / 2; break;
+            }
+            return { ...el, position: newPos };
+          })
+        };
+      }),
+      isDirty: true
+    });
+    get().saveToHistory(`Align ${type}`);
+  },
+
+  distributeElements: (ids, type) => {
+    const { pages, currentPageIndex } = get();
+    const currentPage = pages[currentPageIndex];
+    if (!currentPage) return;
+    
+    const selectedSorted = [...currentPage.elements]
+      .filter(el => ids.includes(el.id))
+      .sort((a, b) => type === 'horizontal' 
+        ? a.position.x - b.position.x 
+        : a.position.y - b.position.y);
+    
+    if (selectedSorted.length < 3) return;
+
+    const first = selectedSorted[0];
+    const last = selectedSorted[selectedSorted.length - 1];
+    
+    if (type === 'horizontal') {
+      const totalWidth = last.position.x - first.position.x;
+      const step = totalWidth / (selectedSorted.length - 1);
+      
+      set({
+        pages: pages.map((page, i) => {
+          if (i !== currentPageIndex) return page;
+          return {
+            ...page,
+            elements: page.elements.map(el => {
+              const idx = selectedSorted.findIndex(s => s.id === el.id);
+              if (idx === -1) return el;
+              return { ...el, position: { ...el.position, x: first.position.x + idx * step } };
+            })
+          };
+        }),
+        isDirty: true
+      });
+    } else {
+      const totalHeight = last.position.y - first.position.y;
+      const step = totalHeight / (selectedSorted.length - 1);
+      
+      set({
+        pages: pages.map((page, i) => {
+          if (i !== currentPageIndex) return page;
+          return {
+            ...page,
+            elements: page.elements.map(el => {
+              const idx = selectedSorted.findIndex(s => s.id === el.id);
+              if (idx === -1) return el;
+              return { ...el, position: { ...el.position, y: first.position.y + idx * step } };
+            })
+          };
+        }),
+        isDirty: true
+      });
+    }
+    get().saveToHistory(`Distribute ${type}`);
+  },
+
+  reorderElements: (ids, action) => {
+    const { pages, currentPageIndex } = get();
+    const currentPage = pages[currentPageIndex];
+    if (!currentPage) return;
+
+    const newElements = [...currentPage.elements];
+    
+    ids.forEach(id => {
+      const idx = newElements.findIndex(el => el.id === id);
+      if (idx === -1) return;
+
+      if (action === 'forward' && idx < newElements.length - 1) {
+        [newElements[idx], newElements[idx + 1]] = [newElements[idx + 1], newElements[idx]];
+      } else if (action === 'backward' && idx > 0) {
+        [newElements[idx], newElements[idx - 1]] = [newElements[idx - 1], newElements[idx]];
+      } else if (action === 'front') {
+        const el = newElements.splice(idx, 1)[0];
+        newElements.push(el);
+      } else if (action === 'back') {
+        const el = newElements.splice(idx, 1)[0];
+        newElements.unshift(el);
+      }
+    });
+
+    set({
+      pages: pages.map((p, i) => i === currentPageIndex ? { ...p, elements: newElements } : p),
+      isDirty: true
+    });
+    get().saveToHistory(`Reorder elements`);
+  },
+
+  matchSize: (ids, dimension) => {
+    const { pages, currentPageIndex } = get();
+    const currentPage = pages[currentPageIndex];
+    if (!currentPage) return;
+    
+    const selectedElements = currentPage.elements.filter(el => ids.includes(el.id));
+    if (selectedElements.length < 2) return;
+    
+    const firstSize = selectedElements[0].size;
+    
+    set({
+      pages: pages.map((page, i) => {
+        if (i !== currentPageIndex) return page;
+        return {
+          ...page,
+          elements: page.elements.map(el => {
+            if (!ids.includes(el.id)) return el;
+            return {
+              ...el,
+              size: {
+                width: dimension === 'height' ? el.size.width : firstSize.width,
+                height: dimension === 'width' ? el.size.height : firstSize.height,
+              }
+            };
+          })
+        };
+      }),
+      isDirty: true
+    });
+    get().saveToHistory(`Match ${dimension}`);
+  },
+
+  deleteMultipleElements: (ids) => {
+    const { pages, currentPageIndex, selectedIds } = get();
+    set({
+      pages: pages.map((page, i) => 
+        i === currentPageIndex 
+          ? { ...page, elements: page.elements.filter(el => !ids.includes(el.id)) } 
+          : page
+      ),
+      selectedIds: selectedIds.filter(sid => !ids.includes(sid)),
+      isDirty: true
+    });
+    get().saveToHistory(`Delete multiple elements`);
+  },
+
   setSourceData: (module, data) => set({ 
     sourceModule: module, 
     sourceData: data 
