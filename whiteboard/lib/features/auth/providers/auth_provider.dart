@@ -1,8 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../core/api/api_client.dart';
-import '../../../core/constants/app_constants.dart';
+import 'package:eduhub_whiteboard/core/api/api_client.dart';
+import 'package:eduhub_whiteboard/core/constants/app_constants.dart';
 
 final authProvider = StateNotifierProvider<AuthNotifier, AsyncValue<User?>>((ref) {
   final dio = ref.watch(dioProvider);

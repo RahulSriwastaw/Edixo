@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../providers/ai_provider.dart';
 import '../../../domain/models/ai_message.dart';
-import '../../../providers/whiteboard_provider.dart'; // Added import
+import 'package:eduhub_whiteboard/features/whiteboard/providers/whiteboard_provider.dart';
 import '../../../../super_admin/providers/module_config_provider.dart'; // Added import
 
 class AIPanel extends ConsumerStatefulWidget {
@@ -75,7 +75,7 @@ class _AIPanelState extends ConsumerState<AIPanel> {
         ),
 
         // Quota bar
-        _buildQuotaBar(aiState),
+        _buildQuotaBar(aiState, moduleConfig),
 
         // Input area
         _buildInputArea(isLoading),
@@ -155,7 +155,6 @@ class _AIPanelState extends ConsumerState<AIPanel> {
           dropdownColor: const Color(0xFF1E2235),
           style: const TextStyle(color: Colors.white),
           icon: Icon(Icons.arrow_drop_down, color: Colors.white70, size: 16.w),
-          dense: true,
         ),
       ),
     );
@@ -185,11 +184,11 @@ class _AIPanelState extends ConsumerState<AIPanel> {
   Widget _buildQuickActions() {
     final notifier = ref.read(aiProvider.notifier);
     final actions = [
-      _QuickAction('Explain', Icons.lightbulb_outline, notifier.explainCurrentTopic),
-      _QuickAction('Solve Q', Icons.calculate_outlined, notifier.solveCurrentQuestion),
-      _QuickAction('Examples', Icons.format_list_numbered, notifier.generateExamples),
-      _QuickAction('Summarize', Icons.summarize_outlined, notifier.summarizePage),
-      _QuickAction('OCR', Icons.text_fields, notifier.recognizeHandwriting),
+      _QuickAction('Explain', Icons.lightbulb_outline, () => notifier.explainCurrentTopic(ref)),
+      _QuickAction('Solve Q', Icons.calculate_outlined, () => notifier.solveCurrentQuestion(ref)),
+      _QuickAction('Examples', Icons.format_list_numbered, () => notifier.generateExamples(ref)),
+      _QuickAction('Summarize', Icons.summarize_outlined, () => notifier.summarizePage(ref)),
+      _QuickAction('OCR', Icons.text_fields, () => notifier.recognizeHandwriting(ref)),
     ];
 
     return Container(
@@ -229,7 +228,7 @@ class _AIPanelState extends ConsumerState<AIPanel> {
               height: 28.w,
               decoration: BoxDecoration(
                 color: Colors.purpleAccent.withOpacity(0.15),
-                shape: BoxBoxShape.circle,
+                shape: BoxShape.circle,
               ),
               child: Icon(Icons.auto_awesome, size: 16.w, color: Colors.purpleAccent),
             ),
@@ -363,8 +362,8 @@ class _AIPanelState extends ConsumerState<AIPanel> {
     );
   }
 
-  Widget _buildQuotaBar(AIState state) {
-    final ratio = state.quotaTotal > 0 ? state.quotaUsed / state.quotaTotal : 0.0;
+  Widget _buildQuotaBar(AIState state, ModuleConfig config) {
+    final ratio = config.globalAiTokenLimit > 0 ? state.usedTokens / config.globalAiTokenLimit : 0.0;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
       color: const Color(0xFFF9FAFB),
@@ -373,7 +372,7 @@ class _AIPanelState extends ConsumerState<AIPanel> {
           Icon(Icons.bolt, size: 14, color: ratio > 0.8 ? Colors.red : Colors.amber),
           SizedBox(width: 4.w),
           Text(
-            'AI: ${state.quotaUsed}/${state.quotaTotal}',
+            'AI: ${state.usedTokens}/${config.globalAiTokenLimit}',
             style: TextStyle(fontSize: 11.sp, color: Colors.grey),
           ),
           SizedBox(width: 8.w),
@@ -433,7 +432,7 @@ class _AIPanelState extends ConsumerState<AIPanel> {
             )
           else ...[
             InkWell(
-              onTap: () => ref.read(aiProvider.notifier).startVoiceRecognition(),
+              onTap: () => ref.read(aiProvider.notifier).startVoiceRecognition(ref),
               borderRadius: BorderRadius.circular(50),
               child: Container(
                 width: 40.w,

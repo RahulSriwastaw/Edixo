@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../core/theme/app_theme.dart';
-import '../../../providers/canvas_provider.dart';
-import '../../../../drawing/providers/tool_provider.dart';
-import '../../../../drawing/domain/models/drawing_tool.dart';
+import 'package:eduhub_whiteboard/core/theme/app_theme.dart';
+import 'package:eduhub_whiteboard/features/whiteboard/providers/canvas_provider.dart';
+import 'package:eduhub_whiteboard/features/drawing/providers/tool_provider.dart';
+import 'package:eduhub_whiteboard/features/drawing/domain/models/drawing_tool.dart';
 import 'dart:math' as math;
 import 'package:perfect_freehand/perfect_freehand.dart' as pf;
 import 'dart:convert';
 import 'dart:ui' as ui;
-import '../../../subjects/math/presentation/widgets/shape_3d_painter.dart';
+import 'package:eduhub_whiteboard/features/drawing/domain/models/pen_smoothing_engine.dart';
+import 'package:eduhub_whiteboard/features/subjects/math/presentation/widgets/shape_3d_painter.dart';
+import 'package:eduhub_whiteboard/features/ai/presentation/widgets/ai_assistant_panel.dart';
+
+StrokeType _mapShapeToStroke(ShapeType? shape) {
+  if (shape == null) return StrokeType.rectangle;
+  switch (shape) {
+    case ShapeType.line: return StrokeType.line;
+    case ShapeType.arrow: return StrokeType.arrow;
+    case ShapeType.rectangle: return StrokeType.rectangle;
+    case ShapeType.roundedRectangle: return StrokeType.roundedRectangle;
+    case ShapeType.circle: return StrokeType.circle;
+    case ShapeType.ellipse: return StrokeType.ellipse;
+    case ShapeType.triangle: return StrokeType.triangle;
+    case ShapeType.diamond: return StrokeType.diamond;
+    case ShapeType.speechBubble: return StrokeType.speechBubble;
+    case ShapeType.polygon: return StrokeType.polygon;
+    default: return StrokeType.rectangle;
+  }
+}
 
 class WhiteboardCanvas extends ConsumerStatefulWidget {
-  const WhiteboardCanvas({super.key});
+  final bool isMainCanvas;
+  const WhiteboardCanvas({super.key, this.isMainCanvas = true});
 
   @override
   ConsumerState<WhiteboardCanvas> createState() => _WhiteboardCanvasState();
@@ -24,6 +45,10 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
   List<StrokePoint> _currentPoints = [];
   bool _isDrawing = false;
   bool _isMovingSelection = false;
+  int? _activePointerId;
+  final Set<int> _activePointers = {};
+  int _maxPointersInSequence = 0;
+  DateTime? _sequenceStartTime;
 
   static const double _canvasWidth = 4000;
   static const double _canvasHeight = 3000;
@@ -32,6 +57,7 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
   Widget build(BuildContext context) {
     final canvasState = ref.watch(canvasStateProvider);
     final drawingState = ref.watch(drawingStateProvider);
+    final hideBg = ref.watch(hideCanvasBackgroundProvider);
 
     return ClipRect(
       child: Focus(
@@ -82,15 +108,17 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
                   maxScale: 4.0,
                   panEnabled: !_isDrawing,
                   scaleEnabled: !_isDrawing,
-                  child: GestureDetector(
-                    onPanStart: (details) => _onPanStart(details, drawingState),
-                    onPanUpdate: (details) => _onPanUpdate(details, drawingState),
-                    onPanEnd: (details) => _onPanEnd(drawingState),
+                  child: Listener(
+                    onPointerDown: (event) => _onPointerDown(event, drawingState),
+                    onPointerMove: (event) => _onPointerMove(event, drawingState),
+                    onPointerUp: (event) => _onPointerUp(event, drawingState),
+                    onPointerCancel: (event) => _onPointerUp(event, drawingState),
                     child: Container(
                       width: _canvasWidth,
                       height: _canvasHeight,
                       color: canvasState.backgroundColor,
                       child: RepaintBoundary(
+                        key: widget.isMainCanvas ? ref.watch(canvasBoundaryKeyProvider) : null,
                         child: FutureBuilder<ui.Image?>(
                           future: _decodeBgImage(canvasState.currentPage.bgImageBytes),
                           builder: (context, snapshot) {
@@ -105,7 +133,7 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
                                 currentShapeType: drawingState.currentSettings.shapeType,
                                 currentIsFilled: drawingState.currentSettings.isFilled,
                                 template: canvasState.currentPage.template,
-                                bgImage: snapshot.data,
+                                bgImage: hideBg ? null : snapshot.data,
                               ),
                               child: const SizedBox(width: _canvasWidth, height: _canvasHeight),
                             );
@@ -133,6 +161,11 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          _selectionAction(Icons.auto_awesome, 'Ask AI', () {
+                            ref.read(aiSelectedContextProvider.notifier).state = "Selected Content";
+                            ref.read(aiPanelOpenProvider.notifier).state = true;
+                          }),
+                          SizedBox(width: 12.w),
                           _selectionAction(Icons.delete_outline, 'Delete', () {
                             ref.read(canvasStateProvider.notifier).deleteSelection();
                           }),
@@ -172,7 +205,30 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
     );
   }
 
-  void _onPanStart(DragStartDetails details, DrawingState drawingState) {
+  void _onPointerDown(PointerDownEvent event, DrawingState drawingState) {
+    _activePointers.add(event.pointer);
+
+    if (_activePointers.length == 1) {
+      _sequenceStartTime = DateTime.now();
+      _maxPointersInSequence = 1;
+      _activePointerId = event.pointer;
+    } else {
+      if (_activePointers.length > _maxPointersInSequence) {
+        _maxPointersInSequence = _activePointers.length;
+      }
+      
+      // Multi-touch detected! Cancel any active single-finger drawing sequence.
+      if (_isDrawing) {
+        setState(() {
+          _isDrawing = false;
+          _currentPoints = [];
+        });
+      }
+      _activePointerId = null;
+    }
+
+    if (_activePointerId == null) return;
+
     if (drawingState.activeTool == ToolType.lasso) {
       final notifier = ref.read(canvasStateProvider.notifier);
       final canvasState = ref.read(canvasStateProvider);
@@ -191,7 +247,7 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
         }
         if (minX != double.infinity) {
           final rect = Rect.fromLTRB(minX, minY, maxX, maxY).inflate(10.0);
-          if (rect.contains(details.localPosition)) {
+          if (rect.contains(event.localPosition)) {
             hitSelection = true;
           }
         }
@@ -205,39 +261,64 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
         notifier.clearSelection();
         setState(() {
           _isDrawing = true;
-          _currentPoints = [StrokePoint(details.localPosition.dx, details.localPosition.dy, pressure: 0.5)];
+          _currentPoints = [StrokePoint(event.localPosition.dx, event.localPosition.dy, pressure: event.pressure, time: DateTime.now())];
         });
       }
       return;
     }
 
-    final pos = details.localPosition;
+    final pos = event.localPosition;
     setState(() {
       _isDrawing = true;
-      _currentPoints = [StrokePoint(pos.dx, pos.dy, pressure: 0.5)];
+      _currentPoints = [StrokePoint(pos.dx, pos.dy, pressure: event.pressure, time: DateTime.now())];
     });
   }
 
-  void _onPanUpdate(DragUpdateDetails details, DrawingState drawingState) {
+  void _onPointerMove(PointerMoveEvent event, DrawingState drawingState) {
+    if (event.pointer != _activePointerId) return;
+
     if (drawingState.activeTool == ToolType.lasso && _isMovingSelection) {
-      ref.read(canvasStateProvider.notifier).moveSelection(details.delta);
+      ref.read(canvasStateProvider.notifier).moveSelection(event.delta);
       return;
     }
 
     if (!_isDrawing) return;
-    final pos = details.localPosition;
+    final pos = event.localPosition;
     setState(() {
       if (drawingState.activeTool == ToolType.shapes || drawingState.activeTool == ToolType.text) {
         if (_currentPoints.isNotEmpty) {
-          _currentPoints = [_currentPoints.first, StrokePoint(pos.dx, pos.dy, pressure: 0.5)];
+          _currentPoints = [_currentPoints.first, StrokePoint(pos.dx, pos.dy, pressure: event.pressure, time: DateTime.now())];
         }
       } else {
-        _currentPoints = [..._currentPoints, StrokePoint(pos.dx, pos.dy, pressure: 0.5)];
+        _currentPoints = [..._currentPoints, StrokePoint(pos.dx, pos.dy, pressure: event.pressure, time: DateTime.now())];
       }
     });
   }
 
-  void _onPanEnd(DrawingState drawingState) {
+  void _onPointerUp(PointerEvent event, DrawingState drawingState) {
+    _activePointers.remove(event.pointer);
+
+    if (_activePointers.isEmpty) {
+      // Evaluate multi-finger tap gesture
+      if (_sequenceStartTime != null) {
+        final duration = DateTime.now().difference(_sequenceStartTime!);
+        if (duration.inMilliseconds < 450) { // Fast tap (under 450ms)
+          final notifier = ref.read(canvasStateProvider.notifier);
+          final canvasState = ref.read(canvasStateProvider);
+          if (_maxPointersInSequence == 2 && canvasState.undoHistory.isNotEmpty) {
+            notifier.undo();
+          } else if (_maxPointersInSequence == 3 && canvasState.redoHistory.isNotEmpty) {
+            notifier.redo();
+          }
+        }
+      }
+      _maxPointersInSequence = 0;
+      _sequenceStartTime = null;
+    }
+
+    if (event.pointer != _activePointerId) return;
+    _activePointerId = null;
+
     if (drawingState.activeTool == ToolType.lasso && _isMovingSelection) {
       ref.read(canvasStateProvider.notifier).commitSelectionMove();
       setState(() {
@@ -280,6 +361,11 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
         text: 'EduHub Text', // Dummy text placeholder
       );
       notifier.addStroke(stroke);
+
+      if (!settings.isLocked) {
+        ref.read(drawingStateProvider.notifier).selectTool(ToolType.pen);
+      }
+
       setState(() {
         _currentPoints = [];
         _isDrawing = false;
@@ -293,7 +379,8 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
       case ToolType.highlighter: strokeType = StrokeType.highlighter; break;
       case ToolType.eraser: strokeType = StrokeType.eraser; break;
       case ToolType.laserPointer: strokeType = StrokeType.laserPointer; break;
-      case ToolType.shapes: strokeType = settings.shapeType ?? StrokeType.rectangle; break;
+      case ToolType.marker: strokeType = StrokeType.marker; break;
+      case ToolType.shapes: strokeType = _mapShapeToStroke(settings.shapeType); break;
       default: strokeType = StrokeType.pen;
     }
 
@@ -308,6 +395,10 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
     );
 
     notifier.addStroke(stroke);
+
+    if (!settings.isLocked) {
+      ref.read(drawingStateProvider.notifier).selectTool(ToolType.pen);
+    }
 
     setState(() {
       _currentPoints = [];
@@ -330,7 +421,7 @@ class CanvasPainter extends CustomPainter {
   final Color currentColor;
   final double currentThickness;
   final double currentOpacity;
-  final StrokeType? currentShapeType;
+  final ShapeType? currentShapeType;
   final bool currentIsFilled;
   final PageTemplate template;
   final ui.Image? bgImage;
@@ -379,7 +470,7 @@ class CanvasPainter extends CustomPainter {
         StrokeType tempType = StrokeType.pen;
         if (currentTool == ToolType.highlighter) tempType = StrokeType.highlighter;
         else if (currentTool == ToolType.eraser) tempType = StrokeType.eraser;
-        else if (currentTool == ToolType.shapes) tempType = currentShapeType ?? StrokeType.rectangle;
+        else if (currentTool == ToolType.shapes) tempType = _mapShapeToStroke(currentShapeType);
         else if (currentTool == ToolType.text) tempType = StrokeType.text;
 
         final inProgress = Stroke(
@@ -417,54 +508,42 @@ class CanvasPainter extends CustomPainter {
       }
     }
 
-    // Use freehand for freeform strokes
+    // Use PenSmoothingEngine for freehand strokes
     if (stroke.type == StrokeType.pen ||
         stroke.type == StrokeType.pencil ||
+        stroke.type == StrokeType.marker ||
         stroke.type == StrokeType.highlighter ||
         stroke.type == StrokeType.eraser ||
         stroke.type == StrokeType.laserPointer) {
           
-      final points = stroke.points.map((p) => pf.PointVector(p.x, p.y, p.pressure)).toList();
-      final outlinePoints = pf.getStroke(
-        points,
-        options: pf.StrokeOptions(
-          size: stroke.thickness * 2,
-          thinning: stroke.type == StrokeType.pen || stroke.type == StrokeType.pencil ? 0.3 : 0.0,
-          smoothing: 0.6,
-          streamline: 0.6,
-          simulatePressure: stroke.type == StrokeType.pen || stroke.type == StrokeType.pencil,
-          isComplete: stroke.id != 'current',
+      final engine = PenSmoothingEngine(
+        settings: StrokeSmoothing(
+          level: 2,
+          minWidth: stroke.thickness * 0.5,
+          maxWidth: stroke.thickness,
+          taperEnabled: stroke.type == StrokeType.pen || stroke.type == StrokeType.pencil,
         ),
       );
 
-      if (outlinePoints.isEmpty) return;
+      final rawPoints = stroke.points.map((p) => InputPoint(
+        position: Offset(p.x, p.y),
+        pressure: p.pressure,
+        time: p.time ?? DateTime.now(),
+      )).toList();
 
-      final path = Path();
-      path.moveTo(outlinePoints[0].dx, outlinePoints[0].dy);
-      for (int i = 1; i < outlinePoints.length - 1; i++) {
-        final p0 = outlinePoints[i];
-        final p1 = outlinePoints[i + 1];
-        path.quadraticBezierTo(p0.dx, p0.dy, (p0.dx + p1.dx) / 2, (p0.dy + p1.dy) / 2);
-      }
-      path.lineTo(outlinePoints.last.dx, outlinePoints.last.dy);
-      path.close();
+      if (rawPoints.isEmpty) return;
+      final path = engine.buildStrokePath(rawPoints);
 
-      final paint = Paint()
-        ..style = PaintingStyle.fill;
+      final paint = Paint()..style = PaintingStyle.fill;
 
       switch (stroke.type) {
         case StrokeType.eraser:
-          paint
-            ..color = Colors.white
-            ..blendMode = BlendMode.srcOver;
+          paint.color = Colors.white; // Assumes white background
           break;
         case StrokeType.highlighter:
           paint
-            ..color = stroke.color.withOpacity(stroke.opacity * 0.6)
-            ..blendMode = BlendMode.srcATop;
-          break;
-        case StrokeType.pencil:
-          paint.color = stroke.color.withOpacity(stroke.opacity * 0.8);
+            ..color = stroke.color.withOpacity(stroke.opacity * 0.45)
+            ..blendMode = BlendMode.srcOver; // Better than srcATop for layered highlights
           break;
         default:
           paint.color = stroke.color.withOpacity(stroke.opacity);

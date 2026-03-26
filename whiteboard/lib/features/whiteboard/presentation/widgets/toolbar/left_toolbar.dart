@@ -33,29 +33,29 @@ class LeftToolbar extends ConsumerWidget {
           children: [
             SizedBox(height: 8.h),
 
-            // Primary drawing tools
-            _ToolButton(tool: ToolType.pen, icon: Icons.edit, label: 'Pen', activeTool: activeTool),
-            _ToolButton(tool: ToolType.pencil, icon: Icons.create, label: 'Pencil', activeTool: activeTool),
-            _ToolButton(tool: ToolType.highlighter, icon: Icons.highlight, label: 'Highlight', activeTool: activeTool),
-            _ToolButton(tool: ToolType.ballpoint, icon: Icons.gesture, label: 'Ballpoint', activeTool: activeTool),
+            // Primary drawing tools (Blue)
+            _ToolButton(tool: ToolType.pen, icon: Icons.edit_outlined, label: 'Pen', activeTool: activeTool, baseColor: const Color(0xFF3B82F6)),
+            _ToolButton(tool: ToolType.pencil, icon: Icons.create_outlined, label: 'Pencil', activeTool: activeTool, baseColor: const Color(0xFF3B82F6)),
+            _ToolButton(tool: ToolType.highlighter, icon: Icons.highlight_outlined, label: 'Highlight', activeTool: activeTool, baseColor: const Color(0xFF3B82F6)),
+            _ToolButton(tool: ToolType.ballpoint, icon: Icons.gesture_outlined, label: 'Ballpoint', activeTool: activeTool, baseColor: const Color(0xFF3B82F6)),
 
             _divider(),
 
-            // Eraser & selection
-            _ToolButton(tool: ToolType.eraser, icon: Icons.auto_fix_normal, label: 'Eraser', activeTool: activeTool),
-            _ToolButton(tool: ToolType.lasso, icon: Icons.highlight_alt, label: 'Lasso', activeTool: activeTool),
+            // Eraser & selection (Amber)
+            _ToolButton(tool: ToolType.eraser, icon: Icons.auto_fix_normal_outlined, label: 'Eraser', activeTool: activeTool, baseColor: const Color(0xFFF59E0B)),
+            _ToolButton(tool: ToolType.lasso, icon: Icons.highlight_alt_outlined, label: 'Lasso', activeTool: activeTool, baseColor: const Color(0xFFF59E0B)),
 
             _divider(),
 
-            // Object tools
-            _ToolButton(tool: ToolType.shapes, icon: Icons.category_outlined, label: 'Shapes', activeTool: activeTool),
-            _ToolButton(tool: ToolType.text, icon: Icons.text_fields, label: 'Text', activeTool: activeTool),
-            _ToolButton(tool: ToolType.equation, icon: Icons.functions, label: 'Equation', activeTool: activeTool),
-            _ToolButton(tool: ToolType.image, icon: Icons.image_outlined, label: 'Image', activeTool: activeTool),
+            // Object tools (Purple)
+            _ToolButton(tool: ToolType.shapes, icon: Icons.category_outlined, label: 'Shapes', activeTool: activeTool, baseColor: const Color(0xFF8B5CF6)),
+            _ToolButton(tool: ToolType.text, icon: Icons.text_fields_outlined, label: 'Text', activeTool: activeTool, baseColor: const Color(0xFF8B5CF6)),
+            _ToolButton(tool: ToolType.equation, icon: Icons.functions_outlined, label: 'Equation', activeTool: activeTool, baseColor: const Color(0xFF8B5CF6)),
+            _ToolButton(tool: ToolType.image, icon: Icons.image_outlined, label: 'Image', activeTool: activeTool, baseColor: const Color(0xFF8B5CF6)),
             _SubjectButton(
               label: 'PDF',
               icon: Icons.picture_as_pdf_outlined,
-              color: Colors.redAccent,
+              color: const Color(0xFF8B5CF6),
               onTap: () => showDialog(
                 context: context,
                 builder: (_) => const PdfImportDialog(),
@@ -64,8 +64,8 @@ class LeftToolbar extends ConsumerWidget {
 
             _divider(),
 
-            // Laser pointer
-            _ToolButton(tool: ToolType.laserPointer, icon: Icons.adjust, label: 'Laser', activeTool: activeTool, color: Colors.redAccent),
+            // Laser pointer (Red)
+            _ToolButton(tool: ToolType.laserPointer, icon: Icons.adjust_outlined, label: 'Laser', activeTool: activeTool, baseColor: const Color(0xFFEF4444)),
 
             _divider(),
 
@@ -127,52 +127,71 @@ class LeftToolbar extends ConsumerWidget {
 }
 
 // ─── Tool Button ─────────────────────────────────────────────────────────────
-class _ToolButton extends ConsumerWidget {
+class _ToolButton extends ConsumerStatefulWidget {
   final ToolType tool;
   final IconData icon;
   final String label;
   final ToolType activeTool;
-  final Color? color;
+  final Color baseColor;
 
   const _ToolButton({
     required this.tool,
     required this.icon,
     required this.label,
     required this.activeTool,
-    this.color,
+    required this.baseColor,
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isActive = activeTool == tool;
+  ConsumerState<_ToolButton> createState() => _ToolButtonState();
+}
 
-    return GestureDetector(
-      onDoubleTap: () => _showSettings(context, ref),
-      child: Tooltip(
-        message: '$label\n(double-tap for settings)',
-        child: InkWell(
-          onTap: () => ref.read(drawingStateProvider.notifier).selectTool(tool),
-          borderRadius: BorderRadius.circular(8.r),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-            padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: isActive ? AppTheme.primaryOrange.withOpacity(0.2) : Colors.transparent,
-              borderRadius: BorderRadius.circular(8.r),
-              border: isActive
-                  ? Border.all(color: AppTheme.primaryOrange, width: 1.5)
-                  : null,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  icon,
-                  color: isActive ? AppTheme.primaryOrange : (color ?? Colors.white70),
-                  size: 22.w,
+class _ToolButtonState extends ConsumerState<_ToolButton> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = widget.activeTool == widget.tool;
+    final displayColor = isActive ? widget.baseColor : (widget.baseColor.withOpacity(_isHovered ? 0.9 : 0.6));
+
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onDoubleTap: () => _showSettings(context, ref),
+        child: Tooltip(
+          message: '${widget.label}\n(double-tap for settings)',
+          child: InkWell(
+            onTap: () => ref.read(drawingStateProvider.notifier).selectTool(widget.tool),
+            borderRadius: BorderRadius.circular(8.r),
+            hoverColor: Colors.white10,
+            child: AnimatedScale(
+              scale: _isHovered ? 1.05 : 1.0,
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOutBack,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 150),
+                margin: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+                padding: EdgeInsets.all(10.w),
+                decoration: BoxDecoration(
+                  color: isActive ? widget.baseColor.withOpacity(0.15) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(
+                    color: isActive ? widget.baseColor : (_isHovered ? Colors.white30 : Colors.white12),
+                    width: isActive ? 1.5 : 1.0,
+                  ),
                 ),
-              ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      widget.icon,
+                      color: displayColor,
+                      size: 24.w,
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         ),
@@ -184,7 +203,7 @@ class _ToolButton extends ConsumerWidget {
     showDialog(
       context: context,
       barrierColor: Colors.transparent,
-      builder: (_) => ToolSettingsPanel(toolType: tool),
+      builder: (_) => ToolSettingsPanel(toolType: widget.tool),
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../core/theme/app_theme.dart';
+import 'package:eduhub_whiteboard/core/theme/app_theme.dart';
 
 class OpticsSimulationDialog extends StatefulWidget {
   const OpticsSimulationDialog({super.key});

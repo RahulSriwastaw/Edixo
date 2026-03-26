@@ -45,15 +45,26 @@ export const redisKeys = {
     userSession: (userId: string) => `session:${userId}`,
 };
 
-// Safe Redis get/set that silently skips if Redis unavailable
+// Timeout wrapper for Redis operations
+async function withTimeout<T>(promise: Promise<T>, ms: number = 3000): Promise<T | null> {
+    return Promise.race([
+        promise,
+        new Promise<null>((_, reject) => setTimeout(() => reject(new Error('Redis timeout')), ms))
+    ]);
+}
+
+// Safe Redis get/set that silently skips if Redis unavailable or slow
 export async function safeRedisGet(key: string): Promise<string | null> {
     if (!redis) return null;
-    try { return await redis.get(key); } catch { return null; }
+    try { 
+        return await withTimeout(redis.get(key), 2000); 
+    } catch { return null; }
 }
+
 export async function safeRedisSet(key: string, value: string, ttl?: number): Promise<void> {
     if (!redis) return;
     try {
-        if (ttl) await redis.setex(key, ttl, value);
-        else await redis.set(key, value);
+        if (ttl) await withTimeout(redis.setex(key, ttl, value), 2000);
+        else await withTimeout(redis.set(key, value), 2000);
     } catch { /* noop */ }
 }

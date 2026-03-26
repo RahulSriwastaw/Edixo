@@ -10,9 +10,6 @@ void main() async {
   // Initialize Hive for local storage
   await Hive.initFlutter();
   
-  // Initialize ScreenUtil
-  await ScreenUtil.ensureScreenSize();
-  
   runApp(
     const ProviderScope(
       child: EduHubWhiteboardApp(),

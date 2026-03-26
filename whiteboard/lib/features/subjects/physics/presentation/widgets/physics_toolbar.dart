@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'dart:math' as math;
-import '../../../../../core/theme/app_theme.dart';
+import 'package:eduhub_whiteboard/core/theme/app_theme.dart';
 import 'package:eduhub_whiteboard/features/whiteboard/providers/whiteboard_provider.dart';
 
 class PhysicsToolbar extends ConsumerStatefulWidget {

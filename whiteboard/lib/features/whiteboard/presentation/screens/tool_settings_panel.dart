@@ -79,11 +79,11 @@ class _ToolSettingsPanelState extends ConsumerState<ToolSettingsPanel> {
                 spacing: 8.w,
                 runSpacing: 8.h,
                 children: [
-                  _shapeOption(StrokeType.rectangle, Icons.crop_square, settings.shapeType, notifier),
-                  _shapeOption(StrokeType.circle, Icons.radio_button_unchecked, settings.shapeType, notifier),
-                  _shapeOption(StrokeType.triangle, Icons.change_history, settings.shapeType, notifier),
-                  _shapeOption(StrokeType.line, Icons.horizontal_rule, settings.shapeType, notifier),
-                  _shapeOption(StrokeType.arrow, Icons.arrow_right_alt, settings.shapeType, notifier),
+                  _shapeOption(ShapeType.rectangle, Icons.crop_square, settings.shapeType, notifier),
+                  _shapeOption(ShapeType.circle, Icons.radio_button_unchecked, settings.shapeType, notifier),
+                  _shapeOption(ShapeType.triangle, Icons.change_history, settings.shapeType, notifier),
+                  _shapeOption(ShapeType.line, Icons.horizontal_rule, settings.shapeType, notifier),
+                  _shapeOption(ShapeType.arrow, Icons.arrow_right_alt, settings.shapeType, notifier),
                 ],
               ),
               SizedBox(height: 16.h),
@@ -124,7 +124,7 @@ class _ToolSettingsPanelState extends ConsumerState<ToolSettingsPanel> {
                 value: settings.opacity,
                 min: 0.1,
                 max: 1.0,
-                divisions: 18,
+                divisions: 10, // Simpler divisions
                 activeColor: AppTheme.primaryOrange,
                 onChanged: (v) => notifier.setOpacity(v),
               ),
@@ -184,13 +184,37 @@ class _ToolSettingsPanelState extends ConsumerState<ToolSettingsPanel> {
 
             SizedBox(height: 16.h),
 
+            // Tool Lock
+            Row(
+              children: [
+                Icon(settings.isLocked ? Icons.lock : Icons.lock_open, color: Colors.white70, size: 18.w),
+                SizedBox(width: 8.w),
+                Text('Tool Lock', style: TextStyle(color: Colors.white70, fontSize: 13.sp)),
+                Tooltip(
+                  message: 'Keep tool selected after use',
+                  child: Padding(
+                    padding: EdgeInsets.only(left: 4.w),
+                    child: Icon(Icons.info_outline, color: Colors.white38, size: 14.w),
+                  ),
+                ),
+                const Spacer(),
+                Switch(
+                  value: settings.isLocked,
+                  activeColor: AppTheme.primaryOrange,
+                  onChanged: (_) => notifier.toggleToolLock(widget.toolType),
+                ),
+              ],
+            ),
+
+            SizedBox(height: 16.h),
+
             // Reset button
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
                   onPressed: () => notifier.resetCurrentTool(),
-                  child: const Text('Reset to defaults', style: TextStyle(color: Colors.white54)),
+                  child: const Text('Reset', style: TextStyle(color: Colors.white54)),
                 ),
                 SizedBox(width: 8.w),
                 ElevatedButton(
@@ -245,7 +269,7 @@ class _ToolSettingsPanelState extends ConsumerState<ToolSettingsPanel> {
     );
   }
 
-  Widget _shapeOption(StrokeType type, IconData icon, StrokeType? current, DrawingStateNotifier notifier) {
+  Widget _shapeOption(ShapeType type, IconData icon, ShapeType? current, DrawingStateNotifier notifier) {
     final isSelected = current == type;
     return GestureDetector(
       onTap: () => notifier.setShapeType(type),
@@ -273,8 +297,8 @@ class _ToolSettingsPanelState extends ConsumerState<ToolSettingsPanel> {
       case ToolType.pen: return 'Pen';
       case ToolType.pencil: return 'Pencil';
       case ToolType.ballpoint: return 'Ballpoint';
-      case ToolType.technicalPen: return 'Technical Pen';
       case ToolType.highlighter: return 'Highlighter';
+      case ToolType.marker: return 'Marker';
       case ToolType.eraser: return 'Eraser';
       case ToolType.laserPointer: return 'Laser Pointer';
       case ToolType.shapes: return 'Shapes';
@@ -289,7 +313,7 @@ class _ToolSettingsPanelState extends ConsumerState<ToolSettingsPanel> {
       case ToolType.pencil: return Icons.create;
       case ToolType.highlighter: return Icons.highlight;
       case ToolType.eraser: return Icons.auto_fix_normal;
-      case ToolType.laserPointer: return Icons.adjust;
+      case ToolType.laserPointer: return Icons.flash_on;
       case ToolType.shapes: return Icons.category_outlined;
       case ToolType.text: return Icons.text_fields;
       default: return Icons.tune;

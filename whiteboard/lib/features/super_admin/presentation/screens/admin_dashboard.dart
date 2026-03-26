@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../core/theme/app_theme.dart';
-import '../providers/module_config_provider.dart';
+import 'package:eduhub_whiteboard/core/theme/app_theme.dart';
+import 'package:eduhub_whiteboard/features/super_admin/providers/module_config_provider.dart';
 
 class SuperAdminDashboard extends ConsumerStatefulWidget {
   const SuperAdminDashboard({super.key});

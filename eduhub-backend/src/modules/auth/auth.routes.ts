@@ -7,6 +7,7 @@ import { redis, redisKeys } from '../../config/redis';
 import { env } from '../../config/env';
 import { AppError } from '../../middleware/errorHandler';
 import { authenticate } from '../../middleware/auth';
+import { safeRedisGet } from '../../config/redis';
 
 const router = Router();
 
@@ -24,11 +25,13 @@ function generateToken(payload: object, secret: string, expiresIn: string) {
     return jwt.sign(payload, secret, { expiresIn } as jwt.SignOptions);
 }
 
-async function trackFailedLogin(key: string) {
+async function trackFailedLogin(attemptsKey: string) {
     if (!redis) return 0;
-    const attempts = await redis.incr(key);
-    if (attempts === 1) await redis.expire(key, 900); // 15 min window
-    return attempts;
+    try {
+        const attempts = await redis.incr(attemptsKey);
+        if (attempts === 1) await redis.expire(attemptsKey, 900); // 15 min window
+        return attempts;
+    } catch { return 0; }
 }
 
 // ─── POST /api/auth/register ─────────────────────────────────
@@ -64,7 +67,6 @@ router.post('/register', async (req, res, next) => {
                 if (!orgId) {
                     const origin = req.headers.origin;
                     if (origin) {
-                        // Extract hostname (strip protocol and port)
                         const domain = origin.replace(/^https?:\/\//, "").split(':')[0].replace(/\/$/, "");
                         const detectedOrg = await tx.organization.findFirst({
                             where: {
@@ -87,7 +89,6 @@ router.post('/register', async (req, res, next) => {
                 });
                 if (!org) throw new AppError('Organization not found', 404);
 
-                // Generate Student ID
                 const globalCount = await tx.student.count();
                 const timestamp = Date.now().toString().slice(-3);
                 const studentId = `GK-STU-${String(globalCount + 1).padStart(5, '0')}-${timestamp}`;
@@ -102,7 +103,6 @@ router.post('/register', async (req, res, next) => {
                     },
                 });
 
-                // Increment student count
                 await tx.organization.update({
                     where: { id: org.id },
                     data: { studentCount: { increment: 1 } },
@@ -112,11 +112,7 @@ router.post('/register', async (req, res, next) => {
             return user;
         });
 
-        const tokenPayload = {
-            userId: result.id,
-            role: result.role,
-        };
-
+        const tokenPayload = { userId: result.id, role: result.role };
         const accessToken = generateToken(tokenPayload, env.JWT_SECRET, env.JWT_EXPIRES_IN);
 
         res.status(201).json({
@@ -135,8 +131,9 @@ router.post('/login', async (req, res, next) => {
         const body = loginSchema.parse(req.body);
         const attemptsKey = `login_attempts:${body.email || body.orgId || body.studentId}`;
 
-        // Check login lock
-        const attempts = redis ? parseInt(await redis.get(attemptsKey) || '0') : 0;
+        // Rate limit check
+        const attemptsStr = await safeRedisGet(attemptsKey);
+        const attempts = attemptsStr ? parseInt(attemptsStr) : 0;
         if (attempts >= 5) {
             throw new AppError('Account temporarily locked (5 failed attempts). Try again in 15 minutes.', 429);
         }
@@ -159,16 +156,14 @@ router.post('/login', async (req, res, next) => {
             }
 
             secret = env.JWT_SUPER_ADMIN_SECRET;
-            tokenPayload = {
-                userId: user.userId, role: 'SUPER_ADMIN', type: 'super_admin'
-            };
+            tokenPayload = { userId: user.userId, role: 'SUPER_ADMIN', type: 'super_admin' };
+
         } else if (body.role === 'ORG_STAFF') {
-            const org = await prisma.organization.findFirst({
+            const org = await prisma.organization.findUnique({
                 where: { orgId: body.orgId },
             });
             if (!org) throw new AppError('Organization not found', 404);
 
-            // Find staff by email
             const staff = await prisma.orgStaff.findFirst({
                 where: { orgId: org.id, user: { email: body.email } },
                 include: { user: true },
@@ -190,15 +185,22 @@ router.post('/login', async (req, res, next) => {
                 staffRole: staff.role,
                 permissions: staff.permissions,
             };
+
         } else {
-            // STUDENT login with Student ID or Email
+            // STUDENT login
+            const org = await prisma.organization.findUnique({
+                where: { orgId: body.orgId },
+                select: { id: true, orgId: true }
+            });
+            if (!org) throw new AppError('Organization not found', 404);
+
             const student = await prisma.student.findFirst({
                 where: {
                     OR: [
                         { studentId: body.studentId },
                         { email: body.email }
                     ],
-                    org: { orgId: body.orgId },
+                    orgId: org.id,
                 },
                 include: { user: true, org: true },
             });
@@ -221,8 +223,10 @@ router.post('/login', async (req, res, next) => {
             };
         }
 
-        // Clear failed attempts on success
-        if (redis) await redis.del(attemptsKey);
+        // Clear failed attempts
+        if (redis) {
+            try { await redis.del(attemptsKey); } catch { /* ignore */ }
+        }
 
         // Update last login
         await prisma.user.update({
@@ -246,7 +250,7 @@ router.post('/login', async (req, res, next) => {
     }
 });
 
-// ─── POST /api/auth/logout ───────────────────────────────────
+// ─── Standard Auth Routes ────────────────────────────────────
 router.post('/logout', authenticate, async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1]!;
@@ -261,7 +265,6 @@ router.post('/logout', authenticate, async (req, res, next) => {
     }
 });
 
-// ─── GET /api/auth/me ────────────────────────────────────────
 router.get('/me', authenticate, async (req, res, next) => {
     try {
         res.json({ success: true, data: req.user });
@@ -270,7 +273,6 @@ router.get('/me', authenticate, async (req, res, next) => {
     }
 });
 
-// ─── POST /api/auth/change-password ─────────────────────────
 router.post('/change-password', authenticate, async (req, res, next) => {
     try {
         const { currentPassword, newPassword } = z.object({

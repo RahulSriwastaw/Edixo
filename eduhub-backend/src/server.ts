@@ -26,6 +26,7 @@ import uploadRoutes from './modules/upload/upload.routes';
 import notificationsRoutes from './modules/notifications/notifications.routes';
 import mockbookRoutes from './modules/mockbook/mockbook.routes';
 import blogRoutes from './modules/blog/blog.routes';
+import aiRoutes from './modules/ai/ai.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -82,6 +83,11 @@ app.use(cors({
             // Trim protocol and port for comparison
             const domain = origin.replace(/^https?:\/\//, "").split(':')[0].replace(/\/$/, "");
             
+            // Fast skip for localhost
+            if (domain === 'localhost' || domain === '127.0.0.1') {
+                return callback(null, true);
+            }
+
             const org = await prisma.organization.findFirst({
                 where: {
                     OR: [
@@ -130,7 +136,12 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Body Parsing
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ 
+    limit: '10mb',
+    verify: (req: any, _res, buf) => {
+        req.rawBody = buf.toString();
+    }
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ─── Health Check ────────────────────────────────────────────
@@ -164,6 +175,7 @@ app.use('/api/upload', uploadRoutes);
 app.use('/api/notifications', notificationsRoutes);
 app.use('/api/mockbook', mockbookRoutes);
 app.use('/api/blog', blogRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── Error Handling ──────────────────────────────────────────
 app.use(notFound);

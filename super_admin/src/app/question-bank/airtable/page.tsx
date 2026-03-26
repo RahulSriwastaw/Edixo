@@ -45,6 +45,8 @@ interface AirtableFolder {
   id: string;
   name: string;
   slug: string;
+  totalQuestions?: number;
+  updatedAt: string;
 }
 
 interface AirtableMetaTable {
@@ -202,6 +204,8 @@ export default function AirtableSyncPage() {
       const data = await response.json();
       if (response.ok && data.success) {
         toast.success(`${folder.name} synced: ${data.data.createdCount} new, ${data.data.updatedCount} updated`, { id: toastId });
+        // Refresh folders to update question count and sync date
+        fetchFolders();
       } else {
         toast.error(data.message || "Sync failed", { id: toastId });
       }
@@ -239,11 +243,24 @@ export default function AirtableSyncPage() {
       }
     }
     setIsSyncing(null);
+    fetchFolders(); // Refresh counts and dates after base sync
     if (failCount === 0) {
       toast.success(`Base Sync Complete! Synced ${successCount} tables successfully.`, { id: toastId });
     } else {
       toast.warning(`Base Sync finished: ${successCount} successful, ${failCount} failed.`, { id: toastId });
     }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return "Never";
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(date);
   };
 
   return (
@@ -349,12 +366,12 @@ export default function AirtableSyncPage() {
                            </div>
                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                              <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              disabled={isSyncing === folder.id}
-                              onClick={(e) => handleSync(folder, e)}
+                               variant="ghost" 
+                               size="icon" 
+                               disabled={isSyncing === folder.id}
+                               onClick={(e) => handleSync(folder, e)}
                              >
-                              <RefreshCw className={cn("w-4 h-4", isSyncing === folder.id && "animate-spin")} />
+                               <RefreshCw className={cn("w-4 h-4", isSyncing === folder.id && "animate-spin")} />
                              </Button>
                              <DropdownMenu>
                                <DropdownMenuTrigger asChild>
@@ -375,13 +392,25 @@ export default function AirtableSyncPage() {
                         </CardHeader>
                         <CardContent>
                           <CardTitle className="text-lg font-bold truncate">{folder.name}</CardTitle>
-                          <CardDescription className="mt-1 flex flex-col gap-1">
+                          <CardDescription className="mt-1 flex flex-col gap-1.5">
                              <div className="flex items-center gap-2">
                                <Badge variant="outline" className="text-[10px] font-normal truncate max-w-[150px]">
                                  Airtable: {folder.slug}
                                </Badge>
                              </div>
-                             <span className="text-xs text-gray-400 mt-2">Click to view/manage questions</span>
+                             
+                             <div className="flex flex-col gap-1 py-1">
+                               <div className="flex items-center justify-between text-xs">
+                                 <span className="text-gray-500 font-medium">Total Questions:</span>
+                                 <span className="text-brand-primary font-bold">{folder.totalQuestions || 0}</span>
+                               </div>
+                               <div className="flex items-center justify-between text-[10px]">
+                                 <span className="text-gray-400">Last Sync:</span>
+                                 <span className="text-gray-500">{formatDate(folder.updatedAt)}</span>
+                               </div>
+                             </div>
+
+                             <span className="text-[11px] text-gray-400 font-medium group-hover:text-brand-primary transition-colors mt-1">Click to view/manage questions →</span>
                           </CardDescription>
                         </CardContent>
                       </Card>

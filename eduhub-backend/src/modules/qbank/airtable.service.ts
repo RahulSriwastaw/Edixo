@@ -70,7 +70,24 @@ export class AirtableService {
                 }
                 throw new Error(data.error?.message || 'Failed to fetch Airtable tables');
             }
-            return data.tables; // Array of table objects { id, name, description, ... }
+
+            const tables = data.tables;
+            // Merge with local sync metadata
+            try {
+                const metadatas = await (prisma as any).airtableSyncMetadata.findMany();
+                return tables.map((table: any) => {
+                    const meta = metadatas.find((m: any) => m.tableName === table.name);
+                    return {
+                        ...table,
+                        lastSyncAt: meta?.lastSyncAt || null,
+                        totalQuestions: meta?.totalQuestions || 0,
+                        syncStatus: meta?.status || 'NOT_SYNCED'
+                    };
+                });
+            } catch (err) {
+                logger.warn('Failed to fetch Airtable sync metadata from DB:', err);
+                return tables;
+            }
         } catch (error) {
             logger.error(`Error fetching tables from Airtable Base:`, error);
             throw error;
@@ -181,8 +198,26 @@ export class AirtableService {
                 failedCount++;
             }
         }
+        const result = { createdCount, updatedCount, failedCount, total: records.length };
 
-        return { createdCount, updatedCount, failedCount, total: records.length };
+        // Update Sync Metadata
+        await prisma.airtableSyncMetadata.upsert({
+            where: { tableName },
+            update: {
+                totalQuestions: records.length,
+                lastSyncAt: new Date(),
+                status: 'SUCCESS',
+                error: null
+            },
+            create: {
+                tableName,
+                totalQuestions: records.length,
+                lastSyncAt: new Date(),
+                status: 'SUCCESS'
+            }
+        });
+
+        return result;
     }
 }
 

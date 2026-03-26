@@ -52,6 +52,7 @@ dependencies:
   pdf: ^3.11.3
   printing: ^5.14.2
   flutter_colorpicker: ^1.1.0
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:

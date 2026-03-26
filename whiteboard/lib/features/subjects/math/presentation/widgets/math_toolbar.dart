@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
-import '../../../../../core/theme/app_theme.dart';
-import '../../providers/math_tools_provider.dart';
-import '../widgets/graph_plotter_dialog.dart';
-import '../widgets/three_d_shape_builder_dialog.dart';
-import '../widgets/optics_simulation_dialog.dart';
+import 'package:eduhub_whiteboard/core/theme/app_theme.dart';
+import 'package:eduhub_whiteboard/features/subjects/math/providers/math_tools_provider.dart';
+import 'graph_plotter_dialog.dart';
+import 'three_d_shape_builder_dialog.dart';
+import 'optics_simulation_dialog.dart';
 import 'package:eduhub_whiteboard/features/whiteboard/providers/whiteboard_provider.dart';
-import '../../../../super_admin/providers/module_config_provider.dart';
-import '../../../subjects/math/providers/math_tools_provider.dart'; // Ensure MathTool is accessible
+import 'package:eduhub_whiteboard/features/super_admin/providers/module_config_provider.dart';
 
 class MathToolbar extends ConsumerWidget {
   const MathToolbar({super.key});
@@ -44,7 +43,7 @@ class MathToolbar extends ConsumerWidget {
           SizedBox(height: 24.h),
           _buildSectionTitle('Tools'),
           SizedBox(height: 12.h),
-          _buildToolsGrid(context, ref, selectedTool),
+          _buildToolsGrid(context, ref, selectedTool, moduleConfig),
         ],
       ),
     );
@@ -177,7 +176,7 @@ class MathToolbar extends ConsumerWidget {
     );
   }
 
-  Widget _buildToolsGrid(BuildContext context, WidgetRef ref, MathTool? selected) {
+  Widget _buildToolsGrid(BuildContext context, WidgetRef ref, MathTool? selected, ModuleConfig moduleConfig) {
     final tools = [
       _ToolItem(
         icon: Icons.show_chart,

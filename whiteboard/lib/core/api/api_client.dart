@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../constants/app_constants.dart';
+import 'package:eduhub_whiteboard/core/constants/app_constants.dart';
 
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(

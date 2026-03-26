@@ -724,6 +724,177 @@ router.get('/chapters', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ─── GET /api/qbank/sets ─────────────────────────────────────
+router.get('/sets', async (req, res, next) => {
+    try {
+        const { page = 1, limit = 50, search, orgId: queryOrgId } = req.query;
+        const skip = (Number(page) - 1) * Number(limit);
+        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
+        const orgIdFromHeader = req.headers['x-org-id'] as string;
+        
+        const org = (req.user?.orgId && req.user.orgId !== 'undefined') 
+            ? await prisma.organization.findFirst({ where: { orgId: req.user.orgId } }) 
+            : null;
+
+        const where: any = {};
+
+        // Filtering logic:
+        if (isSuperAdmin) {
+            if (queryOrgId) {
+                const targetOrg = await prisma.organization.findFirst({ where: { orgId: queryOrgId as string } });
+                if (targetOrg) where.orgId = targetOrg.id;
+            } else if (orgIdFromHeader) {
+                const targetOrg = await prisma.organization.findFirst({ where: { orgId: orgIdFromHeader } });
+                if (targetOrg) where.orgId = targetOrg.id;
+            }
+        } else if (org) {
+            where.orgId = org.id;
+        }
+
+        if (search) {
+            where.OR = [
+                { name: { contains: search as string, mode: 'insensitive' } },
+                { setId: { contains: search as string, mode: 'insensitive' } }
+            ];
+        }
+
+        const [sets, total] = await Promise.all([
+            prisma.questionSet.findMany({
+                where,
+                skip,
+                take: Number(limit),
+                include: {
+                    _count: { select: { items: true } },
+                    folder: { select: { id: true, name: true } }
+                },
+                orderBy: { createdAt: 'desc' }
+            }),
+            prisma.questionSet.count({ where })
+        ]);
+
+        res.json({ success: true, data: { sets, total } });
+    } catch (err) { next(err); }
+});
+
+// ─── GET /api/qbank/sets/:id ──────────────────────────────────
+router.get('/sets/:id', async (req, res, next) => {
+    try {
+        const set = await prisma.questionSet.findUnique({
+            where: { id: req.params.id },
+            include: {
+                items: {
+                    include: {
+                        question: {
+                            include: { options: true }
+                        }
+                    },
+                    orderBy: { sortOrder: 'asc' }
+                },
+                _count: { select: { items: true } }
+            }
+        });
+        if (!set) throw new AppError('Question set not found', 404);
+        res.json({ success: true, data: set });
+    } catch (err) { next(err); }
+});
+
+// ─── POST /api/qbank/sets ─────────────────────────────────────
+router.post('/sets', async (req, res, next) => {
+    try {
+        const schema = z.object({
+            name: z.string().min(1),
+            description: z.string().optional(),
+            questionIds: z.array(z.string()).min(1),
+            folderId: z.string().optional().nullable(),
+            durationMins: z.number().optional().nullable(),
+        });
+        const body = schema.parse(req.body);
+
+        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
+        let orgId = req.user?.orgId;
+        let org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
+
+        if (!org && isSuperAdmin) {
+            // Default to first org if Super Admin doesn't have one (though usually they context-switch)
+            org = await prisma.organization.findFirst({ where: { deletedAt: null } });
+        }
+
+        if (!org) throw new AppError('Organization context required', 400);
+
+        // Generate unique 6-digit setId
+        let setId = '';
+        let isUnique = false;
+        while (!isUnique) {
+            setId = String(Math.floor(100000 + Math.random() * 900000));
+            const existing = await prisma.questionSet.findUnique({ where: { setId } });
+            if (!existing) isUnique = true;
+        }
+
+        const pin = String(Math.floor(100000 + Math.random() * 900000));
+
+        const questionSet = await prisma.questionSet.create({
+            data: {
+                name: body.name,
+                description: body.description,
+                setId,
+                pin,
+                orgId: org.id,
+                folderId: body.folderId,
+                totalQuestions: body.questionIds.length,
+                durationMins: body.durationMins,
+                items: {
+                    create: body.questionIds.map((qId, index) => ({
+                        questionId: qId,
+                        sortOrder: index,
+                    }))
+                }
+            },
+            include: {
+                _count: { select: { items: true } }
+            }
+        });
+
+        res.status(201).json({ success: true, data: questionSet });
+    } catch (err) { next(err); }
+});
+
+// ─── DELETE /api/qbank/sets ───────────────────────────────────
+router.delete('/sets', async (req, res, next) => {
+    try {
+        const { ids } = z.object({ ids: z.array(z.string()) }).parse(req.body);
+        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
+        const orgId = req.user?.orgId;
+        const org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
+
+        const where: any = { id: { in: ids } };
+        if (!isSuperAdmin && org) {
+            where.orgId = org.id;
+        }
+
+        await prisma.questionSet.deleteMany({ where });
+        res.json({ success: true, message: `${ids.length} sets deleted successfully` });
+    } catch (err) { next(err); }
+});
+
+// ─── DELETE /api/qbank/sets/:id ───────────────────────────────
+router.delete('/sets/:id', async (req, res, next) => {
+    try {
+        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
+        const orgId = req.user?.orgId;
+        const org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
+
+        const set = await prisma.questionSet.findUnique({ where: { id: req.params.id } });
+        if (!set) throw new AppError('Question set not found', 404);
+
+        if (!isSuperAdmin && org && set.orgId !== org.id) {
+            throw new AppError('Unauthorized: You can only delete your own sets', 403);
+        }
+
+        await prisma.questionSet.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: 'Question set deleted successfully' });
+    } catch (err) { next(err); }
+});
+
 // ─── GET /api/qbank/questions ────────────────────────────────
 router.get('/questions', async (req, res, next) => {
     try {

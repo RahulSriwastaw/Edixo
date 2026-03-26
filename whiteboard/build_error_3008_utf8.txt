@@ -1,0 +1,514 @@
+﻿Launching lib\main.dart on Chrome in debug mode...
+Waiting for connection from debug service on Chrome...          
+flutter : lib/features/ai/presentation/widgets/panel
+s/ai_panel.dart:7:8: Error: Error when reading 'lib/
+features/ai/providers/whiteboard_provider.dart': 
+The system cannot find the file specified
+At line:1 char:1
++ flutter run -d chrome --web-port 3008 --no-pub > 
+build_error_3008.txt ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (lib/fe 
+   atures/ai... file specified:String) [], RemoteE  
+  xception
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+import 
+'../../../providers/whiteboard_provider.dart'; // 
+Added import
+       ^
+lib/features/whiteboard/presentation/widgets/canvas/
+competition_scoreboard.dart:3:8: Error: Error when 
+reading 'lib/features/core/theme/app_theme.dart': 
+The system cannot find the path specified
+import '../../../../core/theme/app_theme.dart';
+       ^
+lib/features/whiteboard/presentation/widgets/canvas/
+whiteboard_canvas.dart:59:61: Error: The getter 
+'strokes' isn't defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+            final selectedStrokes = 
+canvasState.currentPage.strokes.where((s) => 
+s.isSelected).toList();
+                                                    
+        ^^^^^^^
+lib/features/whiteboard/presentation/widgets/canvas/
+whiteboard_canvas.dart:99:66: Error: The getter 
+'strokes' isn't defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+                                strokes: 
+canvasState.currentPage.strokes,
+                                                    
+             ^^^^^^^
+lib/features/whiteboard/presentation/widgets/canvas/
+whiteboard_canvas.dart:157:23: Error: The method 
+'Completer' isn't defined for the type 
+'_WhiteboardCanvasState'.
+ - '_WhiteboardCanvasState' is from 'package:eduhub_
+whiteboard/features/whiteboard/presentation/widgets/
+canvas/whiteboard_canvas.dart' ('lib/features/whiteb
+oard/presentation/widgets/canvas/whiteboard_canvas.d
+art').
+Try correcting the name to the name of an existing 
+method, or defining a method named 'Completer'.
+    final completer = Completer<ui.Image>();
+                      ^^^^^^^^^
+lib/features/whiteboard/presentation/widgets/canvas/
+whiteboard_canvas.dart:179:55: Error: The getter 
+'strokes' isn't defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+      final selectedStrokes = 
+canvasState.currentPage.strokes.where((s) => 
+s.isSelected).toList();
+                                                    
+  ^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:158:11: Error: No named parameter with the 
+name 'dense'.
+          dense: true,
+          ^^^^^
+/C:/flutter/packages/flutter/lib/src/material/dropdo
+wn.dart:990:3: Context: Found this candidate, but 
+the arguments don't match.
+  DropdownButton({
+  ^^^^^^^^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:232:24: Error: The getter 'BoxBoxShape' isn't 
+defined for the type '_AIPanelState'.
+ - '_AIPanelState' is from 'package:eduhub_whiteboar
+d/features/ai/presentation/widgets/panels/ai_panel.d
+art' ('lib/features/ai/presentation/widgets/panels/a
+i_panel.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'BoxBoxShape'.
+                shape: BoxBoxShape.circle,
+                       ^^^^^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:367:25: Error: The getter 'quotaTotal' isn't 
+defined for the type 'AIState'.
+ - 'AIState' is from 'package:eduhub_whiteboard/feat
+ures/ai/providers/ai_provider.dart' 
+('lib/features/ai/providers/ai_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'quotaTotal'.
+    final ratio = state.quotaTotal > 0 ? 
+state.quotaUsed / state.quotaTotal : 0.0;
+                        ^^^^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:367:48: Error: The getter 'quotaUsed' isn't 
+defined for the type 'AIState'.
+ - 'AIState' is from 'package:eduhub_whiteboard/feat
+ures/ai/providers/ai_provider.dart' 
+('lib/features/ai/providers/ai_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'quotaUsed'.
+    final ratio = state.quotaTotal > 0 ? 
+state.quotaUsed / state.quotaTotal : 0.0;
+                                               
+^^^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:367:66: Error: The getter 'quotaTotal' isn't 
+defined for the type 'AIState'.
+ - 'AIState' is from 'package:eduhub_whiteboard/feat
+ures/ai/providers/ai_provider.dart' 
+('lib/features/ai/providers/ai_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'quotaTotal'.
+    final ratio = state.quotaTotal > 0 ? 
+state.quotaUsed / state.quotaTotal : 0.0;
+                                                    
+             ^^^^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:376:26: Error: The getter 'quotaUsed' isn't 
+defined for the type 'AIState'.
+ - 'AIState' is from 'package:eduhub_whiteboard/feat
+ures/ai/providers/ai_provider.dart' 
+('lib/features/ai/providers/ai_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'quotaUsed'.
+            'AI: 
+${state.quotaUsed}/${state.quotaTotal}',
+                         ^^^^^^^^^
+lib/features/ai/presentation/widgets/panels/ai_panel
+.dart:376:45: Error: The getter 'quotaTotal' isn't 
+defined for the type 'AIState'.
+ - 'AIState' is from 'package:eduhub_whiteboard/feat
+ures/ai/providers/ai_provider.dart' 
+('lib/features/ai/providers/ai_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'quotaTotal'.
+            'AI: 
+${state.quotaUsed}/${state.quotaTotal}',
+                                            
+^^^^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:86:8: Error: 'strokes' isn't an instance field 
+of this class.
+  }) : strokes = strokes ?? [];
+       ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:96:32: Error: The getter 'strokes' isn't defined 
+for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+      strokes: strokes ?? this.strokes,
+                               ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:198:47: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    final oldStrokes = 
+List<Stroke>.from(page.strokes);
+                                              
+^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:201:25: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+      strokes: [...page.strokes, stroke],
+                        ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:218:45: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    if (state.pages[state.currentPageIndex].strokes.
+isEmpty) return;
+                                            ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:221:44: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    final strokes = List<Stroke>.from(page.strokes);
+                                           ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:240:57: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    redoHistory.add(List<Stroke>.from(state.currentP
+age.strokes));
+                                                    
+    ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:261:57: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    undoHistory.add(List<Stroke>.from(state.currentP
+age.strokes));
+                                                    
+    ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:280:69: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    undoHistory.add(List<Stroke>.from(pages[state.cu
+rrentPageIndex].strokes));
+                                                    
+                ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:291:26: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    final strokes = page.strokes.map((stroke) {
+                         ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:322:26: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    final strokes = page.strokes.map((stroke) {
+                         ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:341:15: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    if (!page.strokes.any((s) => s.isSelected)) 
+return;
+              ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:343:26: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    final strokes = page.strokes.map((stroke) {
+                         ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:362:44: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    
+undoHistory.add(List<Stroke>.from(page.strokes));
+                                           ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:370:15: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    if (!page.strokes.any((s) => s.isSelected)) 
+return;
+              ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:373:44: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    
+undoHistory.add(List<Stroke>.from(page.strokes));
+                                           ^^^^^^^
+lib/features/whiteboard/providers/canvas_provider.da
+rt:375:26: Error: The getter 'strokes' isn't 
+defined for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+    final strokes = page.strokes.where((s) => 
+!s.isSelected).toList();
+                         ^^^^^^^
+lib/features/whiteboard/services/export_service.dart
+:28:23: Error: The getter 'strokes' isn't defined 
+for the type 'PageData'.
+ - 'PageData' is from 'package:eduhub_whiteboard/fea
+tures/whiteboard/providers/canvas_provider.dart' ('l
+ib/features/whiteboard/providers/canvas_provider.dar
+t').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'strokes'.
+        strokes: page.strokes,
+                      ^^^^^^^
+lib/features/subjects/math/presentation/widgets/math
+_toolbar.dart:211:11: Error: The getter 
+'moduleConfig' isn't defined for the type 
+'MathToolbar'.
+ - 'MathToolbar' is from 'package:eduhub_whiteboard/
+features/subjects/math/presentation/widgets/math_too
+lbar.dart' ('lib/features/subjects/math/presentation
+/widgets/math_toolbar.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'moduleConfig'.
+      if (moduleConfig.shapeBuilder3D)
+          ^^^^^^^^^^^^
+lib/features/subjects/math/presentation/widgets/math
+_toolbar.dart:217:11: Error: The getter 
+'moduleConfig' isn't defined for the type 
+'MathToolbar'.
+ - 'MathToolbar' is from 'package:eduhub_whiteboard/
+features/subjects/math/presentation/widgets/math_too
+lbar.dart' ('lib/features/subjects/math/presentation
+/widgets/math_toolbar.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'moduleConfig'.
+      if (moduleConfig.physicsSimulations)
+          ^^^^^^^^^^^^
+lib/features/ai/providers/ai_provider.dart:92:52: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+  Future<void> explainCurrentTopic() => 
+sendMessage('Is topic ko step-by-step explain karo 
+aur samajhne mein aasaan banao.');
+                                                   ^
+lib/features/ai/providers/ai_provider.dart:93:53: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+  Future<void> solveCurrentQuestion() => 
+sendMessage('Is question ka solution step-by-step 
+dikhao.');
+                                                    
+^
+lib/features/ai/providers/ai_provider.dart:94:49: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+  Future<void> generateExamples() => 
+sendMessage('Is concept ke 3 aur examples do jo 
+students ke liye helpful hon.');
+                                                ^
+lib/features/ai/providers/ai_provider.dart:95:46: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+  Future<void> summarizePage() => 
+sendMessage('Current whiteboard page ka content 
+summarize karo.');
+                                             ^
+lib/features/ai/providers/ai_provider.dart:96:53: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+  Future<void> recognizeHandwriting() => 
+sendMessage('[OCR] Whiteboard ka handwritten text 
+identify karo.');
+                                                    
+^
+lib/features/ai/providers/ai_provider.dart:97:65: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+  Future<void> askAboutQuestion(dynamic question) 
+=> sendMessage('Is question ke baare mein explain 
+karo: ${question.questionText}');
+                                                    
+            ^
+lib/features/ai/providers/ai_provider.dart:108:16: 
+Error: Too few positional arguments: 2 required, 1 
+given.
+    sendMessage(transcript);
+               ^
+lib/features/whiteboard/providers/pdf_import_provide
+r.dart:68:21: Error: The getter 'PdfPageFormat' 
+isn't defined for the type 'PdfImportNotifier'.
+ - 'PdfImportNotifier' is from 'package:eduhub_white
+board/features/whiteboard/providers/pdf_import_provi
+der.dart' ('lib/features/whiteboard/providers/pdf_im
+port_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'PdfPageFormat'.
+            format: PdfPageFormat.jpg,
+                    ^^^^^^^^^^^^^
+lib/features/whiteboard/providers/pdf_import_provide
+r.dart:105:17: Error: The getter 'PdfPageFormat' 
+isn't defined for the type 'PdfImportNotifier'.
+ - 'PdfImportNotifier' is from 'package:eduhub_white
+board/features/whiteboard/providers/pdf_import_provi
+der.dart' ('lib/features/whiteboard/providers/pdf_im
+port_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'PdfPageFormat'.
+        format: PdfPageFormat.png,
+                ^^^^^^^^^^^^^
+lib/features/whiteboard/providers/pdf_import_provide
+r.dart:129:19: Error: The getter 'PdfPageFormat' 
+isn't defined for the type 'PdfImportNotifier'.
+ - 'PdfImportNotifier' is from 'package:eduhub_white
+board/features/whiteboard/providers/pdf_import_provi
+der.dart' ('lib/features/whiteboard/providers/pdf_im
+port_provider.dart').
+Try correcting the name to the name of an existing 
+getter, or defining a getter or field named 
+'PdfPageFormat'.
+          format: PdfPageFormat.png,
+                  ^^^^^^^^^^^^^
+lib/features/whiteboard/providers/pdf_import_provide
+r.dart:139:7: Error: The method 'debugPrint' isn't 
+defined for the type 'PdfImportNotifier'.
+ - 'PdfImportNotifier' is from 'package:eduhub_white
+board/features/whiteboard/providers/pdf_import_provi
+der.dart' ('lib/features/whiteboard/providers/pdf_im
+port_provider.dart').
+Try correcting the name to the name of an existing 
+method, or defining a method named 'debugPrint'.
+      debugPrint('Error bulk rendering PDF: $e');
+      ^^^^^^^^^^

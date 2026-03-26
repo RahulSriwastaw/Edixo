@@ -14,4 +14,20 @@ class AIMessage {
   }) : timestamp = timestamp ?? DateTime.now();
 
   bool get hasCode => code != null && code!.isNotEmpty;
+
+  AIMessage copyWith({
+    String? id,
+    String? text,
+    bool? isUser,
+    DateTime? timestamp,
+    String? code,
+  }) {
+    return AIMessage(
+      id: id ?? this.id,
+      text: text ?? this.text,
+      isUser: isUser ?? this.isUser,
+      timestamp: timestamp ?? this.timestamp,
+      code: code ?? this.code,
+    );
+  }
 }

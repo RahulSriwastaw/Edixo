@@ -401,7 +401,7 @@ class QuestionPanel extends ConsumerWidget {
   }
 
   void _askAI(BuildContext context, WidgetRef ref, Question question) {
-    ref.read(aiProvider.notifier).askAboutQuestion(question);
+    ref.read(aiProvider.notifier).askAboutQuestion(question, ref);
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Question sent to AI panel!')),
     );

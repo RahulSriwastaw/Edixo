@@ -5,14 +5,23 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // Brand Colors
   static const Color primaryOrange = Color(0xFFF4511E);
-  static const Color primaryDark = Color(0xFF1A1A2E);
+  static const Color primaryDark = Color(0xFF1E1E2E); // Updated dark bg
   static const Color accentBlue = Color(0xFF4A90D9);
-  static const Color successGreen = Color(0xFF4CAF50);
-  static const Color errorRed = Color(0xFFE53935);
+  static const Color successGreen = Color(0xFF10B981);
+  static const Color errorRed = Color(0xFFE74C3C);
   static const Color canvasWhite = Color(0xFFFDFDFD);
   static const Color canvasBlue = Color(0xFFF0F4F8);
-  static const Color canvasYellow = Color(0xFFFEF9E7);
-  static const Color canvasDark = Color(0xFF2D2D3A);
+  static const Color canvasYellow = Color(0xFFFFD600); // Yellow for highlighters
+  static const Color canvasDark = Color(0xFF1E1E2E);
+  
+  // Category colors from PRD
+  static const Color drawColor = Color(0xFFF4511E);
+  static const Color highlightColor = Color(0xFFFFD600);
+  static const Color shapeColor = Color(0xFF4A90D9);
+  static const Color textColor = Color(0xFF9B59B6);
+  static const Color eraserColor = Color(0xFFE74C3C);
+  static const Color measureColor = Color(0xFF1ABC9C);
+  static const Color navColor = Color(0xFF8E8E9E);
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -26,8 +35,8 @@ class AppTheme {
         surface: Colors.white,
         error: errorRed,
       ),
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        displayLarge: GoogleFonts.inter(
+      textTheme: GoogleFonts.dmSansTextTheme().copyWith(
+        displayLarge: GoogleFonts.dmSans(
           fontSize: 32.sp,
           fontWeight: FontWeight.bold,
           color: primaryDark,

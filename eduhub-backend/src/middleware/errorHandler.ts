@@ -17,7 +17,7 @@ export class AppError extends Error {
 
 export const errorHandler = (
     err: Error | AppError,
-    _req: Request,
+    req: Request,
     res: Response,
     _next: NextFunction
 ) => {
@@ -27,6 +27,15 @@ export const errorHandler = (
             success: false,
             message: 'Validation error',
             errors: err.errors.map(e => ({ field: e.path.join('.'), message: e.message })),
+        });
+    }
+
+    // JSON parse errors (SyntaxError from body-parser)
+    if (err instanceof SyntaxError && 'status' in err && (err as any).status === 400 && 'body' in err) {
+        logger.error('JSON Parse Error. Raw body:', (req as any).rawBody);
+        return res.status(400).json({
+            success: false,
+            message: 'Malformed JSON in request body',
         });
     }
 

@@ -1,0 +1,64 @@
+﻿Launching lib\main.dart on Chrome in debug mode...
+Waiting for connection from debug service on Chrome...             47.9s
+
+Flutter run key commands.
+r Hot reload. 
+R Hot restart.
+h List all available interactive commands.
+d Detach (terminate "flutter run" but leave application running).
+c Clear the screen
+q Quit (terminate the application on the device).
+
+Debug service listening on ws://127.0.0.1:57703/yyWwEFk5Ji8=/ws
+A Dart VM Service on Chrome is available at: http://127.0.0.1:57703/yyWwEFk5Ji8=
+The Flutter DevTools debugger and profiler on Chrome is available at: http://127.0.0.1:57703/yyWwEFk5Ji8=/devtools/?uri=ws://127.0.0.1:57703/yyWwEFk5Ji8=/ws
+Starting application from main method in: org-dartlang-app:/web_entrypoint.dart.
+ΓòÉΓòÉΓòí EXCEPTION CAUGHT BY GESTURES LIBRARY Γò₧ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+The following assertion was thrown while handling a pointer data packet:
+Cannot hit test a render box that has never been laid out.
+The hitTest() method was called on this RenderBox: RenderSemanticsAnnotations#d66d4 NEEDS-LAYOUT NEEDS-PAINT NEEDS-COMPOSITING-BITS-UPDATE:
+  creator: Semantics ΓåÉ _FocusInheritedScope ΓåÉ Focus ΓåÉ Shortcuts ΓåÉ
+    NotificationListener<NavigationNotification> ΓåÉ _SharedAppModel ΓåÉ SharedAppData ΓåÉ
+    UnmanagedRestorationScope ΓåÉ RestorationScope ΓåÉ UnmanagedRestorationScope ΓåÉ RootRestorationScope ΓåÉ
+    WidgetsApp-[GlobalObjectKey _MaterialAppState#2e668] ΓåÉ Γï»
+  parentData: <none>
+  constraints: MISSING
+  size: MISSING
+Unfortunately, this object's geometry is not known at this time, probably because it has never been
+laid out. This means it cannot be accurately hit-tested.
+If you are trying to perform a hit test during the layout phase itself, make sure you only hit test
+nodes that have completed layout (e.g. the node's children, after their layout() method has been
+called).
+
+When the exception was thrown, this was the stack:
+dart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/errors.dart 274:3       throw_
+package:flutter/src/rendering/box.dart 2920:11                                    <fn>
+package:flutter/src/rendering/box.dart 2950:14                                    hitTest
+package:flutter/src/rendering/view.dart 309:12                                    hitTest
+package:flutter/src/rendering/binding.dart 662:34                                 hitTestInView
+package:flutter/src/rendering/binding.dart 459:11                                 <fn>
+package:flutter/src/rendering/mouse_tracker.dart 310:43                           <fn>
+package:flutter/src/rendering/mouse_tracker.dart 310:9                            updateWithEvent
+package:flutter/src/rendering/binding.dart 466:5                                  dispatchEvent
+package:flutter/src/gestures/binding.dart 437:7                                   [_handlePointerEventImmediately]
+package:flutter/src/gestures/binding.dart 394:5                                   handlePointerEvent
+package:flutter/src/gestures/binding.dart 341:7                                   [_flushPointerEventQueue]
+package:flutter/src/gestures/binding.dart 308:9                                   [_handlePointerDataPacket]
+dart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/operations.dart 118:77  tear
+lib/_engine/engine/platform_dispatcher.dart 1704:5                                invoke1
+lib/_engine/engine/platform_dispatcher.dart 292:5                                 invokeOnPointerDataPacket
+lib/_engine/engine/pointer_binding.dart 451:30                                    [_sendToFramework]
+lib/_engine/engine/pointer_binding.dart 233:7                                     onPointerData
+dart-sdk/lib/_internal/js_dev_runtime/private/ddc_runtime/operations.dart 118:77  tear
+lib/_engine/engine/pointer_binding.dart 1043:16                                   <fn>
+lib/_engine/engine/pointer_binding.dart 953:7                                     <fn>
+lib/_engine/engine/pointer_binding.dart 576:9                                     loggedHandler
+dart-sdk/lib/async/zone.dart 962:54                                               runUnary
+dart-sdk/lib/async/zone.dart 917:26                                               <fn>
+dart-sdk/lib/_internal/js_dev_runtime/patch/js_allow_interop_patch.dart 224:27    _callDartFunctionFast1
+dart-sdk/lib/_internal/js_dev_runtime/patch/js_allow_interop_patch.dart 84:15     ret
+ΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉΓòÉ
+Another exception was thrown: Cannot hit test a render box that has never been laid out.
+
+Performing hot restart...                                        1,206ms
+Restarted application in 1,207ms.

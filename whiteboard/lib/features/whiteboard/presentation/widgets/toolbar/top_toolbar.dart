@@ -3,7 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../providers/canvas_provider.dart';
+import '../../../services/sync_service.dart';
 import '../../../../super_admin/providers/module_config_provider.dart';
+import '../../../domain/services/export_service.dart';
+import '../dialogs/workspace_settings_dialog.dart';
+import '../../../providers/pdf_import_provider.dart';
 
 // ─── Save State Provider ──────────────────────────────────────────────────────
 final saveFlashProvider = StateProvider<bool>((ref) => false);
@@ -147,6 +151,31 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
                     ],
                   ),
                 ),
+          
+          SizedBox(width: 8.w),
+          Consumer(builder: (context, ref, _) {
+            final isLive = ref.watch(isLiveSyncingProvider);
+            if (!isLive) return const SizedBox.shrink();
+            return Container(
+              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(4.r),
+                border: Border.all(color: Colors.red.withOpacity(0.5)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 6.w, height: 6.w,
+                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
+                  ),
+                  SizedBox(width: 4.w),
+                  Text('LIVE', style: TextStyle(color: Colors.redAccent, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            );
+          }),
 
           // Save indicator
           SizedBox(width: 12.w),
@@ -174,6 +203,14 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
 
           // Action buttons
           _toolbarButton(
+            icon: Icons.tune,
+            onTap: () => showDialog(
+              context: context,
+              builder: (_) => const WorkspaceSettingsDialog(),
+            ),
+            tooltip: 'Workspace Settings',
+          ),
+          _toolbarButton(
             icon: Icons.inventory_2_outlined,
             label: 'Load Q',
             onTap: widget.onLoadQuestions,
@@ -184,16 +221,30 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
           if (moduleConfig.attendance)
             _toolbarButton(icon: Icons.checklist_outlined, onTap: widget.onAttendance, tooltip: 'Attendance'),
           if (moduleConfig.homeworkGenerator)
-            _toolbarButton(icon: Icons.assignment_outlined, onTap: widget.onHomework, tooltip: 'AI Homework'),
+            _toolbarButton(icon: Icons.assignment_outlined, onTap: widget.onHomework, tooltip: 'AI Homework', isPremium: true),
           _toolbarButton(icon: Icons.groups_outlined, onTap: widget.onShare, tooltip: 'Share with Students'),
           if (moduleConfig.aiAssistant)
             _toolbarButton(
-              icon: Icons.auto_awesome,
+              icon: Icons.auto_awesome_outlined,
               label: 'AI',
               onTap: widget.onAI,
               tooltip: 'EduHub AI Assistant',
               color: Colors.purpleAccent,
+              isPremium: true,
             ),
+          _toolbarButton(
+            icon: Icons.picture_as_pdf_outlined,
+            onTap: () async {
+              await ref.read(pdfImportProvider.notifier).importToCanvas(ref);
+            },
+            tooltip: 'Import PDF',
+            color: Colors.redAccent,
+          ),
+          _toolbarButton(
+            icon: Icons.ios_share,
+            onTap: () => _showExportMenu(context, ref),
+            tooltip: 'Export Board',
+          ),
           SizedBox(width: 8.w),
 
           // Save button
@@ -234,17 +285,21 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     required String tooltip,
     String? label,
     Color color = Colors.white,
+    bool isPremium = false,
   }) {
-    return Tooltip(
-      message: tooltip,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6.r),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-          child: Row(
-            children: [
-              Icon(icon, color: color, size: 20.w),
+    return _PremiumBadgeWrapper(
+      isPremium: isPremium,
+      child: Tooltip(
+        message: tooltip,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(6.r),
+          hoverColor: Colors.white10,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+            child: Row(
+              children: [
+                Icon(icon, color: color, size: 24.w),
               if (label != null) ...[
                 SizedBox(width: 4.w),
                 Text(label, style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.w600)),
@@ -253,6 +308,48 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
           ),
         ),
       ),
+    ),
+  );
+}
+
+  void _showExportMenu(BuildContext context, WidgetRef ref) {
+    showMenu(
+      context: context,
+      position: const RelativeRect.fromLTRB(1000, 60, 0, 0), // Upper right area
+      color: const Color(0xFF1E1E2E),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      items: [
+        PopupMenuItem(
+          onTap: () => ExportService.exportCurrentPageAsPng(ref),
+          child: Row(
+            children: [
+              const Icon(Icons.image_outlined, color: Colors.white70),
+              SizedBox(width: 12.w),
+              const Text('Export Current Page (PNG)', style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () => ExportService.exportAllPagesAsPdf(ref),
+          child: Row(
+            children: [
+              const Icon(Icons.picture_as_pdf_outlined, color: Colors.white70),
+              SizedBox(width: 12.w),
+              const Text('Export All Pages (PDF)', style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+        PopupMenuItem(
+          onTap: () => ExportService.exportAnnotationsOnlyPdf(ref),
+          child: Row(
+            children: [
+              const Icon(Icons.edit_document, color: Colors.white70),
+              SizedBox(width: 12.w),
+              const Text('Export Annotations Only (PDF)', style: TextStyle(color: Colors.white)),
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -261,5 +358,36 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     _saveAnim.dispose();
     _nameController.dispose();
     super.dispose();
+  }
+}
+
+class _PremiumBadgeWrapper extends StatelessWidget {
+  final Widget child;
+  final bool isPremium;
+
+  const _PremiumBadgeWrapper({required this.child, this.isPremium = false});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!isPremium) return child;
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        child,
+        Positioned(
+          top: 6.h,
+          right: 6.w,
+          child: Container(
+            padding: EdgeInsets.all(2.w),
+            decoration: const BoxDecoration(
+              color: Color(0xFFFFD700),
+              shape: BoxShape.circle,
+              boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 4, offset: Offset(0, 1))],
+            ),
+            child: Icon(Icons.star_rounded, color: Colors.white, size: 8.w),
+          ),
+        ),
+      ],
+    );
   }
 }

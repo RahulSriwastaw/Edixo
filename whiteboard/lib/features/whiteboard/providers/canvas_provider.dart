@@ -2,14 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
 import 'dart:typed_data';
+import '../services/sync_service.dart';
 
 // ─── Stroke Data ────────────────────────────────────────────────────────────
 class StrokePoint {
   final double x;
   final double y;
   final double pressure;
+  final DateTime? time;
 
-  const StrokePoint(this.x, this.y, {this.pressure = 1.0});
+  const StrokePoint(this.x, this.y, {this.pressure = 1.0, this.time});
+
+  Map<String, dynamic> toJson() => {
+    'x': x,
+    'y': y,
+    'p': pressure,
+    't': time?.millisecondsSinceEpoch,
+  };
+
+  factory StrokePoint.fromJson(Map<String, dynamic> json) {
+    return StrokePoint(
+      (json['x'] as num).toDouble(),
+      (json['y'] as num).toDouble(),
+      pressure: (json['p'] as num?)?.toDouble() ?? 1.0,
+      time: json['t'] != null ? DateTime.fromMillisecondsSinceEpoch(json['t'] as int) : null,
+    );
+  }
 }
 
 class Stroke {
@@ -58,12 +76,59 @@ class Stroke {
       isSelected: isSelected ?? this.isSelected,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'points': points.map((p) => p.toJson()).toList(),
+    'color': color.value.toRadixString(16).padLeft(8, '0'),
+    'thickness': thickness,
+    'opacity': opacity,
+    'type': type.name,
+    'text': text,
+    'isFilled': isFilled,
+  };
+
+  factory Stroke.fromJson(Map<String, dynamic> json) {
+    return Stroke(
+      id: json['id'] as String,
+      points: (json['points'] as List).map((p) => StrokePoint.fromJson(p as Map<String, dynamic>)).toList(),
+      color: Color(int.parse(json['color'] as String, radix: 16)),
+      thickness: (json['thickness'] as num).toDouble(),
+      opacity: (json['opacity'] as num).toDouble(),
+      type: StrokeType.values.byName(json['type'] as String),
+      text: json['text'] as String?,
+      isFilled: json['isFilled'] as bool? ?? false,
+    );
+  }
 }
 
 enum StrokeType { 
-  pen, pencil, highlighter, eraser, laserPointer,
-  rectangle, circle, triangle, line, arrow, 
-  text, threeDObject
+  // Freehand
+  pen, 
+  pencil, 
+  highlighter, 
+  marker,
+  eraser,
+  
+  // Shapes
+  line, 
+  arrow, 
+  rectangle, 
+  roundedRectangle,
+  circle, 
+  ellipse, 
+  triangle, 
+  diamond,
+  speechBubble,
+  polygon,
+
+  // Objects
+  text, 
+  stickyNote,
+  image,
+  pdf,
+  laserPointer,
+  threeDObject
 }
 
 // ─── Page Template ──────────────────────────────────────────────────────────
@@ -73,6 +138,7 @@ enum BackgroundColor { white, lightBlue, lightYellow, dark }
 // ─── Page Data ──────────────────────────────────────────────────────────────
 class PageData {
   final String id;
+  final List<Stroke> strokes;
   final PageTemplate template;
   final BackgroundColor bgColor;
   final Uint8List? bgImageBytes;
@@ -123,6 +189,8 @@ class CanvasState {
   final List<List<Stroke>> undoHistory;
   final List<List<Stroke>> redoHistory;
   final bool showThumbnails;
+  final bool isFullscreen;
+  final bool showGrid;
   final bool isSplitScreen;
   final Color backgroundColor;
 
@@ -178,9 +246,41 @@ class CanvasState {
 // ─── Canvas Notifier ─────────────────────────────────────────────────────────
 class CanvasStateNotifier extends StateNotifier<CanvasState> {
   Timer? _autoSaveTimer;
+  final SyncService syncService;
 
-  CanvasStateNotifier() : super(CanvasState()) {
+  CanvasStateNotifier(this.syncService) : super(CanvasState()) {
     _startAutoSave();
+    syncService.onMessageReceived = _handleSyncMessage;
+  }
+
+  void _handleSyncMessage(Map<String, dynamic> data) {
+    if (data['type'] == 'add_stroke') {
+      final stroke = Stroke.fromJson(data['stroke']);
+      final pageIndex = data['pageIndex'] as int;
+      _addRemoteStroke(stroke, pageIndex);
+    } else if (data['type'] == 'clear_page') {
+      final pageIndex = data['pageIndex'] as int;
+      _clearRemotePage(pageIndex);
+    }
+  }
+
+  void _addRemoteStroke(Stroke stroke, int pageIndex) {
+    if (pageIndex < 0 || pageIndex >= state.pages.length) return;
+    final pages = List<PageData>.from(state.pages);
+    final page = pages[pageIndex];
+    if (page.strokes.any((s) => s.id == stroke.id)) return;
+
+    pages[pageIndex] = page.copyWith(
+      strokes: [...page.strokes, stroke],
+    );
+    state = state.copyWith(pages: pages, isDirty: true);
+  }
+
+  void _clearRemotePage(int pageIndex) {
+    if (pageIndex < 0 || pageIndex >= state.pages.length) return;
+    final pages = List<PageData>.from(state.pages);
+    pages[pageIndex] = pages[pageIndex].copyWith(strokes: []);
+    state = state.copyWith(pages: pages, isDirty: true);
   }
 
   void _startAutoSave() {
@@ -210,6 +310,9 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
       undoHistory: undoHistory,
       redoHistory: [],
     );
+
+    // Broadcast
+    syncService.broadcastStroke(stroke, state.currentPageIndex);
   }
 
   void updateCurrentStroke(List<StrokePoint> newPoints) {
@@ -272,6 +375,86 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     );
   }
 
+  void importPdfPages(List<Uint8List> pages) {
+    final List<PageData> newPages = pages.asMap().entries.map((entry) {
+      return PageData(
+        id: 'page_${DateTime.now().millisecondsSinceEpoch}_${entry.key}',
+        bgImageBytes: entry.value,
+        template: PageTemplate.blank,
+      );
+    }).toList();
+
+    final int targetIndex = state.pages.length;
+    state = state.copyWith(
+      pages: [...state.pages, ...newPages],
+      currentPageIndex: targetIndex,
+      isDirty: true,
+    );
+  }
+
+  void addPage() {
+    final List<PageData> pages = List<PageData>.from(state.pages);
+    pages.add(PageData(
+      id: 'page_${DateTime.now().millisecondsSinceEpoch}',
+      template: state.pages.last.template, // Inherit last template
+    ));
+    state = state.copyWith(
+      pages: pages,
+      currentPageIndex: pages.length - 1,
+      isDirty: true,
+    );
+  }
+
+  void removePage(int index) {
+    if (state.pages.length <= 1) {
+      clearPage(); // Don't remove the last page, just clear it
+      return;
+    }
+    final List<PageData> pages = List<PageData>.from(state.pages);
+    pages.removeAt(index);
+    
+    int nextIndex = state.currentPageIndex;
+    if (nextIndex >= pages.length) nextIndex = pages.length - 1;
+
+    state = state.copyWith(
+      pages: pages,
+      currentPageIndex: nextIndex,
+      isDirty: true,
+    );
+  }
+
+  void reorderPages(int oldIndex, int newIndex) {
+    if (oldIndex < 0 || oldIndex >= state.pages.length || newIndex < 0 || newIndex > state.pages.length) return;
+    
+    final List<PageData> pages = List<PageData>.from(state.pages);
+    
+    if (newIndex > oldIndex) newIndex -= 1;
+    final item = pages.removeAt(oldIndex);
+    pages.insert(newIndex, item);
+    
+    // adjust current page index so the user doesn't jump pages
+    int nextIndex = state.currentPageIndex;
+    if (nextIndex == oldIndex) {
+      nextIndex = newIndex;
+    } else if (nextIndex > oldIndex && nextIndex <= newIndex) {
+      nextIndex -= 1;
+    } else if (nextIndex < oldIndex && nextIndex >= newIndex) {
+      nextIndex += 1;
+    }
+
+    state = state.copyWith(
+      pages: pages,
+      currentPageIndex: nextIndex,
+      isDirty: true,
+    );
+  }
+
+  void setPageIndex(int index) {
+    if (index >= 0 && index < state.pages.length) {
+      state = state.copyWith(currentPageIndex: index);
+    }
+  }
+
   void clearPage() {
     final pages = List<PageData>.from(state.pages);
     final undoHistory = List<List<Stroke>>.from(state.undoHistory);
@@ -279,6 +462,8 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
 
     pages[state.currentPageIndex] = pages[state.currentPageIndex].copyWith(strokes: []);
     state = state.copyWith(pages: pages, undoHistory: undoHistory, isDirty: true);
+
+    syncService.broadcastClearPage(state.currentPageIndex);
   }
 
   // ── Selection Operations ──────────────────────────────────────────────────
@@ -375,26 +560,7 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     state = state.copyWith(pages: pages, isDirty: true, undoHistory: undoHistory);
   }
 
-  // ── Page Operations ───────────────────────────────────────────────────────
-  void addPage() {
-    if (state.totalPages >= 100) return;
-    final pages = List<PageData>.from(state.pages);
-    pages.add(PageData(id: 'page_${DateTime.now().millisecondsSinceEpoch}'));
-    state = state.copyWith(
-      pages: pages,
-      currentPageIndex: pages.length - 1,
-    );
-  }
-
-  void removePage(int index) {
-    if (state.totalPages <= 1) return;
-    final pages = List<PageData>.from(state.pages);
-    pages.removeAt(index);
-    final newIndex = (state.currentPageIndex >= pages.length)
-        ? pages.length - 1
-        : state.currentPageIndex;
-    state = state.copyWith(pages: pages, currentPageIndex: newIndex);
-  }
+  // ── Page Navigation ───────────────────────────────────────────────────────
 
   void goToPage(int index) {
     if (index < 0 || index >= state.totalPages) return;
@@ -480,5 +646,9 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
 }
 
 final canvasStateProvider = StateNotifierProvider<CanvasStateNotifier, CanvasState>((ref) {
-  return CanvasStateNotifier();
+  final syncService = ref.watch(syncServiceProvider);
+  return CanvasStateNotifier(syncService);
 });
+
+final canvasBoundaryKeyProvider = Provider((ref) => GlobalKey());
+final hideCanvasBackgroundProvider = StateProvider<bool>((ref) => false);

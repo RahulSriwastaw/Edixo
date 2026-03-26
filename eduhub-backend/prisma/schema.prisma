@@ -1185,3 +1185,15 @@ model PlatformSetting {
 
   @@map("platform_settings")
 }
+model AirtableSyncMetadata {
+  id             String   @id @default(uuid())
+  tableName      String   @unique
+  totalQuestions Int      @default(0)
+  lastSyncAt     DateTime @default(now())
+  status         String   @default("SUCCESS")
+  error          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("airtable_sync_metadata")
+}

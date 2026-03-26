@@ -15,8 +15,6 @@ class EduHubWhiteboardApp extends ConsumerWidget {
 
     return ScreenUtilInit(
       designSize: const Size(1920, 1080),
-      minTextAdapt: true,
-      splitScreenMode: true,
       builder: (context, child) {
         return MaterialApp(
           title: 'EduHub Digital Whiteboard',

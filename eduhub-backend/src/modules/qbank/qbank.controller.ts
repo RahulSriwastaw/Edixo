@@ -14,6 +14,12 @@ export const syncAirtableQuestions = async (req: Request, res: Response, next: N
         logger.info(`Airtable sync triggered for table: ${tableName}`);
         const result = await airtableService.syncQuestionsFromAirtable(tableName);
         
+        // Update the folder's updatedAt to represent last sync date
+        await prisma.qBankFolder.updateMany({
+            where: { slug: tableName, description: 'AIRTABLE_SYNC' },
+            data: { updatedAt: new Date() }
+        });
+        
         res.json({
             success: true,
             message: 'Airtable synchronization completed',
@@ -51,8 +57,22 @@ export const getAirtableSyncFolders = async (req: Request, res: Response, next: 
             },
             orderBy: { createdAt: 'desc' }
         });
+
+        // Compute total questions for each folder
+        const foldersWithCounts = await Promise.all(folders.map(async (folder) => {
+            const count = await prisma.question.count({
+                where: { 
+                    airtableTableName: folder.slug,
+                    deletedAt: null 
+                }
+            });
+            return {
+                ...folder,
+                totalQuestions: count
+            };
+        }));
         
-        res.json({ success: true, data: folders });
+        res.json({ success: true, data: foldersWithCounts });
     } catch (error) {
         next(error);
     }

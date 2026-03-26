@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
+import 'canvas_provider.dart';
 
 class PdfImportState {
   final String? fileName;
@@ -11,6 +13,7 @@ class PdfImportState {
   final String? error;
   final List<Uint8List> thumbnails;
   final String? filePath;
+  final Uint8List? fileBytes;
 
   PdfImportState({
     this.fileName,
@@ -19,6 +22,7 @@ class PdfImportState {
     this.error,
     this.thumbnails = const [],
     this.filePath,
+    this.fileBytes,
   });
 
   PdfImportState copyWith({
@@ -28,6 +32,7 @@ class PdfImportState {
     String? error,
     List<Uint8List>? thumbnails,
     String? filePath,
+    Uint8List? fileBytes,
   }) {
     return PdfImportState(
       fileName: fileName ?? this.fileName,
@@ -36,6 +41,7 @@ class PdfImportState {
       error: error ?? this.error,
       thumbnails: thumbnails ?? this.thumbnails,
       filePath: filePath ?? this.filePath,
+      fileBytes: fileBytes ?? this.fileBytes,
     );
   }
 }
@@ -50,11 +56,19 @@ class PdfImportNotifier extends StateNotifier<PdfImportState> {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
+        withData: true,
       );
 
-      if (result != null && result.files.single.path != null) {
-        final path = result.files.single.path!;
-        final document = await PdfDocument.openFile(path);
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.single;
+        PdfDocument document;
+        
+        if (kIsWeb || file.path == null) {
+          if (file.bytes == null) throw Exception("No bytes available");
+          document = await PdfDocument.openData(file.bytes!);
+        } else {
+          document = await PdfDocument.openFile(file.path!);
+        }
         
         // Generate thumbnails for the first few pages (e.g., up to 10)
         final List<Uint8List> thumbs = [];
@@ -65,7 +79,7 @@ class PdfImportNotifier extends StateNotifier<PdfImportState> {
           final pageImage = await page.render(
             width: page.width / 4,
             height: page.height / 4,
-            format: PdfPageFormat.jpg,
+            format: PdfPageImageFormat.jpeg,
             quality: 70,
           );
           if (pageImage != null) {
@@ -75,9 +89,10 @@ class PdfImportNotifier extends StateNotifier<PdfImportState> {
         }
 
         state = state.copyWith(
-          fileName: result.files.single.name,
+          fileName: file.name,
           pageCount: document.pagesCount,
-          filePath: path,
+          filePath: file.path,
+          fileBytes: file.bytes,
           thumbnails: thumbs,
           isLoading: false,
         );
@@ -92,17 +107,22 @@ class PdfImportNotifier extends StateNotifier<PdfImportState> {
   }
 
   Future<Uint8List?> renderPage(int pageNumber) async {
-    if (state.filePath == null) return null;
+    if (state.filePath == null && state.fileBytes == null) return null;
     
     try {
-      final document = await PdfDocument.openFile(state.filePath!);
+      PdfDocument document;
+      if (state.fileBytes != null) {
+        document = await PdfDocument.openData(state.fileBytes!);
+      } else {
+        document = await PdfDocument.openFile(state.filePath!);
+      }
       final page = await document.getPage(pageNumber);
       
       // Render at high resolution for whiteboard (2x or 3x)
       final pageImage = await page.render(
         width: page.width * 2,
         height: page.height * 2,
-        format: PdfPageFormat.png,
+        format: PdfPageImageFormat.png,
         quality: 100,
       );
       
@@ -116,17 +136,22 @@ class PdfImportNotifier extends StateNotifier<PdfImportState> {
   }
 
   Future<List<Uint8List>> renderAllPages() async {
-    if (state.filePath == null) return [];
+    if (state.filePath == null && state.fileBytes == null) return [];
     
     final List<Uint8List> results = [];
     try {
-      final document = await PdfDocument.openFile(state.filePath!);
+      PdfDocument document;
+      if (state.fileBytes != null) {
+        document = await PdfDocument.openData(state.fileBytes!);
+      } else {
+        document = await PdfDocument.openFile(state.filePath!);
+      }
       for (int i = 1; i <= document.pagesCount; i++) {
         final page = await document.getPage(i);
         final pageImage = await page.render(
           width: page.width * 2,
           height: page.height * 2,
-          format: PdfPageFormat.png,
+          format: PdfPageImageFormat.png,
           quality: 100,
         );
         if (pageImage != null) {
@@ -143,6 +168,16 @@ class PdfImportNotifier extends StateNotifier<PdfImportState> {
 
   void reset() {
     state = PdfImportState();
+  }
+
+  Future<void> importToCanvas(WidgetRef ref) async {
+    await pickPdf();
+    if (state.thumbnails.isNotEmpty || state.pageCount != null) {
+      final pages = await renderAllPages();
+      if (pages.isNotEmpty) {
+        ref.read(canvasStateProvider.notifier).importPdfPages(pages);
+      }
+    }
   }
 }
 
