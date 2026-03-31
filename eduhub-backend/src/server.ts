@@ -27,6 +27,7 @@ import notificationsRoutes from './modules/notifications/notifications.routes';
 import mockbookRoutes from './modules/mockbook/mockbook.routes';
 import blogRoutes from './modules/blog/blog.routes';
 import aiRoutes from './modules/ai/ai.routes';
+import whiteboardRoutes from './modules/whiteboard/whiteboard.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -176,6 +177,7 @@ app.use('/api/notifications', notificationsRoutes);
 app.use('/api/mockbook', mockbookRoutes);
 app.use('/api/blog', blogRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/whiteboard', whiteboardRoutes);
 
 // ─── Error Handling ──────────────────────────────────────────
 app.use(notFound);

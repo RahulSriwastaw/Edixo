@@ -50,6 +50,9 @@ const envSchema = z.object({
     // FCM
     FCM_SERVER_KEY: z.string().optional(),
 
+    // Whiteboard / Sync
+    WS_WHITEBOARD_URL: z.string().default('ws://localhost:5000/api/whiteboard/sync'),
+
     // CORS
     ALLOWED_ORIGINS: z.string().default('http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004,http://127.0.0.1:3000,http://127.0.0.1:3001,http://127.0.0.1:3002,http://127.0.0.1:3003,http://127.0.0.1:3004'),
 

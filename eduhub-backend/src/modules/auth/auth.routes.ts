@@ -299,4 +299,33 @@ router.post('/change-password', authenticate, async (req, res, next) => {
     }
 });
 
+// Token refresh (placed near end to avoid breaking existing flows)
+router.post('/refresh', async (req, res, next) => {
+    try {
+        const { refreshToken } = z.object({ refreshToken: z.string().min(10) }).parse(req.body);
+
+        let decoded: any;
+        try {
+            decoded = jwt.verify(refreshToken, env.JWT_SECRET);
+        } catch {
+            decoded = jwt.verify(refreshToken, env.JWT_SUPER_ADMIN_SECRET);
+        }
+
+        if ((decoded as any).type !== 'refresh') throw new AppError('Invalid token', 401);
+
+        const secret = (decoded as any).role === 'SUPER_ADMIN' ? env.JWT_SUPER_ADMIN_SECRET : env.JWT_SECRET;
+        const payload = { ...decoded };
+        delete (payload as any).iat;
+        delete (payload as any).exp;
+        delete (payload as any).type;
+
+        const accessToken = generateToken(payload, secret, env.JWT_EXPIRES_IN);
+        const newRefreshToken = generateToken({ ...payload, type: 'refresh' }, secret, env.JWT_REFRESH_EXPIRES_IN);
+
+        res.json({ success: true, data: { accessToken, refreshToken: newRefreshToken } });
+    } catch (err) {
+        next(err);
+    }
+});
+
 export default router;

@@ -738,6 +738,19 @@ model AdminCuratedSuggestion {
   @@map("admin_curated_suggestions")
 }
 
+// Whiteboard session persistence for desktop app
+model WhiteboardSession {
+  id        String   @id @default(uuid())
+  sessionId String   @unique          // client-generated UUID
+  teacherId String?                     // org staff id
+  orgId     String?
+  setId     String?
+  data      Json                      // serialized canvas/session JSON
+  savedAt   DateTime                  // timestamp from client
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model StudyPlanTemplate {
   id           String       @id @default(uuid())
   orgId        String

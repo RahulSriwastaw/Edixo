@@ -13,6 +13,75 @@ import {
 } from './qbank.controller';
 
 const router = Router();
+
+// Public endpoint for whiteboard to fetch sets by 6-digit setId + password (dev/demo use)
+router.get('/sets/:setId/questions', async (req, res, next) => {
+    try {
+        const { setId } = req.params;
+        const { password } = req.query;
+
+        if (!password || typeof password !== 'string') {
+            throw new AppError('Password is required', 400);
+        }
+
+        const questionSet = await prisma.questionSet.findUnique({
+            where: { setId },
+            include: {
+                items: {
+                    include: { question: { include: { options: true } } },
+                    orderBy: { sortOrder: 'asc' },
+                },
+            },
+        });
+
+        if (!questionSet) throw new AppError('Set not found', 404);
+        if (questionSet.pin !== password) throw new AppError('Invalid password', 401);
+
+        const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+        const questions = questionSet.items.map((item, idx) => {
+            const q = item.question;
+            const opts = q?.options
+                .sort((a, b) => a.sortOrder - b.sortOrder)
+                .map((o, i) => ({
+                    label: labels[i] ?? `O${i + 1}`,
+                    text: o.textEn || o.textHi || '',
+                    imageUrl: o.imageUrl,
+                })) ?? [];
+
+            const correctIndex = q?.options.findIndex((o) => o.isCorrect) ?? -1;
+
+            return {
+                id: q?.id ?? `q-${idx}`,
+                questionId: q?.questionId,
+                text: q?.textEn || q?.textHi || 'Question text not available',
+                questionImageUrl: q?.imageUrl,
+                options: opts,
+                correctOption: correctIndex >= 0 ? labels[correctIndex] : null,
+                subject: q?.subjectName,
+                examSource: q?.exam,
+            };
+        });
+
+        res.json({
+            success: true,
+            data: {
+                set: {
+                    id: questionSet.id,
+                    setId: questionSet.setId,
+                    name: questionSet.name,
+                    totalQuestions: questionSet.totalQuestions,
+                    subject: questions.find((q) => q.subject)?.subject ?? null,
+                    exam: questions.find((q) => q.examSource)?.examSource ?? null,
+                    year: null,
+                },
+                questions,
+            },
+        });
+    } catch (err) { next(err); }
+});
+
+// Authenticated routes
 router.use(authenticate, requireOrgAccess);
 
 // ─── Helper: Build folder tree from flat list ─────────────────
