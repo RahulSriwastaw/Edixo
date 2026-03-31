@@ -271,7 +271,7 @@ export default function MockBookPage() {
   const dashboardStats = [
     {
       label: "Platform Tests",
-      value: stats?.platformTests.toString() || "0",
+      value: stats?.platformTests?.toString() || "0",
       change: "+12%",
       icon: BookOpen,
       color: "text-blue-600",
@@ -279,7 +279,7 @@ export default function MockBookPage() {
     },
     {
       label: "Total Series",
-      value: stats?.totalSeries.toString() || "0",
+      value: stats?.totalSeries?.toString() || "0",
       change: "+3 new",
       icon: Package,
       color: "text-purple-600",
@@ -287,7 +287,7 @@ export default function MockBookPage() {
     },
     {
       label: "Total Attempts",
-      value: stats?.totalAttempts.toLocaleString() || "0",
+      value: stats?.totalAttempts?.toLocaleString() || "0",
       change: "+24% vs LW",
       icon: CheckCircle2,
       color: "text-green-600",
@@ -295,7 +295,7 @@ export default function MockBookPage() {
     },
     {
       label: "Active Students",
-      value: stats?.activeStudents.toLocaleString() || "0",
+      value: stats?.activeStudents?.toLocaleString() || "0",
       change: "+1.2k today",
       icon: Users,
       color: "text-orange-600",
@@ -303,7 +303,7 @@ export default function MockBookPage() {
     },
     {
       label: "Live Right Now",
-      value: stats?.liveNow.toString() || "0",
+      value: stats?.liveNow?.toString() || "0",
       change: "Peak 1.2k",
       icon: Zap,
       color: "text-amber-600",

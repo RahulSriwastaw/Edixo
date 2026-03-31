@@ -2,15 +2,17 @@
   "status": "commited",
   "type": "frontend",
   "scope": "codebase",
-  "localEndpoint": "http://localhost:3002/mockbook",
+  "localEndpoint": "http://localhost:3002",
   "executionArgs": {
     "projectName": "super_admin",
     "projectPath": "d:\\RahulProjects\\New EduHub\\super_admin",
-    "testIds": [],
-    "additionalInstruction": "The app runs on port 3002. Login credentials: email field and password field are on /login page. Test all mockbook pages. Backend API is on port 4000. Use development serverMode.",
+    "testIds": [
+      "TC005"
+    ],
+    "additionalInstruction": "Use credentials: admin@eduhub.in / SuperAdmin@123 for TC001/TC005. Focus on verifying that /mockbook page loads without crash. Skip other tests if they take too long, prioritize TC005.",
     "serverMode": "development",
     "envs": {
-      "API_KEY": "sk-user-FLf22UkcGaZ3ENXC7qZB3kNRNn63WQKT_014Cx3QeRnvNsVk9Ec3B6I6VvSB72ao83CQg02-zMxZCYR7cK9RAd_25Fz40lwCNLYnbYQbF55pXgeF8sTEYJD6PKZcnZMRgj0"
+      "API_KEY": "sk-user-Yve2RSvn5m-gPtJo6kvfidPAptb5vCc_GHzXtHCUdSWboST0ze8ACulPoZp2xGIeiu3oYuERI3oKyBgSHvardFgGejweSG83j2ECVZh032s8F2GvADYguq181-ZNQ0dRtmc"
     }
   }
 }

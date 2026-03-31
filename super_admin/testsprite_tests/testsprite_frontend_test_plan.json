@@ -1,8 +1,8 @@
 [
   {
     "id": "TC001",
-    "title": "Successful login redirects to dashboard",
-    "description": "Verifies a Super Admin can log in with valid credentials and is redirected to the dashboard.",
+    "title": "Login with valid credentials lands on dashboard",
+    "description": "Verifies a Super Admin can log in and reach the protected dashboard.",
     "category": "Login",
     "priority": "High",
     "steps": [
@@ -11,35 +11,27 @@
         "description": "Navigate to /login"
       },
       {
-        "type": "assertion",
-        "description": "Verify page title contains \"Login\""
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email input field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password input field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Login button"
+        "description": "Submit the login form"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Dashboard\" is visible"
+        "description": "Verify the user lands on the dashboard"
       }
     ]
   },
   {
     "id": "TC002",
-    "title": "Invalid password shows error message",
-    "description": "Verifies an error is shown when the user enters a valid email format with an incorrect password.",
+    "title": "Login with invalid password shows authentication error",
+    "description": "Verifies invalid credentials prevent login and display an error state.",
     "category": "Login",
     "priority": "High",
     "steps": [
@@ -49,32 +41,32 @@
       },
       {
         "type": "action",
-        "description": "Type \"admin@example.com\" into the email input field"
+        "description": "Fill valid@email.com into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"wrong-password\" into the password input field"
+        "description": "Fill wrong-password into the password field"
       },
       {
         "type": "action",
-        "description": "Click the Login button"
+        "description": "Submit the login form"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Invalid credentials\" is visible"
+        "description": "Verify an authentication error message is visible"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/login\""
+        "description": "Verify the user remains on the login page"
       }
     ]
   },
   {
     "id": "TC003",
-    "title": "Empty form submission shows required validation",
-    "description": "Verifies the login form blocks submission and shows validation when both fields are empty.",
-    "category": "Login",
-    "priority": "Medium",
+    "title": "Dashboard shows KPI stats and can navigate to MockBook management",
+    "description": "Verifies the dashboard primary KPI content loads and MockBook section is reachable via UI navigation.",
+    "category": "Super Admin Dashboard",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -82,57 +74,49 @@
       },
       {
         "type": "action",
-        "description": "Click the Login button"
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open MockBook management"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Email\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Password\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/login\""
+        "description": "Verify MockBook management content is displayed"
       }
     ]
   },
   {
     "id": "TC004",
-    "title": "Missing password shows validation or inline error",
-    "description": "Verifies the login form blocks submission when password is missing.",
-    "category": "Login",
-    "priority": "Medium",
+    "title": "Unauthenticated visit to dashboard redirects to login",
+    "description": "Verifies protected dashboard route is not accessible without authentication.",
+    "category": "Super Admin Dashboard",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email input field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Login button"
+        "description": "Navigate to /"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/login\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Password\" is visible"
+        "description": "Verify the user is on the login page"
       }
     ]
   },
   {
     "id": "TC005",
-    "title": "Missing email shows validation or inline error",
-    "description": "Verifies the login form blocks submission when email is missing.",
-    "category": "Login",
-    "priority": "Medium",
+    "title": "MockBook management loads KPI stats and lists series/live tests",
+    "description": "Verifies the MockBook management page loads its primary content including KPI stats and data sections.",
+    "category": "MockBook Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -140,28 +124,36 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password input field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Click the Login button"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open MockBook management"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/login\""
+        "description": "Verify KPI stats for platform tests, series, attempts, and students are displayed"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Email\" is visible"
+        "description": "Verify test series and live tests are displayed"
       }
     ]
   },
   {
     "id": "TC006",
-    "title": "Invalid email format prevents successful login",
-    "description": "Verifies an invalid email format does not allow a successful login and keeps the user on the login page.",
-    "category": "Login",
-    "priority": "Medium",
+    "title": "Filter test series by name reduces results",
+    "description": "Verifies filtering by name updates the visible test series list based on typed criteria.",
+    "category": "MockBook Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -169,32 +161,36 @@
       },
       {
         "type": "action",
-        "description": "Type \"not-an-email\" into the email input field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"some-password\" into the password input field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the Login button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open MockBook management"
+      },
+      {
+        "type": "action",
+        "description": "Fill Sample into the test series name filter field"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/login\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Invalid\" is visible"
+        "description": "Verify only test series matching Sample are displayed"
       }
     ]
   },
   {
     "id": "TC007",
-    "title": "Failed login keeps email value available for retry",
-    "description": "Verifies after an invalid-credentials attempt, the user can correct only the password and try again.",
-    "category": "Login",
-    "priority": "High",
+    "title": "Filter test series by category and status updates results",
+    "description": "Verifies category and status filters can be applied to change the visible set of test series.",
+    "category": "MockBook Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -202,40 +198,40 @@
       },
       {
         "type": "action",
-        "description": "Type \"admin@example.com\" into the email input field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"wrong-password\" into the password input field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the Login button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation option to open MockBook management"
+      },
+      {
+        "type": "action",
+        "description": "Select a category in the category filter"
+      },
+      {
+        "type": "action",
+        "description": "Select a status in the status filter"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Invalid credentials\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Type \"another-wrong-password\" into the password input field"
-      },
-      {
-        "type": "action",
-        "description": "Click the Login button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/login\""
+        "description": "Verify the test series list reflects the selected category and status filters"
       }
     ]
   },
   {
     "id": "TC008",
-    "title": "Access MockBook dashboard and verify KPI cards are visible",
-    "description": "Verifies that an authenticated Super Admin can open the MockBook dashboard and see the platform KPI stat cards.",
-    "category": "MockBook Dashboard",
-    "priority": "High",
+    "title": "Selecting a live test opens its details view",
+    "description": "Verifies a live test can be selected and its details are shown.",
+    "category": "MockBook Management",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -243,39 +239,35 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation option to open MockBook management"
+      },
+      {
+        "type": "action",
+        "description": "Click a live test in the live tests list"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/mockbook\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Platform Tests\" is visible"
+        "description": "Verify live test details are displayed"
       }
     ]
   },
   {
     "id": "TC009",
-    "title": "Open organization switcher and select an organization",
-    "description": "Verifies that the organization switcher can be opened from the MockBook dashboard and an organization can be selected.",
-    "category": "MockBook Dashboard",
+    "title": "Navigate from MockBook management to category management",
+    "description": "Verifies category management is reachable from the MockBook management page via UI navigation.",
+    "category": "MockBook Management",
     "priority": "High",
     "steps": [
       {
@@ -284,39 +276,35 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation option to open MockBook management"
       },
       {
         "type": "action",
-        "description": "Click the \"Select Organization\" button"
+        "description": "Click the navigation option to open category management"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Select Organization\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the first organization option in the organization list"
+        "description": "Verify category management content is displayed"
       }
     ]
   },
   {
     "id": "TC010",
-    "title": "Switch to Test Series tab and navigate to Test Series list page",
-    "description": "Verifies that the Test Series section is reachable from MockBook and opens the dedicated Test Series list route.",
-    "category": "MockBook Dashboard",
+    "title": "No-match filters show empty state with guidance",
+    "description": "Verifies an empty-state appears when filters produce no matching test series.",
+    "category": "MockBook Management",
     "priority": "High",
     "steps": [
       {
@@ -325,39 +313,39 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill {{LOGIN_USER}} into the email field"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation option to open MockBook management"
       },
       {
         "type": "action",
-        "description": "Click the \"Test Series\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"View All\" or \"Go to Test Series\" link/button in the Test Series section"
+        "description": "Fill zz-no-matches-12345 into the test series name filter field"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
+        "description": "Verify an empty state message is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify suggestions to broaden or clear filters are visible"
       }
     ]
   },
   {
     "id": "TC011",
-    "title": "From Test Series list, start Create New Series flow",
-    "description": "Verifies that a user can reach the Test Series creation wizard from the Test Series list.",
-    "category": "MockBook Dashboard",
+    "title": "Category Management: create a new category and see it in the list",
+    "description": "Creates a new category from the category management page and verifies it appears in the category list.",
+    "category": "Category Management",
     "priority": "High",
     "steps": [
       {
@@ -366,43 +354,39 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation item for MockBook categories"
       },
       {
         "type": "action",
-        "description": "Click the \"Test Series\" tab"
+        "description": "Fill valid details for a new category using the name Category Auto 001"
       },
       {
         "type": "action",
-        "description": "Click the \"View All\" or \"Go to Test Series\" link/button in the Test Series section"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create New Series\" button"
+        "description": "Save the new category"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series/create\""
+        "description": "Verify the category list contains Category Auto 001"
       }
     ]
   },
   {
     "id": "TC012",
-    "title": "Use Test Series search with a query that returns no results",
-    "description": "Verifies that searching Test Series with a query that yields no matches shows an empty state message.",
-    "category": "MockBook Dashboard",
+    "title": "Category Management: validation for empty category details",
+    "description": "Attempts to save a category with missing required information and verifies a validation error is shown.",
+    "category": "Category Management",
     "priority": "High",
     "steps": [
       {
@@ -411,40 +395,40 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation item for MockBook categories"
       },
       {
         "type": "action",
-        "description": "Click the \"Test Series\" tab"
+        "description": "Clear required category input fields so they are empty"
       },
       {
         "type": "action",
-        "description": "Type \"zzzz-no-matches-123\" into the Test Series search field"
+        "description": "Attempt to save the new category"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"No results\" is visible"
+        "description": "Verify a validation error is visible with guidance to fix the input"
       }
     ]
   },
   {
     "id": "TC013",
-    "title": "Navigate to Categories from MockBook header and verify Categories page loads",
-    "description": "Verifies that the Categories page can be opened via the MockBook dashboard header button.",
-    "category": "MockBook Dashboard",
-    "priority": "Medium",
+    "title": "Category Management: categories page loads primary content",
+    "description": "Verifies the category management page loads and displays the existing categories list with counts or an empty state.",
+    "category": "Category Management",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -452,39 +436,31 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Categories\" button in the MockBook header"
+        "description": "Click the navigation item for MockBook categories"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/categories\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Categories\" is visible"
+        "description": "Verify the categories list is displayed or an empty state is visible"
       }
     ]
   },
   {
     "id": "TC014",
-    "title": "Navigate to Featured from MockBook header and verify Featured page loads",
-    "description": "Verifies that the Featured page can be opened via the MockBook dashboard header button.",
-    "category": "MockBook Dashboard",
+    "title": "Category Management: prevent duplicate save via rapid repeat submit",
+    "description": "Submits the create category form twice quickly and verifies only one new list entry is created for the submitted name.",
+    "category": "Category Management",
     "priority": "Medium",
     "steps": [
       {
@@ -493,39 +469,39 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation item for MockBook categories"
       },
       {
         "type": "action",
-        "description": "Click the \"Featured\" button in the MockBook header"
+        "description": "Fill valid details for a new category using the name Category Auto 002"
+      },
+      {
+        "type": "action",
+        "description": "Click save twice quickly"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/featured\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Featured\" is visible"
+        "description": "Verify the category list contains a single entry for Category Auto 002"
       }
     ]
   },
   {
     "id": "TC015",
-    "title": "Switch across multiple MockBook tabs and verify each tab content is visible",
-    "description": "Verifies that tab switching works for key MockBook sections and each tab shows recognizable content.",
-    "category": "MockBook Dashboard",
+    "title": "Category Management: cancel/abandon new category entry does not add to list",
+    "description": "Starts entering a new category but does not save, and verifies it is not added to the list.",
+    "category": "Category Management",
     "priority": "Medium",
     "steps": [
       {
@@ -534,43 +510,43 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
         "type": "action",
-        "description": "Click the \"MockBook\" item in the main navigation"
+        "description": "Click the navigation item for MockBook categories"
       },
       {
         "type": "action",
-        "description": "Click the \"Live Tests\" tab"
+        "description": "Fill valid details for a new category using the name Category Auto 003"
+      },
+      {
+        "type": "action",
+        "description": "Click away from the form without saving"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the page"
       },
       {
         "type": "assertion",
-        "description": "Verify text \"Live Tests\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Pricing\" tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Revenue\" is visible"
+        "description": "Verify the category list does not contain Category Auto 003"
       }
     ]
   },
   {
     "id": "TC016",
-    "title": "Search and filter test series then open Manage to reach series detail",
-    "description": "Verifies search, category/status filters, and Manage navigation to a series detail page.",
-    "category": "Test Series List",
+    "title": "Create Test Series: create a new test series and confirm it appears in the series list",
+    "description": "Creates a new test series with required fields and verifies it appears in the MockBook series list.",
+    "category": "Create Test Series",
     "priority": "High",
     "steps": [
       {
@@ -579,59 +555,59 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to create a new MockBook test series"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the test series title with Series Auto 001"
+      },
+      {
+        "type": "action",
+        "description": "Add at least one valid section"
+      },
+      {
+        "type": "action",
+        "description": "Fill a valid schedule for the test series"
+      },
+      {
+        "type": "action",
+        "description": "Select a valid visibility setting"
+      },
+      {
+        "type": "action",
+        "description": "Configure a valid basic pricing setting if available"
+      },
+      {
+        "type": "action",
+        "description": "Save the test series"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item for MockBook management"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"S\" into the search field"
-      },
-      {
-        "type": "action",
-        "description": "Select \"SSC\" from the Category filter dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Active\" from the Status filter dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Manage\" button on the first visible series row"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series/\""
+        "description": "Verify the test series list contains Series Auto 001"
       }
     ]
   },
   {
     "id": "TC017",
-    "title": "No results empty state when search and filters match nothing",
-    "description": "Verifies the list shows a clear empty state when no series match applied search and filters.",
-    "category": "Test Series List",
+    "title": "Create Test Series: validation when required field is missing",
+    "description": "Attempts to save a test series while omitting a required field and verifies a validation error is shown.",
+    "category": "Create Test Series",
     "priority": "High",
     "steps": [
       {
@@ -640,56 +616,40 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to create a new MockBook test series"
+      },
+      {
+        "type": "action",
+        "description": "Leave at least one required field empty such as the title or schedule"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the test series"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"zzzz-no-such-series-123\" into the search field"
-      },
-      {
-        "type": "action",
-        "description": "Select \"NEET\" from the Category filter dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Archived\" from the Status filter dropdown"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"No series found\" is visible"
+        "description": "Verify a validation error is visible describing the missing required information"
       }
     ]
   },
   {
     "id": "TC018",
-    "title": "Clear filters after empty state to restore visible results",
-    "description": "Verifies the user can clear applied search/filters and see results again after an empty state.",
-    "category": "Test Series List",
-    "priority": "Medium",
+    "title": "Create Test Series: create page loads primary content",
+    "description": "Verifies the create test series page loads and shows the form for configuring test series details.",
+    "category": "Create Test Series",
+    "priority": "High",
     "steps": [
       {
         "type": "action",
@@ -697,56 +657,32 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /mockbook/test-series/create"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "action",
-        "description": "Type \"zzzz-no-such-series-123\" into the search field"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"No series found\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Clear\" or \"Reset filters\" control"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"No series found\" is not visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Test series table\" is visible"
+        "description": "Verify the test series creation form is displayed"
       }
     ]
   },
   {
     "id": "TC019",
-    "title": "Create New Series button opens the creation wizard entry screen",
-    "description": "Verifies the Create New Series entry point is accessible from the list page.",
-    "category": "Test Series List",
-    "priority": "High",
+    "title": "Create Test Series: schedule input enforces validity",
+    "description": "Enters an invalid schedule configuration and verifies the UI blocks saving with a schedule validation error.",
+    "category": "Create Test Series",
+    "priority": "Medium",
     "steps": [
       {
         "type": "action",
@@ -754,870 +690,47 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /mockbook/test-series/create"
+      },
+      {
+        "type": "action",
+        "description": "Fill in the test series title with Series Auto 002"
+      },
+      {
+        "type": "action",
+        "description": "Add at least one valid section"
+      },
+      {
+        "type": "action",
+        "description": "Fill an invalid schedule configuration such as an end time earlier than the start time"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the test series"
       },
       {
         "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create New Series\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series/create\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Create\" is visible"
+        "description": "Verify a schedule validation error is visible"
       }
     ]
   },
   {
     "id": "TC020",
-    "title": "Open per-series actions dropdown and see all expected actions",
-    "description": "Verifies the per-row actions menu is present and includes Edit, Duplicate, Feature, Analytics, and Delete.",
-    "category": "Test Series List",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      },
-      {
-        "type": "action",
-        "description": "Open dropdown for actions on the first visible series row"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Edit\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Duplicate\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Feature\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Analytics\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Delete\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC021",
-    "title": "Edit action opens an edit experience or edit page from the list",
-    "description": "Verifies clicking Edit from the per-series actions leads to an edit screen or edit mode for that series.",
-    "category": "Test Series List",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "action",
-        "description": "Open dropdown for actions on the first visible series row"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Edit\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Edit\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC022",
-    "title": "Analytics action navigates to a series analytics view",
-    "description": "Verifies clicking Analytics from the per-series actions navigates to an analytics-related view for the selected series.",
-    "category": "Test Series List",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "action",
-        "description": "Open dropdown for actions on the first visible series row"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Analytics\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC023",
-    "title": "Delete action shows a confirmation prompt before deleting",
-    "description": "Verifies Delete is guarded by a visible confirmation step and does not immediately remove a series without confirmation.",
-    "category": "Test Series List",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Test Series\" tab or menu item"
-      },
-      {
-        "type": "action",
-        "description": "Open dropdown for actions on the first visible series row"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Delete\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Are you sure\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Confirm delete\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Cancel\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC024",
-    "title": "Complete Steps 1–6 and publish a new Test Series (happy path, platform target, free pricing)",
-    "description": "Verifies the wizard can be completed end-to-end with valid inputs and returns to the Test Series list with a visible success confirmation.",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series/create\""
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Platform Free\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Platform\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 2\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on a \"+\" button to increase a test count"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 3\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on an \"Add existing tests\" control (button or link)"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 4\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Free\" pricing type option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 5\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Select an unlock rule option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 6\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Scroll to the publish section"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Publish\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series\""
-      }
-    ]
-  },
-  {
-    "id": "TC025",
-    "title": "Step 1 required-field validation blocks progress",
-    "description": "Verifies clicking Next with missing required fields shows validation messages and the user stays on Step 1.",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook/test-series/create\""
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"required\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 1\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC026",
-    "title": "Step 1: Create an Org-targeted series and proceed to Step 2",
-    "description": "Verifies the target selection can be changed to Org and the wizard advances when Step 1 is valid.",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 1\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Org Target\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Org\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 2\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC027",
-    "title": "Step 2: Decrease counts below zero is prevented (or blocked with validation)",
-    "description": "Verifies the Step 2 test-count controls do not allow invalid negative values and the UI remains consistent.",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Count Bounds\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Platform\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 2\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on a \"-\" button to decrease a test count"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 3\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC028",
-    "title": "Step 3: Add existing tests and proceed to pricing",
-    "description": "Verifies the Step 3 selection flow allows adding tests (or opening the selector) and the wizard can continue to Step 4.",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Add Existing Tests\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Platform\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on a \"+\" button to increase a test count"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 3\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Add existing tests\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Select\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 4\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC029",
-    "title": "Step 4: Paid pricing requires valid price before continuing",
-    "description": "Verifies selecting Paid pricing and leaving price empty (or invalid) prevents moving to Step 5 and shows a visible validation message.",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Paid Price Validation\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Platform\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on a \"+\" button to increase a test count"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on an \"Add existing tests\" control (button or link)"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 4\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Paid\" pricing type option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"price\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 4\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC030",
-    "title": "Step 5: Unlock rule selection is required to proceed",
-    "description": "Verifies the user cannot advance to Step 6 without selecting an unlock rule (or a default is clearly applied).",
-    "category": "Create Test Series Wizard (6-step)",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Unlock Rule Required\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Platform\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on a \"+\" button to increase a test count"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on an \"Add existing tests\" control (button or link)"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Free\" pricing type option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 5\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"unlock\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC031",
-    "title": "Step 6: Review summary is visible before publishing",
-    "description": "Verifies the final review step shows a visible summary/checklist and the Publish button is present.",
-    "category": "Create Test Series Wizard (6-step)",
+    "title": "Create Test Series: visibility affects available pricing options",
+    "description": "Selects a visibility setting that changes pricing applicability and verifies pricing controls update accordingly.",
+    "category": "Create Test Series",
     "priority": "Low",
     "steps": [
       {
@@ -1626,1847 +739,27 @@
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
+        "description": "Fill in the email field with {{LOGIN_USER}}"
       },
       {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Fill in the password field with {{LOGIN_PASSWORD}}"
       },
       {
         "type": "action",
-        "description": "Click on the \"Sign in\" button"
+        "description": "Submit the login form"
       },
       {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Test Series\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Create\" or \"New Test Series\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Series - Review Visible\" into the series name field"
-      },
-      {
-        "type": "action",
-        "description": "Select a category from the category dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Platform\" target option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on a \"+\" button to increase a test count"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on an \"Add existing tests\" control (button or link)"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Free\" pricing type option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "action",
-        "description": "Select an unlock rule option"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Next\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Step 6\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Review\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Publish\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC032",
-    "title": "View Exam Categories grid loads and shows category cards",
-    "description": "Verifies that an authenticated admin can reach the Categories page and see the categories grid populated with cards.",
-    "category": "Exam Categories Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"exam category cards grid\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC033",
-    "title": "Expand a category card to view its Featured Series section",
-    "description": "Verifies that clicking a category card expands it and reveals the Featured Series section/content.",
-    "category": "Exam Categories Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the first category card in the grid"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Featured\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC034",
-    "title": "Expand Featured Series list within an expanded category",
-    "description": "Verifies that the Featured Series list/area becomes visible when expanding a category and opening its featured series section.",
-    "category": "Exam Categories Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on a category card that is visible in the grid"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"Featured\" or \"Featured Series\" section header within the expanded card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"featured series list\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC035",
-    "title": "Add Category form opens and can be cancelled without changes",
-    "description": "Verifies that the Add Category dialog/form opens and can be dismissed without adding a new category.",
-    "category": "Exam Categories Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Add Category\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Add Category\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Press \"Escape\" key"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Add Category\" is not visible"
-      }
-    ]
-  },
-  {
-    "id": "TC036",
-    "title": "Add Category shows validation when name is empty",
-    "description": "Verifies that saving a new category without a name shows a visible validation message and does not add a card.",
-    "category": "Exam Categories Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Add Category\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"required\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC037",
-    "title": "Attempt to add a new category and observe non-persistence behavior",
-    "description": "Verifies the UI behavior when adding a category, acknowledging that backend persistence may be unavailable (may show toast and may not persist after refresh).",
-    "category": "Exam Categories Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Add Category\" button"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Automation Category\" into the category name field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"success\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC038",
-    "title": "Edit icon opens Edit Category UI for an existing category",
-    "description": "Verifies that clicking the Edit icon on a category card opens an edit dialog/form with expected context.",
-    "category": "Exam Categories Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Edit\" icon on a visible category card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Edit Category\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC039",
-    "title": "Delete category cancellation keeps the category card visible",
-    "description": "Verifies that canceling the delete confirmation dialog does not remove the category from the grid.",
-    "category": "Exam Categories Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Delete\" icon on the first visible category card"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Confirm\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Cancel\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"exam category cards grid\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC040",
-    "title": "Delete category confirm shows error/failure toast when persistence is unavailable",
-    "description": "Verifies that confirming deletion results in a visible error/failure toast when backend persistence is not available (as expected in this environment).",
-    "category": "Exam Categories Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on \"Categories\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Delete\" icon on a visible category card"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Confirm\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"failed\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC041",
-    "title": "Load Featured page and view category-wise featured sections",
-    "description": "Verifies that an authenticated admin can open the Featured page and see category-wise featured sections and an ordered list of series.",
-    "category": "Featured Series Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Featured\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC042",
-    "title": "Toggle a series featured status and see immediate UI change",
-    "description": "Verifies that toggling a series featured status updates the visible toggle state in the list.",
-    "category": "Featured Series Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the featured toggle for the first visible series in the list"
-      }
-    ]
-  },
-  {
-    "id": "TC043",
-    "title": "Move a series up in the order within its category section",
-    "description": "Verifies that clicking the up arrow moves a series higher in the visible ordering.",
-    "category": "Featured Series Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the up arrow for the second visible series in the first category section"
-      }
-    ]
-  },
-  {
-    "id": "TC044",
-    "title": "Move a series down in the order within its category section",
-    "description": "Verifies that clicking the down arrow moves a series lower in the visible ordering.",
-    "category": "Featured Series Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the down arrow for the first visible series in the first category section"
-      }
-    ]
-  },
-  {
-    "id": "TC045",
-    "title": "Save Order shows a success toast after reordering",
-    "description": "Verifies that after changing order, clicking Save Order shows a success confirmation toast.",
-    "category": "Featured Series Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the up arrow for the second visible series in the first category section"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save Order\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Order saved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC046",
-    "title": "Save Order after toggling featured status shows a confirmation toast",
-    "description": "Verifies that toggling featured status and saving presents a visible confirmation message.",
-    "category": "Featured Series Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the featured toggle for the first visible series in the list"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save Order\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Order saved\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC047",
-    "title": "Category-wise featured sections are visible when scrolling the page",
-    "description": "Verifies that multiple category-wise featured sections can be viewed and interacted with across the page.",
-    "category": "Featured Series Management",
-    "priority": "Low",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Scroll to the bottom of the Featured page"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify an element \"Category\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC048",
-    "title": "Reorder and save, then verify ordering is not persisted after page reload (UI-only limitation)",
-    "description": "Verifies the known UI-only behavior that saving order does not persist after a page reload.",
-    "category": "Featured Series Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Featured\" in the MockBook navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the up arrow for the second visible series in the first category section"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Save Order\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Order saved\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Navigate to /mockbook/featured"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Featured\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC049",
-    "title": "Analytics dashboard loads and shows core KPIs and key visual sections",
-    "description": "Verifies the analytics page renders with KPI cards and major chart/table sections visible for a logged-in admin.",
-    "category": "Analytics Dashboard",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify page title contains \"Analytics\""
-      }
-    ]
-  },
-  {
-    "id": "TC050",
-    "title": "Change date range to 30 days updates the visible selection and keeps KPIs visible",
-    "description": "Verifies selecting the 30-day range works from the dropdown and the KPI cards remain visible afterward.",
-    "category": "Analytics Dashboard",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "action",
-        "description": "Click the date range dropdown"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"30 days\" option"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"30 days\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC051",
-    "title": "KPI cards are visible and labeled correctly",
-    "description": "Verifies the four KPI cards appear on the analytics dashboard with the expected labels.",
-    "category": "Analytics Dashboard",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"DAU\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Tests Attempted\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Enrollments\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Revenue\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC052",
-    "title": "Daily tests bar chart section is present and visible",
-    "description": "Verifies the daily tests bar chart area renders on the analytics dashboard.",
-    "category": "Analytics Dashboard",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "action",
-        "description": "Scroll to the \"Daily Tests\" section"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Daily Tests\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"daily tests bar chart\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC053",
-    "title": "Top series and top tests tables are visible",
-    "description": "Verifies both ranking tables render and show their section titles on the analytics dashboard.",
-    "category": "Analytics Dashboard",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "action",
-        "description": "Scroll to the \"Top Series\" section"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Top Series\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"top series by enrollment table\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Top Tests\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"top tests by attempts table\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC054",
-    "title": "Revenue breakdown visualization is visible",
-    "description": "Verifies the revenue breakdown bars section is present on the analytics dashboard.",
-    "category": "Analytics Dashboard",
-    "priority": "Low",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Analytics\""
-      },
-      {
-        "type": "action",
-        "description": "Scroll to the \"Revenue Breakdown\" section"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Revenue Breakdown\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"revenue breakdown bars\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC055",
-    "title": "Create a new MockTest inside a Series and verify it appears in the list",
-    "description": "Verifies an admin can drill into an org’s mock tests hierarchy, create a mock test with valid inputs, and see it listed.",
-    "category": "Organization MockTest Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/mockbook\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"MockTests\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC056",
-    "title": "Validation: invalid duration blocks MockTest creation",
-    "description": "Verifies the create dialog shows a validation error and does not create a test when duration is invalid.",
-    "category": "Organization MockTest Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Create MockTest\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Create MockTest\" button"
-      }
-    ]
-  },
-  {
-    "id": "TC057",
-    "title": "Create a new Category from the MockTests page",
-    "description": "Verifies an admin can create a new exam category and see it appear as a category card.",
-    "category": "Organization MockTest Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"New Category\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Create Category\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC058",
-    "title": "Create a new Series inside a selected Category",
-    "description": "Verifies an admin can drill into a category and create a new test series within it.",
-    "category": "Organization MockTest Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click on an Exam Category card"
-      }
-    ]
-  },
-  {
-    "id": "TC059",
-    "title": "Create a new Folder inside a selected Series",
-    "description": "Verifies an admin can drill into a series and create a new folder in that series.",
-    "category": "Organization MockTest Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click on an Exam Category card"
-      },
-      {
-        "type": "action",
-        "description": "Click on a Test Series card to drill down"
-      }
-    ]
-  },
-  {
-    "id": "TC060",
-    "title": "Create MockTest button is disabled outside a Series context",
-    "description": "Verifies the Create MockTest button is not enabled until the user drills into a Series.",
-    "category": "Organization MockTest Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify element \"Create MockTest\" is visible"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Create MockTest\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC061",
-    "title": "Search tests by name within a folder",
-    "description": "Verifies that searching by test name filters the visible test list in the current folder.",
-    "category": "Organization MockTest Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click on an Exam Category card"
-      }
-    ]
-  },
-  {
-    "id": "TC062",
-    "title": "Filter tests by status and type within a folder",
-    "description": "Verifies that selecting status/type filters changes the visible tests list.",
-    "category": "Organization MockTest Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/dashboard\""
-      },
-      {
-        "type": "action",
-        "description": "Click on \"MockBook\" in the main navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the \"MockTests\" tab"
-      },
-      {
-        "type": "action",
-        "description": "Click on an Exam Category card"
-      },
-      {
-        "type": "action",
-        "description": "Click on a Test Series card to drill down"
-      }
-    ]
-  },
-  {
-    "id": "TC063",
-    "title": "Organizations list loads and shows organizations table",
-    "description": "Verifies the Organizations page is accessible after login and displays the organizations listing UI.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/organizations\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Organizations\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC064",
-    "title": "Search organizations by name returns matching results",
-    "description": "Verifies searching by organization name filters the visible organization rows.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Type \"Academy\" into the search field"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Academy\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC065",
-    "title": "Search organizations by ID returns matching results",
-    "description": "Verifies searching by organization ID filters the visible organization rows.",
-    "category": "Organization Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Type \"ORG\" into the search field"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"ORG\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC066",
-    "title": "Filter organizations by plan updates the list",
-    "description": "Verifies selecting a plan filter changes the visible organizations list.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Pro\" from the plan filter dropdown"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Pro\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC067",
-    "title": "Filter organizations by status updates the list",
-    "description": "Verifies selecting a status filter changes the visible organizations list.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Select \"Active\" from the status filter dropdown"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Active\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC068",
-    "title": "Open organization details from list row",
-    "description": "Verifies clicking an organization row navigates to the organization details page and shows details content.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the first organization row in the organizations table"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify URL contains \"/organizations/\""
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Organization\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC069",
-    "title": "Change organization plan from details page and confirm success",
-    "description": "Verifies an admin can change the organization plan from the details page and sees a success confirmation.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the first organization row in the organizations table"
-      },
-      {
-        "type": "action",
-        "description": "Click the organization plan selector control"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Enterprise\" plan option"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Success\" is visible"
-      }
-    ]
-  },
-  {
-    "id": "TC070",
-    "title": "Cancel plan change confirmation does not apply changes",
-    "description": "Verifies canceling the confirmation dialog does not change the organization plan.",
-    "category": "Organization Management",
-    "priority": "Medium",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Sign in\" button"
-      },
-      {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click on the first organization row in the organizations table"
-      },
-      {
-        "type": "action",
-        "description": "Click the organization plan selector control"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Pro\" plan option"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Cancel\" button in the confirmation dialog"
-      },
-      {
-        "type": "assertion",
-        "description": "Verify text \"Pro\" is not visible"
-      }
-    ]
-  },
-  {
-    "id": "TC071",
-    "title": "Toggle organization status from list and confirm action",
-    "description": "Verifies toggling an organization status from the list requires confirmation and completes the flow.",
-    "category": "Organization Management",
-    "priority": "High",
-    "steps": [
-      {
-        "type": "action",
-        "description": "Navigate to /login"
-      },
-      {
-        "type": "action",
-        "description": "Type \"{{LOGIN_USER}}\" into the email field"
-      },
-      {
         "type": "action",
-        "description": "Type \"{{LOGIN_PASSWORD}}\" into the password field"
+        "description": "Navigate to /mockbook/test-series/create"
       },
       {
         "type": "action",
-        "description": "Click the \"Sign in\" button"
+        "description": "Select a visibility setting that should disable or hide pricing"
       },
       {
-        "type": "action",
-        "description": "Click \"Organizations\" in the sidebar navigation"
-      },
-      {
-        "type": "action",
-        "description": "Click the status toggle for the first organization row"
-      },
-      {
         "type": "assertion",
-        "description": "Verify text \"Confirm\" is visible"
-      },
-      {
-        "type": "action",
-        "description": "Click the \"Confirm\" button"
+        "description": "Verify pricing configuration controls are disabled or hidden when pricing is not applicable"
       }
     ]
   }
