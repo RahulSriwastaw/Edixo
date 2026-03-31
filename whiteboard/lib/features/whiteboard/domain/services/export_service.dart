@@ -7,6 +7,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/api/api_client.dart';
 
 import '../../providers/canvas_provider.dart';
 
@@ -80,6 +82,7 @@ class ExportService {
 
       // Trigger download/share via printing package, robust on Web and Mobile
       await Printing.sharePdf(bytes: pdfBytes, filename: fileName);
+      await _uploadPdf(ref, pdfBytes, fileName);
       
     } catch (e) {
       debugPrint('Error exporting PDF: $e');
@@ -136,6 +139,21 @@ class ExportService {
     } finally {
       ref.read(hideCanvasBackgroundProvider.notifier).state = false;
       notifier.goToPage(originalIndex);
+    }
+  }
+
+  static Future<void> _uploadPdf(WidgetRef ref, Uint8List bytes, String filename) async {
+    final setId = ref.read(canvasStateProvider).setId;
+    if (setId == null) return; // nothing to upload without context
+    try {
+      final dio = ref.read(dioProvider);
+      final formData = FormData.fromMap({
+        'file': MultipartFile.fromBytes(bytes, filename: filename),
+      });
+      await dio.post('/whiteboard/sets/$setId/whiteboard-pdf', data: formData);
+      debugPrint('PDF uploaded for set $setId');
+    } catch (e) {
+      debugPrint('PDF upload failed: $e');
     }
   }
 }

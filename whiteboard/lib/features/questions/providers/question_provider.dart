@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import '../../../core/api/api_client.dart';
 import '../domain/models/question.dart';
 
 class QuestionPanelState {
@@ -41,7 +44,8 @@ class QuestionPanelState {
 }
 
 class QuestionPanelNotifier extends StateNotifier<AsyncValue<QuestionPanelState>> {
-  QuestionPanelNotifier() : super(AsyncValue.data(QuestionPanelState(
+  final Dio _dio;
+  QuestionPanelNotifier(this._dio) : super(AsyncValue.data(QuestionPanelState(
     setId: '',
     setName: '',
     creatorName: '',
@@ -51,33 +55,81 @@ class QuestionPanelNotifier extends StateNotifier<AsyncValue<QuestionPanelState>
   Future<bool> loadSet({required String id, required String password, required String type}) async {
     state = const AsyncValue.loading();
     try {
-      // Mock network call
-      await Future.delayed(const Duration(seconds: 1));
-      
-      final mockData = QuestionPanelState(
+      // Try cache first
+      final box = await Hive.openBox<dynamic>('questions');
+      if (box.containsKey(id)) {
+        final cached = box.get(id) as Map;
+        final cachedQs = (cached['questions'] as List)
+            .map((q) => Question(
+                  id: q['id'] as String,
+                  text: q['text'] as String,
+                  options: List<String>.from(q['options'] as List),
+                  correctOption: q['correctOption'] as int,
+                  imageUrl: q['imageUrl'] as String?,
+                  source: q['source'] as String?,
+                  explanation: q['explanation'] as String?,
+                ))
+            .toList();
+        state = AsyncValue.data(QuestionPanelState(
+          setId: cached['setId'] as String,
+          setName: cached['setName'] as String,
+          creatorName: cached['creatorName'] as String? ?? '',
+          questions: cachedQs,
+        ));
+      }
+
+      final resp = await _dio.get('/qbank/sets/$id/questions', queryParameters: {'password': password});
+      if (resp.statusCode != 200 || resp.data['success'] != true) {
+        throw Exception('Failed to load set');
+      }
+
+      final data = resp.data['data'];
+      final qs = (data['questions'] as List).map((q) {
+        final options = (q['options'] as List).map((o) => o['text'] as String? ?? '').toList();
+        final correctLabel = (q['correctOption'] as String?) ?? '';
+        const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+        final correctIndex = labels.indexOf(correctLabel);
+        return Question(
+          id: q['id'] ?? q['questionId'] ?? '',
+          text: q['text'] ?? '',
+          options: options,
+          correctOption: correctIndex >= 0 ? correctIndex : 0,
+          imageUrl: q['questionImageUrl'] as String?,
+          source: q['examSource'] as String?,
+        );
+      }).toList();
+
+      final setName = data['set']?['name'] as String? ?? 'Question Set';
+      final creator = data['set']?['creatorName'] as String? ?? 'EduHub';
+
+      final newState = QuestionPanelState(
         setId: id,
-        setName: 'Mock Physics Test 1',
-        creatorName: 'Aman Sir',
-        questions: [
-          Question(
-            id: '1',
-            text: 'What is the SI unit of Force?',
-            options: ['Joule', 'Newton', 'Watt', 'Pascal'],
-            correctOption: 1,
-            explanation: 'Newton is the SI unit of force. 1 N = 1 kg*m/s^2',
-          ),
-          Question(
-            id: '2',
-            text: 'Solve for x: 2x + 5 = 15',
-            options: ['3', '4', '5', '6'],
-            correctOption: 2,
-          ),
-        ],
+        setName: setName,
+        creatorName: creator,
+        questions: qs,
       );
-      
-      state = AsyncValue.data(mockData);
+
+      await box.put(id, {
+        'setId': id,
+        'setName': setName,
+        'creatorName': creator,
+        'questions': qs
+            .map((q) => {
+                  'id': q.id,
+                  'text': q.text,
+                  'options': q.options,
+                  'correctOption': q.correctOption,
+                  'imageUrl': q.imageUrl,
+                  'source': q.source,
+                  'explanation': q.explanation,
+                })
+            .toList(),
+      });
+
+      state = AsyncValue.data(newState);
       return true;
     } catch (e, st) {
+      print('QuestionPanelNotifier: Error loading set: $e');
       state = AsyncValue.error(e, st);
       return false;
     }
@@ -101,7 +153,8 @@ class QuestionPanelNotifier extends StateNotifier<AsyncValue<QuestionPanelState>
 }
 
 final questionPanelProvider = StateNotifierProvider<QuestionPanelNotifier, AsyncValue<QuestionPanelState>>((ref) {
-  return QuestionPanelNotifier();
+  final dio = ref.watch(dioProvider);
+  return QuestionPanelNotifier(dio);
 });
 
 final questionPanelVisibilityProvider = StateProvider<bool>((ref) => false);

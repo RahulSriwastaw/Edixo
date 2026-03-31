@@ -97,13 +97,25 @@ class AppTheme {
       useMaterial3: true,
       brightness: Brightness.dark,
       primaryColor: primaryOrange,
-      scaffoldBackgroundColor: canvasDark,
+      scaffoldBackgroundColor: primaryDark,
       colorScheme: const ColorScheme.dark(
         primary: primaryOrange,
         secondary: accentBlue,
-        surface: Color(0xFF3D3D4E),
+        surface: Color(0xFF262636),
+        background: primaryDark,
         error: errorRed,
       ),
+      textTheme: GoogleFonts.dmSansTextTheme().copyWith(
+        displayLarge: GoogleFonts.dmSans(fontSize: 32.sp, fontWeight: FontWeight.bold, color: Colors.white),
+        headlineMedium: GoogleFonts.inter(fontSize: 24.sp, fontWeight: FontWeight.w600, color: Colors.white),
+        bodyLarge: GoogleFonts.inter(fontSize: 16.sp, fontWeight: FontWeight.normal, color: Colors.white70),
+        bodyMedium: GoogleFonts.inter(fontSize: 14.sp, fontWeight: FontWeight.normal, color: Colors.white60),
+      ),
+      drawerTheme: const DrawerThemeData(backgroundColor: primaryDark, elevation: 0),
+      appBarTheme: const AppBarTheme(backgroundColor: primaryDark, elevation: 0),
     );
   }
+
+  // PRD Section 24.1: Strictly Dark Mode. Light Mode is disabled/removed.
+  static ThemeData get theme => darkTheme;
 }

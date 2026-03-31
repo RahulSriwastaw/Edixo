@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import '../providers/canvas_provider.dart';
+import '../../../core/constants/api_config.dart';
 
 import 'dart:async';
 
@@ -33,7 +34,7 @@ class SyncService {
     if (_channel != null) return;
 
     try {
-      final wsUrl = Uri.parse('ws://localhost:5000/api/whiteboard/sync?session=$sessionId');
+      final wsUrl = Uri.parse('${ApiConfig.wsUrl}?session=$sessionId');
       _channel = WebSocketChannel.connect(wsUrl);
       
       _setLiveState(true);

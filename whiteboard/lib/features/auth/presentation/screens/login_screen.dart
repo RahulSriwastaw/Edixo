@@ -16,6 +16,7 @@ class LoginScreen extends ConsumerStatefulWidget {
 class _LoginScreenState extends ConsumerState<LoginScreen>
     with TickerProviderStateMixin {
   final _idController = TextEditingController();
+  final _orgController = TextEditingController(text: 'demo-org');
   final _passController = TextEditingController();
   bool _obscurePass = true;
   bool _isLoading = false;
@@ -49,6 +50,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   @override
   void dispose() {
     _idController.dispose();
+    _orgController.dispose();
     _passController.dispose();
     _shakeCtrl.dispose();
     _fadeCtrl.dispose();
@@ -82,9 +84,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Future<void> _submit() async {
     if (_lockoutSeconds > 0) return;
     final id = _idController.text.trim();
+    final org = _orgController.text.trim().isEmpty ? null : _orgController.text.trim();
     final pass = _passController.text;
     if (id.isEmpty || pass.isEmpty) {
-      setState(() => _error = 'Please enter your ID and password');
+      setState(() => _error = 'Please enter your ID, org ID, and password');
       _triggerShake();
       return;
     }
@@ -92,7 +95,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       _isLoading = true;
       _error = null;
     });
-    final success = await ref.read(authProvider.notifier).login(id, pass);
+    final success = await ref.read(authProvider.notifier).login(
+      id,
+      pass,
+      role: 'ORG_STAFF',
+      orgId: org,
+    );
     if (!mounted) return;
     
     if (!success) {
@@ -220,6 +228,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
             label: 'Employee / Teacher ID',
             icon: Icons.badge_outlined,
             hint: 'e.g. TCH-2024-001',
+            enabled: _lockoutSeconds == 0,
+          ),
+          SizedBox(height: 16.h),
+
+          // Org ID field
+          _InputField(
+            controller: _orgController,
+            label: 'Org ID',
+            icon: Icons.apartment_outlined,
+            hint: 'e.g. demo-org',
             enabled: _lockoutSeconds == 0,
           ),
           SizedBox(height: 16.h),

@@ -21,11 +21,11 @@ class _PageManagerPanelState extends ConsumerState<PageManagerPanel> {
     final pages = canvasState.pages;
 
     return Container(
-      width: 300.w,
+      width: 200.w, // PRD Section 6.1 - SlidePanel width
       height: double.infinity,
       decoration: BoxDecoration(
-        color: const Color(0xFF12121F).withOpacity(0.95),
-        border: const Border(left: BorderSide(color: Colors.white10)),
+        color: const Color(0xFF1E2235), // Matching toolbars
+        border: const Border(left: BorderSide(color: Colors.white12)),
       ),
       child: Column(
         children: [
@@ -60,29 +60,33 @@ class _PageManagerPanelState extends ConsumerState<PageManagerPanel> {
 
           // Pages List (Reorderable)
           Expanded(
-            child: ReorderableListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
-              itemCount: pages.length,
-              onReorder: notifier.reorderPages,
-              itemBuilder: (context, index) {
-                final page = pages[index];
-                final isCurrent = index == canvasState.currentPageIndex;
+            child: Theme(
+              data: ThemeData(
+                canvasColor: Colors.transparent, // Fixes ghosting during reorder
+              ),
+              child: ReorderableListView.builder(
+                padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 16.h),
+                itemCount: pages.length,
+                onReorder: (oldIdx, newIdx) => notifier.reorderPages(oldIdx, newIdx),
+                itemBuilder: (context, index) {
+                  final page = pages[index];
+                  final isCurrent = index == canvasState.currentPageIndex;
 
-                return Padding(
-                  key: ValueKey(page.id),
-                  padding: EdgeInsets.only(bottom: 12.h),
-                  child: _PageThumbnailCard(
-                    page: page,
-                    index: index,
-                    isCurrent: isCurrent,
-                    onTap: () {
-                      notifier.setPageIndex(index);
-                      // Close drawer/panel if needed? Or keep open for quick jumping.
-                    },
-                    onDelete: () => _confirmDelete(context, notifier, index),
-                  ),
-                );
-              },
+                  return Container(
+                    key: ValueKey(page.id),
+                    margin: EdgeInsets.only(bottom: 16.h),
+                    child: _PageThumbnailCard(
+                      page: page,
+                      index: index,
+                      isCurrent: isCurrent,
+                      onTap: () {
+                        notifier.setPageIndex(index);
+                      },
+                      onDelete: () => _confirmDelete(context, notifier, index),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
 
@@ -165,7 +169,7 @@ class _PageThumbnailCard extends StatelessWidget {
           children: [
             // Thumbnail Area
             Container(
-              height: 120.h,
+              height: 100.h, // Adjusted for smaller panel width
               decoration: BoxDecoration(
                 color: const Color(0xFF0D0D0D),
                 borderRadius: const BorderRadius.vertical(top: Radius.circular(11)),

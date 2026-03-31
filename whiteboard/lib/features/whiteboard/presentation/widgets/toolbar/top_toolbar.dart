@@ -53,17 +53,9 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     _nameController = TextEditingController(text: widget.sessionName);
     _saveAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _saveOpacity = Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: _saveAnim, curve: Curves.easeInOut));
-  }
-
-  void _triggerSaveFlash() {
-    _saveAnim.forward(from: 0).then((_) => _saveAnim.reverse());
-  }
-
-  @override
+        CurvedAnimation(parent: _saveAnim, curve: Curves.easeInOut)  @override
   Widget build(BuildContext context) {
     final canvasState = ref.watch(canvasStateProvider);
-    final moduleConfig = ref.watch(moduleConfigProvider);
 
     // Flash save indicator when saved
     ref.listen(canvasStateProvider, (prev, next) {
@@ -73,205 +65,132 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     });
 
     return Container(
-      height: 56.h,
+      height: 48.h, // PRD Section 6.1
       decoration: BoxDecoration(
         color: AppTheme.primaryDark,
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.2), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
+        border: const Border(bottom: BorderSide(color: Colors.white12, width: 1)),
       ),
       child: Row(
         children: [
-          // Menu button
+          // 1. Menu button (F-01.1.1)
           _toolbarButton(icon: Icons.menu, onTap: widget.onMenu, tooltip: 'Menu'),
-          const SizedBox(width: 4),
-
-          // EduHub logo / back
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Row(
-              children: [
-                Container(
-                  width: 28.w,
-                  height: 28.w,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryOrange,
-                    borderRadius: BorderRadius.circular(6.r),
-                  ),
-                  child: Icon(Icons.school, color: Colors.white, size: 16.w),
-                ),
-                SizedBox(width: 8.w),
-                Text(
-                  'EduHub',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          Container(width: 1, height: 32, color: Colors.white24),
-          SizedBox(width: 12.w),
-
-          // Session Name (editable)
-          _editingName
-              ? SizedBox(
-                  width: 220.w,
-                  height: 36.h,
-                  child: TextField(
-                    controller: _nameController,
-                    autofocus: true,
-                    style: TextStyle(color: Colors.white, fontSize: 14.sp),
-                    decoration: InputDecoration(
-                      filled: true,
-                      fillColor: Colors.white12,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(6.r),
-                        borderSide: BorderSide.none,
-                      ),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 0),
-                    ),
-                    onSubmitted: (_) => setState(() => _editingName = false),
-                    onEditingComplete: () => setState(() => _editingName = false),
-                  ),
-                )
-              : GestureDetector(
-                  onTap: () => setState(() => _editingName = true),
-                  child: Row(
-                    children: [
-                      Text(
-                        _nameController.text.isEmpty ? 'Untitled Session' : _nameController.text,
-                        style: TextStyle(color: Colors.white70, fontSize: 14.sp),
-                      ),
-                      SizedBox(width: 4.w),
-                      Icon(Icons.edit, color: Colors.white30, size: 14.w),
-                    ],
-                  ),
-                ),
           
-          SizedBox(width: 8.w),
-          Consumer(builder: (context, ref, _) {
-            final isLive = ref.watch(isLiveSyncingProvider);
-            if (!isLive) return const SizedBox.shrink();
-            return Container(
-              padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-              decoration: BoxDecoration(
-                color: Colors.red.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(4.r),
-                border: Border.all(color: Colors.red.withOpacity(0.5)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6.w, height: 6.w,
-                    decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                  ),
-                  SizedBox(width: 4.w),
-                  Text('LIVE', style: TextStyle(color: Colors.redAccent, fontSize: 10.sp, fontWeight: FontWeight.bold)),
-                ],
-              ),
-            );
-          }),
-
-          // Save indicator
-          SizedBox(width: 12.w),
-          FadeTransition(
-            opacity: _saveOpacity,
+          // 2. Set Title / Mode indicator
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
             child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: AppTheme.successGreen, size: 16.w),
-                SizedBox(width: 4.w),
-                Text('Saved', style: TextStyle(color: AppTheme.successGreen, fontSize: 12.sp)),
+                _editingName
+                    ? SizedBox(
+                        width: 200.w,
+                        child: TextField(
+                          controller: _nameController,
+                          autofocus: true,
+                          style: TextStyle(color: Colors.white, fontSize: 13.sp),
+                          decoration: const InputDecoration(border: InputBorder.none, isDense: true),
+                          onSubmitted: (_) => setState(() => _editingName = false),
+                        ),
+                      )
+                    : GestureDetector(
+                        onTap: () => setState(() => _editingName = true),
+                        child: Text(
+                          _nameController.text,
+                          style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                SizedBox(width: 8.w),
+                // Mode Indicator (PRD 6.1)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 2.h),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryOrange.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(4.r),
+                    border: Border.all(color: AppTheme.primaryOrange.withOpacity(0.3)),
+                  ),
+                  child: Text(
+                    ref.watch(toolProvider.select((s) => s.activeMode.name.toUpperCase())),
+                    style: TextStyle(
+                      color: AppTheme.primaryOrange,
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-
-          if (canvasState.isDirty) ...[
-            SizedBox(width: 8.w),
-            Container(
-              width: 6.w,
-              height: 6.w,
-              decoration: const BoxDecoration(color: AppTheme.primaryOrange, shape: BoxShape.circle),
-            ),
-          ],
 
           const Spacer(),
 
-          // Action buttons
-          _toolbarButton(
-            icon: Icons.tune,
-            onTap: () => showDialog(
-              context: context,
-              builder: (_) => const WorkspaceSettingsDialog(),
-            ),
-            tooltip: 'Workspace Settings',
-          ),
-          _toolbarButton(
-            icon: Icons.inventory_2_outlined,
-            label: 'Load Q',
-            onTap: widget.onLoadQuestions,
-            tooltip: 'Load Questions (Set ID)',
-            color: AppTheme.primaryOrange,
-          ),
-          _toolbarButton(icon: Icons.timer_outlined, onTap: widget.onTimer, tooltip: 'Class Timer'),
-          if (moduleConfig.attendance)
-            _toolbarButton(icon: Icons.checklist_outlined, onTap: widget.onAttendance, tooltip: 'Attendance'),
-          if (moduleConfig.homeworkGenerator)
-            _toolbarButton(icon: Icons.assignment_outlined, onTap: widget.onHomework, tooltip: 'AI Homework', isPremium: true),
-          _toolbarButton(icon: Icons.groups_outlined, onTap: widget.onShare, tooltip: 'Share with Students'),
-          if (moduleConfig.aiAssistant)
-            _toolbarButton(
-              icon: Icons.auto_awesome_outlined,
-              label: 'AI',
-              onTap: widget.onAI,
-              tooltip: 'EduHub AI Assistant',
-              color: Colors.purpleAccent,
-              isPremium: true,
-            ),
-          _toolbarButton(
-            icon: Icons.picture_as_pdf_outlined,
-            onTap: () async {
-              await ref.read(pdfImportProvider.notifier).importToCanvas(ref);
-            },
-            tooltip: 'Import PDF',
-            color: Colors.redAccent,
-          ),
-          _toolbarButton(
-            icon: Icons.ios_share,
-            onTap: () => _showExportMenu(context, ref),
-            tooltip: 'Export Board',
-          ),
-          SizedBox(width: 8.w),
-
-          // Save button
-          Padding(
-            padding: EdgeInsets.only(right: 8.w),
-            child: InkWell(
-              onTap: () {
-                ref.read(canvasStateProvider.notifier).save();
-                widget.onSave();
-              },
-              borderRadius: BorderRadius.circular(6.r),
-              child: Container(
-                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-                decoration: BoxDecoration(
-                  color: canvasState.isDirty
-                      ? AppTheme.primaryOrange
-                      : Colors.white12,
-                  borderRadius: BorderRadius.circular(6.r),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.save_outlined, color: Colors.white, size: 16.w),
-                    SizedBox(width: 4.w),
-                    Text('Save', style: TextStyle(color: Colors.white, fontSize: 13.sp)),
-                  ],
-                ),
+          // 3. Class Session Timer
+          InkWell(
+            onTap: widget.onTimer,
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(20.r),
               ),
+              child: Row(
+                children: [
+                  Icon(Icons.timer_outlined, color: Colors.white70, size: 16.w),
+                  SizedBox(width: 6.w),
+                  Text('45:00', style: TextStyle(color: Colors.white70, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            ),
+          ),
+
+          SizedBox(width: 16.w),
+
+          // 4. Offline badge (conditional)
+          Consumer(builder: (context, ref, _) {
+            final isLive = ref.watch(isLiveSyncingProvider);
+            if (isLive) return const SizedBox.shrink();
+            return Container(
+              margin: EdgeInsets.only(right: 12.w),
+              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+              decoration: BoxDecoration(
+                color: Colors.grey.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+              child: Text('OFFLINE', style: TextStyle(color: Colors.grey, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+            );
+          }),
+
+          // 5. Save Status indicator
+          FadeTransition(
+            opacity: _saveOpacity,
+            child: Icon(Icons.check_circle, color: AppTheme.successGreen, size: 18.w),
+          ),
+          if (canvasState.isDirty)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
+              child: Container(
+                width: 8.w, height: 8.w,
+                decoration: const BoxDecoration(color: AppTheme.primaryOrange, shape: BoxShape.circle),
+              ),
+            ),
+
+          SizedBox(width: 12.w),
+
+          // 6. End Class button
+          Padding(
+            padding: EdgeInsets.only(right: 12.w),
+            child: ElevatedButton(
+              onPressed: widget.onSave, // Using onSave for now to end/save class
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent.withOpacity(0.2),
+                foregroundColor: Colors.redAccent,
+                elevation: 0,
+                side: const BorderSide(color: Colors.redAccent, width: 0.5),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                minimumSize: Size.zero,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.r)),
+              ),
+              child: Text('End Class', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -283,69 +202,28 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     required IconData icon,
     required VoidCallback onTap,
     required String tooltip,
-    String? label,
-    Color color = Colors.white,
-    bool isPremium = false,
+    Color color = Colors.white70,
   }) {
-    return _PremiumBadgeWrapper(
-      isPremium: isPremium,
-      child: Tooltip(
-        message: tooltip,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(6.r),
-          hoverColor: Colors.white10,
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
-            child: Row(
-              children: [
-                Icon(icon, color: color, size: 24.w),
-              if (label != null) ...[
-                SizedBox(width: 4.w),
-                Text(label, style: TextStyle(color: color, fontSize: 12.sp, fontWeight: FontWeight.w600)),
-              ],
-            ],
-          ),
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 14.w),
+          child: Icon(icon, color: color, size: 24.w),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
+
+  void _showImportMenu(BuildContext context, WidgetRef ref) {
+    // Legacy - being removed from TopBar according to PRD
+  }
 
   void _showExportMenu(BuildContext context, WidgetRef ref) {
-    showMenu(
-      context: context,
-      position: const RelativeRect.fromLTRB(1000, 60, 0, 0), // Upper right area
-      color: const Color(0xFF1E1E2E),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      items: [
-        PopupMenuItem(
-          onTap: () => ExportService.exportCurrentPageAsPng(ref),
-          child: Row(
-            children: [
-              const Icon(Icons.image_outlined, color: Colors.white70),
-              SizedBox(width: 12.w),
-              const Text('Export Current Page (PNG)', style: TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          onTap: () => ExportService.exportAllPagesAsPdf(ref),
-          child: Row(
-            children: [
-              const Icon(Icons.picture_as_pdf_outlined, color: Colors.white70),
-              SizedBox(width: 12.w),
-              const Text('Export All Pages (PDF)', style: TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-        PopupMenuItem(
-          onTap: () => ExportService.exportAnnotationsOnlyPdf(ref),
-          child: Row(
-            children: [
-              const Icon(Icons.edit_document, color: Colors.white70),
-              SizedBox(width: 12.w),
-              const Text('Export Annotations Only (PDF)', style: TextStyle(color: Colors.white)),
+    // Legacy - move to Menu
+  }
+(PDF)', style: TextStyle(color: Colors.white)),
             ],
           ),
         ),

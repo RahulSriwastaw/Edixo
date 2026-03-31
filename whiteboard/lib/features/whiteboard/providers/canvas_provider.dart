@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:typed_data';
+import 'package:uuid/uuid.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:dio/dio.dart';
+import 'package:eduhub_whiteboard/core/api/api_client.dart';
+import 'package:eduhub_whiteboard/features/questions/data/models/question_model.dart';
 import '../services/sync_service.dart';
 
 // ─── Stroke Data ────────────────────────────────────────────────────────────
@@ -47,7 +53,7 @@ class Stroke {
     required this.color,
     this.thickness = 2.0,
     this.opacity = 1.0,
-    this.type = StrokeType.pen,
+    this.type = StrokeType.softPen,
     this.text,
     this.isFilled = false,
     this.isSelected = false,
@@ -103,37 +109,113 @@ class Stroke {
 }
 
 enum StrokeType { 
-  // Freehand
-  pen, 
-  pencil, 
+  // Writing
+  softPen, 
+  hardPen, 
   highlighter, 
-  marker,
-  eraser,
+  chalk,
+  calligraphy,
+  spray,
+  laserPointer,
+  
+  // Erasing
+  softEraser, 
+  hardEraser, 
+  objectEraser, 
+  areaEraser,
   
   // Shapes
   line, 
   arrow, 
+  doubleArrow,
   rectangle, 
-  roundedRectangle,
+  roundedRect,
   circle, 
-  ellipse, 
   triangle, 
-  diamond,
-  speechBubble,
+  star,
   polygon,
+  callout,
 
-  // Objects
-  text, 
+  // Text
+  textBox, 
   stickyNote,
-  image,
-  pdf,
-  laserPointer,
-  threeDObject
+
+  // Selection
+  select,
+  navigate,
+
+  // Special
+  magicPen,
+  eyedropper,
+
+  // Internal
+  question,
+  
+  // Legacy / Temp
+  pen,
+  eraser,
 }
 
 // ─── Page Template ──────────────────────────────────────────────────────────
 enum PageTemplate { blank, ruled, grid, dotGrid, mathGrid }
 enum BackgroundColor { white, lightBlue, lightYellow, dark }
+
+// ─── Question Theme ─────────────────────────────────────────────────────────
+class QuestionTheme {
+  final Color questionColor;
+  final Color questionBgColor;
+  final Color optionColor;
+  final Color optionBgColor;
+  final Color screenBgColor;
+  final bool updatePosition;
+
+  const QuestionTheme({
+    this.questionColor = Colors.white,
+    this.questionBgColor = const Color(0xFF0D0D0D),
+    this.optionColor = const Color(0xFFFFD600),
+    this.optionBgColor = Colors.white10,
+    this.screenBgColor = const Color(0xFF1E1E2C),
+    this.updatePosition = true,
+  });
+
+  QuestionTheme copyWith({
+    Color? questionColor,
+    Color? questionBgColor,
+    Color? optionColor,
+    Color? optionBgColor,
+    Color? screenBgColor,
+    bool? updatePosition,
+  }) {
+    return QuestionTheme(
+      questionColor: questionColor ?? this.questionColor,
+      questionBgColor: questionBgColor ?? this.questionBgColor,
+      optionColor: optionColor ?? this.optionColor,
+      optionBgColor: optionBgColor ?? this.optionBgColor,
+      screenBgColor: screenBgColor ?? this.screenBgColor,
+      updatePosition: updatePosition ?? this.updatePosition,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+    'qColor': questionColor.value,
+    'qBgColor': questionBgColor.value,
+    'oColor': optionColor.value,
+    'oBgColor': optionBgColor.value,
+    'sBgColor': screenBgColor.value,
+    'upPos': updatePosition,
+  };
+
+  factory QuestionTheme.fromJson(Map<String, dynamic> json) {
+    return QuestionTheme(
+      questionColor: Color(json['qColor'] as int),
+      questionBgColor: Color(json['qBgColor'] as int),
+      optionColor: Color(json['oColor'] as int),
+      optionBgColor: Color(json['oBgColor'] as int),
+      screenBgColor: Color(json['sBgColor'] as int),
+      updatePosition: json['upPos'] as bool? ?? true,
+    );
+  }
+}
 
 // ─── Page Data ──────────────────────────────────────────────────────────────
 class PageData {
@@ -142,6 +224,7 @@ class PageData {
   final PageTemplate template;
   final BackgroundColor bgColor;
   final Uint8List? bgImageBytes;
+  final Question? question;
 
   PageData({
     required this.id,
@@ -149,6 +232,7 @@ class PageData {
     this.template = PageTemplate.blank,
     this.bgColor = BackgroundColor.white,
     this.bgImageBytes,
+    this.question,
   }) : strokes = strokes ?? [];
 
   PageData copyWith({
@@ -156,6 +240,7 @@ class PageData {
     PageTemplate? template,
     BackgroundColor? bgColor,
     Uint8List? bgImageBytes,
+    Question? question,
   }) {
     return PageData(
       id: id,
@@ -163,6 +248,7 @@ class PageData {
       template: template ?? this.template,
       bgColor: bgColor ?? this.bgColor,
       bgImageBytes: bgImageBytes ?? this.bgImageBytes,
+      question: question ?? this.question,
     );
   }
 
@@ -178,10 +264,33 @@ class PageData {
         return const Color(0xFF2D2D3A);
     }
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'strokes': strokes.map((s) => s.toJson()).toList(),
+        'template': template.name,
+        'bgColor': bgColor.name,
+        'bgImageBytes': bgImageBytes,
+      };
+
+  factory PageData.fromJson(Map<String, dynamic> json) => PageData(
+        id: json['id'] as String,
+        strokes: (json['strokes'] as List<dynamic>)
+            .map((s) => Stroke.fromJson(s as Map<String, dynamic>))
+            .toList(),
+        template: PageTemplate.values.byName(json['template'] as String),
+        bgColor: BackgroundColor.values.byName(json['bgColor'] as String),
+        bgImageBytes: json['bgImageBytes'] != null
+            ? Uint8List.fromList(List<int>.from(json['bgImageBytes'] as List))
+            : null,
+        question: json['question'] != null ? Question.fromJson(json['question']) : null,
+      );
 }
 
 // ─── Canvas State ───────────────────────────────────────────────────────────
 class CanvasState {
+  final String sessionId;
+  final String? setId;
   final List<PageData> pages;
   final int currentPageIndex;
   final double zoom;
@@ -193,8 +302,11 @@ class CanvasState {
   final bool showGrid;
   final bool isSplitScreen;
   final Color backgroundColor;
+  final QuestionTheme questionTheme;
 
   CanvasState({
+    String? sessionId,
+    this.setId,
     List<PageData>? pages,
     this.currentPageIndex = 0,
     this.zoom = 1.0,
@@ -206,7 +318,9 @@ class CanvasState {
     this.showGrid = false,
     this.isSplitScreen = false,
     this.backgroundColor = Colors.white,
-  })  : pages = pages ?? [PageData(id: 'page_0')],
+    this.questionTheme = const QuestionTheme(),
+  })  : sessionId = sessionId ?? const Uuid().v4(),
+        pages = pages ?? [PageData(id: 'page_0')],
         undoHistory = undoHistory ?? [],
         redoHistory = redoHistory ?? [];
 
@@ -226,8 +340,13 @@ class CanvasState {
     bool? showGrid,
     bool? isSplitScreen,
     Color? backgroundColor,
+    QuestionTheme? questionTheme,
+    String? sessionId,
+    String? setId,
   }) {
     return CanvasState(
+      sessionId: sessionId ?? this.sessionId,
+      setId: setId ?? this.setId,
       pages: pages ?? this.pages,
       currentPageIndex: currentPageIndex ?? this.currentPageIndex,
       zoom: zoom ?? this.zoom,
@@ -239,6 +358,36 @@ class CanvasState {
       showGrid: showGrid ?? this.showGrid,
       isSplitScreen: isSplitScreen ?? this.isSplitScreen,
       backgroundColor: backgroundColor ?? this.backgroundColor,
+      questionTheme: questionTheme ?? this.questionTheme,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'sessionId': sessionId,
+        'setId': setId,
+        'currentPageIndex': currentPageIndex,
+        'zoom': zoom,
+        'isDirty': isDirty,
+        'pages': pages.map((p) => p.toJson()).toList(),
+        'backgroundColor': backgroundColor.value,
+        'questionTheme': questionTheme.toJson(),
+      };
+
+  factory CanvasState.fromJson(Map<String, dynamic> json) {
+    return CanvasState(
+      sessionId: json['sessionId'] as String?,
+      setId: json['setId'] as String?,
+      currentPageIndex: (json['currentPageIndex'] as num?)?.toInt() ?? 0,
+      zoom: (json['zoom'] as num?)?.toDouble() ?? 1.0,
+      isDirty: json['isDirty'] as bool? ?? false,
+      pages: (json['pages'] as List<dynamic>?)
+              ?.map((p) => PageData.fromJson(p as Map<String, dynamic>))
+              .toList() ??
+          [PageData(id: 'page_0')],
+      backgroundColor: Color(json['backgroundColor'] as int? ?? Colors.white.value),
+      questionTheme: json['questionTheme'] != null
+          ? QuestionTheme.fromJson(Map<String, dynamic>.from(json['questionTheme'] as Map))
+          : const QuestionTheme(),
     );
   }
 }
@@ -247,10 +396,16 @@ class CanvasState {
 class CanvasStateNotifier extends StateNotifier<CanvasState> {
   Timer? _autoSaveTimer;
   final SyncService syncService;
+  final Dio _dio;
 
-  CanvasStateNotifier(this.syncService) : super(CanvasState()) {
-    _startAutoSave();
+  CanvasStateNotifier(this.syncService, this._dio) : super(CanvasState()) {
     syncService.onMessageReceived = _handleSyncMessage;
+    _init();
+  }
+
+  Future<void> _init() async {
+    await _restoreFromHive();
+    _startAutoSave();
   }
 
   void _handleSyncMessage(Map<String, dynamic> data) {
@@ -289,6 +444,24 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     });
   }
 
+  Future<Box<dynamic>> _sessionsBox() async {
+    if (Hive.isBoxOpen('sessions')) return Hive.box('sessions');
+    return Hive.openBox<dynamic>('sessions');
+  }
+
+  Future<void> _restoreFromHive() async {
+    try {
+      final box = await _sessionsBox();
+      if (box.containsKey('lastSession')) {
+        final data = Map<String, dynamic>.from(box.get('lastSession') as Map);
+        final restored = CanvasState.fromJson(data);
+        state = restored.copyWith(isDirty: false);
+      }
+    } catch (e) {
+      debugPrint('Restore session failed: $e');
+    }
+  }
+
   // ── Stroke Operations ─────────────────────────────────────────────────────
   void addStroke(Stroke stroke) {
     final pages = List<PageData>.from(state.pages);
@@ -312,6 +485,34 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     );
 
     // Broadcast
+    syncService.broadcastStroke(stroke, state.currentPageIndex);
+  }
+
+  void addQuestion(Question question) {
+    final pages = List<PageData>.from(state.pages);
+    final page = pages[state.currentPageIndex];
+    
+    // Create a question stroke. 
+    // We use a single point for position, and the text field for question data.
+    final stroke = Stroke(
+      id: 'q_${DateTime.now().millisecondsSinceEpoch}',
+      points: [const StrokePoint(300, 300)], // Better central starting position
+      color: Colors.white,
+      type: StrokeType.question,
+      text: jsonEncode({
+        'id': question.id,
+        'text': question.text,
+        'options': question.options,
+        'correctOption': question.correctOption,
+        'source': question.source ?? 'EduHub Set',
+      }),
+    );
+
+    pages[state.currentPageIndex] = page.copyWith(
+      strokes: [...page.strokes, stroke],
+    );
+
+    state = state.copyWith(pages: pages, isDirty: true);
     syncService.broadcastStroke(stroke, state.currentPageIndex);
   }
 
@@ -405,6 +606,22 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     );
   }
 
+  void importQuestionsAsSlides(List<Question> questions) {
+    final List<PageData> newPages = questions.asMap().entries.map((entry) {
+      return PageData(
+        id: 'page_q_${entry.value.id}_${DateTime.now().millisecondsSinceEpoch}',
+        question: entry.value,
+        template: PageTemplate.blank,
+      );
+    }).toList();
+
+    state = state.copyWith(
+      pages: [...state.pages, ...newPages],
+      currentPageIndex: state.pages.length,
+      isDirty: true,
+    );
+  }
+
   void removePage(int index) {
     if (state.pages.length <= 1) {
       clearPage(); // Don't remove the last page, just clear it
@@ -421,6 +638,10 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
       currentPageIndex: nextIndex,
       isDirty: true,
     );
+  }
+
+  void updateQuestionTheme(QuestionTheme theme) {
+    state = state.copyWith(questionTheme: theme, isDirty: true);
   }
 
   void reorderPages(int oldIndex, int newIndex) {
@@ -478,10 +699,18 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
       // Check if any point is inside the region bounds for performance, 
       // ideally we'd use Path.contains but this is a simple approximation
       final bounds = region.getBounds();
-      for (final p in stroke.points) {
-        if (bounds.contains(Offset(p.x, p.y))) {
-          inside = true;
-          break;
+      if (stroke.type == StrokeType.question) {
+        // Broad selection for questions - if lasso intersection or center point inside
+        final Rect cardRect = Rect.fromLTWH(stroke.points[0].x, stroke.points[0].y, 500, 400);
+        if (bounds.overlaps(cardRect) || bounds.contains(Offset(stroke.points[0].x, stroke.points[0].y))) {
+           inside = true;
+        }
+      } else {
+        for (final p in stroke.points) {
+          if (bounds.contains(Offset(p.x, p.y))) {
+            inside = true;
+            break;
+          }
         }
       }
 
@@ -580,9 +809,13 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
   void zoomOut() => setZoom(state.zoom - 0.25);
   void resetZoom() => setZoom(1.0);
 
-  // ── Background / Grid ─────────────────────────────────────────────────────
+  // ── Background / Grid / Themes ──────────────────────────────────────────
   void setBackgroundColor(Color color) {
     state = state.copyWith(backgroundColor: color);
+  }
+
+  void setQuestionTheme(QuestionTheme theme) {
+    state = state.copyWith(questionTheme: theme);
   }
 
   void setPageTemplate(PageTemplate template) {
@@ -597,6 +830,10 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
 
   void toggleThumbnails() {
     state = state.copyWith(showThumbnails: !state.showThumbnails);
+  }
+
+  void setSetId(String setId) {
+    state = state.copyWith(setId: setId, isDirty: true);
   }
 
   void setPageBackgroundImage(Uint8List? imageBytes) {
@@ -633,9 +870,25 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     if (!state.isDirty) state = state.copyWith(isDirty: true);
   }
 
-  void save() {
-    state = state.copyWith(isDirty: false);
-    // TODO: trigger cloud save API call
+  Future<void> save({String? setId}) async {
+    final nextState = state.copyWith(setId: setId ?? state.setId);
+    final payload = nextState.toJson()
+      ..['savedAt'] = DateTime.now().toIso8601String();
+
+    try {
+      final box = await _sessionsBox();
+      await box.put('lastSession', payload);
+    } catch (e) {
+      debugPrint('Local session save failed: $e');
+    }
+
+    try {
+      await _dio.post('/whiteboard/autosave', data: payload);
+    } catch (e) {
+      debugPrint('Autosave API failed: $e');
+    }
+
+    state = nextState.copyWith(isDirty: false);
   }
 
   @override
@@ -644,11 +897,3 @@ class CanvasStateNotifier extends StateNotifier<CanvasState> {
     super.dispose();
   }
 }
-
-final canvasStateProvider = StateNotifierProvider<CanvasStateNotifier, CanvasState>((ref) {
-  final syncService = ref.watch(syncServiceProvider);
-  return CanvasStateNotifier(syncService);
-});
-
-final canvasBoundaryKeyProvider = Provider((ref) => GlobalKey());
-final hideCanvasBackgroundProvider = StateProvider<bool>((ref) => false);

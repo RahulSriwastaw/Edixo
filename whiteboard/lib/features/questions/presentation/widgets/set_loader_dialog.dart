@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../providers/question_provider.dart';
 import '../../../auth/presentation/widgets/otp_input_field.dart';
+import '../../../whiteboard/providers/canvas_provider.dart';
 
 class SetLoaderDialog extends ConsumerStatefulWidget {
   const SetLoaderDialog({super.key});
@@ -69,7 +70,7 @@ class _SetLoaderDialogState extends ConsumerState<SetLoaderDialog> {
           SizedBox(height: 8.h),
           OTPInputField(
             length: 6,
-            onChanged: (vals) => _idDigits = vals,
+            onChanged: (vals) => setState(() => _idDigits = vals),
             isPassword: false,
           ),
           SizedBox(height: 16.h),
@@ -79,7 +80,7 @@ class _SetLoaderDialogState extends ConsumerState<SetLoaderDialog> {
           SizedBox(height: 8.h),
           OTPInputField(
             length: 6,
-            onChanged: (vals) => _pwDigits = vals,
+            onChanged: (vals) => setState(() => _pwDigits = vals),
             isPassword: true,
           ),
           SizedBox(height: 12.h),
@@ -107,7 +108,9 @@ class _SetLoaderDialogState extends ConsumerState<SetLoaderDialog> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: _isLoading ? null : _fetchQuestions,
+              onPressed: (_isLoading || _idDigits.join().length < 6 || _pwDigits.join().length < 6) 
+                  ? null 
+                  : _fetchQuestions,
               icon: _isLoading
                   ? const SizedBox(
                       width: 18,
@@ -177,7 +180,27 @@ class _SetLoaderDialogState extends ConsumerState<SetLoaderDialog> {
     setState(() => _isLoading = false);
 
     if (success) {
-      Navigator.pop(context);
+      final questionState = ref.read(questionPanelProvider).value;
+      if (questionState != null && questionState.questions.isNotEmpty) {
+        ref.read(canvasStateProvider.notifier).setSetId(id);
+        final firstQuestion = questionState.questions.first;
+        // Use microtask to ensure state is stable before canvas injection
+        Future.microtask(() {
+          ref.read(canvasStateProvider.notifier).addQuestion(firstQuestion);
+        });
+      }
+      if (mounted) Navigator.pop(context);
+      Future.delayed(const Duration(milliseconds: 100), () {
+        // Show snackbar after dialog is dismissed so Scaffold context is valid
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Questions loaded! First question added to canvas.'),
+            backgroundColor: Color(0xFF10B981),
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 3),
+          ),
+        );
+      });
     } else {
       setState(() => _error = 'Invalid ID or Password. Please try again.');
     }

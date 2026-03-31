@@ -5,6 +5,7 @@ import '../../../../../core/theme/app_theme.dart';
 import '../../../providers/question_provider.dart';
 import '../../../domain/models/question.dart';
 import '../../../../whiteboard/providers/whiteboard_provider.dart';
+import '../../../../whiteboard/providers/canvas_provider.dart';
 import '../../../../ai/providers/ai_provider.dart';
 import '../set_loader_dialog.dart';
 
@@ -334,13 +335,13 @@ class QuestionPanel extends ConsumerWidget {
   }
 
   void _copyToCanvas(BuildContext context, WidgetRef ref, Question question) {
-    ref.read(whiteboardContentProvider.notifier).addQuestion(question);
+    ref.read(canvasStateProvider.notifier).addQuestion(question);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: const Text('Question copied to canvas!'),
         backgroundColor: const Color(0xFF10B981),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.r)),
       ),
     );
   }

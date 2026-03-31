@@ -56,19 +56,25 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     state = const AsyncData(null);
   }
 
-  Future<bool> login(String id, String password) async {
+  Future<bool> login(String email, String password, {String role = 'ORG_STAFF', String? orgId}) async {
     state = const AsyncLoading();
     try {
       final response = await _dio.post('/auth/login', data: {
-        'email': id, // In this unified system, ID is usually email
+        'email': email,
         'password': password,
+        'role': role,
+        'orgId': orgId,
       });
 
       if (response.statusCode == 200 && response.data['success']) {
         final token = response.data['data']['accessToken'];
+        final refreshToken = response.data['data']['refreshToken'];
         final userData = response.data['data']['user'];
         
         await _storage.write(key: AppConstants.authTokenKey, value: token);
+        if (refreshToken != null) {
+          await _storage.write(key: AppConstants.refreshTokenKey, value: refreshToken);
+        }
         state = AsyncData(User.fromJson(userData));
         return true;
       } else {
@@ -86,6 +92,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
 
   Future<void> logout() async {
     await _storage.delete(key: AppConstants.authTokenKey);
+    await _storage.delete(key: AppConstants.refreshTokenKey);
     state = const AsyncData(null);
   }
 }

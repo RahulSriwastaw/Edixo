@@ -192,9 +192,16 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
           // Drag hint
           Padding(
             padding: EdgeInsets.symmetric(vertical: 6.h),
-            child: Text(
-              'Long-press to add to Favorites Bar',
-              style: TextStyle(color: Colors.white30, fontSize: 11.sp),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.push_pin_rounded, size: 12.sp, color: AppTheme.primaryOrange.withOpacity(0.7)),
+                SizedBox(width: 4.w),
+                Text(
+                  'Long-press a tool to pin it to your toolbar',
+                  style: TextStyle(color: Colors.white38, fontSize: 11.sp),
+                ),
+              ],
             ),
           ),
 

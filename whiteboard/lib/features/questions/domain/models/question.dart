@@ -5,6 +5,7 @@ class Question {
   final List<String> options;
   final int correctOption;
   final String? imageUrl;
+  final String? source;
   final String? explanation;
 
   String get questionText => text;
@@ -14,6 +15,7 @@ class Question {
     required this.text,
     required this.options,
     required this.correctOption,
+    this.source,
     this.imageUrl,
     this.explanation,
   });
