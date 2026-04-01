@@ -63,6 +63,7 @@ model Organization {
   storageUsedGB           Float                       @default(0)
   orgAdminEmail           String?
   orgAdminPassword        String?
+  whiteboardPin           String?                     @default("123456")
   receiptCounter          Int                         @default(0)
   deletedAt               DateTime?
   createdAt               DateTime                    @default(now())

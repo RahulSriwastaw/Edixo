@@ -1,4 +1,5 @@
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/auth/presentation/screens/login_screen.dart';
@@ -8,7 +9,7 @@ import '../features/auth/presentation/providers/auth_provider.dart';
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateProvider);
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: kDebugMode ? '/whiteboard' : '/login',
     redirect: (context, state) {
       final isLoggedIn = authState.asData?.value ?? false;
       if (!isLoggedIn && state.matchedLocation != '/login') {

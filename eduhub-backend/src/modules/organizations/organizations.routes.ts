@@ -132,4 +132,26 @@ router.put('/:orgId/frontend-config', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// Update whiteboard PIN (Super Admin only)
+router.patch('/:orgId/whiteboard-pin', async (req, res, next) => {
+    try {
+        const pinSchema = z.object({
+            pin: z.string().length(6, "PIN must be exactly 6 digits").regex(/^\d+$/, "PIN must contain only numbers"),
+        });
+        const { pin } = pinSchema.parse(req.body);
+
+        const org = await prisma.organization.findFirst({
+            where: { orgId: req.params.orgId, deletedAt: null },
+        });
+        if (!org) throw new AppError('Organization not found', 404);
+
+        const updated = await prisma.organization.update({
+            where: { id: org.id },
+            data: { whiteboardPin: pin },
+        });
+
+        res.json({ success: true, message: 'Whiteboard PIN updated successfully', data: { whiteboardPin: updated.whiteboardPin } });
+    } catch (err) { next(err); }
+});
+
 export default router;

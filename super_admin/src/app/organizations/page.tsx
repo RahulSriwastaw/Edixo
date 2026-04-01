@@ -72,7 +72,7 @@ function PlanBadge({ plan }: { plan: string }) {
   );
 }
 
-type ModalType = "change-plan" | "extend-trial" | "impersonate" | "suspend" | "activate" | "delete" | "edit-domain" | null;
+type ModalType = "change-plan" | "extend-trial" | "impersonate" | "suspend" | "activate" | "delete" | "edit-domain" | "edit-whiteboard-pin" | null;
 
 export default function OrganizationsPage() {
   const { isOpen } = useSidebarStore();
@@ -134,6 +134,7 @@ export default function OrganizationsPage() {
             displayName: o.displayName || o.name || "",
             primaryColor: o.primaryColor || "#F4511E",
             logoUrl: o.logoUrl || "",
+            whiteboardPin: o.whiteboardPin || "123456",
           }))
         );
         setTotalCount(json.data.total);
@@ -249,6 +250,18 @@ export default function OrganizationsPage() {
   const handleCopyId = (id: string) => {
     navigator.clipboard.writeText(id);
     toast.success("Org ID copied!");
+  };
+
+  const handleUpdateWhiteboardPin = async (pin: string) => {
+    if (!targetOrg) return;
+    setActionLoading(true);
+    try {
+      await callAPI(`${targetOrg.id}/whiteboard-pin`, "PATCH", { pin });
+      toast.success("Whiteboard PIN updated");
+      closeModal();
+      fetchOrgs();
+    } catch (e: any) { toast.error(e.message); }
+    finally { setActionLoading(false); }
   };
 
   // Bulk actions
@@ -380,6 +393,7 @@ export default function OrganizationsPage() {
                       <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Teachers</TableHead>
                       <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Students</TableHead>
                       <TableHead className="text-xs font-semibold text-gray-500 uppercase">Renewal</TableHead>
+                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Whiteboard PIN</TableHead>
                       <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -438,6 +452,15 @@ export default function OrganizationsPage() {
                           <TableCell className="text-center text-sm">{org.teachers}</TableCell>
                           <TableCell className="text-center text-sm">{org.students?.toLocaleString()}</TableCell>
                           <TableCell className="text-xs text-gray-500">{org.renewal}</TableCell>
+                          <TableCell className="text-center">
+                            <Button 
+                              variant="ghost" size="sm" 
+                              className="font-mono text-[#F4511E] hover:bg-orange-50"
+                              onClick={() => openModal("edit-whiteboard-pin", org)}
+                            >
+                              {org.whiteboardPin}
+                            </Button>
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1">
                               <Link href={`/organizations/${org.id}`}>
@@ -766,6 +789,54 @@ export default function OrganizationsPage() {
               disabled={actionLoading}
             >
               {actionLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ── Edit Whiteboard PIN Modal ── */}
+      <Dialog open={activeModal === "edit-whiteboard-pin"} onOpenChange={closeModal}>
+        <DialogContent className="sm:max-w-[400px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Whiteboard Credentials</DialogTitle>
+            <DialogDescription>Manage login credentials for <strong>{targetOrg?.name}</strong> whiteboard.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Whiteboard ID</Label>
+              <div className="flex items-center gap-2">
+                <Input value={targetOrg?.id} readOnly className="font-mono bg-gray-50" />
+                <Button variant="ghost" size="icon" onClick={() => handleCopyId(targetOrg?.id)}>
+                  <Copy className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>6-Digit PIN (Password)</Label>
+              <div className="flex items-center gap-2">
+                <Input 
+                  value={editData.displayName} // Using displayName as a temp state for PIN
+                  onChange={(e) => setEditData({...editData, displayName: e.target.value.replace(/\D/g,'').slice(0,6)})}
+                  placeholder="123456"
+                  className="font-mono text-center text-lg tracking-widest"
+                />
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditData({...editData, displayName: Math.floor(100000 + Math.random() * 900000).toString()})}
+                >
+                  Generate
+                </Button>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeModal}>Cancel</Button>
+            <Button 
+              className="bg-[#F4511E] hover:bg-[#E64A19] text-white" 
+              onClick={() => handleUpdateWhiteboardPin(editData.displayName)} 
+              disabled={actionLoading || editData.displayName.length !== 6}
+            >
+              {actionLoading ? "Updating..." : "Update Credentials"}
             </Button>
           </DialogFooter>
         </DialogContent>
