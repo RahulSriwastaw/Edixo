@@ -23,9 +23,9 @@ class _PageManagerPanelState extends ConsumerState<PageManagerPanel> {
     return Container(
       width: 200.w, // PRD Section 6.1 - SlidePanel width
       height: double.infinity,
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E2235), // Matching toolbars
-        border: const Border(left: BorderSide(color: Colors.white12)),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1E2235), // Matching toolbars
+        border: Border(left: BorderSide(color: Colors.white12)),
       ),
       child: Column(
         children: [

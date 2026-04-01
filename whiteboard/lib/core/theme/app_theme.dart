@@ -102,7 +102,6 @@ class AppTheme {
         primary: primaryOrange,
         secondary: accentBlue,
         surface: Color(0xFF262636),
-        background: primaryDark,
         error: errorRed,
       ),
       textTheme: GoogleFonts.dmSansTextTheme().copyWith(

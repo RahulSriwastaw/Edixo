@@ -28,7 +28,7 @@ class _CompetitionScoreboardState extends State<CompetitionScoreboard> {
         color: Colors.black.withOpacity(0.85),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.white12),
-        boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 10)],
+        boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,

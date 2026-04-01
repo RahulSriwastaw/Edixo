@@ -3,37 +3,23 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../providers/canvas_provider.dart';
-import '../../../services/sync_service.dart';
-import '../../../../super_admin/providers/module_config_provider.dart';
-import '../../../domain/services/export_service.dart';
-import '../dialogs/workspace_settings_dialog.dart';
-import '../../../providers/pdf_import_provider.dart';
+import '../../../providers/tool_provider.dart';
 
 // ─── Save State Provider ──────────────────────────────────────────────────────
 final saveFlashProvider = StateProvider<bool>((ref) => false);
 
 class TopToolbar extends ConsumerStatefulWidget {
   final String sessionName;
-  final VoidCallback onSave;
-  final VoidCallback onTimer;
-  final VoidCallback onShare;
-  final VoidCallback onAI;
   final VoidCallback onMenu;
-  final VoidCallback onLoadQuestions;
-  final VoidCallback onAttendance;
-  final VoidCallback onHomework;
+  final VoidCallback onImportSet;
+  final VoidCallback onEndClass;
 
   const TopToolbar({
     super.key,
     required this.sessionName,
-    required this.onSave,
-    required this.onTimer,
-    required this.onShare,
-    required this.onAI,
     required this.onMenu,
-    required this.onLoadQuestions,
-    required this.onAttendance,
-    required this.onHomework,
+    required this.onImportSet,
+    required this.onEndClass,
   });
 
   @override
@@ -53,7 +39,10 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     _nameController = TextEditingController(text: widget.sessionName);
     _saveAnim = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     _saveOpacity = Tween<double>(begin: 0, end: 1).animate(
-        CurvedAnimation(parent: _saveAnim, curve: Curves.easeInOut)  @override
+        CurvedAnimation(parent: _saveAnim, curve: Curves.easeInOut));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final canvasState = ref.watch(canvasStateProvider);
 
@@ -66,9 +55,9 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
 
     return Container(
       height: 48.h, // PRD Section 6.1
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppTheme.primaryDark,
-        border: const Border(bottom: BorderSide(color: Colors.white12, width: 1)),
+        border: Border(bottom: BorderSide(color: Colors.white12, width: 1)),
       ),
       child: Row(
         children: [
@@ -122,43 +111,54 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
             ),
           ),
 
+          SizedBox(width: 24.w),
+
+          // Import Set button (PRD Section 15)
+          ElevatedButton.icon(
+            onPressed: widget.onImportSet,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primaryOrange.withOpacity(0.15),
+              foregroundColor: AppTheme.primaryOrange,
+              elevation: 0,
+              padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 8.h),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6.r)),
+            ),
+            icon: Icon(Icons.cloud_download_rounded, size: 18.w),
+            label: Text('Import Set / PDF', style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold)),
+          ),
+
+          SizedBox(width: 12.w),
+
           const Spacer(),
 
-          // 3. Class Session Timer
-          InkWell(
-            onTap: widget.onTimer,
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(20.r),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.timer_outlined, color: Colors.white70, size: 16.w),
-                  SizedBox(width: 6.w),
-                  Text('45:00', style: TextStyle(color: Colors.white70, fontSize: 13.sp, fontWeight: FontWeight.w500)),
-                ],
-              ),
+          // 3. Class Session Timer placeholder
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20.r),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.timer_outlined, color: Colors.white70, size: 16.w),
+                SizedBox(width: 6.w),
+                Text('00:00', style: TextStyle(color: Colors.white70, fontSize: 13.sp, fontWeight: FontWeight.w500)),
+              ],
             ),
           ),
 
           SizedBox(width: 16.w),
 
-          // 4. Offline badge (conditional)
-          Consumer(builder: (context, ref, _) {
-            final isLive = ref.watch(isLiveSyncingProvider);
-            if (isLive) return const SizedBox.shrink();
-            return Container(
-              margin: EdgeInsets.only(right: 12.w),
-              padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.2),
-                borderRadius: BorderRadius.circular(4.r),
-              ),
-              child: Text('OFFLINE', style: TextStyle(color: Colors.grey, fontSize: 10.sp, fontWeight: FontWeight.bold)),
-            );
-          }),
+          // 4. Offline badge placeholder
+          Container(
+            margin: EdgeInsets.only(right: 12.w),
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 3.h),
+            decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.2),
+              borderRadius: BorderRadius.circular(4.r),
+            ),
+            child: Text('OFFLINE', style: TextStyle(color: Colors.grey, fontSize: 10.sp, fontWeight: FontWeight.bold)),
+          ),
 
           // 5. Save Status indicator
           FadeTransition(
@@ -180,7 +180,7 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
           Padding(
             padding: EdgeInsets.only(right: 12.w),
             child: ElevatedButton(
-              onPressed: widget.onSave, // Using onSave for now to end/save class
+              onPressed: widget.onEndClass,
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent.withOpacity(0.2),
                 foregroundColor: Colors.redAccent,
@@ -220,15 +220,12 @@ class _TopToolbarState extends ConsumerState<TopToolbar>
     // Legacy - being removed from TopBar according to PRD
   }
 
+  void _triggerSaveFlash() {
+    _saveAnim.forward().then((_) => _saveAnim.reverse());
+  }
+
   void _showExportMenu(BuildContext context, WidgetRef ref) {
     // Legacy - move to Menu
-  }
-(PDF)', style: TextStyle(color: Colors.white)),
-            ],
-          ),
-        ),
-      ],
-    );
   }
 
   @override

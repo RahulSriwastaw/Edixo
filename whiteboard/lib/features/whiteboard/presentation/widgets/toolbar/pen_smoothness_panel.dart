@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:eduhub_whiteboard/features/drawing/providers/tool_provider.dart';
-import 'package:eduhub_whiteboard/features/drawing/domain/models/drawing_tool.dart';
+import '../../../providers/tool_provider.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const _kNavy = Color(0xFF1A1A2E);
@@ -19,29 +18,29 @@ class PenSmoothnessPanel extends ConsumerWidget {
 
   static const _smoothingLabels = ['Off', 'Low', 'Med', 'High'];
 
-  static bool shouldShow(ToolType tool) {
+  static bool shouldShow(Tool tool) {
     return [
-      ToolType.pen,
-      ToolType.pencil,
-      ToolType.ballpoint,
-      ToolType.highlighter,
-      ToolType.marker,
-      ToolType.laserPointer,
+      Tool.softPen,
+      Tool.hardPen,
+      Tool.calligraphy,
+      Tool.highlighter,
+      Tool.chalk,
+      Tool.laserPointer,
     ].contains(tool);
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drawingState = ref.watch(drawingStateProvider);
-    final notifier = ref.read(drawingStateProvider.notifier);
+    final drawingState = ref.watch(toolProvider);
+    final notifier = ref.read(toolProvider.notifier);
     final tool = drawingState.activeTool;
 
     if (!shouldShow(tool)) return const SizedBox.shrink();
 
     final smoothing = drawingState.currentSettings.smoothing;
-    final isPen = tool == ToolType.pen ||
-        tool == ToolType.pencil ||
-        tool == ToolType.ballpoint;
+    final isPen = tool == Tool.softPen ||
+        tool == Tool.hardPen ||
+        tool == Tool.calligraphy;
 
     return AnimatedSlide(
       offset: Offset.zero,
@@ -83,7 +82,11 @@ class PenSmoothnessPanel extends ConsumerWidget {
               ...List.generate(4, (level) {
                 final isActive = smoothing.level == level;
                 return GestureDetector(
-                  onTap: () => notifier.setSmoothingLevel(level),
+                  onTap: () => notifier.updateSettings(
+                      tool,
+                      drawingState.currentSettings.copyWith(
+                        smoothing: drawingState.currentSettings.smoothing.copyWith(level: level),
+                      )),
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     margin: const EdgeInsets.symmetric(horizontal: 2),
@@ -115,8 +118,13 @@ class PenSmoothnessPanel extends ConsumerWidget {
               _ToggleChip(
                 label: 'Stabilizer',
                 icon: Icons.gesture,
-                value: smoothing.stabilizerEnabled,
-                onChanged: (v) => notifier.setStabilizer(v),
+                value: smoothing.taperEnabled,
+                onChanged: (v) => notifier.updateSettings(
+                  tool,
+                  drawingState.currentSettings.copyWith(
+                    smoothing: smoothing.copyWith(taperEnabled: v),
+                  ),
+                ),
               ),
 
               const SizedBox(width: 8),
@@ -126,8 +134,13 @@ class PenSmoothnessPanel extends ConsumerWidget {
                 _ToggleChip(
                   label: 'Taper',
                   icon: Icons.edit_outlined,
-                  value: smoothing.taperEnabled,
-                  onChanged: (v) => notifier.setTaperEnabled(v),
+                value: smoothing.taperEnabled,
+                onChanged: (v) => notifier.updateSettings(
+                  tool,
+                  drawingState.currentSettings.copyWith(
+                    smoothing: smoothing.copyWith(taperEnabled: v),
+                  ),
+                ),
                 ),
                 const SizedBox(width: 12),
                 _vDivider(),
@@ -140,7 +153,10 @@ class PenSmoothnessPanel extends ConsumerWidget {
                 value: smoothing.minWidth,
                 min: 0.5,
                 max: 8.0,
-                onChanged: (v) => notifier.setStrokeWidthRange(v, smoothing.maxWidth),
+                onChanged: (v) => notifier.updateSettings(
+                  tool, drawingState.currentSettings.copyWith(
+                    smoothing: smoothing.copyWith(minWidth: v),
+                  )),
               ),
               const SizedBox(width: 8),
               _WidthControl(
@@ -148,7 +164,10 @@ class PenSmoothnessPanel extends ConsumerWidget {
                 value: smoothing.maxWidth,
                 min: 2.0,
                 max: 30.0,
-                onChanged: (v) => notifier.setStrokeWidthRange(smoothing.minWidth, v),
+                onChanged: (v) => notifier.updateSettings(
+                  tool, drawingState.currentSettings.copyWith(
+                    smoothing: smoothing.copyWith(maxWidth: v),
+                  )),
               ),
             ],
           ),
@@ -302,15 +321,15 @@ class PenSmoothnessPanelWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tool = ref.watch(drawingStateProvider).activeTool;
+    final tool = ref.watch(toolProvider).activeTool;
     if (!PenSmoothnessPanel.shouldShow(tool)) return const SizedBox.shrink();
 
-    return Positioned(
+    return const Positioned(
       bottom: 92, // above the 64dp toolbar + 16dp gap + 12dp margin
       left: 0,
       right: 0,
       child: Center(
-        child: const PenSmoothnessPanel(),
+        child: PenSmoothnessPanel(),
       ),
     );
   }

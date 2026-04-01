@@ -1,8 +1,6 @@
-import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:pdfx/pdfx.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'canvas_provider.dart';
 

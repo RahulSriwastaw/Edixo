@@ -1,0 +1,28 @@
+
+import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:eduhub_whiteboard/core/network/dio_client.dart';
+import '../models/set_slide_model.dart';
+
+final setImportRemoteDsProvider = Provider((ref) => SetImportRemoteDataSource(ref.watch(dioProvider)));
+
+class SetImportRemoteDataSource {
+  final Dio _dio;
+
+  SetImportRemoteDataSource(this._dio);
+
+  Future<List<SetSlideModel>> importSet(String setId, {String? password}) async {
+    try {
+      final response = await _dio.get(
+        '/whiteboard/sets/$setId',
+        queryParameters: {'password': password},
+      );
+      final slides = (response.data['slides'] as List)
+          .map((slide) => SetSlideModel.fromJson(slide))
+          .toList();
+      return slides;
+    } on DioException {
+      rethrow;
+    }
+  }
+}

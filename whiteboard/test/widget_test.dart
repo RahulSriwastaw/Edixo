@@ -5,7 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 void main() {
   testWidgets('App launches', (WidgetTester tester) async {
-    await tester.pumpWidget(const ProviderScope(child: EduHubWhiteboardApp()));
+    await tester.pumpWidget(const ProviderScope(child: EduBoardApp()));
     expect(find.byType(MaterialApp), findsOneWidget);
   });
 }

@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
-import '../../../providers/canvas_provider.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../providers/canvas_provider.dart';
+import '../../../providers/tool_provider.dart';
 
 class QuestionSettingsDialog extends ConsumerWidget {
   const QuestionSettingsDialog({super.key});
@@ -24,118 +25,101 @@ class QuestionSettingsDialog extends ConsumerWidget {
           borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
-              blurRadius: 20,
-              spreadRadius: 5,
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
             ),
           ],
-          border: Border.all(color: Colors.white10),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.settings_suggest_outlined, color: AppTheme.primaryOrange, size: 24.w),
-                    SizedBox(width: 12.w),
-                    Text(
-                      'Presentation Settings',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.r),
                     ),
-                  ],
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                ),
-              ],
-            ),
-            const Divider(color: Colors.white10, height: 32),
+                    child: Icon(Icons.palette_outlined, color: AppTheme.primaryOrange, size: 24.w),
+                  ),
+                  SizedBox(width: 16.w),
+                  Text(
+                    'Question Appearance',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white60),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              Divider(height: 40.h, color: Colors.white10),
+              
+              _buildSectionHeader('Colors'),
+              SizedBox(height: 16.h),
+              _buildColorItem(
+                context,
+                'Question Text',
+                theme.questionColor,
+                (c) => _updateTheme(ref, theme.copyWith(questionColor: c)),
+              ),
+              _buildColorItem(
+                context,
+                'Background',
+                theme.questionBgColor,
+                (c) => _updateTheme(ref, theme.copyWith(questionBgColor: c)),
+              ),
+              _buildColorItem(
+                context,
+                'Options Text',
+                theme.optionColor,
+                (c) => _updateTheme(ref, theme.copyWith(optionColor: c)),
+              ),
+              _buildColorItem(
+                context,
+                'Options Background',
+                theme.optionBgColor,
+                (c) => _updateTheme(ref, theme.copyWith(optionBgColor: c)),
+              ),
+              
+              SizedBox(height: 24.h),
+              _buildSectionHeader('Screen Background'),
+              SizedBox(height: 16.h),
+              _buildColorItem(
+                context,
+                'Canvas Background',
+                theme.screenBgColor,
+                (c) => _updateTheme(ref, theme.copyWith(screenBgColor: c)),
+              ),
 
-            _buildSectionHeader('Question Styles'),
-            SizedBox(height: 12.h),
-            Row(
-              children: [
-                _buildColorButton(
-                  context, 
-                  ref, 
-                  'Question Color', 
-                  theme.questionColor, 
-                  (c) => _updateTheme(ref, theme.copyWith(questionColor: c)),
-                ),
-                SizedBox(width: 12.w),
-                _buildColorButton(
-                  context, 
-                  ref, 
-                  'Question BG', 
-                  theme.questionBgColor, 
-                  (c) => _updateTheme(ref, theme.copyWith(questionBgColor: c)),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 24.h),
-            _buildSectionHeader('Option Styles'),
-            SizedBox(height: 12.h),
-            Row(
-              children: [
-                _buildColorButton(
-                  context, 
-                  ref, 
-                  'Option Color', 
-                  theme.optionColor, 
-                  (c) => _updateTheme(ref, theme.copyWith(optionColor: c)),
-                ),
-                SizedBox(width: 12.w),
-                _buildColorButton(
-                  context, 
-                  ref, 
-                  'Option BG', 
-                  theme.optionBgColor, 
-                  (c) => _updateTheme(ref, theme.copyWith(optionBgColor: c)),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 24.h),
-            _buildSectionHeader('Canvas'),
-            SizedBox(height: 12.h),
-            Row(
-              children: [
-                _buildColorButton(
-                  context, 
-                  ref, 
-                  'Screen BG', 
-                  theme.screenBgColor, 
-                  (c) => _updateTheme(ref, theme.copyWith(screenBgColor: c)),
-                ),
-              ],
-            ),
-
-            SizedBox(height: 32.h),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Update Position',
-                  style: TextStyle(color: Colors.white70, fontSize: 14.sp),
-                ),
-                Switch(
-                  value: theme.updatePosition,
-                  onChanged: (v) => _updateTheme(ref, theme.copyWith(updatePosition: v)),
-                  activeColor: AppTheme.primaryOrange,
-                ),
-              ],
-            ),
-          ],
+              SizedBox(height: 24.h),
+              _buildSectionHeader('Behavior'),
+              SizedBox(height: 16.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Auto-center on load',
+                    style: TextStyle(color: Colors.white70, fontSize: 16.sp),
+                  ),
+                  Switch(
+                    value: theme.updatePosition,
+                    onChanged: (v) => _updateTheme(ref, theme.copyWith(updatePosition: v)),
+                    activeThumbColor: AppTheme.primaryOrange,
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -143,56 +127,50 @@ class QuestionSettingsDialog extends ConsumerWidget {
 
   void _updateTheme(WidgetRef ref, QuestionTheme theme) {
     ref.read(canvasStateProvider.notifier).setQuestionTheme(theme);
-    // Also update screen background if relevant
-    ref.read(canvasStateProvider.notifier).setBackgroundColor(theme.screenBgColor);
+    // theme.screenBgColor is a Color, but we map to BackgroundColor.dark as generic for now.
+    ref.read(canvasStateProvider.notifier).setBackgroundColor(BackgroundColor.dark);
+  }
+
+  void _updateQuestionStyle(WidgetRef ref, CanvasObjectModel qw) {
+    ref.read(canvasStateProvider.notifier).updateQuestionWidget(qw);
   }
 
   Widget _buildSectionHeader(String title) {
     return Text(
       title.toUpperCase(),
       style: TextStyle(
-        color: Colors.white38,
-        fontSize: 10.sp,
-        fontWeight: FontWeight.bold,
+        color: AppTheme.primaryOrange,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w600,
         letterSpacing: 1.2,
       ),
     );
   }
 
-  Widget _buildColorButton(
-    BuildContext context, 
-    WidgetRef ref, 
-    String label, 
-    Color color, 
-    ValueChanged<Color> onColorChanged,
-  ) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _pickColor(context, label, color, onColorChanged),
+  Widget _buildColorItem(BuildContext context, String label, Color color, Function(Color) onColorChanged) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: InkWell(
+        onTap: () => _showColorPicker(context, color, onColorChanged),
+        borderRadius: BorderRadius.circular(12.r),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
-            borderRadius: BorderRadius.circular(8.r),
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(12.r),
             border: Border.all(color: Colors.white10),
           ),
           child: Row(
             children: [
+              Text(label, style: TextStyle(color: Colors.white, fontSize: 15.sp)),
+              const Spacer(),
               Container(
-                width: 20.w,
-                height: 20.w,
+                width: 24.w,
+                height: 24.w,
                 decoration: BoxDecoration(
                   color: color,
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white24),
-                ),
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(color: Colors.white, fontSize: 11.sp),
-                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -202,22 +180,22 @@ class QuestionSettingsDialog extends ConsumerWidget {
     );
   }
 
-  void _pickColor(BuildContext context, String title, Color currentColor, ValueChanged<Color> onColorChanged) {
+  void _showColorPicker(BuildContext context, Color initialColor, Function(Color) onColorChanged) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Pick $title'),
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pick a color'),
         content: SingleChildScrollView(
           child: ColorPicker(
-            pickerColor: currentColor,
+            pickerColor: initialColor,
             onColorChanged: onColorChanged,
             pickerAreaHeightPercent: 0.8,
           ),
         ),
         actions: [
           TextButton(
-            child: const Text('DONE'),
-            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Got it'),
+            onPressed: () => Navigator.of(ctx).pop(),
           ),
         ],
       ),

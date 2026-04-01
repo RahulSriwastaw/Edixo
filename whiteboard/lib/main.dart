@@ -1,20 +1,16 @@
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'app.dart';
-import 'core/storage/hive_setup.dart';
 
 void main() async {
-  print('🚀 Whiteboard app starting...');
   WidgetsFlutterBinding.ensureInitialized();
+  await Hive.initFlutter();
   
-  print('📦 Initializing Hive + adapters...');
-  await setupHive();
-  print('✅ Hive ready.');
-  
-  runApp(
-    const ProviderScope(
-      child: EduHubWhiteboardApp(),
-    ),
-  );
+  // Adapter registration will go here in a future step
+
+  // Opening Hive boxes will go here
+
+  runApp(const ProviderScope(child: EduBoardApp()));
 }

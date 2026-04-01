@@ -1,29 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../core/theme/app_theme.dart';
-import '../../providers/tool_provider.dart';
+import '../../../providers/tool_provider.dart';
+import '../../../providers/canvas_provider.dart';
 
 class PenSettingsBottomSheet extends ConsumerWidget {
-  final ToolType tool;
-
-  const PenSettingsBottomSheet({super.key, required this.tool});
+  const PenSettingsBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final toolState = ref.watch(toolProvider);
-    final settings = toolState.toolSettings[tool] ?? const ToolSettings();
     final notifier = ref.read(toolProvider.notifier);
+    final tool = toolState.activeTool;
+    final settings = toolState.toolSettings[tool] ?? const ToolSettings();
 
     return Container(
-      padding: EdgeInsets.all(24.w),
-      decoration: BoxDecoration(
-        color: AppTheme.primaryDark,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+      padding: EdgeInsets.all(20.w),
+      decoration: const BoxDecoration(
+        color: Color(0xFF1E1E2C),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -42,10 +40,10 @@ class PenSettingsBottomSheet extends ConsumerWidget {
           
           _settingRow(
             label: 'Thickness',
-            value: settings.thickness,
+            value: settings.strokeWidth,
             min: 1,
             max: 50,
-            onChanged: (val) => notifier.updateSettings(tool, settings.copyWith(thickness: val)),
+            onChanged: (val) => notifier.updateSettings(tool, settings.copyWith(strokeWidth: val)),
             unit: 'px',
           ),
           
@@ -57,35 +55,44 @@ class PenSettingsBottomSheet extends ConsumerWidget {
             onChanged: (val) => notifier.updateSettings(tool, settings.copyWith(opacity: val / 100)),
             unit: '%',
           ),
-
-          _settingRow(
-            label: 'Smoothness',
-            value: settings.smoothing.decimationThreshold * 10, // Visual mapping
-            min: 0,
-            max: 50,
-            onChanged: (val) => notifier.updateSettings(
-              tool, 
-              settings.copyWith(smoothing: settings.smoothing.copyWith(decimationThreshold: val / 10)),
+          
+          if (tool == Tool.softPen || tool == Tool.hardPen)
+            _settingRow(
+              label: 'Smoothing',
+              value: settings.smoothing.decimationThreshold * 10,
+              min: 0,
+              max: 20,
+              onChanged: (val) => notifier.updateSettings(
+                tool, 
+                settings.copyWith(
+                  smoothing: settings.smoothing.copyWith(decimationThreshold: val / 10)
+                )
+              ),
+              unit: '',
             ),
-            unit: '',
-          ),
-
-          SizedBox(height: 16.h),
-          Text('Tip Style', style: TextStyle(color: Colors.white70, fontSize: 12.sp, fontWeight: FontWeight.w600)),
-          SizedBox(height: 12.h),
+            
+          SizedBox(height: 10.h),
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _tipOption(context, 'Round', Icons.circle, true),
-              SizedBox(width: 12.w),
-              _tipOption(context, 'Flat', Icons.horizontal_rule, false),
-              SizedBox(width: 12.w),
-              _tipOption(context, 'Brush', Icons.brush, false),
+              _colorCircle(ref, Colors.white, settings.color == Colors.white),
+              _colorCircle(ref, const Color(0xFFFF6B35), settings.color == const Color(0xFFFF6B35)),
+              _colorCircle(ref, const Color(0xFF4ECDC4), settings.color == const Color(0xFF4ECDC4)),
+              _colorCircle(ref, const Color(0xFFFFE66D), settings.color == const Color(0xFFFFE66D)),
+              _colorCircle(ref, const Color(0xFFFF9F1C), settings.color == const Color(0xFFFF9F1C)),
             ],
           ),
-          SizedBox(height: 24.h),
+          SizedBox(height: 20.h),
         ],
       ),
     );
+  }
+
+  String _getToolLabel(Tool tool) {
+    if (tool == Tool.softPen) return 'Pen';
+    if (tool == Tool.highlighter) return 'Highlighter';
+    if (tool == Tool.softEraser || tool == Tool.hardEraser) return 'Eraser';
+    return 'Tool';
   }
 
   Widget _settingRow({
@@ -93,63 +100,51 @@ class PenSettingsBottomSheet extends ConsumerWidget {
     required double value,
     required double min,
     required double max,
-    required ValueChanged<double> onChanged,
+    required Function(double) onChanged,
     required String unit,
   }) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: EdgeInsets.symmetric(vertical: 8.h),
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(label, style: TextStyle(color: Colors.white70, fontSize: 13.sp)),
-              Text('${value.toInt()} $unit', style: TextStyle(color: AppTheme.primaryOrange, fontSize: 13.sp, fontWeight: FontWeight.bold)),
-            ],
+          SizedBox(
+            width: 80.w,
+            child: Text(label, style: TextStyle(color: Colors.white70, fontSize: 14.sp)),
           ),
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: AppTheme.primaryOrange,
-              inactiveTrackColor: Colors.white10,
-              thumbColor: AppTheme.primaryOrange,
-              overlayColor: AppTheme.primaryOrange.withOpacity(0.2),
-              trackHeight: 4.h,
-            ),
+          Expanded(
             child: Slider(
               value: value,
               min: min,
               max: max,
               onChanged: onChanged,
+              activeColor: const Color(0xFFFF6B35),
             ),
+          ),
+          SizedBox(
+            width: 40.w,
+            child: Text('${value.toInt()}$unit', style: TextStyle(color: Colors.white, fontSize: 14.sp)),
           ),
         ],
       ),
     );
   }
 
-  Widget _tipOption(BuildContext context, String label, IconData icon, bool selected) {
-    return Expanded(
+  Widget _colorCircle(WidgetRef ref, Color color, bool isSelected) {
+    return InkWell(
+      onTap: () => ref.read(toolProvider.notifier).setColor(color),
       child: Container(
-        padding: EdgeInsets.all(12.w),
+        width: 32.w,
+        height: 32.w,
         decoration: BoxDecoration(
-          color: selected ? AppTheme.primaryOrange.withOpacity(0.15) : Colors.white.withOpacity(0.05),
-          borderRadius: BorderRadius.circular(10.r),
-          border: Border.all(color: selected ? AppTheme.primaryOrange : Colors.transparent),
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: selected ? AppTheme.primaryOrange : Colors.white60, size: 20.w),
-            SizedBox(height: 4.h),
-            Text(label, style: TextStyle(color: selected ? Colors.white : Colors.white60, fontSize: 10.sp)),
-          ],
+          color: color,
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isSelected ? Colors.white : Colors.transparent,
+            width: 2,
+          ),
+          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8)] : null,
         ),
       ),
     );
-  }
-
-  String _getToolLabel(ToolType tool) {
-    final name = tool.name;
-    return name[0].toUpperCase() + name.substring(1);
   }
 }

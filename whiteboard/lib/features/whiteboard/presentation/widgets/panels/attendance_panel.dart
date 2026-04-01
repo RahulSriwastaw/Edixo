@@ -43,7 +43,7 @@ class _AttendancePanelState extends State<AttendancePanel> {
                   subtitle: Text(student['id'], style: TextStyle(fontSize: 11.sp, color: Colors.grey)),
                   trailing: Switch(
                     value: student['present'],
-                    activeColor: Colors.green,
+                    activeThumbColor: Colors.green,
                     onChanged: (val) {
                       setState(() => student['present'] = val);
                     },

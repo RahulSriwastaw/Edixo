@@ -1,5 +1,4 @@
 import 'dart:ui' as ui;
-import 'package:flutter/services.dart';
 import 'package:flutter/material.dart' show Colors;
 import 'package:flutter/foundation.dart';
 import 'package:pdf/pdf.dart';
@@ -8,8 +7,8 @@ import 'package:printing/printing.dart';
 import 'package:intl/intl.dart';
 
 import '../providers/canvas_provider.dart';
-import '../presentation/widgets/canvas/whiteboard_canvas.dart';
-import '../../drawing/domain/models/drawing_tool.dart';
+import '../presentation/widgets/drawing/canvas_painter.dart';
+import '../providers/tool_provider.dart';
 
 class ExportService {
   static Future<void> exportPageToPdf(PageData page) async {
@@ -26,12 +25,7 @@ class ExportService {
       // Draw content using our existing CanvasPainter
       final painter = CanvasPainter(
         strokes: page.strokes,
-        currentPoints: [],
-        currentTool: ToolType.pen,
-        currentColor: Colors.black,
-        currentThickness: 2.0,
-        currentOpacity: 1.0,
-        template: page.template,
+        objects: page.objects,
       );
       
       painter.paint(canvas, size);

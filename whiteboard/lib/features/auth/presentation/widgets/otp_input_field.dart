@@ -183,7 +183,7 @@ class _OTPInputFieldState extends State<OTPInputField> {
                       _controllers[idx].text = toProcess[i];
                       _values[idx] = toProcess[i];
                       _controllers[idx].selection = TextSelection.fromPosition(
-                        TextPosition(offset: 1),
+                        const TextPosition(offset: 1),
                       );
                     }
                     widget.onChanged(List.from(_values));

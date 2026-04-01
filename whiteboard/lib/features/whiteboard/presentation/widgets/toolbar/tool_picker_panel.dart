@@ -3,69 +3,60 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../drawing/domain/models/drawing_tool.dart';
-import '../../../../drawing/providers/tool_provider.dart';
+import '../../../providers/tool_provider.dart';
 import '../../../providers/pdf_import_provider.dart';
 import '../../../providers/canvas_provider.dart';
 
 // ─── Tool entry (not const to avoid compile issues with records) ──────────────
 class _ToolEntry {
-  final ToolType toolType;
+  final Tool tool;
   final IconData icon;
   final String label;
   final bool isPremium;
-  const _ToolEntry(this.toolType, this.icon, this.label, {this.isPremium = false});
+  const _ToolEntry(this.tool, this.icon, this.label, {this.isPremium = false});
 }
+
+// ─── Tool Categories ──────────────────────────────────────────────────────────
+enum ToolCategory { draw, shapes, objects, measure, insert, edit }
 
 // ─── Full Tool Library (PRD-07 v2.0, 6 Tabs) ─────────────────────────────────
 final Map<ToolCategory, List<_ToolEntry>> _allTools = {
   ToolCategory.draw: [
-    const _ToolEntry(ToolType.pen, Icons.edit_outlined, 'Pen'),
-    const _ToolEntry(ToolType.highlighter, Icons.highlight_outlined, 'Highlighter'),
-    const _ToolEntry(ToolType.marker, Icons.brush_outlined, 'Marker'),
-    const _ToolEntry(ToolType.eraser, Icons.auto_fix_normal_outlined, 'Eraser'),
-    const _ToolEntry(ToolType.laserPointer, Icons.local_fire_department_outlined, 'Laser'),
-    const _ToolEntry(ToolType.pencil, Icons.create_outlined, 'Pencil'),
+    const _ToolEntry(Tool.softPen, Icons.edit_outlined, 'Soft Pen'),
+    const _ToolEntry(Tool.hardPen, Icons.edit, 'Hard Pen'),
+    const _ToolEntry(Tool.highlighter, Icons.highlight_outlined, 'Highlighter'),
+    const _ToolEntry(Tool.chalk, Icons.draw_outlined, 'Chalk'),
+    const _ToolEntry(Tool.calligraphy, Icons.brush_outlined, 'Calligraphy'),
+    const _ToolEntry(Tool.spray, Icons.blur_on_outlined, 'Spray'),
+    const _ToolEntry(Tool.laserPointer, Icons.local_fire_department_outlined, 'Laser'),
+    const _ToolEntry(Tool.softEraser, Icons.auto_fix_normal_outlined, 'Soft Eraser'),
+    const _ToolEntry(Tool.hardEraser, Icons.auto_fix_high_outlined, 'Hard Eraser'),
   ],
   ToolCategory.shapes: [
-    const _ToolEntry(ToolType.shapes, Icons.horizontal_rule_rounded, 'Line'),
-    const _ToolEntry(ToolType.shapes, Icons.arrow_forward_rounded, 'Arrow'),
-    const _ToolEntry(ToolType.shapes, Icons.crop_square_outlined, 'Rectangle'),
-    const _ToolEntry(ToolType.shapes, Icons.circle_outlined, 'Ellipse'),
-    const _ToolEntry(ToolType.shapes, Icons.cloud_outlined, 'Cloud'),
-    const _ToolEntry(ToolType.shapes, Icons.hexagon_outlined, 'Polygon'),
-    _ToolEntry(ToolType.shapes, Icons.change_history_outlined, 'Triangle', isPremium: true),
-    _ToolEntry(ToolType.shapes, Icons.chat_bubble_outline_rounded, 'Speech', isPremium: true),
+    const _ToolEntry(Tool.line, Icons.horizontal_rule_rounded, 'Line'),
+    const _ToolEntry(Tool.arrow, Icons.arrow_forward_rounded, 'Arrow'),
+    const _ToolEntry(Tool.doubleArrow, Icons.compare_arrows_rounded, 'Double Arrow'),
+    const _ToolEntry(Tool.rectangle, Icons.crop_square_outlined, 'Rectangle'),
+    const _ToolEntry(Tool.roundedRect, Icons.rounded_corner_outlined, 'Rounded Rect'),
+    const _ToolEntry(Tool.circle, Icons.circle_outlined, 'Circle'),
+    const _ToolEntry(Tool.triangle, Icons.change_history_outlined, 'Triangle'),
+    const _ToolEntry(Tool.star, Icons.star_border_outlined, 'Star'),
+    const _ToolEntry(Tool.polygon, Icons.hexagon_outlined, 'Polygon'),
+    const _ToolEntry(Tool.callout, Icons.chat_bubble_outline_rounded, 'Callout'),
   ],
   ToolCategory.objects: [
-    const _ToolEntry(ToolType.text, Icons.text_fields_outlined, 'Text'),
-    _ToolEntry(ToolType.stickyNote, Icons.sticky_note_2_outlined, 'Sticky', isPremium: true),
-    const _ToolEntry(ToolType.text, Icons.format_underline_rounded, 'Underline'),
-    const _ToolEntry(ToolType.text, Icons.strikethrough_s_rounded, 'Strikethrough'),
-    const _ToolEntry(ToolType.text, Icons.highlight_outlined, 'Text Highlight'),
-    _ToolEntry(ToolType.equation, Icons.functions_outlined, 'Equation', isPremium: true),
+    const _ToolEntry(Tool.textBox, Icons.text_fields_outlined, 'Text Box'),
+    const _ToolEntry(Tool.stickyNote, Icons.sticky_note_2_outlined, 'Sticky Note'),
   ],
   ToolCategory.measure: [
-    _ToolEntry(ToolType.ruler, Icons.straighten_outlined, 'Length', isPremium: true),
-    _ToolEntry(ToolType.ruler, Icons.route_outlined, 'Polylength', isPremium: true),
-    _ToolEntry(ToolType.ruler, Icons.crop_free_outlined, 'Rect Area', isPremium: true),
-    _ToolEntry(ToolType.ruler, Icons.pentagon_outlined, 'Poly Area', isPremium: true),
-    _ToolEntry(ToolType.ruler, Icons.settings_outlined, 'Calibrate', isPremium: true),
+    const _ToolEntry(Tool.navigate, Icons.navigation_outlined, 'Navigate'),
   ],
   ToolCategory.insert: [
-    const _ToolEntry(ToolType.image, Icons.image_outlined, 'Image'),
-    const _ToolEntry(ToolType.pdf, Icons.picture_as_pdf_outlined, 'PDF Page'),
-    const _ToolEntry(ToolType.stickyNote, Icons.note_add_outlined, 'Note'),
-    const _ToolEntry(ToolType.image, Icons.camera_alt_outlined, 'Camera'),
-    const _ToolEntry(ToolType.ruler, Icons.bookmark_border_rounded, 'Bookmark'),
-    _ToolEntry(ToolType.equation, Icons.functions_outlined, 'Equation', isPremium: true),
-    const _ToolEntry(ToolType.image, Icons.grid_on_rounded, 'Grid'),
-    _ToolEntry(ToolType.laserPointer, Icons.volume_up_outlined, 'Audio Note', isPremium: true),
+    const _ToolEntry(Tool.magicPen, Icons.auto_awesome_outlined, 'Magic Pen'),
   ],
   ToolCategory.edit: [
-    const _ToolEntry(ToolType.lasso, Icons.highlight_alt_outlined, 'Lasso'),
-    const _ToolEntry(ToolType.lasso, Icons.text_format_rounded, 'Text Select'),
-    _ToolEntry(ToolType.lasso, Icons.select_all_rounded, 'Rect Select', isPremium: true),
+    const _ToolEntry(Tool.select, Icons.highlight_alt_outlined, 'Select'),
+    const _ToolEntry(Tool.navigate, Icons.pan_tool_outlined, 'Pan'),
   ],
 };
 
@@ -113,8 +104,8 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
 
   @override
   Widget build(BuildContext context) {
-    final drawingState = ref.watch(drawingStateProvider);
-    final notifier = ref.read(drawingStateProvider.notifier);
+    final toolState = ref.watch(toolProvider);
+    final notifier = ref.read(toolProvider.notifier);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,
@@ -223,31 +214,17 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
                 return _ToolGrid(
                   tools: tools,
                   categoryColor: categoryColor,
-                  favorites: drawingState.favorites,
+                  favorites: toolState.pinnedTools,
                   onToolTap: (toolType) async {
-                    if (toolType == ToolType.pdf) {
-                      final pdfNotifier = ref.read(pdfImportProvider.notifier);
-                      await pdfNotifier.pickPdf();
-                      final pdfState = ref.read(pdfImportProvider);
-                      if (pdfState.filePath != null || pdfState.fileBytes != null) {
-                        // Batch render and import
-                        final pages = await pdfNotifier.renderAllPages();
-                        if (pages.isNotEmpty) {
-                          ref.read(canvasStateProvider.notifier).importPdfPages(pages);
-                        }
-                      }
-                      if (context.mounted) Navigator.pop(context);
-                    } else {
-                      notifier.selectTool(toolType);
-                      Navigator.pop(context);
-                    }
+                    notifier.selectTool(toolType);
+                    Navigator.pop(context);
                   },
                   onLongPress: (toolType) {
-                    notifier.toggleFavorite(toolType);
+                    notifier.setPinnedTools([...toolState.pinnedTools, toolType]);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Tool pinned to Favorites!'),
-                        duration: const Duration(seconds: 1),
+                      const SnackBar(
+                        content: Text('Tool pinned to Favorites!'),
+                        duration: Duration(seconds: 1),
                         backgroundColor: AppTheme.primaryOrange,
                       ),
                     );
@@ -266,9 +243,9 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
 class _ToolGrid extends StatelessWidget {
   final List<_ToolEntry> tools;
   final Color categoryColor;
-  final List<ToolType> favorites;
-  final void Function(ToolType) onToolTap;
-  final void Function(ToolType) onLongPress;
+  final List<Tool> favorites;
+  final void Function(Tool) onToolTap;
+  final void Function(Tool) onLongPress;
 
   const _ToolGrid({
     required this.tools,
@@ -298,11 +275,11 @@ class _ToolGrid extends StatelessWidget {
       itemCount: tools.length,
       itemBuilder: (_, idx) {
         final tool = tools[idx];
-        final isFavorited = favorites.contains(tool.toolType);
+        final isFavorited = favorites.contains(tool.tool);
 
         return GestureDetector(
-          onTap: () => onToolTap(tool.toolType),
-          onLongPress: () => onLongPress(tool.toolType),
+          onTap: () => onToolTap(tool.tool),
+          onLongPress: () => onLongPress(tool.tool),
           child: Container(
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.06),
