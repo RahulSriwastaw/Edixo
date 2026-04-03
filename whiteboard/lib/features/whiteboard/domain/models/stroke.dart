@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../providers/tool_provider.dart';
+import '../../presentation/providers/tool_provider.dart';
 
 class StrokePoint {
   final double x;

@@ -16,6 +16,12 @@ class AppTextStyles {
   static TextStyle bodySmall = GoogleFonts.dmSans(
     fontSize: 12, fontWeight: FontWeight.w400, color: AppColors.textSecondary);
 
+  static TextStyle heading3 = GoogleFonts.dmSans(
+    fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary);
+
+  static TextStyle caption = GoogleFonts.dmSans(
+    fontSize: 11, fontWeight: FontWeight.w400, color: AppColors.textSecondary);
+
   static TextStyle toolLabel = GoogleFonts.dmSans(
     fontSize: 11, fontWeight: FontWeight.w500, color: AppColors.textSecondary);
 

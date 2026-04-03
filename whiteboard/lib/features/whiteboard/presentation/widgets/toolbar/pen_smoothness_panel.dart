@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../../providers/tool_provider.dart';
+import '../../providers/tool_provider.dart';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const _kNavy = Color(0xFF1A1A2E);
@@ -31,8 +31,8 @@ class PenSmoothnessPanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final drawingState = ref.watch(toolProvider);
-    final notifier = ref.read(toolProvider.notifier);
+    final drawingState = ref.watch(toolNotifierProvider);
+    final notifier = ref.read(toolNotifierProvider.notifier);
     final tool = drawingState.activeTool;
 
     if (!shouldShow(tool)) return const SizedBox.shrink();
@@ -321,7 +321,7 @@ class PenSmoothnessPanelWrapper extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tool = ref.watch(toolProvider).activeTool;
+    final tool = ref.watch(toolNotifierProvider).activeTool;
     if (!PenSmoothnessPanel.shouldShow(tool)) return const SizedBox.shrink();
 
     return const Positioned(

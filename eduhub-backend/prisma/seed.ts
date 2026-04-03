@@ -223,12 +223,45 @@ async function seed() {
 
     console.log('✅ Super Admin created: admin@eduhub.in / SuperAdmin@123');
 
-    // ─── Global Q-Bank Folders ────────────────────────────────
-    console.log('📁 Seeding global folder structure...');
-    for (const folder of GLOBAL_FOLDERS) {
-        await seedFolder(folder, null, 0, '/');
-        console.log(`  ✅ ${folder.icon} ${folder.name}`);
-    }
+    // ─── Demo Organization & Staff ────────────────────────────
+    const orgId = 'eduhub';
+    const demoOrg = await prisma.organization.upsert({
+        where: { orgId },
+        update: {},
+        create: {
+            orgId,
+            name: 'EduHub Demo',
+            whiteboardPin: '123456',
+        },
+    });
+
+    const teacherEmail = 'teacher@eduhub.in';
+    const teacherPasswordHash = await bcrypt.hash('password', 12);
+    const teacherUser = await prisma.user.upsert({
+        where: { email: teacherEmail },
+        update: {},
+        create: {
+            email: teacherEmail,
+            passwordHash: teacherPasswordHash,
+            role: 'ORG_STAFF',
+            isActive: true,
+        },
+    });
+
+    await prisma.orgStaff.upsert({
+        where: { 
+            userId: teacherUser.id 
+        },
+        update: {},
+        create: {
+            staffId: 'STAFF001',
+            orgId: demoOrg.id,
+            userId: teacherUser.id,
+            name: 'Demo Teacher',
+        },
+    });
+
+    console.log(`✅ Demo Staff created: ${teacherEmail} / password (Org: ${orgId})`);
 
     console.log('\n🎉 Seeding complete!');
 }

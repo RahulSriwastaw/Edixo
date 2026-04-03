@@ -1,14 +1,30 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:eduhub_whiteboard/core/constants/app_colors.dart';
-import 'package:eduhub_whiteboard/core/constants/app_dimensions.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../core/constants/app_dimensions.dart';
+import '../providers/set_import_provider.dart';
 
-class SetImportDialog extends ConsumerWidget {
+class SetImportDialog extends ConsumerStatefulWidget {
   const SetImportDialog({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SetImportDialog> createState() => _SetImportDialogState();
+}
+
+class _SetImportDialogState extends ConsumerState<SetImportDialog> {
+  final _setIdController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  @override
+  void dispose() {
+    _setIdController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: AppColors.bgCard,
       title: const Text('Import Question Set'),
@@ -16,6 +32,7 @@ class SetImportDialog extends ConsumerWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           TextField(
+            controller: _setIdController,
             decoration: InputDecoration(
               labelText: 'Set ID',
               border: OutlineInputBorder(
@@ -23,8 +40,9 @@ class SetImportDialog extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: AppDimensions.borderRadiusL),
+          const SizedBox(height: 16),
           TextField(
+            controller: _passwordController,
             obscureText: true,
             decoration: InputDecoration(
               labelText: 'Password (optional)',
@@ -42,9 +60,15 @@ class SetImportDialog extends ConsumerWidget {
         ),
         ElevatedButton(
           onPressed: () {
-            // TODO: Get Set ID and password from text fields
-            ref.read(setImportProvider).import('some-set-id');
-            Navigator.of(context).pop();
+            final setId = _setIdController.text.trim();
+            final password = _passwordController.text.trim();
+            if (setId.isNotEmpty) {
+              ref.read(setImportNotifierProvider.notifier).importSet(
+                setId: setId,
+                password: password.isEmpty ? 'public' : password,
+              );
+              Navigator.of(context).pop();
+            }
           },
           child: const Text('Import'),
         ),

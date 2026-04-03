@@ -1,38 +1,71 @@
 
+// lib/features/auth/presentation/providers/login_provider.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../domain/auth_repository.dart';
-import '../../data/models/teacher_model.dart';
-import 'package:eduhub_whiteboard/core/error/failure.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/error/failure.dart';
+import '../../../../core/providers/auth_provider.dart';
+import '../../../../core/storage/secure_storage.dart';
+import '../../../auth/data/datasources/auth_remote_ds.dart';
 
-final loginProvider = StateNotifierProvider<LoginNotifier, LoginState>((ref) {
-  return LoginNotifier(ref.watch(authRepositoryProvider));
-});
+part 'login_provider.g.dart';
 
-class LoginNotifier extends StateNotifier<LoginState> {
-  final AuthRepository _authRepository;
+enum LoginState { initial, loading, success, failure }
 
-  LoginNotifier(this._authRepository) : super(const LoginState.initial());
+class LoginNotifierState {
+  final LoginState state;
+  final Failure? error;
+  final String? debugMessage;
 
-  Future<void> login(String email, String password) async {
-    state = const LoginState.loading();
-    final result = await _authRepository.login(email, password);
-    if (result.teacher != null) {
-      state = LoginState.success(result.teacher!);
-    } else {
-      state = LoginState.error(result.failure!);
-    }
-  }
+  const LoginNotifierState({
+    this.state      = LoginState.initial,
+    this.error,
+    this.debugMessage,
+  });
+
+  LoginNotifierState copyWith({
+    LoginState? state,
+    Failure?    error,
+    String?     debugMessage,
+  }) => LoginNotifierState(
+    state:         state         ?? this.state,
+    error:         error,
+    debugMessage:  debugMessage  ?? this.debugMessage,
+  );
 }
 
-class LoginState {
-  final bool isLoading;
-  final TeacherModel? teacher;
-  final Failure? failure;
+@riverpod
+class LoginNotifier extends _$LoginNotifier {
+  @override
+  LoginNotifierState build() => const LoginNotifierState();
 
-  const LoginState({this.isLoading = false, this.teacher, this.failure});
+  /// Perform login with email and password.
+  /// Stores JWT tokens in SecureStorage and sets auth state on success.
+  Future<void> login(String email, String password) async {
+    state = state.copyWith(state: LoginState.loading);
 
-  const LoginState.initial() : this();
-  const LoginState.loading() : this(isLoading: true);
-  const LoginState.success(TeacherModel teacher) : this(teacher: teacher);
-  const LoginState.error(Failure failure) : this(failure: failure);
+    final result = await ref.read(authRemoteDsProvider).login(email, password);
+
+    await result.fold(
+      (authResponse) async {
+        // Store tokens in secure storage
+        await ref.read(secureStorageProvider).writeAccessToken(authResponse.accessToken);
+        await ref.read(secureStorageProvider).writeRefreshToken(authResponse.refreshToken);
+        
+        // Update auth provider with teacher information
+        ref.read(authNotifierProvider.notifier).setTeacher(authResponse.teacher);
+        
+        state = state.copyWith(state: LoginState.success);
+      },
+      (failure) {
+        state = state.copyWith(
+          state: LoginState.failure,
+          error: failure,
+          debugMessage: failure.message,
+        );
+      },
+    );
+  }
+
+  void reset() => state = const LoginNotifierState();
 }

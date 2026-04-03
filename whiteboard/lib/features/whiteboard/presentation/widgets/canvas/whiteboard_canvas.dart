@@ -1,8 +1,8 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../providers/canvas_provider.dart';
-import '../../../providers/tool_provider.dart';
+import '../../providers/canvas_provider.dart';
+import '../../providers/tool_provider.dart';
 import 'background_layer.dart';
 import 'slide_content_layer.dart';
 import 'editable_question_layer.dart';
@@ -30,8 +30,8 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    final canvasState = ref.watch(canvasStateProvider);
-    final toolState = ref.watch(toolProvider);
+    final canvasState = ref.watch(canvasNotifierProvider);
+    final toolState = ref.watch(toolNotifierProvider);
     
     // Zoom/Pan is only enabled in Navigate mode OR via 2-finger gesture (handled by InteractiveViewer automatically)
     final panEnabled = toolState.activeTool == Tool.navigate;

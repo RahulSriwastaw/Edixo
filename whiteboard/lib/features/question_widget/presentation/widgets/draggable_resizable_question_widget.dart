@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/models/question_widget_model.dart';
 import '../providers/question_widget_provider.dart';
+import '../providers/selected_widget_provider.dart';
 
 class DraggableResizableQuestionWidget extends ConsumerStatefulWidget {
   final QuestionWidgetModel model;
@@ -33,7 +34,7 @@ class _DraggableResizableQuestionWidgetState extends ConsumerState<DraggableResi
       top: _y,
       child: GestureDetector(
         onTap: () {
-          ref.read(selectionProvider.notifier).state = widget.model.id;
+          ref.read(selectedWidgetNotifierProvider.notifier).select(widget.model.id);
         },
         onPanUpdate: isLocked ? null : (details) {
           setState(() {
@@ -42,7 +43,7 @@ class _DraggableResizableQuestionWidgetState extends ConsumerState<DraggableResi
           });
         },
         onPanEnd: isLocked ? null : (_) {
-          ref.read(questionWidgetProvider.notifier).updatePosition(widget.model.id, Offset(_x, _y));
+          ref.read(questionWidgetNotifierProvider.notifier).updatePosition(widget.model.id, Offset(_x, _y));
         },
         child: SizedBox(
           width: _width,

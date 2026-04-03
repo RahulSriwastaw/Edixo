@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../providers/tool_provider.dart';
+import '../../providers/tool_provider.dart';
 
 class ToolIconButton extends ConsumerWidget {
   final Tool tool;
@@ -16,12 +16,12 @@ class ToolIconButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final toolState = ref.watch(toolProvider);
+    final toolState = ref.watch(toolNotifierProvider);
     final isSelected = toolState.activeTool == tool;
 
     return IconButton(
       tooltip: tooltip,
-      onPressed: () => ref.read(toolProvider.notifier).selectTool(tool),
+      onPressed: () => ref.read(toolNotifierProvider.notifier).selectTool(tool),
       icon: Icon(
         icon,
         size: 20,

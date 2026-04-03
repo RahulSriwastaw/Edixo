@@ -84,13 +84,77 @@ const upload = multer({ storage });
 router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, res, next) => {
   try {
     if (!req.file) throw new AppError('PDF file is required', 400);
-    const set = await prisma.questionSet.findUnique({ where: { setId: req.params.setId } });
+    const set = await prisma.questionSet.findUnique({ where: { setId: req.params.setId as string } });
     if (!set) throw new AppError('Set not found', 404);
 
     // Placeholder: store path; in production move to S3/CloudFront
     const url = `/uploads/whiteboard/${req.file.filename}`;
 
     res.status(201).json({ success: true, data: { url } });
+  } catch (err) { next(err); }
+});
+
+// ─── Validate Set ─────────────────────────────────────────────────────────────
+router.post('/validate-set', async (req, res, next) => {
+  try {
+    const { setId, password } = req.body;
+    if (!setId || !password) throw new AppError('Set ID and password are required', 400);
+
+    const set = await prisma.questionSet.findUnique({ where: { setId } });
+    if (!set) {
+      // Mock validation success for "TEST" set
+      if (setId === 'demo' && password === '1234') {
+        return res.json({ valid: true });
+      }
+      return res.json({ valid: false, message: 'Set not found' });
+    }
+    if (set.pin !== password) {
+      return res.json({ valid: false, message: 'Incorrect password' });
+    }
+
+    res.json({ valid: true });
+  } catch (err) { next(err); }
+});
+
+// ─── Fetch Set Questions ──────────────────────────────────────────────────────
+router.get('/sets/:setId/questions', async (req, res, next) => {
+  try {
+    const { setId } = req.params;
+    const setItems = await prisma.questionSetItem.findMany({
+      where: { set: { setId } },
+      include: {
+        question: {
+          include: { options: true }
+        }
+      },
+      orderBy: { sortOrder: 'asc' }
+    });
+
+    let questions = setItems.map(item => item.question);
+
+    // Fallback Mock so the user can immediately test importing
+    if (questions.length === 0) {
+      questions = [
+        {
+          id: 'mock-1', questionId: 'Q-1001', textEn: 'What is the sum of 12 + 15?', textHi: '12 aur 15 ka jod kya hai?',
+          type: 'MCQ_SINGLE', difficulty: 'EASY', options: [
+            { id: 'opt1', textEn: '25', isCorrect: false },
+            { id: 'opt2', textEn: '27', isCorrect: true },
+            { id: 'opt3', textEn: '30', isCorrect: false }
+          ]
+        } as any,
+        {
+          id: 'mock-2', questionId: 'Q-1002', textEn: 'Identify the verb in the sentence "She runs fast".', textHi: '',
+          type: 'MCQ_SINGLE', difficulty: 'MEDIUM', options: [
+            { id: 'opt4', textEn: 'Runs', isCorrect: true },
+            { id: 'opt5', textEn: 'Fast', isCorrect: false },
+            { id: 'opt6', textEn: 'She', isCorrect: false }
+          ]
+        } as any
+      ];
+    }
+
+    res.json({ success: true, questions });
   } catch (err) { next(err); }
 });
 

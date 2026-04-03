@@ -1,104 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../providers/canvas_provider.dart';
-import '../../../providers/tool_provider.dart';
-import '../panels/question_settings_dialog.dart';
+import '../../providers/canvas_provider.dart';
+import '../../providers/tool_provider.dart';
+import '../dialogs/workspace_settings_dialog.dart';
 
 // Provider to control panel open/close state
 final settingsPanelOpenProvider = StateProvider<bool>((ref) => false);
-
-// ─────────────────────────────────────────────────────────────────────────────
-// FloatingSettingsButton — small FAB in canvas top-left corner
-// ─────────────────────────────────────────────────────────────────────────────
-
-class FloatingSettingsButton extends ConsumerWidget {
-  const FloatingSettingsButton({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isOpen = ref.watch(settingsPanelOpenProvider);
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        // ── FAB button ─────────────────────────────────────────────────────
-        Positioned(
-          left: 12,
-          top: 12,
-          child: Tooltip(
-            message: 'Settings / Subject Modes',
-            child: GestureDetector(
-              onTap: () => ref
-                  .read(settingsPanelOpenProvider.notifier)
-                  .state = !isOpen,
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: isOpen
-                      ? AppTheme.primaryOrange
-                      : const Color(0xFF1E2235),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isOpen
-                        ? AppTheme.primaryOrange
-                        : Colors.white.withOpacity(0.15),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isOpen
-                          ? AppTheme.primaryOrange.withOpacity(0.4)
-                          : Colors.black.withOpacity(0.4),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    )
-                  ],
-                ),
-                child: Center(
-                  child: AnimatedRotation(
-                    turns: isOpen ? 0.125 : 0,
-                    duration: const Duration(milliseconds: 200),
-                    child: Icon(
-                      isOpen ? Icons.close : Icons.settings_outlined,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ),
-
-        // ── Panel ─────────────────────────────────────────────────────────
-        if (isOpen)
-          Positioned(
-            left: 12,
-            top: 64,
-            child: _FloatingPanel(
-              onClose: () =>
-                  ref.read(settingsPanelOpenProvider.notifier).state = false,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-// ─── Floating Panel ──────────────────────────────────────────────────────────
-
+// ... [rest of the file remains similar until _FloatingPanel]
 class _FloatingPanel extends ConsumerWidget {
   final VoidCallback onClose;
   const _FloatingPanel({required this.onClose});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final toolState = ref.watch(toolProvider);
-    final canvasState = ref.watch(canvasStateProvider);
-    final toolNotifier = ref.read(toolProvider.notifier);
-    final canvasNotifier = ref.read(canvasStateProvider.notifier);
+    final toolState = ref.watch(toolNotifierProvider);
+    final canvasState = ref.watch(canvasNotifierProvider);
+    final toolNotifier = ref.read(toolNotifierProvider.notifier);
+    final canvasNotifier = ref.read(canvasNotifierProvider.notifier);
 
     return Material(
       color: Colors.transparent,
@@ -185,16 +104,16 @@ class _FloatingPanel extends ConsumerWidget {
 
                 const _Divider(),
 
-                // ── Section: Question Style ───────────────────────────────
-                const _SectionHeader('Question Style'),
+                // ── Section: Workspace ───────────────────────────────
+                const _SectionHeader('Workspace'),
                 _PanelActionTile(
-                  icon: Icons.palette_outlined,
-                  label: 'Presentation Settings',
+                  icon: Icons.settings_applications_outlined,
+                  label: 'Workspace Settings',
                   onTap: () {
                     onClose();
                     showDialog(
                       context: context,
-                      builder: (_) => const QuestionSettingsDialog(),
+                      builder: (_) => const WorkspaceSettingsDialog(),
                     );
                   },
                 ),
@@ -210,6 +129,7 @@ class _FloatingPanel extends ConsumerWidget {
 
   String _modeLabel(SubjectMode m) {
     switch (m) {
+      case SubjectMode.none: return 'None';
       case SubjectMode.general: return 'General';
       case SubjectMode.math: return 'Math';
       case SubjectMode.physics: return 'Physics';
@@ -217,11 +137,13 @@ class _FloatingPanel extends ConsumerWidget {
       case SubjectMode.englishHindi: return 'Eng/Hi';
       case SubjectMode.sscRailway: return 'SSC';
       case SubjectMode.upsc: return 'UPSC';
+      default: return 'None';
     }
   }
 
   IconData _modeIcon(SubjectMode m) {
     switch (m) {
+      case SubjectMode.none: return Icons.block;
       case SubjectMode.general: return Icons.dashboard_outlined;
       case SubjectMode.math: return Icons.calculate_outlined;
       case SubjectMode.physics: return Icons.bolt_outlined;
@@ -229,6 +151,7 @@ class _FloatingPanel extends ConsumerWidget {
       case SubjectMode.englishHindi: return Icons.translate_outlined;
       case SubjectMode.sscRailway: return Icons.train_outlined;
       case SubjectMode.upsc: return Icons.account_balance_outlined;
+      default: return Icons.block;
     }
   }
 }

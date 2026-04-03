@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/theme/app_theme.dart';
-import '../../../providers/tool_provider.dart';
-import '../../../providers/pdf_import_provider.dart';
-import '../../../providers/canvas_provider.dart';
+import '../../providers/tool_provider.dart';
+import '../../../domain/services/pdf_import_service.dart';
+import '../../providers/canvas_provider.dart';
 
 // ─── Tool entry (not const to avoid compile issues with records) ──────────────
 class _ToolEntry {
@@ -104,8 +104,8 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
 
   @override
   Widget build(BuildContext context) {
-    final toolState = ref.watch(toolProvider);
-    final notifier = ref.read(toolProvider.notifier);
+    final toolState = ref.watch(toolNotifierProvider);
+    final notifier = ref.read(toolNotifierProvider.notifier);
 
     return Container(
       height: MediaQuery.of(context).size.height * 0.7,

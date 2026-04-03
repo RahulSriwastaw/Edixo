@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../../../domain/models/stroke.dart';
+import '../../../data/models/stroke_model.dart';
 import '../../../domain/models/canvas_object_model.dart';
 import 'stroke_renderer.dart';
 
 class CanvasPainter extends CustomPainter {
-  final List<Stroke> strokes;
-  final Stroke? currentStroke;
+  final List<StrokeModel> strokes;
+  final StrokeModel? currentStroke;
   final List<CanvasObjectModel> objects;
 
   const CanvasPainter({
@@ -18,7 +18,7 @@ class CanvasPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     // 1. Draw finalized strokes
     for (final stroke in strokes) {
-      StrokeRenderer.render(canvas, stroke);
+      StrokeRenderer.drawStroke(canvas, stroke);
     }
 
     // 2. Draw finalized objects (shapes, textboxes on annotation layer)
@@ -29,7 +29,7 @@ class CanvasPainter extends CustomPainter {
 
     // 3. Draw active stroke (in-progress)
     if (currentStroke != null) {
-      StrokeRenderer.render(canvas, currentStroke!);
+      StrokeRenderer.drawStroke(canvas, currentStroke!);
     }
   }
 

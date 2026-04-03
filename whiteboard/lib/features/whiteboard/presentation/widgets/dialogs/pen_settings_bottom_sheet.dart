@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../providers/tool_provider.dart';
-import '../../../providers/canvas_provider.dart';
+import '../../providers/tool_provider.dart';
+import '../../providers/canvas_provider.dart';
 
 class PenSettingsBottomSheet extends ConsumerWidget {
   const PenSettingsBottomSheet({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final toolState = ref.watch(toolProvider);
-    final notifier = ref.read(toolProvider.notifier);
+    final toolState = ref.watch(toolNotifierProvider);
+    final notifier = ref.read(toolNotifierProvider.notifier);
     final tool = toolState.activeTool;
-    final settings = toolState.toolSettings[tool] ?? const ToolSettings();
+    final settings = toolState.settingsFor(tool);
 
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -43,7 +43,7 @@ class PenSettingsBottomSheet extends ConsumerWidget {
             value: settings.strokeWidth,
             min: 1,
             max: 50,
-            onChanged: (val) => notifier.updateSettings(tool, settings.copyWith(strokeWidth: val)),
+            onChanged: (val) => notifier.setStrokeWidth(val),
             unit: 'px',
           ),
           
@@ -52,22 +52,17 @@ class PenSettingsBottomSheet extends ConsumerWidget {
             value: settings.opacity * 100,
             min: 10,
             max: 100,
-            onChanged: (val) => notifier.updateSettings(tool, settings.copyWith(opacity: val / 100)),
+            onChanged: (val) => notifier.setOpacity(val / 100),
             unit: '%',
           ),
           
           if (tool == Tool.softPen || tool == Tool.hardPen)
             _settingRow(
               label: 'Smoothing',
-              value: settings.smoothing.decimationThreshold * 10,
+              value: settings.smoothness * 10,
               min: 0,
               max: 20,
-              onChanged: (val) => notifier.updateSettings(
-                tool, 
-                settings.copyWith(
-                  smoothing: settings.smoothing.copyWith(decimationThreshold: val / 10)
-                )
-              ),
+              onChanged: (val) => notifier.setSmoothness(val / 10),
               unit: '',
             ),
             
@@ -131,7 +126,7 @@ class PenSettingsBottomSheet extends ConsumerWidget {
 
   Widget _colorCircle(WidgetRef ref, Color color, bool isSelected) {
     return InkWell(
-      onTap: () => ref.read(toolProvider.notifier).setColor(color),
+      onTap: () => ref.read(toolNotifierProvider.notifier).setColor(color),
       child: Container(
         width: 32.w,
         height: 32.w,

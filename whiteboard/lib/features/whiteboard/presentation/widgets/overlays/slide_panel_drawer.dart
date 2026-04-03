@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../providers/canvas_provider.dart';
+import '../../providers/canvas_provider.dart';
+import '../../providers/slide_provider.dart';
 
 class SlidePanelDrawer extends ConsumerWidget {
   const SlidePanelDrawer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final canvasState = ref.watch(canvasStateProvider);
-    final pages = canvasState.pages;
-    final notifier = ref.read(canvasStateProvider.notifier);
+    final slideState = ref.watch(slideNotifierProvider);
+    final slides = slideState.slides;
+    final slideNotifier = ref.read(slideNotifierProvider.notifier);
 
     return Drawer(
       backgroundColor: const Color(0xFF1A1A1A),
@@ -23,70 +24,34 @@ class SlidePanelDrawer extends ConsumerWidget {
               children: [
                 const Icon(Icons.layers_outlined, color: Color(0xFFFF6B35)),
                 const SizedBox(width: 12),
-                const Text('Page Manager', 
+                const Text('Slide Manager', 
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                Text('${pages.length} Pages', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text('${slides.length} Slides', style: const TextStyle(color: Colors.white54, fontSize: 12)),
               ],
             ),
           ),
           
-          // Action Buttons
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => notifier.addPage(template: PageTemplate.blank),
-                    icon: const Icon(Icons.add, size: 16),
-                    label: const Text('Blank'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white10,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => notifier.addPage(template: PageTemplate.grid),
-                    icon: const Icon(Icons.grid_on, size: 16),
-                    label: const Text('Grid'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white10,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Page List
+          // Slide List
           Expanded(
-            child: ReorderableListView.builder(
+            child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: pages.length,
-              onReorder: notifier.reorderPages,
+              itemCount: slides.length,
               itemBuilder: (context, index) {
-                final page = pages[index];
-                final isSelected = canvasState.currentPageIndex == index;
+                final slide = slides[index];
+                final isSelected = slideState.currentSlideIndex == index;
                 
                 return Padding(
-                  key: ValueKey(page.id),
+                  key: ValueKey(slide.slideId),
                   padding: const EdgeInsets.only(bottom: 12),
-                  child: _PageTile(
+                  child: _SlideTile(
                     index: index,
-                    page: page,
+                    slide: slide,
                     isSelected: isSelected,
                     onTap: () {
-                      notifier.setPageIndex(index);
+                      slideNotifier.navigateToSlide(index);
                       Navigator.of(context).pop();
                     },
-                    onDelete: () => notifier.removePage(index),
                   ),
                 );
               },
@@ -98,19 +63,17 @@ class SlidePanelDrawer extends ConsumerWidget {
   }
 }
 
-class _PageTile extends StatelessWidget {
+class _SlideTile extends StatelessWidget {
   final int index;
-  final PageData page;
+  final dynamic slide;
   final bool isSelected;
   final VoidCallback onTap;
-  final VoidCallback onDelete;
 
-  const _PageTile({
+  const _SlideTile({
     required this.index,
-    required this.page,
+    required this.slide,
     required this.isSelected,
     required this.onTap,
-    required this.onDelete,
   });
 
   @override
@@ -133,7 +96,7 @@ class _PageTile extends StatelessWidget {
              Expanded(
                child: Center(
                  child: Icon(
-                   page.bgImageBytes != null ? Icons.image : Icons.description_outlined,
+                   Icons.description_outlined,
                    color: Colors.white24,
                    size: 32,
                  ),
@@ -150,13 +113,6 @@ class _PageTile extends StatelessWidget {
                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                  children: [
                    Text('Slide ${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 11)),
-                   if (!isSelected)
-                     IconButton(
-                       icon: const Icon(Icons.delete_outline, size: 14, color: Colors.white38),
-                       onPressed: onDelete,
-                       padding: EdgeInsets.zero,
-                       constraints: const BoxConstraints(),
-                     ),
                  ],
                ),
              ),

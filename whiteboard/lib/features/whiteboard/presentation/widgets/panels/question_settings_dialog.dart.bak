@@ -1,0 +1,204 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import '../../../../../core/theme/app_theme.dart';
+import '../../providers/canvas_provider.dart';
+import '../../providers/tool_provider.dart';
+
+class QuestionSettingsDialog extends ConsumerWidget {
+  const QuestionSettingsDialog({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final canvasState = ref.watch(canvasStateProvider);
+    final theme = canvasState.questionTheme;
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      insetPadding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+      child: Container(
+        width: 450.w,
+        padding: EdgeInsets.all(24.w),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E2C),
+          borderRadius: BorderRadius.circular(20.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 30,
+              offset: const Offset(0, 10),
+            ),
+          ],
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(8.w),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryOrange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    child: Icon(Icons.palette_outlined, color: AppTheme.primaryOrange, size: 24.w),
+                  ),
+                  SizedBox(width: 16.w),
+                  Text(
+                    'Question Appearance',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    icon: const Icon(Icons.close, color: Colors.white60),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              Divider(height: 40.h, color: Colors.white10),
+              
+              _buildSectionHeader('Colors'),
+              SizedBox(height: 16.h),
+              _buildColorItem(
+                context,
+                'Question Text',
+                theme.questionColor,
+                (c) => _updateTheme(ref, theme.copyWith(questionColor: c)),
+              ),
+              _buildColorItem(
+                context,
+                'Background',
+                theme.questionBgColor,
+                (c) => _updateTheme(ref, theme.copyWith(questionBgColor: c)),
+              ),
+              _buildColorItem(
+                context,
+                'Options Text',
+                theme.optionColor,
+                (c) => _updateTheme(ref, theme.copyWith(optionColor: c)),
+              ),
+              _buildColorItem(
+                context,
+                'Options Background',
+                theme.optionBgColor,
+                (c) => _updateTheme(ref, theme.copyWith(optionBgColor: c)),
+              ),
+              
+              SizedBox(height: 24.h),
+              _buildSectionHeader('Screen Background'),
+              SizedBox(height: 16.h),
+              _buildColorItem(
+                context,
+                'Canvas Background',
+                theme.screenBgColor,
+                (c) => _updateTheme(ref, theme.copyWith(screenBgColor: c)),
+              ),
+
+              SizedBox(height: 24.h),
+              _buildSectionHeader('Behavior'),
+              SizedBox(height: 16.h),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Auto-center on load',
+                    style: TextStyle(color: Colors.white70, fontSize: 16.sp),
+                  ),
+                  Switch(
+                    value: theme.updatePosition,
+                    onChanged: (v) => _updateTheme(ref, theme.copyWith(updatePosition: v)),
+                    activeThumbColor: AppTheme.primaryOrange,
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _updateTheme(WidgetRef ref, QuestionTheme theme) {
+    ref.read(canvasStateProvider.notifier).setQuestionTheme(theme);
+    // theme.screenBgColor is a Color, but we map to BackgroundColor.dark as generic for now.
+    ref.read(canvasStateProvider.notifier).setBackgroundColor(BackgroundColor.dark);
+  }
+
+  void _updateQuestionStyle(WidgetRef ref, CanvasObjectModel qw) {
+    ref.read(canvasStateProvider.notifier).updateQuestionWidget(qw);
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title.toUpperCase(),
+      style: TextStyle(
+        color: AppTheme.primaryOrange,
+        fontSize: 12.sp,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 1.2,
+      ),
+    );
+  }
+
+  Widget _buildColorItem(BuildContext context, String label, Color color, Function(Color) onColorChanged) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: InkWell(
+        onTap: () => _showColorPicker(context, color, onColorChanged),
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.03),
+            borderRadius: BorderRadius.circular(12.r),
+            border: Border.all(color: Colors.white10),
+          ),
+          child: Row(
+            children: [
+              Text(label, style: TextStyle(color: Colors.white, fontSize: 15.sp)),
+              const Spacer(),
+              Container(
+                width: 24.w,
+                height: 24.w,
+                decoration: BoxDecoration(
+                  color: color,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white24),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showColorPicker(BuildContext context, Color initialColor, Function(Color) onColorChanged) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Pick a color'),
+        content: SingleChildScrollView(
+          child: ColorPicker(
+            pickerColor: initialColor,
+            onColorChanged: onColorChanged,
+            pickerAreaHeightPercent: 0.8,
+          ),
+        ),
+        actions: [
+          TextButton(
+            child: const Text('Got it'),
+            onPressed: () => Navigator.of(ctx).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+}

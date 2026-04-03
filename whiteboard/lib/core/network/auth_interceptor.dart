@@ -1,67 +1,83 @@
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../constants/api_constants.dart';
 import '../storage/secure_storage.dart';
 import 'dio_client.dart';
 
+/// Interceptor for JWT token management.
+///
+/// Responsibilities:
+/// 1. Attach JWT to all requests (onRequest)
+/// 2. Auto-refresh 401 responses and retry (onError)
+/// 3. Logout user on refresh failure
 class AuthInterceptor extends Interceptor {
-  final Ref ref;
-  final SecureStorageService _storageService = SecureStorageService();
+  final Ref _ref;
 
-  AuthInterceptor(this.ref);
+  AuthInterceptor(this._ref);
 
   @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
-    final accessToken = await _storageService.getAccessToken();
-    if (accessToken != null) {
-      options.headers['Authorization'] = 'Bearer $accessToken';
+  Future<void> onRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) async {
+    final storage = _ref.read(secureStorageProvider);
+    final token = await storage.readAccessToken();
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
     }
-    super.onRequest(options, handler);
+    handler.next(options);
   }
 
   @override
-  void onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     if (err.response?.statusCode == 401) {
-      // If a 401 response is received, refresh the token
-      final newAccessToken = await _refreshToken();
-
-      if (newAccessToken != null) {
-        // Update the request header with the new token
-        err.requestOptions.headers['Authorization'] = 'Bearer $newAccessToken';
-        // Repeat the request with the new token
+      final refreshed = await _tryRefresh();
+      if (refreshed) {
+        // Retry original request with new token
+        final storage = _ref.read(secureStorageProvider);
+        final token = await storage.readAccessToken();
+        err.requestOptions.headers['Authorization'] = 'Bearer $token';
         try {
-          handler.resolve(await ref.read(dioProvider).fetch(err.requestOptions));
-        } on DioException catch (e) {
-          // If the request fails again, pass the error
-          handler.next(e);
+          final dio = _ref.read(dioProvider);
+          final response = await dio.fetch(err.requestOptions);
+          handler.resolve(response);
+          return;
+        } catch (_) {
+          // Retry also failed
         }
-      } else {
-        handler.next(err);
       }
-    } else {
-      handler.next(err);
+      // Refresh failed — logout user
+      // TODO: Trigger logout via authProvider.notifier.logout()
     }
+    handler.next(err);
   }
 
-  Future<String?> _refreshToken() async {
+  /// Attempt to refresh access token using refresh token.
+  /// Returns true on success, false on failure.
+  Future<bool> _tryRefresh() async {
     try {
-      final refreshToken = await _storageService.getRefreshToken();
-      if (refreshToken == null) return null;
+      final storage = _ref.read(secureStorageProvider);
+      final refreshToken = await storage.readRefreshToken();
+      if (refreshToken == null) return false;
 
-      final response = await ref.read(dioProvider).post(
-        '/auth/refresh',
+      // Use bare Dio to avoid infinite interceptor loop
+      final bare = Dio();
+      final res = await bare.post(
+        ApiConstants.baseUrl + ApiConstants.refreshToken,
         data: {'refreshToken': refreshToken},
       );
 
-      final newAccessToken = response.data['accessToken'] as String;
-      final newRefreshToken = response.data['refreshToken'] as String;
-      await _storageService.saveTokens(accessToken: newAccessToken, refreshToken: newRefreshToken);
-
-      return newAccessToken;
-    } catch (e) {
-      // If refresh fails, delete tokens and force re-login
-      await _storageService.deleteAllTokens();
-      return null;
+      final newAccessToken = res.data['accessToken'] as String;
+      final newRefreshToken = res.data['refreshToken'] as String;
+      await storage.writeAccessToken(newAccessToken);
+      await storage.writeRefreshToken(newRefreshToken);
+      return true;
+    } catch (_) {
+      return false;
     }
   }
 }

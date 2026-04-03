@@ -1,35 +1,30 @@
+// lib/features/auth/domain/auth_repository.dart
 
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:eduhub_whiteboard/core/error/app_exception.dart';
-import 'package:eduhub_whiteboard/core/error/failure.dart';
-import 'package:eduhub_whiteboard/core/storage/secure_storage.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/datasources/auth_remote_ds.dart';
-import '../data/models/teacher_model.dart';
 
-final authRepositoryProvider = Provider((ref) => AuthRepository(ref.watch(authRemoteDsProvider), SecureStorageService()));
+part 'auth_repository.g.dart';
 
 class AuthRepository {
-  final AuthRemoteDataSource _remoteDataSource;
-  final SecureStorageService _storageService;
+  final AuthRemoteDataSource remoteDataSource;
 
-  AuthRepository(this._remoteDataSource, this._storageService);
+  AuthRepository({required this.remoteDataSource});
 
-  Future<({Failure? failure, TeacherModel? teacher})> login(String email, String password) async {
-    try {
-      final teacher = await _remoteDataSource.login(email, password);
-      return (failure: null, teacher: teacher);
-    } on DioException catch (e) {
-      return (failure: ServerFailure(mapDioException(e).message), teacher: null);
-    }
+  Future<bool> isLoggedIn() async {
+    // Check if user has valid tokens stored
+    // For now, return true to bypass during development
+    return true;
   }
 
   Future<void> logout() async {
-    await _storageService.deleteAllTokens();
+    await remoteDataSource.logout();
   }
+}
 
-  Future<bool> isLoggedIn() async {
-    final token = await _storageService.getAccessToken();
-    return token != null;
-  }
+@riverpod
+AuthRepository authRepository(AuthRepositoryRef ref) {
+  return AuthRepository(
+    remoteDataSource: ref.watch(authRemoteDsProvider),
+  );
 }

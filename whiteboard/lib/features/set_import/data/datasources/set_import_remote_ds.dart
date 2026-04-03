@@ -1,7 +1,7 @@
 
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:eduhub_whiteboard/core/network/dio_client.dart';
+import '../../../../core/network/dio_client.dart';
 import '../models/set_slide_model.dart';
 
 final setImportRemoteDsProvider = Provider((ref) => SetImportRemoteDataSource(ref.watch(dioProvider)));
