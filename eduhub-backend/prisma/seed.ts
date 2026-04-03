@@ -263,6 +263,95 @@ async function seed() {
 
     console.log(`✅ Demo Staff created: ${teacherEmail} / password (Org: ${orgId})`);
 
+    // ─── Demo Question Sets ──────────────────────────────────
+    console.log('📝 Seeding demo question sets...');
+    
+    const set1 = await prisma.questionSet.upsert({
+        where: { setId: 'SET001' },
+        update: {},
+        create: {
+            setId: 'SET001',
+            pin: '123456',
+            name: 'Mathematics Basic Test',
+            description: 'A basic math assessment for demo purposes.',
+            totalQuestions: 10,
+            durationMins: 30,
+            orgId: demoOrg.id,
+        },
+    });
+
+    const set2 = await prisma.questionSet.upsert({
+        where: { setId: 'SET002' },
+        update: {},
+        create: {
+            setId: 'SET002',
+            pin: '123456',
+            name: 'General Awareness Quiz',
+            description: 'Demo quiz covering global events.',
+            totalQuestions: 15,
+            durationMins: 20,
+            orgId: demoOrg.id,
+        },
+    });
+
+    // ─── Demo Questions ──────────────────────────────────────
+    console.log('❓ Seeding demo questions...');
+    
+    const q1 = await prisma.question.upsert({
+        where: { questionId: 'Q-1001' },
+        update: {},
+        create: {
+            questionId: 'Q-1001',
+            textEn: 'What is the sum of 12 + 15?',
+            textHi: '12 aur 15 ka jod kya hai?',
+            type: 'MCQ_SINGLE',
+            difficulty: 'EASY',
+            orgId: demoOrg.id,
+            options: {
+                create: [
+                    { id: 'opt1', textEn: '25', isCorrect: false },
+                    { id: 'opt2', textEn: '27', isCorrect: true },
+                    { id: 'opt3', textEn: '30', isCorrect: false },
+                ]
+            }
+        },
+    });
+
+    const q2 = await prisma.question.upsert({
+        where: { questionId: 'Q-1002' },
+        update: {},
+        create: {
+            questionId: 'Q-1002',
+            textEn: 'Identify the verb in the sentence "She runs fast".',
+            textHi: '',
+            type: 'MCQ_SINGLE',
+            difficulty: 'MEDIUM',
+            orgId: demoOrg.id,
+            options: {
+                create: [
+                    { id: 'opt4', textEn: 'Runs', isCorrect: true },
+                    { id: 'opt5', textEn: 'Fast', isCorrect: false },
+                    { id: 'opt6', textEn: 'She', isCorrect: false },
+                ]
+            }
+        },
+    });
+
+    // Link Questions to Sets
+    await prisma.questionSetItem.upsert({
+        where: { setId_questionId: { setId: set1.id, questionId: q1.id } },
+        update: {},
+        create: { setId: set1.id, questionId: q1.id, sortOrder: 1 },
+    });
+
+    await prisma.questionSetItem.upsert({
+        where: { setId_questionId: { setId: set2.id, questionId: q2.id } },
+        update: {},
+        create: { setId: set2.id, questionId: q2.id, sortOrder: 1 },
+    });
+
+    console.log('✅ Demo Questions and Items created.');
+
     console.log('\n🎉 Seeding complete!');
 }
 
