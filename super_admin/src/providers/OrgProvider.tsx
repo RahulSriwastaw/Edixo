@@ -46,8 +46,11 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
         } catch (error: any) {
             const message = String(error?.message || '');
 
-            // Single-owner mode does not expose org APIs.
-            if (message.includes('Route not found: GET /api/organizations')) {
+            // Single-owner mode does not require org APIs.
+            if (
+                message.includes('Route not found: GET /api/organizations') ||
+                message.includes('Failed to fetch')
+            ) {
                 setOrganizations([]);
                 setSelectedOrgId(null);
                 return;

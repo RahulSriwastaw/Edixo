@@ -103,6 +103,35 @@ app.get('/health', async (_req, res) => {
     }
 });
 
+// ─── Single-Owner Compatibility Endpoints ──────────────────────
+app.get('/api/organizations', (_req, res) => {
+    res.json({
+        success: true,
+        data: {
+            orgs: [],
+        },
+    });
+});
+
+app.get('/api/qbank/dashboard', (_req, res) => {
+    res.json({
+        success: true,
+        data: {
+            totalQuestions: 0,
+            newQuestions: 0,
+            publicQuestions: 0,
+            newPublic: 0,
+            totalSets: 0,
+            newSets: 0,
+            totalPoints: 0,
+            newPoints: 0,
+            bySubject: [],
+            usageTrend: [],
+            recentUsage: [],
+        },
+    });
+});
+
 // ─── API Routes ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/super-admin', superAdminRoutes);
