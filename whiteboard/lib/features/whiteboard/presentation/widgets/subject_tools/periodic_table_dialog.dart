@@ -21,27 +21,27 @@ class PeriodicTableDialog extends ConsumerWidget {
       child: Container(
         width: 900,
         height: 600,
-        padding: EdgeInsets.all(AppDimensions.borderRadiusL),
+        padding: const EdgeInsets.all(AppDimensions.borderRadiusL),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Header
             Row(
               children: [
-                Icon(Icons.science, color: AppColors.accentOrange, size: 28),
-                SizedBox(width: AppDimensions.borderRadiusM),
+                const Icon(Icons.science, color: AppColors.accentOrange, size: 28),
+                const SizedBox(width: AppDimensions.borderRadiusM),
                 Text(
                   'Periodic Table',
                   style: AppTextStyles.heading2,
                 ),
-                Spacer(),
+                const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.close, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
                   onPressed: () => context.pop(),
                 ),
               ],
             ),
-            SizedBox(height: AppDimensions.borderRadiusM),
+            const SizedBox(height: AppDimensions.borderRadiusM),
 
             // Periodic table grid
             Expanded(
@@ -88,8 +88,8 @@ class _PeriodicTableGrid extends StatelessWidget {
       width: 850,
       child: GridView.builder(
         shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 18,
           childAspectRatio: 1.0,
           crossAxisSpacing: 4,
@@ -102,7 +102,7 @@ class _PeriodicTableGrid extends StatelessWidget {
           final element = elements.where((e) => e.period == row + 1 && e.group == col + 1).firstOrNull;
 
           if (element == null) {
-            return SizedBox.shrink();
+            return const SizedBox.shrink();
           }
 
           return _ElementTile(element: element);
@@ -121,7 +121,7 @@ class _ElementTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: element.color.withOpacity(0.2),
+        color: element.color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(4),
         border: Border.all(color: element.color, width: 1),
       ),
@@ -130,7 +130,7 @@ class _ElementTile extends StatelessWidget {
         children: [
           Text(
             element.number.toString(),
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textTertiary,
               fontSize: 8,
             ),
@@ -145,7 +145,7 @@ class _ElementTile extends StatelessWidget {
           ),
           Text(
             element.mass.toStringAsFixed(1),
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textSecondary,
               fontSize: 7,
             ),

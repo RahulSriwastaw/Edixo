@@ -1,5 +1,6 @@
 // lib/features/whiteboard/presentation/providers/canvas_provider.dart
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:uuid/uuid.dart';
@@ -8,6 +9,7 @@ import '../../data/models/canvas_object_model.dart';
 import '../../data/models/slide_annotation.dart';
 import 'tool_provider.dart';
 import 'session_provider.dart';
+import 'current_slide_id_provider.dart';
 
 part 'canvas_provider.g.dart';
 
@@ -81,19 +83,66 @@ class CanvasNotifier extends _$CanvasNotifier {
 
   void startStroke(Offset point) {
     final settings  = ref.read(toolNotifierProvider);
-    // TODO: Get current slide ID from slideNotifierProvider
-    const slideId   = '';  // Will be injected by caller
+    final strokeType = _mapToolToStrokeType(settings.activeTool);
+    if (strokeType == null) return;
+    final slideId = ref.read(currentSlideIdProvider) ?? '';
     state = state.copyWith(
       activeStroke: StrokeModel(
         id:          const Uuid().v4(),
         points:      [point],
-        colorARGB:   settings.color.value,
-        strokeWidth: settings.strokeWidth,
-        type:        StrokeType.softPen,  // TODO: Map from settings.activeTool
-        opacity:     settings.opacity,
+          colorARGB:   settings.currentSettings.color.toARGB32(),
+          strokeWidth: settings.currentSettings.strokeWidth,
+          type:        strokeType,
+          opacity:     settings.currentSettings.opacity,
         slideId:     slideId,
       ),
     );
+  }
+
+  /// Soft eraser — removes individual points from strokes within [radius] of [point].
+  void eraseAtPoint(Offset point, double radius) {
+    final updated = <StrokeModel>[];
+    bool changed = false;
+    for (final stroke in state.strokes) {
+      final kept = stroke.points
+          .where((p) => math.sqrt(math.pow(p.dx - point.dx, 2) + math.pow(p.dy - point.dy, 2)) > radius)
+          .toList();
+      if (kept.length == stroke.points.length) {
+        updated.add(stroke);
+      } else if (kept.length >= 2) {
+        updated.add(stroke.copyWith(points: kept));
+        changed = true;
+      } else {
+        changed = true; // stroke fully erased
+      }
+    }
+    if (changed) {
+      _pushUndoAndUpdate(strokes: updated);
+      ref.read(sessionNotifierProvider.notifier).markDirty();
+    }
+  }
+
+  /// Hard eraser — removes the entire stroke whose path the pointer touched.
+  void eraseStrokeAt(Offset point, double radius) {
+    final toRemove = state.strokes.where((stroke) {
+      return stroke.points.any((p) =>
+          math.sqrt(math.pow(p.dx - point.dx, 2) + math.pow(p.dy - point.dy, 2)) <= radius);
+    }).map((s) => s.id).toSet();
+    if (toRemove.isEmpty) return;
+    final updated = state.strokes.where((s) => !toRemove.contains(s.id)).toList();
+    _pushUndoAndUpdate(strokes: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Object eraser — removes canvas objects whose bounds contain [point].
+  void eraseObjectAt(Offset point) {
+    final toRemove = state.objects
+        .where((obj) => obj.bounds.inflate(4).contains(point))
+        .map((o) => o.id)
+        .toSet();
+    if (toRemove.isEmpty) return;
+    _pushUndoAndUpdate(objects: state.objects.where((o) => !toRemove.contains(o.id)).toList());
+    ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   void updateStroke(Offset point) {
@@ -161,6 +210,99 @@ class CanvasNotifier extends _$CanvasNotifier {
     ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
+  void updateObjectTransform(
+    String id, {
+    double? x,
+    double? y,
+    double? width,
+    double? height,
+    double? borderWidth,
+    double? opacity,
+    int? borderColorARGB,
+    int? fillColorARGB,
+    double? rotation,
+  }) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+    final existing = matches.first;
+    if (existing.isLocked) return;
+
+    final changed = existing.copyWith(
+      x: x,
+      y: y,
+      width: width,
+      height: height,
+      borderWidth: borderWidth,
+      opacity: opacity,
+      borderColorARGB: borderColorARGB,
+      fillColorARGB: fillColorARGB,
+      rotation: rotation,
+    );
+
+    final updated = state.objects
+        .map((o) => o.id == id ? changed : o)
+        .toList();
+    _pushUndoAndUpdate(objects: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  void updateObjectExtra(String id, Map<String, dynamic> extra) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+    final existing = matches.first;
+    if (existing.isLocked) return;
+
+    final updated = state.objects
+        .map((o) => o.id == id ? o.copyWith(extra: extra) : o)
+        .toList();
+    _pushUndoAndUpdate(objects: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  void updateObjectText(String id, String text) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+    final existing = matches.first;
+    if (existing.isLocked) return;
+
+    final nextExtra = Map<String, dynamic>.from(existing.extra);
+    nextExtra['text'] = text;
+    updateObjectExtra(id, nextExtra);
+  }
+
+  void toggleObjectLock(String id) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+
+    final updated = state.objects
+        .map((o) => o.id == id ? o.copyWith(isLocked: !o.isLocked) : o)
+        .toList();
+    _pushUndoAndUpdate(objects: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  void bringObjectToFront(String id) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+    final maxZ = state.objects.fold<int>(0, (m, o) => o.zIndex > m ? o.zIndex : m);
+    final updated = state.objects
+        .map((o) => o.id == id ? o.copyWith(zIndex: maxZ + 1) : o)
+        .toList();
+    _pushUndoAndUpdate(objects: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  void sendObjectToBack(String id) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+    final minZ = state.objects.fold<int>(0, (m, o) => o.zIndex < m ? o.zIndex : m);
+    final updated = state.objects
+        .map((o) => o.id == id ? o.copyWith(zIndex: minZ - 1) : o)
+        .toList();
+    _pushUndoAndUpdate(objects: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
   void deleteObject(String id) {
     _pushUndoAndUpdate(
       objects: state.objects.where((o) => o.id != id).toList(),
@@ -168,9 +310,149 @@ class CanvasNotifier extends _$CanvasNotifier {
     ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
+  /// Translates all points of a stroke by [delta] (for stroke dragging).
+  void translateStroke(String id, Offset delta) {
+    final idx = state.strokes.indexWhere((s) => s.id == id);
+    if (idx < 0) return;
+    final s = state.strokes[idx];
+    final moved = s.copyWith(points: s.points.map((p) => p + delta).toList());
+    final updated = List<StrokeModel>.from(state.strokes);
+    updated[idx] = moved;
+    _pushUndoAndUpdate(strokes: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Updates visual style properties of a stroke.
+  void updateStrokeStyle(
+    String id, {
+    int? colorARGB,
+    double? strokeWidth,
+    double? opacity,
+    StrokeType? type,
+  }) {
+    final idx = state.strokes.indexWhere((s) => s.id == id);
+    if (idx < 0) return;
+    final existing = state.strokes[idx];
+    final changed = existing.copyWith(
+      colorARGB: colorARGB,
+      strokeWidth: strokeWidth,
+      opacity: opacity,
+      type: type,
+    );
+    final updated = List<StrokeModel>.from(state.strokes);
+    updated[idx] = changed;
+    _pushUndoAndUpdate(strokes: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Replaces stroke points directly (used for group transforms).
+  void updateStrokePoints(String id, List<Offset> points) {
+    final idx = state.strokes.indexWhere((s) => s.id == id);
+    if (idx < 0) return;
+    final existing = state.strokes[idx];
+    final updated = List<StrokeModel>.from(state.strokes);
+    updated[idx] = existing.copyWith(points: points);
+    _pushUndoAndUpdate(strokes: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Applies scale + rotation transform around stroke center.
+  void transformStroke(
+    String id, {
+    double scale = 1.0,
+    double rotationDeg = 0.0,
+    Offset? center,
+  }) {
+    final idx = state.strokes.indexWhere((s) => s.id == id);
+    if (idx < 0) return;
+    final existing = state.strokes[idx];
+    if (existing.points.isEmpty) return;
+
+    final c = center ?? _strokeCenter(existing.points);
+    final angle = rotationDeg * math.pi / 180.0;
+    final cosA = math.cos(angle);
+    final sinA = math.sin(angle);
+
+    final transformed = existing.points.map((p) {
+      final dx = (p.dx - c.dx) * scale;
+      final dy = (p.dy - c.dy) * scale;
+      final rx = (dx * cosA) - (dy * sinA);
+      final ry = (dx * sinA) + (dy * cosA);
+      return Offset(c.dx + rx, c.dy + ry);
+    }).toList();
+
+    final updated = List<StrokeModel>.from(state.strokes);
+    updated[idx] = existing.copyWith(points: transformed);
+    _pushUndoAndUpdate(strokes: updated);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Duplicates a stroke with a small offset for quick editing.
+  void duplicateStroke(String id) {
+    final idx = state.strokes.indexWhere((s) => s.id == id);
+    if (idx < 0) return;
+    final existing = state.strokes[idx];
+    final dup = existing.copyWith(
+      id: const Uuid().v4(),
+      points: existing.points.map((p) => p + const Offset(24, 24)).toList(),
+    );
+    _pushUndoAndUpdate(strokes: [...state.strokes, dup]);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Deletes either a stroke or an object by id.
+  void deleteElement(String id) {
+    final hasStroke = state.strokes.any((s) => s.id == id);
+    if (hasStroke) {
+      _pushUndoAndUpdate(strokes: state.strokes.where((s) => s.id != id).toList());
+    } else {
+      _pushUndoAndUpdate(objects: state.objects.where((o) => o.id != id).toList());
+    }
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  /// Duplicates a canvas object (shapes/textboxes), placing the copy 24px offset.
+  void duplicateObject(String id) {
+    final matches = state.objects.where((o) => o.id == id);
+    if (matches.isEmpty) return;
+    final obj = matches.first;
+    final dup = CanvasObjectModel(
+      type: obj.type,
+      x: obj.x + 24,
+      y: obj.y + 24,
+      width: obj.width,
+      height: obj.height,
+      rotation: obj.rotation,
+      fillColorARGB: obj.fillColorARGB,
+      borderColorARGB: obj.borderColorARGB,
+      borderWidth: obj.borderWidth,
+      opacity: obj.opacity,
+      isLocked: obj.isLocked,
+      zIndex: obj.zIndex,
+      slideId: obj.slideId,
+      extra: Map<String, dynamic>.from(obj.extra),
+    );
+    _pushUndoAndUpdate(objects: [...state.objects, dup]);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
   void clearSlide() {
     _pushUndoAndUpdate(strokes: [], objects: []);
     ref.read(sessionNotifierProvider.notifier).markDirty();
+  }
+
+  Offset _strokeCenter(List<Offset> pts) {
+    double minX = pts.first.dx;
+    double maxX = pts.first.dx;
+    double minY = pts.first.dy;
+    double maxY = pts.first.dy;
+    for (final p in pts) {
+      if (p.dx < minX) minX = p.dx;
+      if (p.dx > maxX) maxX = p.dx;
+      if (p.dy < minY) minY = p.dy;
+      if (p.dy > maxY) maxY = p.dy;
+    }
+    return Offset((minX + maxX) / 2, (minY + maxY) / 2);
   }
 
   void loadFromAnnotation(SlideAnnotationData data) {
@@ -193,6 +475,19 @@ class CanvasNotifier extends _$CanvasNotifier {
       ],
       redoStack: [],
     );
+  }
+
+  StrokeType? _mapToolToStrokeType(Tool tool) {
+    return switch (tool) {
+      Tool.softPen => StrokeType.softPen,
+      Tool.hardPen => StrokeType.hardPen,
+      Tool.highlighter => StrokeType.highlighter,
+      Tool.chalk => StrokeType.chalk,
+      Tool.calligraphy => StrokeType.calligraphy,
+      Tool.spray => StrokeType.spray,
+      Tool.laserPointer => StrokeType.laserPointer,
+      _ => null,
+    };
   }
 }
 

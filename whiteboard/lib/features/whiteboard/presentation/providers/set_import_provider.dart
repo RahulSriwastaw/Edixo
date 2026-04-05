@@ -1,6 +1,5 @@
 // lib/features/whiteboard/presentation/providers/set_import_provider.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/providers/auth_provider.dart';
@@ -102,7 +101,6 @@ class SetImportNotifier extends _$SetImportNotifier {
                 final sessionResult = await ref.read(setRemoteDsProvider).startSession(
                   setId: setId,
                   teacherId: teacher.id,
-                  orgId: teacher.orgId,
                 );
 
                 await sessionResult.fold(

@@ -39,8 +39,8 @@ class _ProtractorWidgetState extends ConsumerState<ProtractorWidget> {
             width: 300,
             height: 150,
             decoration: BoxDecoration(
-              color: AppColors.bgSecondary.withOpacity(0.9),
-              borderRadius: BorderRadius.only(
+              color: AppColors.bgSecondary.withValues(alpha: 0.9),
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(150),
                 topRight: Radius.circular(150),
               ),
@@ -50,7 +50,7 @@ class _ProtractorWidgetState extends ConsumerState<ProtractorWidget> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(2, 2),
                 ),
@@ -60,7 +60,7 @@ class _ProtractorWidgetState extends ConsumerState<ProtractorWidget> {
               children: [
                 CustomPaint(
                   painter: ProtractorPainter(),
-                  child: SizedBox.expand(),
+                  child: const SizedBox.expand(),
                 ),
                 // Rotation handle
                 Positioned(
@@ -70,14 +70,14 @@ class _ProtractorWidgetState extends ConsumerState<ProtractorWidget> {
                     onPanStart: (details) {
                       setState(() {
                         _isRotating = true;
-                        final center = Offset(150, 150);
+                        const center = Offset(150, 150);
                         _initialRotationAngle = (details.localPosition - center).direction;
                       });
                     },
                     onPanUpdate: (details) {
                       if (_isRotating) {
                         setState(() {
-                          final center = Offset(150, 150);
+                          const center = Offset(150, 150);
                           final newAngle = (details.localPosition - center).direction;
                           _rotation += newAngle - _initialRotationAngle;
                           _initialRotationAngle = newAngle;
@@ -88,11 +88,11 @@ class _ProtractorWidgetState extends ConsumerState<ProtractorWidget> {
                     child: Container(
                       width: 20,
                       height: 20,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.accentOrange,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.rotate_right, size: 14, color: Colors.white),
+                      child: const Icon(Icons.rotate_right, size: 14, color: Colors.white),
                     ),
                   ),
                 ),
@@ -160,7 +160,7 @@ class ProtractorPainter extends CustomPainter {
         final textPainter = TextPainter(
           text: TextSpan(
             text: '$degrees°',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 8,
             ),

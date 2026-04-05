@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/canvas_provider.dart';
 import '../../providers/slide_provider.dart';
+import '../../../../whiteboard/data/models/slide_model.dart';
 
 class SlidePanelDrawer extends ConsumerWidget {
   const SlidePanelDrawer({super.key});
@@ -34,28 +34,43 @@ class SlidePanelDrawer extends ConsumerWidget {
           
           // Slide List
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              itemCount: slides.length,
-              itemBuilder: (context, index) {
-                final slide = slides[index];
-                final isSelected = slideState.currentSlideIndex == index;
-                
-                return Padding(
-                  key: ValueKey(slide.slideId),
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _SlideTile(
-                    index: index,
-                    slide: slide,
-                    isSelected: isSelected,
-                    onTap: () {
-                      slideNotifier.navigateToSlide(index);
-                      Navigator.of(context).pop();
+            child: slides.isEmpty
+                ? const Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.inbox_outlined, color: Colors.white24, size: 48),
+                        SizedBox(height: 12),
+                        Text('No slides imported', style: TextStyle(color: Colors.white38, fontSize: 13)),
+                        SizedBox(height: 4),
+                        Text('Use "Import Set" to load questions', style: TextStyle(color: Colors.white24, fontSize: 11)),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    itemCount: slides.length,
+                    itemBuilder: (context, index) {
+                      final slide = slides[index];
+                      final isSelected = slideState.currentSlideIndex == index;
+                      final hasSavedAnnotation = slideState.savedAnnotations.containsKey(slide.slideId);
+                      
+                      return Padding(
+                        key: ValueKey(slide.slideId),
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _SlideTile(
+                          index: index,
+                          slide: slide,
+                          isSelected: isSelected,
+                          hasAnnotation: hasSavedAnnotation,
+                          onTap: () {
+                            slideNotifier.navigateToSlide(index);
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      );
                     },
                   ),
-                );
-              },
-            ),
           ),
         ],
       ),
@@ -65,60 +80,136 @@ class SlidePanelDrawer extends ConsumerWidget {
 
 class _SlideTile extends StatelessWidget {
   final int index;
-  final dynamic slide;
+  final SetSlideModel slide;
   final bool isSelected;
+  final bool hasAnnotation;
   final VoidCallback onTap;
 
   const _SlideTile({
     required this.index,
     required this.slide,
     required this.isSelected,
+    required this.hasAnnotation,
     required this.onTap,
   });
 
+  /// Strip basic HTML tags for thumbnail preview text.
+  String _stripHtml(String html) {
+    return html
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
+        .replaceAll(RegExp(r'&nbsp;'), ' ')
+        .replaceAll(RegExp(r'&amp;'), '&')
+        .replaceAll(RegExp(r'&lt;'), '<')
+        .replaceAll(RegExp(r'&gt;'), '>')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final questionPreview = _stripHtml(slide.questionText);
+    final truncated = questionPreview.length > 80
+        ? '${questionPreview.substring(0, 80)}…'
+        : questionPreview;
+
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        height: 120,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFFFF6B35).withOpacity(0.1) : Colors.white.withOpacity(0.03),
-          borderRadius: BorderRadius.circular(12),
+          color: isSelected
+              ? const Color(0xFFFF6B35).withValues(alpha: 0.12)
+              : Colors.white.withValues(alpha: 0.03),
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: isSelected ? const Color(0xFFFF6B35) : Colors.white10,
             width: isSelected ? 2 : 1,
           ),
         ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-             // Thumbnail Placeholder
-             Expanded(
-               child: Center(
-                 child: Icon(
-                   Icons.description_outlined,
-                   color: Colors.white24,
-                   size: 32,
-                 ),
-               ),
-             ),
-             // Footer
-             Container(
-               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-               decoration: const BoxDecoration(
-                 color: Colors.black26,
-                 borderRadius: BorderRadius.vertical(bottom: Radius.circular(10)),
-               ),
-               child: Row(
-                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                 children: [
-                   Text('Slide ${index + 1}', style: const TextStyle(color: Colors.white, fontSize: 11)),
-                 ],
-               ),
-             ),
+            // Thumbnail area — mini question preview
+            Container(
+              height: 72,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.3),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(9)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF6B35).withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          'Q${slide.questionNumber}',
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      if (slide.examSource != null) ...[
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            slide.examSource!,
+                            style: const TextStyle(color: Colors.white38, fontSize: 9),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: Text(
+                      truncated,
+                      style: const TextStyle(color: Colors.white60, fontSize: 10, height: 1.3),
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            // Footer
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              child: Row(
+                children: [
+                  Text(
+                    'Slide ${index + 1}',
+                    style: TextStyle(
+                      color: isSelected ? const Color(0xFFFF6B35) : Colors.white54,
+                      fontSize: 11,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (hasAnnotation)
+                    const Tooltip(
+                      message: 'Has annotations',
+                      child: Icon(Icons.edit_note, color: Color(0xFFFF6B35), size: 14),
+                    ),
+                  if (slide.options.isNotEmpty) ...[
+                    const SizedBox(width: 4),
+                    Text(
+                      '${slide.options.length} opts',
+                      style: const TextStyle(color: Colors.white24, fontSize: 9),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+

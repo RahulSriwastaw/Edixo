@@ -92,19 +92,19 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
             // Header
             Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.folder_open,
                   color: AppColors.accentOrange,
                   size: 28,
                 ),
-                SizedBox(width: AppDimensions.borderRadiusM),
+                const SizedBox(width: AppDimensions.borderRadiusM),
                 Text(
                   'Import Set',
                   style: AppTextStyles.heading2,
                 ),
               ],
             ),
-            SizedBox(height: AppDimensions.borderRadiusL),
+            const SizedBox(height: AppDimensions.borderRadiusL),
 
             // Set ID Field
             TextField(
@@ -122,7 +122,7 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                  borderSide: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
+                  borderSide: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
@@ -130,7 +130,7 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                 ),
               ),
             ),
-            SizedBox(height: AppDimensions.borderRadiusL),
+            const SizedBox(height: AppDimensions.borderRadiusL),
 
             // Password Field
             TextField(
@@ -148,7 +148,7 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                  borderSide: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
+                  borderSide: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
@@ -156,21 +156,21 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                 ),
               ),
             ),
-            SizedBox(height: AppDimensions.topBarHeight),
+            const SizedBox(height: AppDimensions.topBarHeight),
 
             // Error Message
             if (importState.state == SetImportState.failure && importState.error != null)
               Padding(
-                padding: EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
+                padding: const EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
                 child: Container(
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: AppDimensions.borderRadiusL,
                     vertical: AppDimensions.borderRadiusM,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.error.withOpacity(0.1),
+                    color: AppColors.error.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                    border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                    border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                   ),
                   child: Text(
                     importState.error!.message,
@@ -188,8 +188,8 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                   child: OutlinedButton(
                     onPressed: isLoading ? null : () => context.pop(),
                     style: OutlinedButton.styleFrom(
-                      padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
-                      side: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
+                      padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
+                      side: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                       ),
@@ -200,7 +200,7 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                     ),
                   ),
                 ),
-                SizedBox(width: AppDimensions.borderRadiusL),
+                const SizedBox(width: AppDimensions.borderRadiusL),
 
                 // Import Button
                 Expanded(
@@ -208,8 +208,8 @@ class _SetImportDialogState extends ConsumerState<SetImportDialog> {
                     onPressed: isLoading ? null : _handleImport,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.accentOrange,
-                      disabledBackgroundColor: AppColors.accentOrange.withOpacity(0.5),
-                      padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
+                      disabledBackgroundColor: AppColors.accentOrange.withValues(alpha: 0.5),
+                      padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                       ),

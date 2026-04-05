@@ -1,14 +1,12 @@
 // lib/features/whiteboard/services/export_service.dart
 
 import 'dart:io';
-import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:archive/archive.dart';
 import 'package:archive/archive_io.dart';
 import '../data/models/stroke_model.dart';
 import '../data/models/canvas_object_model.dart';
@@ -27,10 +25,6 @@ class ExportService {
 
     // Generate one page per slide
     for (int i = 0; i < slideCount; i++) {
-      final annotation = i < slideAnnotations.length
-          ? slideAnnotations[i]
-          : SlideAnnotationData(slideId: 'slide-$i');
-
       pdf.addPage(
         pw.Page(
           pageFormat: PdfPageFormat.a4.landscape,
@@ -132,7 +126,7 @@ class ExportService {
     if (stroke.points.isEmpty) return;
 
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity)
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
       ..strokeWidth = stroke.strokeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -153,11 +147,11 @@ class ExportService {
   static void _drawObjectOnCanvas(Canvas canvas, CanvasObjectModel obj) {
     final rect = Rect.fromLTWH(obj.x, obj.y, obj.width, obj.height);
     final paint = Paint()
-      ..color = obj.fillColor.withOpacity(obj.opacity)
+      ..color = obj.fillColor.withValues(alpha: obj.opacity)
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()
-      ..color = obj.borderColor.withOpacity(obj.opacity)
+      ..color = obj.borderColor.withValues(alpha: obj.opacity)
       ..strokeWidth = obj.borderWidth
       ..style = PaintingStyle.stroke;
 

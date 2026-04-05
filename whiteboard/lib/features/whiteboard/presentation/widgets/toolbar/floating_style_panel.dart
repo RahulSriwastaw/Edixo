@@ -5,7 +5,6 @@ import 'package:file_picker/file_picker.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/constants/app_text_styles.dart';
-import '../../providers/tool_provider.dart';
 import '../../../../question_widget/presentation/providers/selected_widget_provider.dart';
 import '../../../../question_widget/presentation/providers/question_widget_provider.dart';
 import '../../../../question_widget/data/models/question_widget_style.dart';
@@ -15,8 +14,6 @@ class FloatingStylePanel extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final toolState = ref.watch(toolNotifierProvider);
-    final toolNotifier = ref.read(toolNotifierProvider.notifier);
     final selectedWidgetId = ref.watch(selectedWidgetNotifierProvider);
     final questionWidgets = ref.watch(questionWidgetNotifierProvider);
 
@@ -44,9 +41,9 @@ class FloatingStylePanel extends ConsumerWidget {
             width: AppDimensions.stylePanelWidth,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.bgSecondary.withOpacity(0.9),
+              color: AppColors.bgSecondary.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(AppDimensions.borderRadiusL),
-              border: Border.all(color: AppColors.textTertiary.withOpacity(0.2), width: 1),
+              border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.2), width: 1),
             ),
             child: SingleChildScrollView(
               child: Column(
@@ -56,8 +53,8 @@ class FloatingStylePanel extends ConsumerWidget {
                   // Header
                   Row(
                     children: [
-                      Icon(Icons.style, color: AppColors.accentOrange, size: 18),
-                      SizedBox(width: AppDimensions.borderRadiusS),
+                      const Icon(Icons.style, color: AppColors.accentOrange, size: 18),
+                      const SizedBox(width: AppDimensions.borderRadiusS),
                       Text(
                         'QUESTION STYLE',
                         style: AppTextStyles.caption.copyWith(
@@ -68,7 +65,7 @@ class FloatingStylePanel extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppDimensions.borderRadiusL),
+                  const SizedBox(height: AppDimensions.borderRadiusL),
 
                   // 1. Question Text Color
                   _StyleSection(
@@ -78,7 +75,7 @@ class FloatingStylePanel extends ConsumerWidget {
                       onColorChanged: (color) {
                         notifier.updateStyle(
                           selectedWidgetId,
-                          style.copyWith(questionTextColorARGB: color.value),
+                          style.copyWith(questionTextColorARGB: color.toARGB32()),
                         );
                       },
                     ),
@@ -92,7 +89,7 @@ class FloatingStylePanel extends ConsumerWidget {
                       onColorChanged: (color) {
                         notifier.updateStyle(
                           selectedWidgetId,
-                          style.copyWith(questionBgColorARGB: color.value),
+                          style.copyWith(questionBgColorARGB: color.toARGB32()),
                         );
                       },
                     ),
@@ -106,7 +103,7 @@ class FloatingStylePanel extends ConsumerWidget {
                       onColorChanged: (color) {
                         notifier.updateStyle(
                           selectedWidgetId,
-                          style.copyWith(optionTextColorARGB: color.value),
+                          style.copyWith(optionTextColorARGB: color.toARGB32()),
                         );
                       },
                     ),
@@ -120,7 +117,7 @@ class FloatingStylePanel extends ConsumerWidget {
                       onColorChanged: (color) {
                         notifier.updateStyle(
                           selectedWidgetId,
-                          style.copyWith(optionBgColorARGB: color.value),
+                          style.copyWith(optionBgColorARGB: color.toARGB32()),
                         );
                       },
                     ),
@@ -133,7 +130,7 @@ class FloatingStylePanel extends ConsumerWidget {
                       children: [
                         _SliderRow(
                           label: 'Question',
-                          value: style.questionFontSize.toDouble(),
+                          value: style.questionFontSize,
                           min: 12,
                           max: 48,
                           onChanged: (v) => notifier.updateStyle(
@@ -141,10 +138,10 @@ class FloatingStylePanel extends ConsumerWidget {
                             style.copyWith(questionFontSize: v),
                           ),
                         ),
-                        SizedBox(height: AppDimensions.borderRadiusS),
+                        const SizedBox(height: AppDimensions.borderRadiusS),
                         _SliderRow(
                           label: 'Options',
-                          value: style.optionFontSize.toDouble(),
+                          value: style.optionFontSize,
                           min: 10,
                           max: 36,
                           onChanged: (v) => notifier.updateStyle(
@@ -171,17 +168,17 @@ class FloatingStylePanel extends ConsumerWidget {
                             style.copyWith(borderWidth: v),
                           ),
                         ),
-                        SizedBox(height: AppDimensions.borderRadiusS),
+                        const SizedBox(height: AppDimensions.borderRadiusS),
                         _ColorPickerRow(
                           selectedColor: Color(style.borderColorARGB),
                           onColorChanged: (color) {
                             notifier.updateStyle(
                               selectedWidgetId,
-                              style.copyWith(borderColorARGB: color.value),
+                              style.copyWith(borderColorARGB: color.toARGB32()),
                             );
                           },
                         ),
-                        SizedBox(height: AppDimensions.borderRadiusS),
+                        const SizedBox(height: AppDimensions.borderRadiusS),
                         _SliderRow(
                           label: 'Radius',
                           value: style.borderRadius,
@@ -205,7 +202,7 @@ class FloatingStylePanel extends ConsumerWidget {
                         selectedWidgetId,
                         style.copyWith(hasShadow: v),
                       ),
-                      activeColor: AppColors.accentOrange,
+                      activeThumbColor: AppColors.accentOrange,
                       contentPadding: EdgeInsets.zero,
                       dense: true,
                       title: Text(
@@ -222,19 +219,19 @@ class FloatingStylePanel extends ConsumerWidget {
                       children: [
                         ElevatedButton.icon(
                           onPressed: () => _pickBackgroundImage(context, notifier, selectedWidgetId, style),
-                          icon: Icon(Icons.image, size: 18),
-                          label: Text('Choose Image'),
+                          icon: const Icon(Icons.image, size: 18),
+                          label: const Text('Choose Image'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.accentOrange,
                             foregroundColor: AppColors.bgPrimary,
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: AppDimensions.borderRadiusL,
                               vertical: AppDimensions.borderRadiusS,
                             ),
                           ),
                         ),
                         if (style.bgImageOpacity > 0) ...[
-                          SizedBox(height: AppDimensions.borderRadiusS),
+                          const SizedBox(height: AppDimensions.borderRadiusS),
                           _SliderRow(
                             label: 'Opacity',
                             value: style.bgImageOpacity,
@@ -258,23 +255,23 @@ class FloatingStylePanel extends ConsumerWidget {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => notifier.bringToFront(selectedWidgetId),
-                            icon: Icon(Icons.arrow_upward, size: 16),
-                            label: Text('Bring Front'),
+                            icon: const Icon(Icons.arrow_upward, size: 16),
+                            label: const Text('Bring Front'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textPrimary,
-                              padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusS),
+                              padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusS),
                             ),
                           ),
                         ),
-                        SizedBox(width: AppDimensions.borderRadiusS),
+                        const SizedBox(width: AppDimensions.borderRadiusS),
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: () => notifier.sendToBack(selectedWidgetId),
-                            icon: Icon(Icons.arrow_downward, size: 16),
-                            label: Text('Send Back'),
+                            icon: const Icon(Icons.arrow_downward, size: 16),
+                            label: const Text('Send Back'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textPrimary,
-                              padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusS),
+                              padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusS),
                             ),
                           ),
                         ),
@@ -320,7 +317,7 @@ class _StyleSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
+      padding: const EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -331,7 +328,7 @@ class _StyleSection extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-          SizedBox(height: AppDimensions.borderRadiusS),
+          const SizedBox(height: AppDimensions.borderRadiusS),
           child,
         ],
       ),
@@ -368,7 +365,7 @@ class _ColorPickerRow extends StatelessWidget {
       spacing: 6,
       runSpacing: 6,
       children: _colors.map((color) {
-        final isSelected = selectedColor.value == color.value;
+        final isSelected = selectedColor.toARGB32() == color.toARGB32();
         return GestureDetector(
           onTap: () => onColorChanged(color),
           child: Container(
@@ -422,10 +419,10 @@ class _SliderRow extends StatelessWidget {
           ],
         ),
         SliderTheme(
-          data: SliderThemeData(
+          data: const SliderThemeData(
             trackHeight: 4,
-            thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+            thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6),
+            overlayShape: RoundSliderOverlayShape(overlayRadius: 12),
             activeTrackColor: AppColors.accentOrange,
             inactiveTrackColor: Colors.white24,
             thumbColor: AppColors.accentOrange,

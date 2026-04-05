@@ -8,8 +8,6 @@ import {
   LayoutDashboard,
   BarChart3,
   Bell,
-  Building2,
-  Fingerprint,
   CreditCard,
   BookOpen,
   ClipboardList,
@@ -47,8 +45,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { OrgSwitcher } from "./OrgSwitcher";
-
 interface NavItem {
   label: string;
   href: string;
@@ -74,8 +70,7 @@ const navigation: NavGroup[] = [
   {
     title: "PLATFORM",
     items: [
-      { label: "Organizations", href: "/organizations", icon: <Building2 className="w-5 h-5" /> },
-      { label: "Unique IDs", href: "/unique-ids", icon: <Fingerprint className="w-5 h-5" /> },
+      { label: "Whiteboard Accounts", href: "/whiteboard-accounts", icon: <Users className="w-5 h-5" /> },
       { label: "Billing", href: "/billing", icon: <CreditCard className="w-5 h-5" />, badge: 2 },
     ],
   },
@@ -97,7 +92,6 @@ const navigation: NavGroup[] = [
           { label: "Question Generation", href: "/question-bank/ai-generate", icon: <Sparkles className="w-4 h-4" /> },
           { label: "Taxonomy", href: "/question-bank/taxonomy", icon: <Tags className="w-4 h-4" /> },
           { label: "Usage Log", href: "/question-bank/usage-log", icon: <History className="w-4 h-4" /> },
-          { label: "Points Ledger", href: "/question-bank/points", icon: <Coins className="w-4 h-4" /> },
         ],
       },
       {
@@ -135,7 +129,6 @@ const navigation: NavGroup[] = [
     title: "APPS",
     items: [
       { label: "Student App", href: "/student-app", icon: <GraduationCap className="w-5 h-5" /> },
-      { label: "Org Admin Control", href: "/org-admin", icon: <Users className="w-5 h-5" /> },
     ],
   },
   {
@@ -265,9 +258,6 @@ export function Sidebar() {
             </div>
           </div>
         </div>
-
-        {/* Global Org Switcher */}
-        <OrgSwitcher />
 
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 custom-scrollbar">

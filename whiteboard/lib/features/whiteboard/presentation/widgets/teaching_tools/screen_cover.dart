@@ -26,8 +26,8 @@ class _ScreenCoverState extends ConsumerState<ScreenCover> {
         right: 20,
         child: ElevatedButton.icon(
           onPressed: () => setState(() => _isActive = true),
-          icon: Icon(Icons.visibility_off, size: 18),
-          label: Text('Cover Screen'),
+          icon: const Icon(Icons.visibility_off, size: 18),
+          label: const Text('Cover Screen'),
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.bgSecondary,
             foregroundColor: AppColors.textPrimary,
@@ -51,7 +51,7 @@ class _ScreenCoverState extends ConsumerState<ScreenCover> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.visibility_off,
                 size: 80,
                 color: AppColors.textDisabled,
@@ -131,7 +131,7 @@ class _MessageChip extends StatelessWidget {
           color: isSelected ? AppColors.accentOrange : AppColors.bgSecondary,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: isSelected ? AppColors.accentOrange : AppColors.textDisabled.withOpacity(0.3),
+            color: isSelected ? AppColors.accentOrange : AppColors.textDisabled.withValues(alpha: 0.3),
             width: 2,
           ),
         ),

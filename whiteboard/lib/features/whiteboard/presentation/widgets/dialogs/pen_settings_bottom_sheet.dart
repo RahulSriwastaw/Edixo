@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../providers/tool_provider.dart';
-import '../../providers/canvas_provider.dart';
 
 class PenSettingsBottomSheet extends ConsumerWidget {
   const PenSettingsBottomSheet({super.key});
@@ -137,7 +136,7 @@ class PenSettingsBottomSheet extends ConsumerWidget {
             color: isSelected ? Colors.white : Colors.transparent,
             width: 2,
           ),
-          boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 8)] : null,
+          boxShadow: isSelected ? [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8)] : null,
         ),
       ),
     );

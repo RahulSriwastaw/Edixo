@@ -8,9 +8,9 @@ import '../dialogs/workspace_settings_dialog.dart';
 // Provider to control panel open/close state
 final settingsPanelOpenProvider = StateProvider<bool>((ref) => false);
 // ... [rest of the file remains similar until _FloatingPanel]
-class _FloatingPanel extends ConsumerWidget {
+class FloatingPanel extends ConsumerWidget {
   final VoidCallback onClose;
-  const _FloatingPanel({required this.onClose});
+  const FloatingPanel({super.key, required this.onClose});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,10 +27,10 @@ class _FloatingPanel extends ConsumerWidget {
         decoration: BoxDecoration(
           color: const Color(0xFF1A1A2E),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.1)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.5),
+              color: Colors.black.withValues(alpha: 0.5),
               blurRadius: 24,
               offset: const Offset(0, 8),
             )
@@ -46,8 +46,8 @@ class _FloatingPanel extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.04),
-                    border: Border(bottom: BorderSide(color: Colors.white.withOpacity(0.07))),
+                    color: Colors.white.withValues(alpha: 0.04),
+                    border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
                   ),
                   child: const Row(
                     children: [
@@ -182,7 +182,7 @@ class _Divider extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
         height: 1,
-        color: Colors.white.withOpacity(0.07),
+        color: Colors.white.withValues(alpha: 0.07),
       );
 }
 
@@ -206,13 +206,13 @@ class _ModeChip extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
         decoration: BoxDecoration(
           color: isActive
-              ? AppTheme.primaryOrange.withOpacity(0.2)
-              : Colors.white.withOpacity(0.05),
+              ? AppTheme.primaryOrange.withValues(alpha: 0.2)
+              : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isActive
                 ? AppTheme.primaryOrange
-                : Colors.white.withOpacity(0.1),
+                : Colors.white.withValues(alpha: 0.1),
           ),
         ),
         child: Row(

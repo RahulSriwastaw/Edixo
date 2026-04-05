@@ -1,6 +1,5 @@
 // lib/features/auth/domain/auth_repository.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/datasources/auth_remote_ds.dart';
 

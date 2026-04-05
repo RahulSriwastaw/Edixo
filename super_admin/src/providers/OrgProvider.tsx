@@ -44,6 +44,15 @@ export function OrgProvider({ children }: { children: React.ReactNode }) {
                 }
             }
         } catch (error: any) {
+            const message = String(error?.message || '');
+
+            // Single-owner mode does not expose org APIs.
+            if (message.includes('Route not found: GET /api/organizations')) {
+                setOrganizations([]);
+                setSelectedOrgId(null);
+                return;
+            }
+
             if (error?.message !== 'No token provided') {
                 console.error("Failed to fetch organizations:", error);
             }

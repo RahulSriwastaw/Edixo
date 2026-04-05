@@ -1,82 +1,11 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/theme/app_theme.dart';
 import '../../providers/tool_provider.dart';
-import '../../../domain/services/pdf_import_service.dart';
-import '../../providers/canvas_provider.dart';
-
-// ─── Tool entry (not const to avoid compile issues with records) ──────────────
-class _ToolEntry {
-  final Tool tool;
-  final IconData icon;
-  final String label;
-  final bool isPremium;
-  const _ToolEntry(this.tool, this.icon, this.label, {this.isPremium = false});
-}
-
-// ─── Tool Categories ──────────────────────────────────────────────────────────
-enum ToolCategory { draw, shapes, objects, measure, insert, edit }
-
-// ─── Full Tool Library (PRD-07 v2.0, 6 Tabs) ─────────────────────────────────
-final Map<ToolCategory, List<_ToolEntry>> _allTools = {
-  ToolCategory.draw: [
-    const _ToolEntry(Tool.softPen, Icons.edit_outlined, 'Soft Pen'),
-    const _ToolEntry(Tool.hardPen, Icons.edit, 'Hard Pen'),
-    const _ToolEntry(Tool.highlighter, Icons.highlight_outlined, 'Highlighter'),
-    const _ToolEntry(Tool.chalk, Icons.draw_outlined, 'Chalk'),
-    const _ToolEntry(Tool.calligraphy, Icons.brush_outlined, 'Calligraphy'),
-    const _ToolEntry(Tool.spray, Icons.blur_on_outlined, 'Spray'),
-    const _ToolEntry(Tool.laserPointer, Icons.local_fire_department_outlined, 'Laser'),
-    const _ToolEntry(Tool.softEraser, Icons.auto_fix_normal_outlined, 'Soft Eraser'),
-    const _ToolEntry(Tool.hardEraser, Icons.auto_fix_high_outlined, 'Hard Eraser'),
-  ],
-  ToolCategory.shapes: [
-    const _ToolEntry(Tool.line, Icons.horizontal_rule_rounded, 'Line'),
-    const _ToolEntry(Tool.arrow, Icons.arrow_forward_rounded, 'Arrow'),
-    const _ToolEntry(Tool.doubleArrow, Icons.compare_arrows_rounded, 'Double Arrow'),
-    const _ToolEntry(Tool.rectangle, Icons.crop_square_outlined, 'Rectangle'),
-    const _ToolEntry(Tool.roundedRect, Icons.rounded_corner_outlined, 'Rounded Rect'),
-    const _ToolEntry(Tool.circle, Icons.circle_outlined, 'Circle'),
-    const _ToolEntry(Tool.triangle, Icons.change_history_outlined, 'Triangle'),
-    const _ToolEntry(Tool.star, Icons.star_border_outlined, 'Star'),
-    const _ToolEntry(Tool.polygon, Icons.hexagon_outlined, 'Polygon'),
-    const _ToolEntry(Tool.callout, Icons.chat_bubble_outline_rounded, 'Callout'),
-  ],
-  ToolCategory.objects: [
-    const _ToolEntry(Tool.textBox, Icons.text_fields_outlined, 'Text Box'),
-    const _ToolEntry(Tool.stickyNote, Icons.sticky_note_2_outlined, 'Sticky Note'),
-  ],
-  ToolCategory.measure: [
-    const _ToolEntry(Tool.navigate, Icons.navigation_outlined, 'Navigate'),
-  ],
-  ToolCategory.insert: [
-    const _ToolEntry(Tool.magicPen, Icons.auto_awesome_outlined, 'Magic Pen'),
-  ],
-  ToolCategory.edit: [
-    const _ToolEntry(Tool.select, Icons.highlight_alt_outlined, 'Select'),
-    const _ToolEntry(Tool.navigate, Icons.pan_tool_outlined, 'Pan'),
-  ],
-};
-
-const _tabLabels = ['Free-form', 'Shape', 'Review', 'Measure ★', 'Insert', 'Select'];
-const _tabCategories = [
-  ToolCategory.draw,
-  ToolCategory.shapes,
-  ToolCategory.objects,
-  ToolCategory.measure,
-  ToolCategory.insert,
-  ToolCategory.edit,
-];
-const _tabColors = [
-  AppTheme.drawColor,
-  AppTheme.shapeColor,
-  AppTheme.textColor,
-  AppTheme.measureColor,
-  Color(0xFFF39C12),
-  AppTheme.navColor,
-];
+import '../../providers/tool_registry.dart';
+import 'tool_settings_sheet.dart';
 
 class ToolPickerPanel extends ConsumerStatefulWidget {
   const ToolPickerPanel({super.key});
@@ -87,13 +16,22 @@ class ToolPickerPanel extends ConsumerStatefulWidget {
 
 class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late final TabController _tabController;
   String _searchQuery = '';
+
+  static const _tabOrder = [
+    ToolLibraryCategory.freeForm,
+    ToolLibraryCategory.shape,
+    ToolLibraryCategory.review,
+    ToolLibraryCategory.measure,
+    ToolLibraryCategory.insert,
+    ToolLibraryCategory.select,
+  ];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 6, vsync: this);
+    _tabController = TabController(length: _tabOrder.length, vsync: this);
   }
 
   @override
@@ -104,36 +42,33 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
 
   @override
   Widget build(BuildContext context) {
-    final toolState = ref.watch(toolNotifierProvider);
     final notifier = ref.read(toolNotifierProvider.notifier);
+    final toolState = ref.watch(toolNotifierProvider);
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.7,
+      height: MediaQuery.of(context).size.height * 0.72,
       decoration: BoxDecoration(
-        color: const Color(0xFF16162A),
+        color: const Color(0xFF151528),
         borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        border: Border.all(color: Colors.white.withOpacity(0.08)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
       child: Column(
         children: [
-          // Handle
           Container(
-            width: 40.w,
+            width: 42.w,
             height: 4.h,
             margin: EdgeInsets.only(top: 12.h),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withValues(alpha: 0.22),
               borderRadius: BorderRadius.circular(2.r),
             ),
           ),
-
-          // Header
           Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 12.h, 16.w, 0),
+            padding: EdgeInsets.fromLTRB(16.w, 10.h, 10.w, 0),
             child: Row(
               children: [
                 Text(
-                  'Tool Library',
+                  'Choose New Tool',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18.sp,
@@ -148,19 +83,17 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
               ],
             ),
           ),
-
-          // Search bar
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
             child: TextField(
               onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
               style: TextStyle(color: Colors.white, fontSize: 14.sp),
               decoration: InputDecoration(
-                hintText: 'Search tools...',
+                hintText: 'Search by name or category',
                 hintStyle: TextStyle(color: Colors.white38, fontSize: 14.sp),
                 prefixIcon: const Icon(Icons.search, color: Colors.white38),
                 filled: true,
-                fillColor: Colors.white.withOpacity(0.07),
+                fillColor: Colors.white.withValues(alpha: 0.08),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                   borderSide: BorderSide.none,
@@ -168,8 +101,6 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
               ),
             ),
           ),
-
-          // Tabs
           TabBar(
             controller: _tabController,
             isScrollable: true,
@@ -177,90 +108,106 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
             labelColor: AppTheme.primaryOrange,
             unselectedLabelColor: Colors.white38,
             labelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
-            tabs: List.generate(6, (i) => Tab(text: _tabLabels[i])),
+            tabs: [
+              for (final category in _tabOrder)
+                Tab(text: categoryTitleMap[category] ?? category.name),
+            ],
           ),
-
-          // Drag hint
           Padding(
-            padding: EdgeInsets.symmetric(vertical: 6.h),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.push_pin_rounded, size: 12.sp, color: AppTheme.primaryOrange.withOpacity(0.7)),
-                SizedBox(width: 4.w),
-                Text(
-                  'Long-press a tool to pin it to your toolbar',
-                  style: TextStyle(color: Colors.white38, fontSize: 11.sp),
-                ),
-              ],
+            padding: EdgeInsets.only(top: 6.h, bottom: 2.h),
+            child: Text(
+              'Tap to activate  -  Double-tap settings  -  + to pin to toolbar',
+              style: TextStyle(color: Colors.white38, fontSize: 11.sp),
             ),
           ),
-
-          // Tool grids
           Expanded(
             child: TabBarView(
               controller: _tabController,
-              children: List.generate(6, (tabIdx) {
-                final category = _tabCategories[tabIdx];
-                final categoryColor = _tabColors[tabIdx];
-                var tools = _allTools[category] ?? <_ToolEntry>[];
-
-                if (_searchQuery.isNotEmpty) {
-                  tools = tools
-                      .where((t) => t.label.toLowerCase().contains(_searchQuery))
-                      .toList();
-                }
-
-                return _ToolGrid(
-                  tools: tools,
-                  categoryColor: categoryColor,
-                  favorites: toolState.pinnedTools,
-                  onToolTap: (toolType) async {
-                    notifier.selectTool(toolType);
-                    Navigator.pop(context);
-                  },
-                  onLongPress: (toolType) {
-                    notifier.setPinnedTools([...toolState.pinnedTools, toolType]);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Tool pinned to Favorites!'),
-                        duration: Duration(seconds: 1),
-                        backgroundColor: AppTheme.primaryOrange,
-                      ),
-                    );
-                  },
-                );
-              }),
+              children: [
+                for (final category in _tabOrder)
+                  _ToolGrid(
+                    entries: _filteredEntries(category, toolState.enabledTools),
+                    activeTool: toolState.activeTool,
+                    toolbarTools: toolState.toolbarTools.toSet(),
+                    onTap: (tool) {
+                      notifier.selectTool(tool);
+                      Navigator.pop(context);
+                    },
+                    onDoubleTap: (tool) {
+                      notifier.selectTool(tool);
+                      _openQuickSettings(context, ref, tool);
+                    },
+                    onAddToToolbar: (tool) {
+                      notifier.addToolToToolbar(tool);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            '${toolRegistryByTool[tool]?.name ?? tool.name} added to toolbar',
+                          ),
+                          duration: const Duration(seconds: 1),
+                          backgroundColor: const Color(0xFF2A2A44),
+                        ),
+                      );
+                    },
+                    onRemoveFromToolbar: (tool) {
+                      notifier.removeToolFromToolbar(tool);
+                    },
+                  ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+
+  List<ToolDefinition> _filteredEntries(
+      ToolLibraryCategory category, Set<Tool> enabledTools) {
+    final entries = toolRegistry
+        .where((e) => e.category == category && enabledTools.contains(e.tool))
+        .toList();
+    if (_searchQuery.isEmpty) return entries;
+    return entries.where((entry) {
+      final categoryName =
+          (categoryTitleMap[entry.category] ?? entry.category.name)
+              .toLowerCase();
+      return entry.name.toLowerCase().contains(_searchQuery) ||
+          categoryName.contains(_searchQuery);
+    }).toList();
+  }
+
+  void _openQuickSettings(BuildContext context, WidgetRef ref, Tool tool) {
+    showToolSettingsSheet(context, ref, tool);
+  }
 }
 
-// ─── Tool Grid ────────────────────────────────────────────────────────────────
 class _ToolGrid extends StatelessWidget {
-  final List<_ToolEntry> tools;
-  final Color categoryColor;
-  final List<Tool> favorites;
-  final void Function(Tool) onToolTap;
-  final void Function(Tool) onLongPress;
+  final List<ToolDefinition> entries;
+  final Tool activeTool;
+  final Set<Tool> toolbarTools;
+  final ValueChanged<Tool> onTap;
+  final ValueChanged<Tool> onDoubleTap;
+  final ValueChanged<Tool> onAddToToolbar;
+  final ValueChanged<Tool> onRemoveFromToolbar;
 
   const _ToolGrid({
-    required this.tools,
-    required this.categoryColor,
-    required this.favorites,
-    required this.onToolTap,
-    required this.onLongPress,
+    required this.entries,
+    required this.activeTool,
+    required this.toolbarTools,
+    required this.onTap,
+    required this.onDoubleTap,
+    required this.onAddToToolbar,
+    required this.onRemoveFromToolbar,
   });
 
   @override
   Widget build(BuildContext context) {
-    if (tools.isEmpty) {
+    if (entries.isEmpty) {
       return Center(
-        child: Text('No tools found',
-            style: TextStyle(color: Colors.white38, fontSize: 14.sp)),
+        child: Text(
+          'No tools found',
+          style: TextStyle(color: Colors.white38, fontSize: 14.sp),
+        ),
       );
     }
 
@@ -268,84 +215,148 @@ class _ToolGrid extends StatelessWidget {
       padding: EdgeInsets.all(16.w),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.86,
         crossAxisSpacing: 10.w,
         mainAxisSpacing: 10.h,
       ),
-      itemCount: tools.length,
+      itemCount: entries.length,
       itemBuilder: (_, idx) {
-        final tool = tools[idx];
-        final isFavorited = favorites.contains(tool.tool);
+        final entry = entries[idx];
+        final selected = activeTool == entry.tool;
+        final isPinned = toolbarTools.contains(entry.tool);
 
-        return GestureDetector(
-          onTap: () => onToolTap(tool.tool),
-          onLongPress: () => onLongPress(tool.tool),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.06),
-              borderRadius: BorderRadius.circular(14.r),
-              border: isFavorited
-                  ? Border.all(color: categoryColor.withOpacity(0.6))
-                  : null,
+        return LongPressDraggable<Tool>(
+          data: entry.tool,
+          feedback: Material(
+            color: Colors.transparent,
+            child: _ToolCard(
+              entry: entry,
+              selected: true,
+              compact: true,
+              isPinned: isPinned,
             ),
-            child: Stack(
-              children: [
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        width: 40.w,
-                        height: 40.h,
-                        decoration: BoxDecoration(
-                          color: categoryColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(12.r),
-                        ),
-                        child: Icon(tool.icon, size: 22.sp, color: categoryColor),
-                      ),
-                      SizedBox(height: 6.h),
-                      Text(
-                        tool.label,
-                        style: TextStyle(
-                          color: Colors.white70,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        textAlign: TextAlign.center,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Premium badge
-                if (tool.isPremium)
-                  Positioned(
-                    top: 4.h,
-                    right: 4.w,
-                    child: Container(
-                      padding: EdgeInsets.all(2.w),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFD700),
-                        borderRadius: BorderRadius.circular(4.r),
-                      ),
-                      child: Icon(Icons.star_rounded, size: 8.sp, color: Colors.black87),
-                    ),
-                  ),
-
-                // Favorited pin indicator
-                if (isFavorited)
-                  Positioned(
-                    top: 4.h,
-                    left: 4.w,
-                    child: Icon(Icons.push_pin_rounded, size: 10.sp, color: categoryColor),
-                  ),
-              ],
+          ),
+          childWhenDragging: Opacity(
+            opacity: 0.35,
+            child: _ToolCard(
+              entry: entry,
+              selected: selected,
+              isPinned: isPinned,
+            ),
+          ),
+          child: GestureDetector(
+            onTap: () => onTap(entry.tool),
+            onDoubleTap: () => onDoubleTap(entry.tool),
+            child: _ToolCard(
+              entry: entry,
+              selected: selected,
+              isPinned: isPinned,
+              onTogglePin: () => isPinned
+                  ? onRemoveFromToolbar(entry.tool)
+                  : onAddToToolbar(entry.tool),
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _ToolCard extends StatelessWidget {
+  final ToolDefinition entry;
+  final bool selected;
+  final bool compact;
+  final bool isPinned;
+  final VoidCallback? onTogglePin;
+
+  const _ToolCard({
+    required this.entry,
+    required this.selected,
+    this.compact = false,
+    this.isPinned = false,
+    this.onTogglePin,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          width: compact ? 84.w : null,
+          decoration: BoxDecoration(
+            color: selected
+                ? AppTheme.primaryOrange.withValues(alpha: 0.18)
+                : Colors.white.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(14.r),
+            border: Border.all(
+              color: isPinned
+                  ? AppTheme.primaryOrange.withValues(alpha: 0.9)
+                  : selected
+                      ? AppTheme.primaryOrange.withValues(alpha: 0.7)
+                      : Colors.white.withValues(alpha: 0.06),
+              width: isPinned ? 1.5 : 1.0,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 40.w,
+                  height: 40.h,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryOrange.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Icon(
+                    entry.icon,
+                    size: 22.sp,
+                    color: AppTheme.primaryOrange,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4.w),
+                  child: Text(
+                    entry.name,
+                    style: TextStyle(
+                      color: Colors.white70,
+                      fontSize: 10.sp,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (!compact && onTogglePin != null)
+          Positioned(
+            top: 4.h,
+            right: 4.w,
+            child: GestureDetector(
+              onTap: onTogglePin,
+              child: Container(
+                width: 20.w,
+                height: 20.h,
+                decoration: BoxDecoration(
+                  color: isPinned
+                      ? AppTheme.primaryOrange
+                      : Colors.white.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isPinned ? Icons.push_pin : Icons.add,
+                  size: 11.sp,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

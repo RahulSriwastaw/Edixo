@@ -64,11 +64,11 @@ class _RandomPickerState extends ConsumerState<RandomPicker>
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(AppDimensions.borderRadiusL),
+      padding: const EdgeInsets.all(AppDimensions.borderRadiusL),
       decoration: BoxDecoration(
-        color: AppColors.bgSecondary.withOpacity(0.9),
+        color: AppColors.bgSecondary.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusL),
-        border: Border.all(color: AppColors.textTertiary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -76,15 +76,15 @@ class _RandomPickerState extends ConsumerState<RandomPicker>
           // Header
           Row(
             children: [
-              Icon(Icons.casino, color: AppColors.accentOrange, size: 24),
-              SizedBox(width: AppDimensions.borderRadiusM),
+              const Icon(Icons.casino, color: AppColors.accentOrange, size: 24),
+              const SizedBox(width: AppDimensions.borderRadiusM),
               Text(
                 'Random Picker',
                 style: AppTextStyles.heading3,
               ),
             ],
           ),
-          SizedBox(height: AppDimensions.borderRadiusL),
+          const SizedBox(height: AppDimensions.borderRadiusL),
 
           // Selected student display
           AnimatedBuilder(
@@ -94,16 +94,16 @@ class _RandomPickerState extends ConsumerState<RandomPicker>
                 scale: _isSpinning ? 1.0 + (_animation.value * 0.1) : 1.0,
                 child: Container(
                   width: double.infinity,
-                  padding: EdgeInsets.all(AppDimensions.borderRadiusL),
+                  padding: const EdgeInsets.all(AppDimensions.borderRadiusL),
                   decoration: BoxDecoration(
                     color: _selectedStudent != null
-                        ? AppColors.accentOrange.withOpacity(0.2)
+                        ? AppColors.accentOrange.withValues(alpha: 0.2)
                         : AppColors.bgPrimary,
                     borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                     border: Border.all(
                       color: _selectedStudent != null
                           ? AppColors.accentOrange
-                          : AppColors.textTertiary.withOpacity(0.2),
+                          : AppColors.textTertiary.withValues(alpha: 0.2),
                       width: 2,
                     ),
                   ),
@@ -123,17 +123,17 @@ class _RandomPickerState extends ConsumerState<RandomPicker>
               );
             },
           ),
-          SizedBox(height: AppDimensions.borderRadiusL),
+          const SizedBox(height: AppDimensions.borderRadiusL),
 
           // Pick button
           ElevatedButton.icon(
             onPressed: _isSpinning ? null : _pickRandom,
-            icon: Icon(Icons.casino, size: 20),
-            label: Text('Pick Random Student'),
+            icon: const Icon(Icons.casino, size: 20),
+            label: const Text('Pick Random Student'),
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.accentOrange,
               foregroundColor: AppColors.bgPrimary,
-              padding: EdgeInsets.symmetric(
+              padding: const EdgeInsets.symmetric(
                 horizontal: AppDimensions.borderRadiusL * 2,
                 vertical: AppDimensions.borderRadiusM,
               ),
@@ -142,7 +142,7 @@ class _RandomPickerState extends ConsumerState<RandomPicker>
               ),
             ),
           ),
-          SizedBox(height: AppDimensions.borderRadiusM),
+          const SizedBox(height: AppDimensions.borderRadiusM),
 
           // Student count
           Text(
@@ -225,7 +225,7 @@ class _DiceRollerState extends ConsumerState<DiceRoller>
                     : AppColors.bgSecondary,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                 border: Border.all(
-                  color: AppColors.textTertiary.withOpacity(0.3),
+                  color: AppColors.textTertiary.withValues(alpha: 0.3),
                   width: 2,
                 ),
               ),

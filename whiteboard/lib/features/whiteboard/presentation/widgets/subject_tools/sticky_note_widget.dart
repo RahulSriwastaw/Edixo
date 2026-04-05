@@ -2,9 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
-import '../../../../../core/constants/app_text_styles.dart';
 
 /// StickyNote - draggable note for annotations
 class StickyNoteWidget extends ConsumerStatefulWidget {
@@ -26,7 +24,6 @@ class StickyNoteWidget extends ConsumerStatefulWidget {
 class _StickyNoteWidgetState extends ConsumerState<StickyNoteWidget> {
   late Offset _position;
   bool _isEditing = false;
-  bool _isDragging = false;
   late TextEditingController _controller;
   late FocusNode _focusNode;
 
@@ -51,7 +48,7 @@ class _StickyNoteWidgetState extends ConsumerState<StickyNoteWidget> {
       left: _position.dx,
       top: _position.dy,
       child: GestureDetector(
-        onPanStart: _isEditing ? null : (_) => setState(() => _isDragging = true),
+        onPanStart: _isEditing ? null : (_) {},
         onPanUpdate: _isEditing
             ? null
             : (details) {
@@ -59,18 +56,18 @@ class _StickyNoteWidgetState extends ConsumerState<StickyNoteWidget> {
                   _position += details.delta;
                 });
               },
-        onPanEnd: _isEditing ? null : (_) => setState(() => _isDragging = false),
+        onPanEnd: _isEditing ? null : (_) {},
         onTap: _isEditing ? null : () => setState(() => _isEditing = true),
         child: Container(
           width: 200,
           height: 200,
-          padding: EdgeInsets.all(AppDimensions.borderRadiusM),
+          padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
           decoration: BoxDecoration(
-            color: widget.noteColor.withOpacity(0.9),
+            color: widget.noteColor.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusS),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 8,
                 offset: const Offset(3, 3),
               ),
@@ -83,12 +80,12 @@ class _StickyNoteWidgetState extends ConsumerState<StickyNoteWidget> {
                   controller: _controller,
                   focusNode: _focusNode,
                   maxLines: null,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.black87,
                     fontSize: 14,
                     fontFamily: 'Noto Sans Devanagari',
                   ),
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     border: InputBorder.none,
                     hintText: 'Write note...',
                     hintStyle: TextStyle(color: Colors.black45),
@@ -102,7 +99,7 @@ class _StickyNoteWidgetState extends ConsumerState<StickyNoteWidget> {
                   right: 0,
                   child: GestureDetector(
                     onTap: () => setState(() => _isEditing = false),
-                    child: Icon(Icons.check_circle, color: Colors.black54, size: 20),
+                    child: const Icon(Icons.check_circle, color: Colors.black54, size: 20),
                   ),
                 ),
               ] else ...[
@@ -121,7 +118,7 @@ class _StickyNoteWidgetState extends ConsumerState<StickyNoteWidget> {
                     onTap: () {
                       // Remove from parent
                     },
-                    child: Icon(Icons.close, color: Colors.black54, size: 18),
+                    child: const Icon(Icons.close, color: Colors.black54, size: 18),
                   ),
                 ),
               ],

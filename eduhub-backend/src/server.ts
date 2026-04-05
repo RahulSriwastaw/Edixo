@@ -7,27 +7,14 @@ import { rateLimit } from 'express-rate-limit';
 
 import { env } from './config/env';
 import { logger } from './config/logger';
-import { connectRedis, redis, safeRedisGet } from './config/redis';
+import { connectRedis } from './config/redis';
 import { prisma } from './config/database';
 
 // Route imports
 import authRoutes from './modules/auth/auth.routes';
 import superAdminRoutes from './modules/superAdmin/superAdmin.routes';
-import organizationsRoutes from './modules/organizations/organizations.routes';
-import orgAdminRoutes from './modules/orgAdmin/orgAdmin.routes';
-import studentsRoutes from './modules/students/students.routes';
-import staffRoutes from './modules/staff/staff.routes';
-import batchesRoutes from './modules/batches/batches.routes';
-import qbankRoutes from './modules/qbank/qbank.routes';
-import testsRoutes from './modules/tests/tests.routes';
-import attendanceRoutes from './modules/attendance/attendance.routes';
-import feesRoutes from './modules/fees/fees.routes';
-import uploadRoutes from './modules/upload/upload.routes';
-import notificationsRoutes from './modules/notifications/notifications.routes';
-import mockbookRoutes from './modules/mockbook/mockbook.routes';
-import blogRoutes from './modules/blog/blog.routes';
-import aiRoutes from './modules/ai/ai.routes';
 import whiteboardRoutes from './modules/whiteboard/whiteboard.routes';
+import whiteboardAccountRoutes from './modules/whiteboardAccount/whiteboardAccount.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -69,56 +56,13 @@ app.use(cors({
             return callback(null, true);
         }
 
-        // 2. Check Cache (Redis)
-        const cacheKey = `cors_allowed:${origin}`;
-        try {
-            const cached = await safeRedisGet(cacheKey);
-            if (cached === 'true') return callback(null, true);
-            if (cached === 'false') return callback(new Error(`CORS: ${origin} not allowed`));
-        } catch (err) {
-            logger.error('CORS Redis error:', err);
-        }
-
-        // 3. Check Database for Custom Domains or Subdomains
-        try {
-            // Trim protocol and port for comparison
-            const domain = origin.replace(/^https?:\/\//, "").split(':')[0].replace(/\/$/, "");
-            
-            // Fast skip for localhost
-            if (domain === 'localhost' || domain === '127.0.0.1') {
-                return callback(null, true);
-            }
-
-            const org = await prisma.organization.findFirst({
-                where: {
-                    OR: [
-                        { customDomain: domain },
-                        { subdomain: domain },
-                        { customDomain: origin }, // Match with protocol
-                        { subdomain: origin }
-                    ]
-                },
-                select: { id: true }
-            });
-
-            if (org) {
-                // Allow and cache for 10 minutes
-                if (redis) await redis.setex(cacheKey, 600, 'true');
-                return callback(null, true);
-            }
-
-            // Deny and cache negative for 1 minute to prevent spamming DB
-            if (redis) await redis.setex(cacheKey, 60, 'false');
-            logger.warn(`CORS blocked for origin: ${origin}. Not found in ALLOWED_ORIGINS or DB.`);
-            callback(new Error(`CORS: ${origin} not allowed`));
-        } catch (err) {
-            logger.error('CORS DB error:', err);
-            callback(null, false);
-        }
+        // Single-owner mode: no tenant/domain DB checks.
+        logger.warn(`CORS blocked for origin: ${origin}. Add it to ALLOWED_ORIGINS to allow access.`);
+        callback(new Error(`CORS: ${origin} not allowed`));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Org-View-Id', 'X-Org-Id', 'X-Requested-With', 'Cache-Control', 'Pragma'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cache-Control', 'Pragma'],
 }));
 
 // Rate Limiter — general API
@@ -128,10 +72,9 @@ const limiter = rateLimit({
     standardHeaders: true,
     legacyHeaders: false,
     // Skip public/read-only endpoints — they're hit on every page load by HMR
-    skip: (req) =>
-      env.NODE_ENV === 'development' ||
-      req.path.startsWith('/organizations/public/') ||
-      (req.path === '/auth/me' && req.method === 'GET'),
+        skip: (req) =>
+            env.NODE_ENV === 'development' ||
+            (req.path === '/auth/me' && req.method === 'GET'),
     message: { success: false, message: 'Too many requests — please try again later.' },
 });
 app.use('/api/', limiter);
@@ -163,21 +106,8 @@ app.get('/health', async (_req, res) => {
 // ─── API Routes ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/super-admin', superAdminRoutes);
-app.use('/api/organizations', organizationsRoutes);
-app.use('/api/org-admin', orgAdminRoutes);
-app.use('/api/students', studentsRoutes);
-app.use('/api/staff', staffRoutes);
-app.use('/api/batches', batchesRoutes);
-app.use('/api/qbank', qbankRoutes);
-app.use('/api/tests', testsRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/fees', feesRoutes);
-app.use('/api/upload', uploadRoutes);
-app.use('/api/notifications', notificationsRoutes);
-app.use('/api/mockbook', mockbookRoutes);
-app.use('/api/blog', blogRoutes);
-app.use('/api/ai', aiRoutes);
 app.use('/api/whiteboard', whiteboardRoutes);
+app.use('/api/whiteboard-accounts', whiteboardAccountRoutes);
 
 // ─── Error Handling ──────────────────────────────────────────
 app.use(notFound);

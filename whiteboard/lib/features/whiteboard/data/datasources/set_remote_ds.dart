@@ -3,7 +3,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:result_dart/result_dart.dart';
-import '../../../../core/constants/api_constants.dart';
 import '../../../../core/error/error_handler.dart';
 import '../../../../core/error/failure.dart' as failure_types;
 import '../../../../core/network/dio_client.dart';
@@ -50,8 +49,13 @@ class SetRemoteDataSource {
   Future<Result<List<SetSlideModel>, AppFailure>> fetchQuestions(String setId) async {
     try {
       final response = await _dio.get('/whiteboard/sets/$setId/questions');
-      final questions = (response.data as List)
-          .map((q) => SetSlideModel.fromJson(q as Map<String, dynamic>))
+      final payload = response.data as Map<String, dynamic>;
+      final list = payload['data'] != null
+        ? (payload['data']['questions'] as List<dynamic>? ?? <dynamic>[])
+        : (payload['questions'] as List<dynamic>? ?? <dynamic>[]);
+
+      final questions = list
+        .map((q) => SetSlideModel.fromJson(q as Map<String, dynamic>))
           .toList();
 
       return Success(questions);
@@ -67,7 +71,11 @@ class SetRemoteDataSource {
   Future<Result<SetMetadataModel, AppFailure>> fetchMetadata(String setId) async {
     try {
       final response = await _dio.get('/whiteboard/sets/$setId/metadata');
-      final metadata = SetMetadataModel.fromJson(response.data as Map<String, dynamic>);
+      final payload = response.data as Map<String, dynamic>;
+      final metadataJson = payload['data'] != null
+          ? payload['data'] as Map<String, dynamic>
+          : payload;
+      final metadata = SetMetadataModel.fromJson(metadataJson);
 
       return Success(metadata);
     } on DioException catch (e) {
@@ -82,7 +90,6 @@ class SetRemoteDataSource {
   Future<Result<String, AppFailure>> startSession({
     required String setId,
     required String teacherId,
-    required String orgId,
   }) async {
     try {
       final response = await _dio.post(
@@ -90,11 +97,15 @@ class SetRemoteDataSource {
         data: {
           'setId': setId,
           'teacherId': teacherId,
-          'orgId': orgId,
         },
       );
 
-      return Success(response.data['sessionId'] as String);
+      final payload = response.data as Map<String, dynamic>;
+      final data = payload['data'] != null
+          ? payload['data'] as Map<String, dynamic>
+          : payload;
+
+      return Success(data['sessionId'] as String);
     } on DioException catch (e) {
       return Failure(mapDioException(e));
     } catch (e) {

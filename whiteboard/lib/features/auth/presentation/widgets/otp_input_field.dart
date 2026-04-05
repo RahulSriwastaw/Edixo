@@ -119,10 +119,10 @@ class _OTPInputFieldState extends State<OTPInputField> {
             width: 48.w,
             height: 56.h,
             margin: EdgeInsets.only(right: index < widget.length - 1 ? 8.w : 0),
-            child: RawKeyboardListener(
+            child: KeyboardListener(
               focusNode: FocusNode(skipTraversal: true),
-              onKey: (event) {
-                if (event is RawKeyDownEvent &&
+              onKeyEvent: (event) {
+                if (event is KeyDownEvent &&
                     event.logicalKey == LogicalKeyboardKey.backspace) {
                   if (_controllers[index].text.isEmpty && index > 0) {
                     _focusNodes[index - 1].requestFocus();
@@ -147,7 +147,7 @@ class _OTPInputFieldState extends State<OTPInputField> {
                 decoration: InputDecoration(
                   filled: true,
                   fillColor: widget.hasError
-                      ? AppTheme.errorRed.withOpacity(0.1)
+                      ? AppTheme.errorRed.withValues(alpha: 0.1)
                       : Colors.grey.shade100,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),

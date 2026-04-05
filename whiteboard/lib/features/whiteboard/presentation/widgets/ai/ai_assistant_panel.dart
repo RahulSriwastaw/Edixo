@@ -3,9 +3,7 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:http/http.dart' as http;
 import 'dart:async';
-import 'dart:convert';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import '../../../../../core/constants/app_dimensions.dart';
@@ -43,11 +41,11 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
     });
 
     // Scroll to bottom
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
       }
@@ -72,11 +70,11 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
     }
 
     // Scroll to bottom
-    Future.delayed(Duration(milliseconds: 100), () {
+    Future.delayed(const Duration(milliseconds: 100), () {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
-          duration: Duration(milliseconds: 300),
+          duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
       }
@@ -86,7 +84,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
   Future<String> _callClaudeApi(String message) async {
     // TODO: Replace with actual Claude API endpoint and API key
     // This is a placeholder implementation
-    await Future.delayed(Duration(seconds: 2));
+    await Future.delayed(const Duration(seconds: 2));
     
     // Simulated response
     return 'This is a simulated AI response. In production, this would call the Claude API with your question: "$message"';
@@ -95,7 +93,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
   @override
   Widget build(BuildContext context) {
     return AnimatedContainer(
-      duration: Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 300),
       width: _isExpanded ? 320 : 48,
       height: double.infinity,
       child: _isExpanded ? _buildExpandedPanel() : _buildCollapsedButton(),
@@ -106,9 +104,9 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
     return GestureDetector(
       onTap: () => setState(() => _isExpanded = true),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.accentOrange,
-          borderRadius: const BorderRadius.only(
+          borderRadius: BorderRadius.only(
             topLeft: Radius.circular(12),
             bottomLeft: Radius.circular(12),
           ),
@@ -116,11 +114,11 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.smart_toy, color: Colors.white, size: 24),
-            SizedBox(height: 8),
+            const Icon(Icons.smart_toy, color: Colors.white, size: 24),
+            const SizedBox(height: 8),
             Transform.rotate(
               angle: -pi / 2,
-              child: Text(
+              child: const Text(
                 'AI Assistant',
                 style: TextStyle(
                   color: Colors.white,
@@ -140,7 +138,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
       decoration: BoxDecoration(
         color: AppColors.bgSecondary,
         border: Border(
-          left: BorderSide(color: AppColors.textDisabled.withOpacity(0.2)),
+          left: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
         ),
       ),
       child: Column(
@@ -151,12 +149,12 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
             decoration: BoxDecoration(
               color: AppColors.bgPrimary,
               border: Border(
-                bottom: BorderSide(color: AppColors.textDisabled.withOpacity(0.2)),
+                bottom: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
               ),
             ),
             child: Row(
               children: [
-                Icon(Icons.smart_toy, color: AppColors.accentOrange, size: 24),
+                const Icon(Icons.smart_toy, color: AppColors.accentOrange, size: 24),
                 const SizedBox(width: 12),
                 Text(
                   'AI Assistant',
@@ -164,7 +162,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: Icon(Icons.close, color: AppColors.textSecondary),
+                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
                   onPressed: () => setState(() => _isExpanded = false),
                 ),
               ],
@@ -190,7 +188,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Row(
                 children: [
-                  SizedBox(
+                  const SizedBox(
                     width: 16,
                     height: 16,
                     child: CircularProgressIndicator(
@@ -213,7 +211,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
             decoration: BoxDecoration(
               color: AppColors.bgPrimary,
               border: Border(
-                top: BorderSide(color: AppColors.textDisabled.withOpacity(0.2)),
+                top: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
               ),
             ),
             child: Row(
@@ -229,7 +227,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
                       hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.textDisabled),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.textDisabled.withOpacity(0.3)),
+                        borderSide: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.3)),
                       ),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -249,7 +247,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  child: Icon(Icons.send, color: Colors.white),
+                  child: const Icon(Icons.send, color: Colors.white),
                 ),
               ],
             ),
@@ -277,7 +275,7 @@ class _ChatBubble extends StatelessWidget {
     final isUser = message.role == 'user';
 
     return Padding(
-      padding: EdgeInsets.only(bottom: AppDimensions.borderRadiusM),
+      padding: const EdgeInsets.only(bottom: AppDimensions.borderRadiusM),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,26 +284,26 @@ class _ChatBubble extends StatelessWidget {
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.accentOrange,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.smart_toy, size: 18, color: Colors.white),
+              child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
             ),
-            SizedBox(width: AppDimensions.borderRadiusS),
+            const SizedBox(width: AppDimensions.borderRadiusS),
           ],
           Flexible(
             child: Container(
-              padding: EdgeInsets.all(AppDimensions.borderRadiusM),
+              padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
               decoration: BoxDecoration(
                 color: isUser
-                    ? AppColors.accentOrange.withOpacity(0.2)
+                    ? AppColors.accentOrange.withValues(alpha: 0.2)
                     : AppColors.bgPrimary,
                 borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                 border: Border.all(
                   color: isUser
-                      ? AppColors.accentOrange.withOpacity(0.3)
-                      : AppColors.textTertiary.withOpacity(0.2),
+                      ? AppColors.accentOrange.withValues(alpha: 0.3)
+                      : AppColors.textTertiary.withValues(alpha: 0.2),
                 ),
               ),
               child: Text(
@@ -317,15 +315,15 @@ class _ChatBubble extends StatelessWidget {
             ),
           ),
           if (isUser) ...[
-            SizedBox(width: AppDimensions.borderRadiusS),
+            const SizedBox(width: AppDimensions.borderRadiusS),
             Container(
               width: 32,
               height: 32,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AppColors.textTertiary,
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.person, size: 18, color: Colors.white),
+              child: const Icon(Icons.person, size: 18, color: Colors.white),
             ),
           ],
         ],

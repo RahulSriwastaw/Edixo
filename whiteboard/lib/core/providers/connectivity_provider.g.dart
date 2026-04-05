@@ -6,7 +6,7 @@ part of 'connectivity_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$isOnlineHash() => r'104a7b15626384b24a99ee1ba3a1b252b4612f9b';
+String _$isOnlineHash() => r'3a06e4541a246fa6e29be4ee5647be1aaa7d47ac';
 
 /// Stream of online/offline status. True if connected, false if offline.
 ///

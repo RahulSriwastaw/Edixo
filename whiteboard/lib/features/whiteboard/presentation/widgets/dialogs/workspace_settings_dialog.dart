@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../core/theme/app_theme.dart';
 import '../../providers/canvas_provider.dart';
 
 class WorkspaceSettingsDialog extends ConsumerWidget {
@@ -62,11 +60,11 @@ class WorkspaceSettingsDialog extends ConsumerWidget {
                 color: Colors.white10,
                 borderRadius: BorderRadius.circular(12),
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(Icons.school_outlined, size: 28, color: Colors.white70),
-                  const SizedBox(width: 16),
-                  const Expanded(
+                  Icon(Icons.school_outlined, size: 28, color: Colors.white70),
+                  SizedBox(width: 16),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -76,7 +74,7 @@ class WorkspaceSettingsDialog extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  const Text('Soon', style: TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text('Soon', style: TextStyle(color: Colors.white54, fontSize: 12)),
                 ],
               ),
             ),
@@ -121,8 +119,8 @@ class WorkspaceSettingsDialog extends ConsumerWidget {
         Switch(
           value: value,
           onChanged: onChanged,
-          activeColor: const Color(0xFFFF6B35),
-          activeTrackColor: const Color(0xFFFF6B35).withOpacity(0.3),
+          activeThumbColor: const Color(0xFFFF6B35),
+          activeTrackColor: const Color(0xFFFF6B35).withValues(alpha: 0.3),
         ),
       ],
     );

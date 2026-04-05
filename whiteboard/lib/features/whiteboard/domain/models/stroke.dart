@@ -70,7 +70,7 @@ class Stroke {
   Map<String, dynamic> toJson() => {
     'id': id,
     'points': points.map((p) => p.toJson()).toList(),
-    'color': color.value,
+    'color': color.toARGB32(),
     'thickness': thickness,
     'opacity': opacity,
     'type': type.name,

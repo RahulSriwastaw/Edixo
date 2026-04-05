@@ -36,7 +36,7 @@ class _AttendancePanelState extends State<AttendancePanel> {
                 final student = _students[index];
                 return ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: AppTheme.primaryOrange.withOpacity(0.1),
+                    backgroundColor: AppTheme.primaryOrange.withValues(alpha: 0.1),
                     child: Text(student['name'][0], style: const TextStyle(color: AppTheme.primaryOrange)),
                   ),
                   title: Text(student['name'], style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13.sp)),
@@ -81,7 +81,7 @@ class _AttendancePanelState extends State<AttendancePanel> {
           SizedBox(height: 8.h),
           Text(
             'Present: $presentCount / ${_students.length}',
-            style: TextStyle(color: Colors.white.withOpacity(0.9), fontSize: 13.sp),
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 13.sp),
           ),
         ],
       ),
@@ -93,7 +93,7 @@ class _AttendancePanelState extends State<AttendancePanel> {
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4))],
       ),
       child: SizedBox(
         width: double.infinity,

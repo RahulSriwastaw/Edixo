@@ -7,12 +7,7 @@ import { AppError } from './errorHandler';
 export interface JwtPayload {
     userId: string;
     role: string;
-    orgId?: string;
-    orgDbId?: string;
-    staffId?: string;
-    studentId?: string;
     permissions?: string[];
-    orgViewOrgId?: string;  // Super Admin viewing org
     type?: string;
     iat?: number;
     exp?: number;
@@ -112,33 +107,6 @@ export const requireSuperAdmin = (
     next();
 };
 
-export const requireOrgAccess = (
-    req: Request,
-    _res: Response,
-    next: NextFunction
-) => {
-    const { user } = req;
-    if (!user) return next(new AppError('Unauthorized', 401));
-
-    if (user.role === 'SUPER_ADMIN') {
-        // SA can access any org — orgId comes from params or org-view token
-        const orgId = (req.params.orgId || user.orgViewOrgId || req.headers['x-org-view-id']) as string | undefined;
-        if (orgId) req.user!.orgId = orgId;
-        return next();
-    }
-
-    if (user.role === 'ORG_STAFF' && user.orgId) {
-        // Staff can only access their own org
-        const requestedOrgId = req.params.orgId;
-        if (requestedOrgId && requestedOrgId !== user.orgId) {
-            return next(new AppError('Access denied for this organization', 403));
-        }
-        return next();
-    }
-
-    next(new AppError('Insufficient privileges', 403));
-};
-
 export const requirePermission = (permission: string) => {
     return (req: Request, _res: Response, next: NextFunction) => {
         const { user } = req;
@@ -147,22 +115,10 @@ export const requirePermission = (permission: string) => {
         // Super Admin has all permissions
         if (user.role === 'SUPER_ADMIN') return next();
 
-        // Check staff role defaults + custom permissions
         if (user.permissions?.includes(permission) || user.permissions?.includes('*')) {
             return next();
         }
 
         next(new AppError(`Permission required: ${permission}`, 403));
     };
-};
-
-export const requireStudent = (
-    req: Request,
-    _res: Response,
-    next: NextFunction
-) => {
-    if (req.user?.role !== 'STUDENT') {
-        return next(new AppError('Student access required', 403));
-    }
-    next();
 };

@@ -23,18 +23,16 @@ class AuthRemoteDataSource {
 
   AuthRemoteDataSource(this._dio);
 
-  /// POST /auth/teacher/login
-  /// Request: { email: string, password: string }
-  /// Response: { accessToken, refreshToken, teacher: {...} }
-  Future<Result<AuthResponse, AppFailure>> login(String email, String password) async {
+  /// POST /auth/whiteboard/login
+  /// Request: { username: string, password: string }
+  /// Response: { accessToken, refreshToken, user: {...} }
+  Future<Result<AuthResponse, AppFailure>> login(String username, String password) async {
     try {
       final response = await _dio.post(
-        ApiConstants.teacherLogin,
+        ApiConstants.whiteboardLogin,
         data: {
-          'email': email,
+          'username': username,
           'password': password,
-          'role': 'ORG_STAFF',
-          'orgId': 'eduhub',
         },
       );
 
@@ -72,7 +70,7 @@ class AuthRemoteDataSource {
   Future<Result<bool, AppFailure>> logout() async {
     try {
       await _dio.post(ApiConstants.logout);
-      return Success(true);  // Return true to indicate successful logout
+      return const Success(true);  // Return true to indicate successful logout
     } on DioException catch (e) {
       return Failure(mapDioException(e));
     } catch (e) {
@@ -85,7 +83,11 @@ class AuthRemoteDataSource {
   Future<Result<TeacherModel, AppFailure>> getCurrentTeacher() async {
     try {
       final response = await _dio.get(ApiConstants.currentTeacher);
-      final teacher = TeacherModel.fromJson(response.data as Map<String, dynamic>);
+      final payload = response.data as Map<String, dynamic>;
+      final teacherJson = payload.containsKey('data')
+          ? payload['data'] as Map<String, dynamic>
+          : payload;
+      final teacher = TeacherModel.fromJson(teacherJson);
       return Success(teacher);
     } on DioException catch (e) {
       return Failure(mapDioException(e));

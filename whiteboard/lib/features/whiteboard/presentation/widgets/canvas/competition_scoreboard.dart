@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../../../core/theme/app_theme.dart';
 
 class CompetitionScoreboard extends StatefulWidget {
   final int panelCount;
@@ -25,7 +24,7 @@ class _CompetitionScoreboardState extends State<CompetitionScoreboard> {
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       margin: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.85),
+        color: Colors.black.withValues(alpha: 0.85),
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: Colors.white12),
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 10)],
@@ -63,9 +62,9 @@ class _CompetitionScoreboardState extends State<CompetitionScoreboard> {
             width: 40.w,
             height: 40.w,
             decoration: BoxDecoration(
-              color: Colors.blueAccent.withOpacity(0.2),
+              color: Colors.blueAccent.withValues(alpha: 0.2),
               shape: BoxShape.circle,
-              border: Border.all(color: Colors.blueAccent.withOpacity(0.5)),
+              border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.5)),
             ),
             child: Center(
               child: Text('${_scores[index]}', style: TextStyle(color: Colors.white, fontSize: 14.sp, fontWeight: FontWeight.bold)),

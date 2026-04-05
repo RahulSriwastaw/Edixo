@@ -28,6 +28,7 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
   bool _showRuler = false;
   bool _showProtractor = false;
   bool _showCompass = false;
+  bool _showTimer = false;
   bool _showAiAssistant = false;
   late KeyboardShortcutService _shortcutService;
 
@@ -98,12 +99,15 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
           const SpotlightOverlay(),
           const ScreenCover(),
 
-          // 6. Class Timer (Top-right)
-          Positioned(
-            top: 70,
-            right: _showAiAssistant ? 340 : 20,
-            child: const ClassTimer(),
-          ),
+          // 6. Timer panel (teacher-controlled)
+          if (_showTimer)
+            Positioned(
+              top: 70,
+              right: _showAiAssistant ? 340 : 20,
+              child: ClassTimer(
+                onClose: () => setState(() => _showTimer = false),
+              ),
+            ),
 
           // 7. Navigation Map (Bottom-right, toggleable)
           if (appMode == AppMode.slideMode)
@@ -132,26 +136,38 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
 
           // 10. AI Assistant Panel (Right side)
           if (_showAiAssistant)
-            Positioned(
+            const Positioned(
               top: 0,
               right: 0,
               bottom: 0,
-              child: const AiAssistantPanel(),
+              child: AiAssistantPanel(),
             ),
 
-          // 11. AI Assistant Toggle Button
+          // 11. Watch icon for timer
+          Positioned(
+            top: 70,
+            right: (_showAiAssistant ? 340 : 20) + (_showTimer ? 340 : 0),
+            child: _ToolButton(
+              icon: _showTimer ? Icons.watch_later : Icons.watch_later_outlined,
+              label: _showTimer ? 'Hide Timer' : 'Show Timer',
+              isActive: _showTimer,
+              onTap: () => setState(() => _showTimer = !_showTimer),
+            ),
+          ),
+
+          // 12. AI Assistant Toggle Button
           if (!_showAiAssistant)
             Positioned(
               top: 70,
-              right: 20,
+              right: (_showTimer ? 380 : 80),
               child: ElevatedButton.icon(
                 onPressed: () => setState(() => _showAiAssistant = true),
-                icon: Icon(Icons.smart_toy, size: 18),
-                label: Text('AI'),
+                icon: const Icon(Icons.smart_toy, size: 18),
+                label: const Text('AI'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.orange,
                   foregroundColor: Colors.black,
-                  padding: EdgeInsets.symmetric(
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
@@ -183,9 +199,9 @@ class _SubjectToolsToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.7),
+        color: Colors.black.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
@@ -198,14 +214,14 @@ class _SubjectToolsToggle extends StatelessWidget {
             isActive: showRuler,
             onTap: () => onToggle('ruler'),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           _ToolButton(
             icon: Icons.architecture,
             label: 'Protractor',
             isActive: showProtractor,
             onTap: () => onToggle('protractor'),
           ),
-          SizedBox(height: 4),
+          const SizedBox(height: 4),
           _ToolButton(
             icon: Icons.circle,
             label: 'Compass',

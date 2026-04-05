@@ -40,7 +40,7 @@ class StrokeRenderer {
 
     // Use perfect_freehand for smooth rendering
     final outlinePoints = pf.getStroke(
-      points.map((p) => pf.Point(p.dx, p.dy)).toList(),
+      points.map((p) => pf.PointVector(p.dx, p.dy)).toList(),
       options: pf.StrokeOptions(
         size: 8.0,
         thinning: 0.5,
@@ -61,7 +61,7 @@ class StrokeRenderer {
     }
 
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity)
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
@@ -77,7 +77,7 @@ class StrokeRenderer {
     }
 
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity)
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
       ..strokeWidth = stroke.strokeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -98,7 +98,7 @@ class StrokeRenderer {
     if (points.length < 2) return;
 
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(0.3)
+      ..color = Color(stroke.colorARGB).withValues(alpha: 0.3)
       ..strokeWidth = stroke.strokeWidth * 2.5
       ..strokeCap = StrokeCap.square
       ..strokeJoin = StrokeJoin.bevel
@@ -123,7 +123,7 @@ class StrokeRenderer {
 
     // Base stroke
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity * 0.8)
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity * 0.8)
       ..strokeWidth = stroke.strokeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -153,7 +153,7 @@ class StrokeRenderer {
           Offset(x, y),
           dotRadius,
           Paint()
-            ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity * 0.4)
+            ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity * 0.4)
             ..isAntiAlias = true,
         );
       }
@@ -170,7 +170,7 @@ class StrokeRenderer {
 
     const angle = pi / 4; // 45 degree angle
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity)
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
       ..style = PaintingStyle.fill
       ..isAntiAlias = true;
 
@@ -221,7 +221,7 @@ class StrokeRenderer {
 
     final random = Random(123); // Fixed seed for consistency
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withOpacity(stroke.opacity)
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
       ..isAntiAlias = true;
 
     for (final point in points) {
@@ -245,7 +245,7 @@ class StrokeRenderer {
 
     // Glow effect
     final glowPaint = Paint()
-      ..color = const Color(0xFFFF0000).withOpacity(0.3)
+      ..color = const Color(0xFFFF0000).withValues(alpha: 0.3)
       ..strokeWidth = stroke.strokeWidth * 3
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -261,7 +261,7 @@ class StrokeRenderer {
 
     // Core line
     final corePaint = Paint()
-      ..color = const Color(0xFFFF0000).withOpacity(0.9)
+      ..color = const Color(0xFFFF0000).withValues(alpha: 0.9)
       ..strokeWidth = stroke.strokeWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
@@ -283,7 +283,7 @@ class StrokeRenderer {
       point,
       strokeWidth / 2,
       Paint()
-        ..color = Color(colorARGB).withOpacity(opacity)
+        ..color = Color(colorARGB).withValues(alpha: opacity)
         ..isAntiAlias = true,
     );
   }

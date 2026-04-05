@@ -1,7 +1,5 @@
 // lib/features/whiteboard/presentation/providers/slide_provider.dart
 
-import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/models/slide_model.dart';
 import '../../data/models/slide_annotation.dart';

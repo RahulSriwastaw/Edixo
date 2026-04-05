@@ -7,7 +7,7 @@ part of 'question_widget_provider.dart';
 // **************************************************************************
 
 String _$questionWidgetNotifierHash() =>
-    r'8fbe0cb01807274ca64f633939da541e464998dc';
+    r'e13ace59007bfefef1109126350c9425e9595873';
 
 /// See also [QuestionWidgetNotifier].
 @ProviderFor(QuestionWidgetNotifier)

@@ -1,6 +1,5 @@
 // lib/features/whiteboard/presentation/widgets/teaching_tools/spotlight_overlay.dart
 
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -17,7 +16,7 @@ class SpotlightOverlay extends ConsumerStatefulWidget {
 class _SpotlightOverlayState extends ConsumerState<SpotlightOverlay> {
   Offset _spotlightPosition = const Offset(960, 540);
   double _spotlightRadius = 200;
-  bool _isActive = false;
+  final bool _isActive = false;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +38,7 @@ class _SpotlightOverlayState extends ConsumerState<SpotlightOverlay> {
           position: _spotlightPosition,
           radius: _spotlightRadius,
         ),
-        child: SizedBox.expand(),
+        child: const SizedBox.expand(),
       ),
     );
   }
@@ -70,7 +69,7 @@ class SpotlightPainter extends CustomPainter {
     // Draw the dimmed area
     canvas.drawPath(
       dimmedPath,
-      Paint()..color = Colors.black.withOpacity(0.7),
+      Paint()..color = Colors.black.withValues(alpha: 0.7),
     );
 
     // Draw a subtle border around the spotlight
@@ -78,7 +77,7 @@ class SpotlightPainter extends CustomPainter {
       position,
       radius,
       Paint()
-        ..color = AppColors.accentOrange.withOpacity(0.5)
+        ..color = AppColors.accentOrange.withValues(alpha: 0.5)
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke,
     );

@@ -15,17 +15,17 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  late final TextEditingController _emailController;
+  late final TextEditingController _loginIdController;
   late final TextEditingController _passwordController;
-  late final FocusNode _emailFocus;
+  late final FocusNode _loginIdFocus;
   late final FocusNode _passwordFocus;
 
   @override
   void initState() {
     super.initState();
-    _emailController    = TextEditingController();
+    _loginIdController  = TextEditingController();
     _passwordController = TextEditingController();
-    _emailFocus         = FocusNode();
+    _loginIdFocus       = FocusNode();
     _passwordFocus      = FocusNode();
   }
 
@@ -41,28 +41,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _loginIdController.dispose();
     _passwordController.dispose();
-    _emailFocus.dispose();
+    _loginIdFocus.dispose();
     _passwordFocus.dispose();
     super.dispose();
   }
 
   Future<void> _handleLogin() async {
-    final email    = _emailController.text.trim();
+    final loginId  = _loginIdController.text.trim();
     final password = _passwordController.text;
 
-    if (email.isEmpty || password.isEmpty) {
-      _showError('Please enter email and password');
+    if (loginId.isEmpty || password.isEmpty) {
+      _showError('Please enter ID and password');
       return;
     }
 
-    if (!email.contains('@')) {
-      _showError('Please enter a valid email');
-      return;
-    }
-
-    await ref.read(loginNotifierProvider.notifier).login(email, password);
+    await ref.read(loginNotifierProvider.notifier).login(loginId, password);
   }
 
   void _showError(String message) {
@@ -102,31 +97,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         style: AppTextStyles.heading1,
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: AppDimensions.borderRadiusL),
+                      const SizedBox(height: AppDimensions.borderRadiusL),
                       Text(
                         'Sign in to your coaching account',
                         style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                         textAlign: TextAlign.center,
                       ),
-                      SizedBox(height: AppDimensions.topBarHeight),
+                      const SizedBox(height: AppDimensions.topBarHeight),
 
-                      // Email Field
+                      // Login ID Field
                       TextField(
-                        controller: _emailController,
-                        focusNode: _emailFocus,
+                        controller: _loginIdController,
+                        focusNode: _loginIdFocus,
                         enabled: !isLoading,
-                        keyboardType: TextInputType.emailAddress,
+                        keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
                         onSubmitted: (_) => _passwordFocus.requestFocus(),
                         decoration: InputDecoration(
-                          labelText: 'Email',
-                          prefixIcon: const Icon(Icons.email),
+                          labelText: 'Whiteboard ID',
+                          prefixIcon: const Icon(Icons.person),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                            borderSide: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
+                            borderSide: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
@@ -134,7 +129,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: AppDimensions.borderRadiusL),
+                      const SizedBox(height: AppDimensions.borderRadiusL),
 
                       // Password Field
                       TextField(
@@ -152,7 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                           enabledBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                            borderSide: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
+                            borderSide: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
                           ),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
@@ -160,21 +155,21 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                         ),
                       ),
-                      SizedBox(height: AppDimensions.topBarHeight),
+                      const SizedBox(height: AppDimensions.topBarHeight),
 
                       // Error Message
                       if (loginState.state == LoginState.failure && loginState.error != null)
                         Padding(
-                          padding: EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
+                          padding: const EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
                           child: Container(
-                            padding: EdgeInsets.symmetric(
+                            padding: const EdgeInsets.symmetric(
                               horizontal: AppDimensions.borderRadiusL,
                               vertical: AppDimensions.borderRadiusM,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withOpacity(0.1),
+                              color: AppColors.error.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                              border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               loginState.error!.message,
@@ -189,8 +184,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         onPressed: isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.accentOrange,
-                          disabledBackgroundColor: AppColors.accentOrange.withOpacity(0.5),
-                          padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusL),
+                          disabledBackgroundColor: AppColors.accentOrange.withValues(alpha: 0.5),
+                          padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusL),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                           ),
@@ -212,21 +207,43 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 ),
                               ),
                       ),
-                      SizedBox(height: AppDimensions.borderRadiusL * 2),
+                      const SizedBox(height: AppDimensions.borderRadiusL),
+
+                      // Development Bypass Button
+                      OutlinedButton(
+                        onPressed: isLoading
+                            ? null
+                            : () => ref.read(loginNotifierProvider.notifier).devLogin(),
+                        style: OutlinedButton.styleFrom(
+                          side: BorderSide(color: AppColors.accentOrange.withValues(alpha: 0.5)),
+                          padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusL),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                          ),
+                        ),
+                        child: Text(
+                          'Quick Dev Login',
+                          style: AppTextStyles.body.copyWith(
+                            color: AppColors.accentOrange,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: AppDimensions.borderRadiusL * 2),
 
                       // Demo Credentials
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
+                          const Icon(
                             Icons.info,
                             size: 16,
                             color: AppColors.textTertiary,
                           ),
-                          SizedBox(width: AppDimensions.borderRadiusS),
+                          const SizedBox(width: AppDimensions.borderRadiusS),
                           Flexible(
                             child: Text(
-                              'Demo: teacher@eduhub.in / password',
+                              'Contact Super Admin for your credentials',
                               style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
                               textAlign: TextAlign.center,
                             ),

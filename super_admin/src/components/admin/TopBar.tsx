@@ -11,7 +11,6 @@ import {
   HelpCircle,
   LogOut,
   Settings,
-  Building2,
   PlusCircle,
   BookOpen,
   Sparkles,
@@ -51,7 +50,6 @@ const routeLabels: Record<string, string> = {
   "/": "Dashboard",
   "/analytics": "Analytics",
   "/alerts": "Alerts",
-  "/organizations": "Organizations",
   "/unique-ids": "Unique IDs",
   "/billing": "Billing",
   "/question-bank": "Question Bank",
@@ -59,7 +57,6 @@ const routeLabels: Record<string, string> = {
   "/digital-board": "Digital Board",
   "/website": "Public Website CMS",
   "/student-app": "Student App",
-  "/org-admin": "Org Admin Control",
   "/users": "Users",
   "/white-label": "White-Label",
   "/audit-log": "Audit Log",
@@ -104,8 +101,8 @@ const notifications = [
 
 // Mock search results
 const searchResults = [
-  { type: "organization", name: "Apex Academy", id: "GK-ORG-00142" },
-  { type: "organization", name: "Brilliant Coaching", id: "GK-ORG-00089" },
+  { type: "account", name: "Demo Teacher 1", id: "teacher_01" },
+  { type: "account", name: "Demo Teacher 2", id: "teacher_02" },
   { type: "user", name: "Rajesh Kumar", id: "GK-TCH-00892" },
   { type: "question", name: "Newton's Laws of Motion", id: "Q-00001" },
   { type: "invoice", name: "INV-2026-001", id: "₹15,000" },
@@ -115,7 +112,7 @@ const searchResults = [
 const quickActions = [
   { label: "Create Question", icon: PlusCircle, href: "/question-bank/create", shortcut: "Q" },
   { label: "AI Generate Questions", icon: Sparkles, href: "/question-bank/ai-generate", shortcut: "G" },
-  { label: "New Organization", icon: Building2, href: "/organizations/new", shortcut: "N" },
+  { label: "Whiteboard Accounts", icon: Users, href: "/whiteboard-accounts", shortcut: "W" },
   { label: "Go to Dashboard", icon: LayoutDashboard, href: "/", shortcut: "D" },
   { label: "View Billing", icon: CreditCard, href: "/billing", shortcut: "B" },
   { label: "Manage Users", icon: Users, href: "/users", shortcut: "U" },
@@ -191,8 +188,8 @@ export function TopBar() {
 
     // Navigate
     switch (type) {
-      case "organization":
-        router.push(`/organizations/${id}`);
+      case "account":
+        router.push(`/whiteboard-accounts?search=${encodeURIComponent(id)}`);
         break;
       case "user":
         router.push(`/users?id=${id}`);
@@ -366,7 +363,7 @@ export function TopBar() {
       {/* Command Palette */}
       <CommandDialog open={commandOpen} onOpenChange={setCommandOpen}>
         <CommandInput
-          placeholder="Search organizations, users, questions... or type > for actions"
+          placeholder="Search accounts, users, questions... or type > for actions"
           value={searchQuery}
           onValueChange={setSearchQuery}
         />
@@ -444,11 +441,11 @@ export function TopBar() {
           {/* Search results when there's a query */}
           {searchQuery && !searchQuery.startsWith(">") && (
             <>
-              {filteredResults.filter((r) => r.type === "organization").length > 0 && (
+              {filteredResults.filter((r) => r.type === "account").length > 0 && (
                 <>
-                  <CommandGroup heading="Organizations">
+                  <CommandGroup heading="Whiteboard Accounts">
                     {filteredResults
-                      .filter((r) => r.type === "organization")
+                      .filter((r) => r.type === "account")
                       .map((result) => (
                         <CommandItem
                           key={result.id}
@@ -456,7 +453,7 @@ export function TopBar() {
                           className="flex items-center justify-between"
                         >
                           <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-blue-500" />
+                            <Users className="w-4 h-4 text-blue-500" />
                             <span>{result.name}</span>
                           </div>
                           <span className="mono text-xs text-gray-400">{result.id}</span>

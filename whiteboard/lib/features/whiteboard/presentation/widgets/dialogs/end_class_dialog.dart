@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:io';
 import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/constants/app_text_styles.dart';
@@ -66,7 +65,7 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
       });
 
       // Step 3: Create ZIP
-      final zipFile = await ExportService.createZip(
+      await ExportService.createZip(
         sessionId: sessionState.sessionId!,
         pngFiles: pngFiles,
       );
@@ -77,11 +76,11 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
       });
 
       // Step 4: Show success and close
-      if (mounted) {
-        await Future.delayed(const Duration(seconds: 1));
-        context.pop();
-        _showSuccess('Class notes saved: ${pdfFile.path}');
-      }
+      if (!mounted) return;
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+      context.pop();
+      _showSuccess('Class notes saved: ${pdfFile.path}');
     } catch (e) {
       setState(() {
         _isExporting = false;
@@ -133,14 +132,14 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                   color: _isExporting ? AppColors.accentOrange : AppColors.error,
                   size: 28,
                 ),
-                SizedBox(width: AppDimensions.borderRadiusM),
+                const SizedBox(width: AppDimensions.borderRadiusM),
                 Text(
                   _isExporting ? 'Exporting Class...' : 'End Class',
                   style: AppTextStyles.heading2,
                 ),
               ],
             ),
-            SizedBox(height: AppDimensions.borderRadiusL),
+            const SizedBox(height: AppDimensions.borderRadiusL),
 
             if (!_isExporting) ...[
               // Warning Message
@@ -149,11 +148,11 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                 style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: AppDimensions.topBarHeight),
+              const SizedBox(height: AppDimensions.topBarHeight),
 
               // Session Info
               Container(
-                padding: EdgeInsets.all(AppDimensions.borderRadiusM),
+                padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
                 decoration: BoxDecoration(
                   color: AppColors.bgSecondary,
                   borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
@@ -168,17 +167,17 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: AppDimensions.borderRadiusS),
+                    const SizedBox(height: AppDimensions.borderRadiusS),
                     Text(
                       'Session ID: ${sessionState.sessionId ?? 'N/A'}',
                       style: AppTextStyles.body,
                     ),
-                    SizedBox(height: AppDimensions.borderRadiusS),
+                    const SizedBox(height: AppDimensions.borderRadiusS),
                     Text(
                       'Slides: ${sessionState.slidesCovered.length}',
                       style: AppTextStyles.body,
                     ),
-                    SizedBox(height: AppDimensions.borderRadiusS),
+                    const SizedBox(height: AppDimensions.borderRadiusS),
                     Text(
                       'Last Saved: ${sessionState.lastSavedAt != null ? _formatTime(sessionState.lastSavedAt!) : 'Never'}',
                       style: AppTextStyles.body,
@@ -186,7 +185,7 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                   ],
                 ),
               ),
-              SizedBox(height: AppDimensions.topBarHeight),
+              const SizedBox(height: AppDimensions.topBarHeight),
 
               // Action Buttons
               Row(
@@ -196,8 +195,8 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                     child: OutlinedButton(
                       onPressed: () => context.pop(),
                       style: OutlinedButton.styleFrom(
-                        padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
-                        side: BorderSide(color: AppColors.textTertiary.withOpacity(0.3)),
+                        padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
+                        side: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                         ),
@@ -208,7 +207,7 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                       ),
                     ),
                   ),
-                  SizedBox(width: AppDimensions.borderRadiusL),
+                  const SizedBox(width: AppDimensions.borderRadiusL),
 
                   // End Class Button
                   Expanded(
@@ -216,7 +215,7 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                       onPressed: _handleEndClass,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.error,
-                        padding: EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
+                        padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
                         ),
@@ -236,22 +235,22 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
               // Export Progress
               Column(
                 children: [
-                  SizedBox(height: AppDimensions.borderRadiusL),
+                  const SizedBox(height: AppDimensions.borderRadiusL),
                   LinearProgressIndicator(
                     value: _exportProgress,
                     backgroundColor: AppColors.bgSecondary,
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
                     minHeight: 8,
                   ),
-                  SizedBox(height: AppDimensions.borderRadiusM),
+                  const SizedBox(height: AppDimensions.borderRadiusM),
                   Text(
                     _exportStatus,
                     style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: AppDimensions.borderRadiusL),
+                  const SizedBox(height: AppDimensions.borderRadiusL),
                   if (_exportProgress >= 1.0)
-                    Icon(
+                    const Icon(
                       Icons.check_circle,
                       color: AppColors.success,
                       size: 48,

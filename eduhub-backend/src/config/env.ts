@@ -19,6 +19,10 @@ const envSchema = z.object({
     JWT_EXPIRES_IN: z.string().default('7d'),
     JWT_REFRESH_EXPIRES_IN: z.string().default('30d'),
 
+    // Single-owner Admin Login
+    SUPER_ADMIN_USERNAME: z.string().default('admin'),
+    SUPER_ADMIN_PASSWORD: z.string().default('admin123'),
+
     // AWS
     AWS_REGION: z.string().default('ap-south-1'),
     AWS_ACCESS_KEY_ID: z.string().optional(),

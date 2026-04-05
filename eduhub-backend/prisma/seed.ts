@@ -222,6 +222,20 @@ async function seed() {
     });
 
     console.log('✅ Super Admin created: admin@eduhub.in / SuperAdmin@123');
+    
+    // ─── Whiteboard Account (New System) ──────────────────────
+    const wbPasswordHash = await bcrypt.hash('password123', 12);
+    await prisma.whiteboardAccount.upsert({
+        where: { loginId: 'teacher_01' },
+        update: {},
+        create: {
+            loginId: 'teacher_01',
+            password: wbPasswordHash,
+            name: 'Demo Whiteboard Teacher',
+            isActive: true,
+        },
+    });
+    console.log('✅ Whiteboard Account created: teacher_01 / password123');
 
     // ─── Demo Organization & Staff ────────────────────────────
     const orgId = 'eduhub';

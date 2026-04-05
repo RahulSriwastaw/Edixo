@@ -1,7 +1,5 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../providers/canvas_provider.dart';
 import '../../providers/tool_provider.dart';
 import 'background_layer.dart';
 import 'slide_content_layer.dart';
@@ -30,7 +28,6 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
 
   @override
   Widget build(BuildContext context) {
-    final canvasState = ref.watch(canvasNotifierProvider);
     final toolState = ref.watch(toolNotifierProvider);
     
     // Zoom/Pan is only enabled in Navigate mode OR via 2-finger gesture (handled by InteractiveViewer automatically)
@@ -48,7 +45,7 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
               maxScale: 4.0,
               panEnabled: panEnabled,
               scaleEnabled: panEnabled,
-              child: Center(
+              child: const Center(
                 child: SizedBox(
                    width: _canvasWidth,
                    height: _canvasHeight,
@@ -56,19 +53,19 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
                      clipBehavior: Clip.none,
                      children: [
                        // 1. Background Layer (Templates/Grids)
-                       const BackgroundLayer(),
+                       BackgroundLayer(),
                        
                        // 2. Slide Content Layer (Read-only background images)
-                       const SlideContentLayer(),
+                       SlideContentLayer(),
                        
                        // 3. Editable Question Layer (Interactive widgets)
-                       const EditableQuestionLayer(),
+                       EditableQuestionLayer(),
                        
                        // 4. Annotation Layer (Strokes, shapes, textboxes)
-                       const AnnotationLayer(),
+                       AnnotationLayer(),
                        
                        // 5. Overlay Layer (Laser pointer, spotlight)
-                       const OverlayLayer(),
+                       OverlayLayer(),
                      ],
                    ),
                 ),

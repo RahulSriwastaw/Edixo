@@ -53,7 +53,7 @@ class PenSmoothnessPanel extends ConsumerWidget {
           margin: const EdgeInsets.only(bottom: 8),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: _kNavy.withOpacity(0.95),
+            color: _kNavy.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(color: _kBorder),
             boxShadow: const [
@@ -205,10 +205,10 @@ class _ToggleChip extends StatelessWidget {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: value ? _kOrange.withOpacity(0.15) : _kSurface,
+          color: value ? _kOrange.withValues(alpha: 0.15) : _kSurface,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: value ? _kOrange.withOpacity(0.6) : _kBorder,
+            color: value ? _kOrange.withValues(alpha: 0.6) : _kBorder,
           ),
         ),
         child: Row(

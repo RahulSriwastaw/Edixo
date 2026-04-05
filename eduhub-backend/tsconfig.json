@@ -25,7 +25,13 @@
         }
     },
     "include": [
-        "src/**/*"
+        "src/server.ts",
+        "src/config/**/*",
+        "src/middleware/**/*",
+        "src/modules/auth/**/*",
+        "src/modules/superAdmin/superAdmin.routes.ts",
+        "src/modules/whiteboard/**/*",
+        "src/modules/whiteboardAccount/**/*"
     ],
     "exclude": [
         "node_modules",

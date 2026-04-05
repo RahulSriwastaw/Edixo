@@ -3,16 +3,14 @@ class TeacherModel {
   final String id;
   final String name;
   final String email;
-  final String orgId;
-  final String orgName;
+  final String username;
   final String role;       // 'teacher'
 
   const TeacherModel({
     required this.id,
     required this.name,
     required this.email,
-    required this.orgId,
-    required this.orgName,
+    required this.username,
     required this.role,
   });
 
@@ -20,8 +18,7 @@ class TeacherModel {
     id:      (json['userId'] ?? json['id'] ?? '') as String,
     name:    (json['name'] ?? 'Teacher') as String,
     email:   (json['email'] ?? '') as String,
-    orgId:   (json['orgId'] ?? '') as String,
-    orgName: json['orgName'] as String? ?? '',
+    username: (json['username'] ?? json['loginId'] ?? '') as String,
     role:    (json['role'] ?? json['staffRole'] ?? 'teacher') as String,
   );
 
@@ -29,8 +26,7 @@ class TeacherModel {
     'id': id,
     'name': name,
     'email': email,
-    'orgId': orgId,
-    'orgName': orgName,
+    'username': username,
     'role': role,
   };
 }

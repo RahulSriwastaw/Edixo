@@ -1,6 +1,5 @@
 // lib/features/whiteboard/presentation/widgets/subject_tools/ruler_widget.dart
 
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/constants/app_colors.dart';
@@ -39,7 +38,7 @@ class _RulerWidgetState extends ConsumerState<RulerWidget> {
             width: 400,
             height: 60,
             decoration: BoxDecoration(
-              color: AppColors.bgSecondary.withOpacity(0.9),
+              color: AppColors.bgSecondary.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(4),
               border: Border.all(
                 color: _isDragging ? AppColors.accentOrange : AppColors.textDisabled,
@@ -47,7 +46,7 @@ class _RulerWidgetState extends ConsumerState<RulerWidget> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   blurRadius: 8,
                   offset: const Offset(2, 2),
                 ),
@@ -65,14 +64,14 @@ class _RulerWidgetState extends ConsumerState<RulerWidget> {
                       onPanStart: (details) {
                         setState(() {
                           _isRotating = true;
-                          final center = Offset(200, 30);
+                          const center = Offset(200, 30);
                           _initialRotationAngle = (details.localPosition - center).direction;
                         });
                       },
                       onPanUpdate: (details) {
                         if (_isRotating) {
                           setState(() {
-                            final center = Offset(200, 30);
+                            const center = Offset(200, 30);
                             final newAngle = (details.localPosition - center).direction;
                             _rotation += newAngle - _initialRotationAngle;
                             _initialRotationAngle = newAngle;
@@ -83,11 +82,11 @@ class _RulerWidgetState extends ConsumerState<RulerWidget> {
                       child: Container(
                         width: 20,
                         height: 20,
-                        decoration: BoxDecoration(
+                        decoration: const BoxDecoration(
                           color: AppColors.accentOrange,
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.rotate_right, size: 14, color: Colors.white),
+                        child: const Icon(Icons.rotate_right, size: 14, color: Colors.white),
                       ),
                     ),
                   ),
@@ -126,7 +125,7 @@ class RulerPainter extends CustomPainter {
         final textPainter = TextPainter(
           text: TextSpan(
             text: '${i ~/ 10}',
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.textPrimary,
               fontSize: 10,
             ),
@@ -143,7 +142,7 @@ class RulerPainter extends CustomPainter {
 
     // Draw "cm" label
     final cmPainter = TextPainter(
-      text: TextSpan(
+      text: const TextSpan(
         text: 'cm',
         style: TextStyle(
           color: AppColors.textSecondary,

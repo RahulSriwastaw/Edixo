@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../question_widget/data/models/question_widget_model.dart';
 import '../../../../question_widget/presentation/providers/question_widget_provider.dart';
 import '../../../../question_widget/presentation/providers/selected_widget_provider.dart';
@@ -48,28 +47,39 @@ class _EditableQuestionLayerState extends ConsumerState<EditableQuestionLayer> {
 
   @override
   Widget build(BuildContext context) {
+    final toolState = ref.watch(toolNotifierProvider);
     final widgets = ref.watch(questionWidgetNotifierProvider);
     final canvasSize = ref.watch(canvasSizeProvider);
+    final canEditWidgets = toolState.interactionMode == InteractionMode.selectMode &&
+        (toolState.activeTool == Tool.select || toolState.activeTool == Tool.selectObject);
 
-    return Stack(
-      clipBehavior: Clip.none,
-      children: widgets.entries.map((entry) {
-        final id = entry.key;
-        final widgetModel = entry.value;
+    return GestureDetector(
+      behavior: HitTestBehavior.translucent,
+      onTap: () {
+        if (!canEditWidgets) return;
+        ref.read(selectedWidgetNotifierProvider.notifier).deselect();
+      },
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: widgets.entries.map((entry) {
+          final id = entry.key;
+          final widgetModel = entry.value;
 
-        return Positioned(
-          left: widgetModel.x.clamp(0.0, canvasSize.width - widgetModel.width),
-          top: widgetModel.y.clamp(0.0, canvasSize.height - widgetModel.height),
-          width: widgetModel.width,
-          height: widgetModel.height,
-          child: DraggableResizableQuestionWidget(
-            key: ValueKey(id),
-            id: id,
-            model: widgetModel,
-            canvasSize: canvasSize,
-          ),
-        );
-      }).toList(),
+          return Positioned(
+            left: widgetModel.x.clamp(0.0, canvasSize.width - widgetModel.width),
+            top: widgetModel.y.clamp(0.0, canvasSize.height - widgetModel.height),
+            width: widgetModel.width,
+            height: widgetModel.height,
+            child: DraggableResizableQuestionWidget(
+              key: ValueKey(id),
+              id: id,
+              model: widgetModel,
+              canvasSize: canvasSize,
+              canEdit: canEditWidgets,
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -80,12 +90,14 @@ class DraggableResizableQuestionWidget extends ConsumerStatefulWidget {
   final String id;
   final QuestionWidgetModel model;
   final Size canvasSize;
+  final bool canEdit;
 
   const DraggableResizableQuestionWidget({
     required Key key,
     required this.id,
     required this.model,
     required this.canvasSize,
+    required this.canEdit,
   }) : super(key: key);
 
   @override
@@ -97,8 +109,6 @@ class _DraggableResizableQuestionWidgetState
     extends ConsumerState<DraggableResizableQuestionWidget> {
   late Offset _position;
   late Size _size;
-  bool _isDragging = false;
-  ResizeHandle? _activeResizeHandle;
 
   @override
   void initState() {
@@ -126,7 +136,6 @@ class _DraggableResizableQuestionWidgetState
     final clampedPosition = Offset(clampedX, clampedY);
 
     ref.read(questionWidgetNotifierProvider.notifier).updatePosition(widget.id, clampedPosition);
-    setState(() => _isDragging = false);
   }
 
   void _handleResizeEnd() {
@@ -136,29 +145,30 @@ class _DraggableResizableQuestionWidgetState
     final clampedSize = Size(clampedWidth, clampedHeight);
 
     ref.read(questionWidgetNotifierProvider.notifier).updateSize(widget.id, clampedSize);
-    setState(() => _activeResizeHandle = null);
   }
 
   @override
   Widget build(BuildContext context) {
     final isSelected = ref.watch(selectedWidgetNotifierProvider) == widget.id;
     final isLocked = widget.model.isLocked;
+    final canEdit = widget.canEdit && !isLocked;
 
     return GestureDetector(
       onTap: () {
-        if (!isLocked) {
+        if (canEdit) {
           ref.read(selectedWidgetNotifierProvider.notifier).select(widget.id);
+          ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
         }
       },
-      onPanStart: isLocked ? null : (_) => setState(() => _isDragging = true),
-      onPanUpdate: isLocked
-          ? null
-          : (details) {
+      onPanStart: canEdit ? (_) {} : null,
+      onPanUpdate: canEdit
+          ? (details) {
               setState(() {
                 _position += details.delta;
               });
-            },
-      onPanEnd: isLocked ? null : (_) => _handleDragEnd(),
+            }
+          : null,
+      onPanEnd: canEdit ? (_) => _handleDragEnd() : null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -176,7 +186,7 @@ class _DraggableResizableQuestionWidgetState
                 boxShadow: widget.model.style.hasShadow
                     ? [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.3),
+                          color: Colors.black.withValues(alpha: 0.3),
                           blurRadius: 8,
                           offset: const Offset(2, 2),
                         ),
@@ -197,10 +207,9 @@ class _DraggableResizableQuestionWidgetState
                         fontFamily: widget.model.style.fontFamily,
                       ),
                     ),
-                    SizedBox(height: 12),
+                    const SizedBox(height: 12),
                     // Options
                     ...widget.model.options.asMap().entries.map((entry) {
-                      final index = entry.key;
                       final option = entry.value;
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
@@ -223,7 +232,7 @@ class _DraggableResizableQuestionWidgetState
                                 ),
                               ),
                             ),
-                            SizedBox(width: 8),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 option.text,
@@ -237,7 +246,7 @@ class _DraggableResizableQuestionWidgetState
                           ],
                         ),
                       );
-                    }).toList(),
+                    }),
                   ],
                 ),
               ),
@@ -245,14 +254,14 @@ class _DraggableResizableQuestionWidgetState
           ),
 
           // Selection overlay with resize handles
-          if (isSelected && !isLocked) ...[
+          if (isSelected && canEdit) ...[
             // Resize handles (4 corners)
             Positioned(
               top: -6,
               left: -6,
               child: _ResizeHandle(
                 handle: ResizeHandle.topLeft,
-                onResizeStart: () => setState(() => _activeResizeHandle = ResizeHandle.topLeft),
+                onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
@@ -273,7 +282,7 @@ class _DraggableResizableQuestionWidgetState
               right: -6,
               child: _ResizeHandle(
                 handle: ResizeHandle.topRight,
-                onResizeStart: () => setState(() => _activeResizeHandle = ResizeHandle.topRight),
+                onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
@@ -294,7 +303,7 @@ class _DraggableResizableQuestionWidgetState
               left: -6,
               child: _ResizeHandle(
                 handle: ResizeHandle.bottomLeft,
-                onResizeStart: () => setState(() => _activeResizeHandle = ResizeHandle.bottomLeft),
+                onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
@@ -315,7 +324,7 @@ class _DraggableResizableQuestionWidgetState
               right: -6,
               child: _ResizeHandle(
                 handle: ResizeHandle.bottomRight,
-                onResizeStart: () => setState(() => _activeResizeHandle = ResizeHandle.bottomRight),
+                onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
@@ -340,7 +349,7 @@ class _DraggableResizableQuestionWidgetState
                     tooltip: 'Lock',
                     onTap: () => ref.read(questionWidgetNotifierProvider.notifier).toggleLock(widget.id),
                   ),
-                  SizedBox(width: 4),
+                  const SizedBox(width: 4),
                   // Delete button
                   _ActionButton(
                     icon: Icons.delete,
@@ -363,7 +372,7 @@ class _DraggableResizableQuestionWidgetState
               child: Icon(
                 Icons.lock,
                 size: 16,
-                color: Colors.white.withOpacity(0.5),
+                color: Colors.white.withValues(alpha: 0.5),
               ),
             ),
         ],
@@ -456,7 +465,7 @@ class _ActionButton extends StatelessWidget {
           width: 28,
           height: 28,
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.7),
+            color: Colors.black.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(4),
           ),
           child: Icon(

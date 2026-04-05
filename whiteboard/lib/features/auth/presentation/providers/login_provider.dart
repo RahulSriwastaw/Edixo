@@ -1,12 +1,12 @@
 
 // lib/features/auth/presentation/providers/login_provider.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/error/failure.dart';
 import '../../../../core/providers/auth_provider.dart';
 import '../../../../core/storage/secure_storage.dart';
 import '../../../auth/data/datasources/auth_remote_ds.dart';
+import '../../../auth/data/models/teacher_model.dart';
 
 part 'login_provider.g.dart';
 
@@ -39,12 +39,12 @@ class LoginNotifier extends _$LoginNotifier {
   @override
   LoginNotifierState build() => const LoginNotifierState();
 
-  /// Perform login with email and password.
+  /// Perform login with username and password.
   /// Stores JWT tokens in SecureStorage and sets auth state on success.
-  Future<void> login(String email, String password) async {
+  Future<void> login(String username, String password) async {
     state = state.copyWith(state: LoginState.loading);
 
-    final result = await ref.read(authRemoteDsProvider).login(email, password);
+    final result = await ref.read(authRemoteDsProvider).login(username, password);
 
     await result.fold(
       (authResponse) async {
@@ -65,6 +65,19 @@ class LoginNotifier extends _$LoginNotifier {
         );
       },
     );
+  }
+
+  /// Perform bypass login for development.
+  void devLogin() {
+    const dummyTeacher = TeacherModel(
+      id: 'dev-123',
+      name: 'Dev Teacher',
+      email: 'dev@eduhub.com',
+      username: 'dev_teacher',
+      role: 'teacher',
+    );
+    ref.read(authNotifierProvider.notifier).setTeacher(dummyTeacher);
+    state = state.copyWith(state: LoginState.success);
   }
 
   void reset() => state = const LoginNotifierState();

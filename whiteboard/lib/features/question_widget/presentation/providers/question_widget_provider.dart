@@ -7,7 +7,6 @@ import '../../data/models/question_widget_model.dart';
 import '../../data/models/question_widget_style.dart';
 import '../../../whiteboard/data/models/slide_model.dart';
 import '../../../whiteboard/presentation/providers/session_provider.dart';
-import 'selected_widget_provider.dart';
 
 part 'question_widget_provider.g.dart';
 

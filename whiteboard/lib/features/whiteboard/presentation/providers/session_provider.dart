@@ -2,11 +2,9 @@
 
 import 'dart:async';
 import 'dart:convert';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../../data/models/session_model.dart';
-import '../../../../core/storage/hive_service.dart';
+import '../../data/models/slide_annotation.dart';
 import 'canvas_provider.dart';
 import 'slide_provider.dart';
 import '../../../question_widget/presentation/providers/question_widget_provider.dart';
@@ -145,13 +143,24 @@ class SessionNotifier extends _$SessionNotifier {
     final covered     = List<int>.from(state.slidesCovered);
     if (!covered.contains(currentIdx)) covered.add(currentIdx);
 
+    // Include saved per-slide annotations plus current in-memory canvas state.
+    final annotations = Map<String, SlideAnnotationData>.from(slideState.savedAnnotations);
+    final currentSlide = slideState.currentSlide;
+    if (currentSlide != null) {
+      annotations[currentSlide.slideId] = SlideAnnotationData(
+        slideId: currentSlide.slideId,
+        strokes: canvas.strokes,
+        objects: canvas.objects,
+      );
+    }
+
     return {
       'sessionId':     state.sessionId,
       'lastSaved':     DateTime.now().toIso8601String(),
       'slideIndex':    currentIdx,
       'slidesCovered': covered,
-      'annotations':   {}, // TODO: Build from slideState.savedAnnotations
-      'questionWidgets': {}, // TODO: Build from widgetState
+      'annotations': annotations.map((k, v) => MapEntry(k, v.toJson())),
+      'questionWidgets': widgetState.map((k, v) => MapEntry(k, v.toJson())),
     };
   }
 }

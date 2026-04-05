@@ -16,11 +16,11 @@ class CompassWidget extends ConsumerStatefulWidget {
 class _CompassWidgetState extends ConsumerState<CompassWidget> {
   Offset _position = const Offset(300, 300);
   double _radius = 100;
-  double _startAngle = 0.0;
+  final double _startAngle = 0.0;
   double _sweepAngle = pi;
   bool _isDragging = false;
   bool _isAdjustingRadius = false;
-  bool _isAdjustingAngle = false;
+
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +37,7 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
           }
         },
         onPanEnd: (_) => setState(() => _isDragging = false),
-        child: Container(
+        child: SizedBox(
           width: 300,
           height: 300,
           child: Stack(
@@ -49,7 +49,7 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
                   startAngle: _startAngle,
                   sweepAngle: _sweepAngle,
                 ),
-                child: SizedBox.expand(),
+                child: const SizedBox.expand(),
               ),
 
               // Center point (drag to move compass)
@@ -72,7 +72,7 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
-                    child: Icon(Icons.my_location, size: 12, color: Colors.white),
+                    child: const Icon(Icons.my_location, size: 12, color: Colors.white),
                   ),
                 ),
               ),
@@ -101,7 +101,7 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2),
                     ),
-                    child: Icon(Icons.open_with, size: 12, color: Colors.white),
+                    child: const Icon(Icons.open_with, size: 12, color: Colors.white),
                   ),
                 ),
               ),
@@ -112,9 +112,9 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
                 left: 10,
                 right: 10,
                 child: Container(
-                  padding: EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: AppColors.bgSecondary.withOpacity(0.9),
+                    color: AppColors.bgSecondary.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Column(
@@ -122,12 +122,12 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
                     children: [
                       Text(
                         'Radius: ${_radius.toInt()}px',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: AppColors.textPrimary,
                           fontSize: 12,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           Expanded(
@@ -140,7 +140,7 @@ class _CompassWidgetState extends ConsumerState<CompassWidget> {
                           ),
                         ],
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -213,7 +213,7 @@ class CompassPainter extends CustomPainter {
     // Draw arc
     if (sweepAngle > 0) {
       final arcPaint = Paint()
-        ..color = AppColors.accentOrange.withOpacity(0.5)
+        ..color = AppColors.accentOrange.withValues(alpha: 0.5)
         ..strokeWidth = 2
         ..style = PaintingStyle.stroke;
 
@@ -265,7 +265,7 @@ class _ControlButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.bgPrimary,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(color: AppColors.textTertiary.withOpacity(0.3)),
+          border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3)),
         ),
         child: Icon(icon, size: 16, color: AppColors.textPrimary),
       ),

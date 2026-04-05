@@ -1,22 +1,41 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../presentation/providers/canvas_provider.dart';
+import '../../../presentation/providers/slide_provider.dart';
 import '../../../presentation/providers/tool_provider.dart';
-import '../../../presentation/providers/session_provider.dart';
-import '../../../presentation/providers/app_mode_provider.dart';
+import '../../../presentation/providers/tool_registry.dart';
 import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_dimensions.dart';
+import '../../../../../core/constants/app_text_styles.dart';
+import 'tool_picker_panel.dart';
+import 'tool_settings_sheet.dart';
 
-class BottomMainToolbar extends ConsumerWidget {
+class BottomMainToolbar extends ConsumerStatefulWidget {
   const BottomMainToolbar({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final toolState = ref.watch(toolNotifierProvider);
+  ConsumerState<BottomMainToolbar> createState() => _BottomMainToolbarState();
+}
+
+class _BottomMainToolbarState extends ConsumerState<BottomMainToolbar> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(toolNotifierProvider.notifier).loadToolbarFromStorage();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final toolState    = ref.watch(toolNotifierProvider);
     final toolNotifier = ref.read(toolNotifierProvider.notifier);
     final canvasNotifier = ref.read(canvasNotifierProvider.notifier);
-    final sessionState = ref.watch(sessionNotifierProvider);
+    final slideState   = ref.watch(slideNotifierProvider);
+    final slideNotifier = ref.read(slideNotifierProvider.notifier);
+    final visibleTools = toolState.toolbarTools
+        .where(toolState.enabledTools.contains)
+        .toList();
 
     return Align(
       alignment: Alignment.bottomCenter,
@@ -30,104 +49,119 @@ class BottomMainToolbar extends ConsumerWidget {
               height: 56,
               padding: const EdgeInsets.symmetric(horizontal: 12),
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
+                color: Colors.black.withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(color: Colors.white12, width: 1),
               ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 1. Mode Toggle (Select vs Draw)
-                  _ModeToggle(
-                    mode: toolState.interactionMode,
-                    onChanged: (mode) => toolNotifier.toggleInteractionMode(),
-                  ),
-                  const VerticalDivider(width: 24, indent: 16, endIndent: 16, color: Colors.white24),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _ModeToggle(
+                      mode: toolState.interactionMode,
+                      onChanged: (_) => toolNotifier.toggleInteractionMode(),
+                    ),
+                    const SizedBox(width: 6),
+                    IconButton(
+                      tooltip: 'Select elements',
+                      onPressed: () => toolNotifier.selectTool(Tool.select),
+                      icon: Icon(
+                        Icons.ads_click,
+                        size: 20,
+                        color: toolState.activeTool == Tool.select
+                            ? Colors.white
+                            : Colors.white70,
+                      ),
+                      style: IconButton.styleFrom(
+                        fixedSize: const Size(40, 40),
+                        backgroundColor: toolState.activeTool == Tool.select
+                            ? AppColors.accentOrange
+                            : Colors.white10,
+                      ),
+                    ),
+                    const VerticalDivider(
+                        width: 24, indent: 16, endIndent: 16,
+                        color: Colors.white24),
 
-                  // 2. Drawing Tools
-                  _ToolButton(
-                    icon: Icons.brush,
-                    label: 'Pen',
-                    isSelected: toolState.activeTool == Tool.softPen,
-                    onTap: () => toolNotifier.selectTool(Tool.softPen),
-                  ),
-                  _ToolButton(
-                    icon: Icons.edit,
-                    label: 'Hard Pen',
-                    isSelected: toolState.activeTool == Tool.hardPen,
-                    onTap: () => toolNotifier.selectTool(Tool.hardPen),
-                  ),
-                  _ToolButton(
-                    icon: Icons.highlight,
-                    label: 'Highlighter',
-                    isSelected: toolState.activeTool == Tool.highlighter,
-                    onTap: () => toolNotifier.selectTool(Tool.highlighter),
-                  ),
-                  _ToolButton(
-                    icon: Icons.cleaning_services,
-                    label: 'Eraser',
-                    isSelected: toolState.activeTool == Tool.softEraser,
-                    onTap: () => toolNotifier.selectTool(Tool.softEraser),
-                  ),
-                  
-                  const VerticalDivider(width: 24, indent: 16, endIndent: 16, color: Colors.white24),
+                    // Dynamic tool buttons
+                    _ToolbarDropArea(
+                      toolbarTools: visibleTools,
+                      activeTool: toolState.activeTool,
+                      onToolTap: (tool) => toolNotifier.selectTool(tool),
+                      onToolDoubleTap: (tool) {
+                        toolNotifier.selectTool(tool);
+                        _showToolQuickSettings(context, tool);
+                      },
+                      onRemoveTool: (tool) =>
+                          toolNotifier.removeToolFromToolbar(tool),
+                      onReorderOrInsert: ({
+                        required Tool incoming,
+                        required int atIndex,
+                      }) {
+                        final oldIndex = visibleTools.indexOf(incoming);
+                        if (oldIndex >= 0) {
+                          toolNotifier.moveToolInToolbar(
+                              oldIndex: oldIndex, newIndex: atIndex);
+                        } else {
+                          toolNotifier.addToolToToolbar(incoming,
+                              atIndex: atIndex);
+                        }
+                      },
+                    ),
 
-                  // 3. Shapes
-                  _ToolButton(
-                    icon: Icons.crop_square,
-                    label: 'Rectangle',
-                    isSelected: toolState.activeTool == Tool.rectangle,
-                    onTap: () => toolNotifier.selectTool(Tool.rectangle),
-                  ),
-                  _ToolButton(
-                    icon: Icons.panorama_fish_eye,
-                    label: 'Circle',
-                    isSelected: toolState.activeTool == Tool.circle,
-                    onTap: () => toolNotifier.selectTool(Tool.circle),
-                  ),
-                  _ToolButton(
-                    icon: Icons.change_history,
-                    label: 'Triangle',
-                    isSelected: toolState.activeTool == Tool.triangle,
-                    onTap: () => toolNotifier.selectTool(Tool.triangle),
-                  ),
-                  _ToolButton(
-                    icon: Icons.text_fields,
-                    label: 'Text',
-                    isSelected: toolState.activeTool == Tool.textBox,
-                    onTap: () => toolNotifier.selectTool(Tool.textBox),
-                  ),
+                    // Add-tool button
+                    IconButton(
+                      tooltip: 'Add tool',
+                      onPressed: () => _showToolLibrary(context),
+                      icon: const Icon(Icons.add,
+                          size: 20, color: Colors.white70),
+                      style: IconButton.styleFrom(
+                          fixedSize: const Size(44, 44)),
+                    ),
 
-                  const VerticalDivider(width: 24, indent: 16, endIndent: 16, color: Colors.white24),
+                    const VerticalDivider(
+                        width: 24, indent: 16, endIndent: 16,
+                        color: Colors.white24),
 
-                  // 4. Undo/Redo
-                  IconButton(
-                    tooltip: 'Undo',
-                    onPressed: canvasNotifier.undo,
-                    icon: const Icon(Icons.undo, size: 20, color: Colors.white70),
-                    style: IconButton.styleFrom(fixedSize: const Size(44, 44)),
-                  ),
-                  IconButton(
-                    tooltip: 'Redo',
-                    onPressed: canvasNotifier.redo,
-                    icon: const Icon(Icons.redo, size: 20, color: Colors.white70),
-                    style: IconButton.styleFrom(fixedSize: const Size(44, 44)),
-                  ),
-                  
-                  const VerticalDivider(width: 24, indent: 16, endIndent: 16, color: Colors.white24),
-                  
-                  // 5. Color Picker
-                  _ColorPickerButton(
-                    currentColor: toolState.color,
-                    onColorChanged: (color) => toolNotifier.setColor(color),
-                  ),
+                    // Undo / Redo
+                    IconButton(
+                      tooltip: 'Undo',
+                      onPressed: canvasNotifier.undo,
+                      icon: const Icon(Icons.undo,
+                          size: 20, color: Colors.white70),
+                      style: IconButton.styleFrom(
+                          fixedSize: const Size(44, 44)),
+                    ),
+                    IconButton(
+                      tooltip: 'Redo',
+                      onPressed: canvasNotifier.redo,
+                      icon: const Icon(Icons.redo,
+                          size: 20, color: Colors.white70),
+                      style: IconButton.styleFrom(
+                          fixedSize: const Size(44, 44)),
+                    ),
 
-                  // 6. Stroke Width
-                  _StrokeWidthSlider(
-                    value: toolState.strokeWidth,
-                    onChanged: (w) => toolNotifier.setStrokeWidth(w),
-                  ),
-                ],
+                    // Slide navigation (only when slides are loaded)
+                    if (slideState.hasSlides) ...[
+                      const VerticalDivider(
+                          width: 24, indent: 16, endIndent: 16,
+                          color: Colors.white24),
+                      _SlideNavigation(
+                        slideIndex: slideState.currentSlideIndex,
+                        totalSlides: slideState.slides.length,
+                        onPrev: slideState.currentSlideIndex > 0
+                            ? () => slideNotifier.navigateToSlide(
+                                slideState.currentSlideIndex - 1)
+                            : null,
+                        onNext: slideState.currentSlideIndex <
+                                slideState.slides.length - 1
+                            ? () => slideNotifier.navigateToSlide(
+                                slideState.currentSlideIndex + 1)
+                            : null,
+                      ),
+                    ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -135,49 +169,156 @@ class BottomMainToolbar extends ConsumerWidget {
       ),
     );
   }
+
+  void _showToolLibrary(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => const ToolPickerPanel(),
+    );
+  }
+
+  void _showToolQuickSettings(BuildContext context, Tool tool) {
+    showToolSettingsSheet(context, ref, tool);
+  }
 }
 
-// ── Tool Button ────────────────────────────────────────────────────────────
+// ── Drop area ────────────────────────────────────────────────────────────────
 
-class _ToolButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
+class _ToolbarDropArea extends StatelessWidget {
+  final List<Tool> toolbarTools;
+  final Tool activeTool;
+  final ValueChanged<Tool> onToolTap;
+  final ValueChanged<Tool> onToolDoubleTap;
+  final ValueChanged<Tool> onRemoveTool;
+  final void Function({required Tool incoming, required int atIndex})
+      onReorderOrInsert;
 
-  const _ToolButton({
-    required this.icon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
+  const _ToolbarDropArea({
+    required this.toolbarTools,
+    required this.activeTool,
+    required this.onToolTap,
+    required this.onToolDoubleTap,
+    required this.onRemoveTool,
+    required this.onReorderOrInsert,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        margin: const EdgeInsets.symmetric(horizontal: 2),
-        decoration: BoxDecoration(
-          color: isSelected ? AppColors.accentOrange : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Tooltip(
-          message: label,
-          child: Icon(
-            icon,
-            size: 20,
-            color: isSelected ? Colors.white : Colors.white70,
+    return Row(
+      children: [
+        for (int i = 0; i < toolbarTools.length; i++)
+          Row(children: [
+            _DropSlot(
+                onAccept: (t) =>
+                    onReorderOrInsert(incoming: t, atIndex: i)),
+            _ToolbarToolButton(
+              tool: toolbarTools[i],
+              selected: toolbarTools[i] == activeTool,
+              onTap: () => onToolTap(toolbarTools[i]),
+              onDoubleTap: () => onToolDoubleTap(toolbarTools[i]),
+              onRemove: () => onRemoveTool(toolbarTools[i]),
+            ),
+          ]),
+        _DropSlot(
+            onAccept: (t) =>
+                onReorderOrInsert(incoming: t, atIndex: toolbarTools.length)),
+      ],
+    );
+  }
+}
+
+// ── Drop slot ────────────────────────────────────────────────────────────────
+
+class _DropSlot extends StatelessWidget {
+  final ValueChanged<Tool> onAccept;
+  const _DropSlot({required this.onAccept});
+
+  @override
+  Widget build(BuildContext context) {
+    return DragTarget<Tool>(
+      onWillAcceptWithDetails: (_) => true,
+      onAcceptWithDetails: (d) => onAccept(d.data),
+      builder: (_, candidateData, __) {
+        final hovering = candidateData.isNotEmpty;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: hovering ? 14 : 6,
+          height: 40,
+          decoration: BoxDecoration(
+            color: hovering
+                ? AppColors.accentOrange.withValues(alpha: 0.8)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(6),
           ),
-        ),
+        );
+      },
+    );
+  }
+}
+
+// ── Tool button ──────────────────────────────────────────────────────────────
+
+class _ToolbarToolButton extends StatelessWidget {
+  final Tool tool;
+  final bool selected;
+  final VoidCallback onTap;
+  final VoidCallback onDoubleTap;
+  final VoidCallback onRemove;
+
+  const _ToolbarToolButton({
+    required this.tool,
+    required this.selected,
+    required this.onTap,
+    required this.onDoubleTap,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final def = toolRegistryByTool[tool];
+    if (def == null) return const SizedBox.shrink();
+
+    return LongPressDraggable<Tool>(
+      data: tool,
+      feedback: Material(
+          color: Colors.transparent,
+          child: _visual(def, selected: true, small: true)),
+      childWhenDragging: Opacity(
+          opacity: 0.35, child: _visual(def, selected: selected)),
+      child: GestureDetector(
+        onTap: onTap,
+        onDoubleTap: onDoubleTap,
+        onLongPress: onRemove,
+        child: _visual(def, selected: selected),
+      ),
+    );
+  }
+
+  Widget _visual(ToolDefinition def,
+      {required bool selected, bool small = false}) {
+    return Container(
+      width: 44,
+      height: 44,
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: selected ? AppColors.accentOrange : Colors.transparent,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Tooltip(
+        message:
+            '${def.name} (double-tap: settings, long-press: remove)',
+        child: Icon(def.icon,
+            size: small ? 18 : 20,
+            color: selected ? Colors.white : Colors.white70),
       ),
     );
   }
 }
 
-// ── Mode Toggle ────────────────────────────────────────────────────────────
+// ── Mode toggle ──────────────────────────────────────────────────────────────
 
 class _ModeToggle extends StatelessWidget {
   final InteractionMode mode;
@@ -190,22 +331,18 @@ class _ModeToggle extends StatelessWidget {
     return Container(
       height: 36,
       decoration: BoxDecoration(
-        color: Colors.white10,
-        borderRadius: BorderRadius.circular(8),
-      ),
+          color: Colors.white10, borderRadius: BorderRadius.circular(8)),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _ToggleItem(
-            isSelected: mode == InteractionMode.selectMode,
-            icon: Icons.near_me_outlined,
-            onTap: () => onChanged(InteractionMode.selectMode),
-          ),
+              isSelected: mode == InteractionMode.selectMode,
+              icon: Icons.near_me_outlined,
+              onTap: () => onChanged(InteractionMode.selectMode)),
           _ToggleItem(
-            isSelected: mode == InteractionMode.drawMode,
-            icon: Icons.gesture,
-            onTap: () => onChanged(InteractionMode.drawMode),
-          ),
+              isSelected: mode == InteractionMode.drawMode,
+              icon: Icons.gesture,
+              onTap: () => onChanged(InteractionMode.drawMode)),
         ],
       ),
     );
@@ -217,7 +354,10 @@ class _ToggleItem extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _ToggleItem({required this.isSelected, required this.icon, required this.onTap});
+  const _ToggleItem(
+      {required this.isSelected,
+      required this.icon,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -230,167 +370,53 @@ class _ToggleItem extends StatelessWidget {
           color: isSelected ? AppColors.accentOrange : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(
-          icon,
-          size: 18,
-          color: isSelected ? Colors.white : Colors.white54,
-        ),
+        child: Icon(icon,
+            size: 18,
+            color: isSelected ? Colors.white : Colors.white54),
       ),
     );
   }
 }
 
-// ── Color Picker Button ────────────────────────────────────────────────────
+// ── Slide navigation ─────────────────────────────────────────────────────────
 
-class _ColorPickerButton extends StatelessWidget {
-  final Color currentColor;
-  final ValueChanged<Color> onColorChanged;
+class _SlideNavigation extends StatelessWidget {
+  final int slideIndex;
+  final int totalSlides;
+  final VoidCallback? onPrev;
+  final VoidCallback? onNext;
 
-  const _ColorPickerButton({
-    required this.currentColor,
-    required this.onColorChanged,
+  const _SlideNavigation({
+    required this.slideIndex,
+    required this.totalSlides,
+    required this.onPrev,
+    required this.onNext,
   });
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => _showColorPicker(context),
-      child: Container(
-        width: 36,
-        height: 36,
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        decoration: BoxDecoration(
-          color: currentColor,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.white30, width: 2),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        IconButton(
+          tooltip: 'Previous slide',
+          onPressed: onPrev,
+          icon: Icon(Icons.chevron_left,
+              size: 20,
+              color: onPrev != null ? Colors.white70 : Colors.white24),
+          style: IconButton.styleFrom(fixedSize: const Size(36, 44)),
         ),
-        child: const Icon(
-          Icons.palette,
-          size: 18,
-          color: Colors.black54,
+        Text('${slideIndex + 1}/$totalSlides',
+            style: AppTextStyles.caption.copyWith(color: Colors.white70)),
+        IconButton(
+          tooltip: 'Next slide',
+          onPressed: onNext,
+          icon: Icon(Icons.chevron_right,
+              size: 20,
+              color: onNext != null ? Colors.white70 : Colors.white24),
+          style: IconButton.styleFrom(fixedSize: const Size(36, 44)),
         ),
-      ),
-    );
-  }
-
-  void _showColorPicker(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Select Color'),
-        content: SingleChildScrollView(
-          child: BlockPicker(
-            pickerColor: currentColor,
-            onColorChanged: onColorChanged,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Stroke Width Slider ────────────────────────────────────────────────────
-
-class _StrokeWidthSlider extends StatelessWidget {
-  final double value;
-  final ValueChanged<double> onChanged;
-
-  const _StrokeWidthSlider({
-    required this.value,
-    required this.onChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '${value.toInt()}px',
-            style: const TextStyle(color: Colors.white70, fontSize: 10),
-          ),
-          SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 4,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-              overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-              activeTrackColor: AppColors.accentOrange,
-              inactiveTrackColor: Colors.white24,
-              thumbColor: AppColors.accentOrange,
-            ),
-            child: Slider(
-              value: value,
-              min: 1,
-              max: 50,
-              divisions: 49,
-              onChanged: onChanged,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-// ── Block Picker (Simple Color Grid) ───────────────────────────────────────
-
-class BlockPicker extends StatelessWidget {
-  final Color pickerColor;
-  final ValueChanged<Color> onColorChanged;
-
-  const BlockPicker({
-    required this.pickerColor,
-    required this.onColorChanged,
-  });
-
-  static const _colors = [
-    Colors.white,
-    Colors.yellow,
-    Colors.orange,
-    Colors.red,
-    Colors.pink,
-    Colors.purple,
-    Colors.blue,
-    Colors.cyan,
-    Colors.green,
-    Colors.lime,
-    Colors.brown,
-    Colors.grey,
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: _colors.map((color) {
-        return GestureDetector(
-          onTap: () => onColorChanged(color),
-          child: Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: pickerColor == color
-                    ? AppColors.accentOrange
-                    : Colors.white30,
-                width: pickerColor == color ? 3 : 1,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
+      ],
     );
   }
 }

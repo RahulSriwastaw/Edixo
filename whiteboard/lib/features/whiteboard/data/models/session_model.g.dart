@@ -21,19 +21,18 @@ class WhiteboardSessionModelAdapter
       sessionId: fields[0] as String,
       setId: fields[1] as String,
       teacherId: fields[2] as String,
-      orgId: fields[3] as String,
-      startTime: fields[4] as DateTime,
-      lastSaved: fields[5] as DateTime,
-      currentSlideIndex: fields[6] as int,
-      slidesCovered: (fields[7] as List).cast<int>(),
-      annotationsJson: fields[8] as String,
+      startTime: fields[3] as DateTime,
+      lastSaved: fields[4] as DateTime,
+      currentSlideIndex: fields[5] as int,
+      slidesCovered: (fields[6] as List).cast<int>(),
+      annotationsJson: fields[7] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, WhiteboardSessionModel obj) {
     writer
-      ..writeByte(9)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.sessionId)
       ..writeByte(1)
@@ -41,16 +40,14 @@ class WhiteboardSessionModelAdapter
       ..writeByte(2)
       ..write(obj.teacherId)
       ..writeByte(3)
-      ..write(obj.orgId)
-      ..writeByte(4)
       ..write(obj.startTime)
-      ..writeByte(5)
+      ..writeByte(4)
       ..write(obj.lastSaved)
-      ..writeByte(6)
+      ..writeByte(5)
       ..write(obj.currentSlideIndex)
-      ..writeByte(7)
+      ..writeByte(6)
       ..write(obj.slidesCovered)
-      ..writeByte(8)
+      ..writeByte(7)
       ..write(obj.annotationsJson);
   }
 

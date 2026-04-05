@@ -15,14 +15,14 @@ class ShapeToolsPalette extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      padding: EdgeInsets.all(AppDimensions.borderRadiusM),
+      padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
       decoration: BoxDecoration(
-        color: AppColors.bgSecondary.withOpacity(0.95),
+        color: AppColors.bgSecondary.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusL),
-        border: Border.all(color: AppColors.textTertiary.withOpacity(0.2)),
+        border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(2, 2),
           ),
@@ -31,7 +31,7 @@ class ShapeToolsPalette extends ConsumerWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
+          const Text(
             'Shapes',
             style: TextStyle(
               color: AppColors.textPrimary,
@@ -39,7 +39,7 @@ class ShapeToolsPalette extends ConsumerWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
-          SizedBox(height: AppDimensions.borderRadiusS),
+          const SizedBox(height: AppDimensions.borderRadiusS),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -108,16 +108,16 @@ class _ShapeButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.bgPrimary,
           borderRadius: BorderRadius.circular(AppDimensions.borderRadiusS),
-          border: Border.all(color: AppColors.textTertiary.withOpacity(0.3)),
+          border: Border.all(color: AppColors.textTertiary.withValues(alpha: 0.3)),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(icon, size: 20, color: AppColors.textPrimary),
-            SizedBox(height: 2),
+            const SizedBox(height: 2),
             Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 8,
               ),
@@ -149,8 +149,6 @@ class DraggableShape extends ConsumerStatefulWidget {
 class _DraggableShapeState extends ConsumerState<DraggableShape> {
   late Offset _position;
   late Size _size;
-  bool _isDragging = false;
-  bool _isResizing = false;
 
   @override
   void initState() {
@@ -165,14 +163,14 @@ class _DraggableShapeState extends ConsumerState<DraggableShape> {
       left: _position.dx,
       top: _position.dy,
       child: GestureDetector(
-        onPanStart: (_) => setState(() => _isDragging = true),
+        onPanStart: (_) {},
         onPanUpdate: (details) {
           setState(() {
             _position += details.delta;
           });
         },
-        onPanEnd: (_) => setState(() => _isDragging = false),
-        child: Container(
+        onPanEnd: (_) {},
+        child: SizedBox(
           width: _size.width,
           height: _size.height,
           child: Stack(
@@ -183,14 +181,14 @@ class _DraggableShapeState extends ConsumerState<DraggableShape> {
                   shapeType: widget.shapeType,
                   color: widget.color,
                 ),
-                child: SizedBox.expand(),
+                child: const SizedBox.expand(),
               ),
               // Resize handle
               Positioned(
                 bottom: 0,
                 right: 0,
                 child: GestureDetector(
-                  onPanStart: (_) => setState(() => _isResizing = true),
+                  onPanStart: (_) {},
                   onPanUpdate: (details) {
                     setState(() {
                       _size = Size(
@@ -199,7 +197,7 @@ class _DraggableShapeState extends ConsumerState<DraggableShape> {
                       );
                     });
                   },
-                  onPanEnd: (_) => setState(() => _isResizing = false),
+                  onPanEnd: (_) {},
                   child: Container(
                     width: 16,
                     height: 16,
@@ -207,7 +205,7 @@ class _DraggableShapeState extends ConsumerState<DraggableShape> {
                       color: AppColors.accentOrange,
                       borderRadius: BorderRadius.circular(4),
                     ),
-                    child: Icon(Icons.drag_handle, size: 12, color: Colors.white),
+                    child: const Icon(Icons.drag_handle, size: 12, color: Colors.white),
                   ),
                 ),
               ),
@@ -222,11 +220,11 @@ class _DraggableShapeState extends ConsumerState<DraggableShape> {
                   child: Container(
                     width: 20,
                     height: 20,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: Colors.red,
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.close, size: 14, color: Colors.white),
+                    child: const Icon(Icons.close, size: 14, color: Colors.white),
                   ),
                 ),
               ),
@@ -247,7 +245,7 @@ class ShapePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withOpacity(0.3)
+      ..color = color.withValues(alpha: 0.3)
       ..style = PaintingStyle.fill;
 
     final borderPaint = Paint()

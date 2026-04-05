@@ -20,9 +20,9 @@ class NavigationMap extends ConsumerWidget {
       width: 320,
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.bgSecondary.withOpacity(0.95),
+        color: AppColors.bgSecondary.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.textDisabled.withOpacity(0.2)),
+        border: Border.all(color: AppColors.textDisabled.withValues(alpha: 0.2)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -31,7 +31,7 @@ class NavigationMap extends ConsumerWidget {
           // Header
           Row(
             children: [
-              Icon(Icons.map, color: AppColors.accentOrange, size: 20),
+              const Icon(Icons.map, color: AppColors.accentOrange, size: 20),
               const SizedBox(width: 8),
               Text(
                 'Navigation Map',
@@ -99,13 +99,13 @@ class _SlideThumbnail extends StatelessWidget {
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: isCurrentSlide
-              ? AppColors.accentOrange.withOpacity(0.2)
+              ? AppColors.accentOrange.withValues(alpha: 0.2)
               : AppColors.bgPrimary,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: isCurrentSlide
                 ? AppColors.accentOrange
-                : AppColors.textDisabled.withOpacity(0.2),
+                : AppColors.textDisabled.withValues(alpha: 0.2),
             width: isCurrentSlide ? 2 : 1,
           ),
         ),
@@ -161,7 +161,7 @@ class _SlideThumbnail extends StatelessWidget {
 
             // Covered indicator
             if (isCovered)
-              Icon(
+              const Icon(
                 Icons.check_circle,
                 color: AppColors.success,
                 size: 18,

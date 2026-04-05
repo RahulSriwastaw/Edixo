@@ -22,7 +22,7 @@ class CanvasPainter extends CustomPainter {
     }
 
     // 2. Draw finalized objects (shapes, textboxes on annotation layer)
-    for (final obj in objects) {
+    for (final _ in objects) {
       // TODO: Implement CanvasObjectModel rendering if needed
       // Currently shapes/textboxes might be handled as strokes or individual widgets
     }

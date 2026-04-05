@@ -25,7 +25,6 @@ class _TextBoxWidgetState extends ConsumerState<TextBoxWidget> {
   late Offset _position;
   late Size _size;
   bool _isEditing = false;
-  bool _isDragging = false;
   late TextEditingController _controller;
   late FocusNode _focusNode;
 
@@ -61,7 +60,7 @@ class _TextBoxWidgetState extends ConsumerState<TextBoxWidget> {
       left: _position.dx,
       top: _position.dy,
       child: GestureDetector(
-        onPanStart: _isEditing ? null : (_) => setState(() => _isDragging = true),
+        onPanStart: _isEditing ? null : (_) {},
         onPanUpdate: _isEditing
             ? null
             : (details) {
@@ -69,26 +68,26 @@ class _TextBoxWidgetState extends ConsumerState<TextBoxWidget> {
                   _position += details.delta;
                 });
               },
-        onPanEnd: _isEditing ? null : (_) => setState(() => _isDragging = false),
+        onPanEnd: _isEditing ? null : (_) {},
         onDoubleTap: _startEditing,
         child: Container(
           width: _size.width,
-          constraints: BoxConstraints(
+          constraints: const BoxConstraints(
             minHeight: 50,
             minWidth: 100,
             maxWidth: 800,
           ),
-          padding: EdgeInsets.all(AppDimensions.borderRadiusM),
+          padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
           decoration: BoxDecoration(
-            color: AppColors.bgSecondary.withOpacity(0.9),
+            color: AppColors.bgSecondary.withValues(alpha: 0.9),
             borderRadius: BorderRadius.circular(AppDimensions.borderRadiusS),
             border: Border.all(
-              color: _isEditing ? AppColors.accentOrange : AppColors.textTertiary.withOpacity(0.3),
+              color: _isEditing ? AppColors.accentOrange : AppColors.textTertiary.withValues(alpha: 0.3),
               width: _isEditing ? 2 : 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.2),
+                color: Colors.black.withValues(alpha: 0.2),
                 blurRadius: 4,
                 offset: const Offset(1, 1),
               ),
@@ -120,11 +119,11 @@ class _TextBoxWidgetState extends ConsumerState<TextBoxWidget> {
                     child: Container(
                       width: 24,
                       height: 24,
-                      decoration: BoxDecoration(
+                      decoration: const BoxDecoration(
                         color: AppColors.accentOrange,
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.check, size: 16, color: Colors.white),
+                      child: const Icon(Icons.check, size: 16, color: Colors.white),
                     ),
                   ),
                 ),
@@ -151,7 +150,7 @@ class _TextBoxWidgetState extends ConsumerState<TextBoxWidget> {
                         );
                       });
                     },
-                    child: Container(
+                    child: const SizedBox(
                       width: 16,
                       height: 16,
                       child: Icon(Icons.drag_handle, size: 16, color: AppColors.textTertiary),

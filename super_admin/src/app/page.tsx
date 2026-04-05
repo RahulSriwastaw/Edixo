@@ -19,6 +19,7 @@ import {
   Copy,
   MoreHorizontal,
   ExternalLink,
+  Users,
 } from "lucide-react";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
@@ -67,26 +68,16 @@ async function fetchDashboard() {
   }
 }
 
-async function fetchRecentOrgs() {
-  try {
-    const json = await api.get('/super-admin/organizations?limit=5');
-    return json.data?.orgs ?? [];
-  } catch (err) {
-    console.error("Orgs fetch error:", err);
-    return [];
-  }
-}
-
 // KPI Data
 const kpiData = [
   {
-    label: "Total Organizations",
-    value: 48,
-    change: "+6 this month",
+    label: "Total Whiteboard Accounts",
+    value: 124,
+    change: "+12 this month",
     trend: "up",
-    icon: Building2,
+    icon: Users,
     color: "blue",
-    sparkline: [30, 35, 32, 38, 42, 45, 48],
+    sparkline: [80, 85, 92, 105, 112, 118, 124],
   },
   {
     label: "MRR — Monthly Revenue",
@@ -240,57 +231,28 @@ const systemStatus = [
   { name: "Email", status: "operational", latency: null },
 ];
 
-// Recent Organizations Data
-const recentOrgs = [
+// Recent Whiteboard Accounts Data
+const recentAccounts = [
   {
-    id: "GK-ORG-00142",
-    name: "Apex Academy",
-    logo: null,
-    domain: "apex-academy.com",
-    appType: "BOTH",
-    plan: "Medium",
+    id: "WB-ACC-001",
+    name: "Demo Teacher 1",
+    loginId: "teacher_01",
     status: "Active",
-    mrr: "₹15,000",
+    lastUsed: "2 hours ago",
   },
   {
-    id: "GK-ORG-00141",
-    name: "Brilliant Coaching",
-    logo: null,
-    domain: "brilliantcoaching.in",
-    appType: "STUDENT",
-    plan: "Small",
-    status: "Trial",
-    mrr: "₹0",
-  },
-  {
-    id: "GK-ORG-00140",
-    name: "Excel Institute",
-    logo: null,
-    domain: "excelinstitute.edu",
-    appType: "BOTH",
-    plan: "Large",
+    id: "WB-ACC-002",
+    name: "Demo Teacher 2",
+    loginId: "teacher_02",
     status: "Active",
-    mrr: "₹40,000",
+    lastUsed: "5 hours ago",
   },
   {
-    id: "GK-ORG-00139",
-    name: "Success Classes",
-    logo: null,
-    domain: "successclasses.com",
-    appType: "MOCKBOOK",
-    plan: "Medium",
-    status: "Active",
-    mrr: "₹15,000",
-  },
-  {
-    id: "GK-ORG-00138",
-    name: "Vision Academy",
-    logo: null,
-    domain: "visionacademy.in",
-    appType: "BOTH",
-    plan: "Small",
-    status: "Suspended",
-    mrr: "₹5,000",
+    id: "WB-ACC-003",
+    name: "Demo Teacher 3",
+    loginId: "teacher_03",
+    status: "Inactive",
+    lastUsed: "1 day ago",
   },
 ];
 
@@ -375,16 +337,14 @@ function PlanBadge({ plan }: { plan: string }) {
 }
 
 export default function DashboardPage() {
-    const { isOpen } = useSidebarStore();
-const [dashStats, setDashStats] = useState<any>(null);
-  const [liveOrgs, setLiveOrgs] = useState<any[]>([]);
+  const { isOpen } = useSidebarStore();
+  const [dashStats, setDashStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([fetchDashboard(), fetchRecentOrgs()])
-      .then(([stats, orgs]) => {
+    fetchDashboard()
+      .then((stats) => {
         setDashStats(stats);
-        setLiveOrgs(orgs);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -394,8 +354,8 @@ const [dashStats, setDashStats] = useState<any>(null);
     if (!dashStats) return kpi;
 
     switch (kpi.label) {
-      case "Total Organizations":
-        return { ...kpi, value: dashStats.stats.totalOrgs };
+      case "Total Whiteboard Accounts":
+        return { ...kpi, value: dashStats.stats.totalWhiteboardAccounts };
       case "MRR — Monthly Revenue":
         return { ...kpi, value: `₹${dashStats.stats.mrr.toLocaleString()}` };
       case "Active Students (30d)":
@@ -415,7 +375,13 @@ const [dashStats, setDashStats] = useState<any>(null);
     }
   });
 
-  const displayOrgs = liveOrgs.length > 0 ? liveOrgs : recentOrgs;
+  const displayAccounts = (dashStats?.recentAccounts?.length > 0) 
+    ? dashStats.recentAccounts.map((acc: any) => ({
+        ...acc,
+        lastUsed: acc.createdAt ? new Date(acc.createdAt).toLocaleDateString() : 'Never'
+      }))
+    : recentAccounts; // Fallback to mock if API data is missing
+
   const displayPlanDistribution = dashStats?.planDistribution?.length > 0
     ? dashStats.planDistribution.map((p: any) => ({
       ...p,
@@ -758,10 +724,10 @@ const [dashStats, setDashStats] = useState<any>(null);
               </Card>
             </div>
 
-            {/* Recent Organizations Table */}
+            {/* Recent Whiteboard Accounts Table */}
             <Card>
               <CardHeader className="pb-2 flex flex-row items-center justify-between">
-                <CardTitle className="text-lg font-semibold">Recent Organizations</CardTitle>
+                <CardTitle className="text-lg font-semibold">Recent Whiteboard Accounts</CardTitle>
                 <Button variant="ghost" size="sm" className="text-brand-primary">
                   View All <ArrowUpRight className="w-4 h-4 ml-1" />
                 </Button>
@@ -770,67 +736,41 @@ const [dashStats, setDashStats] = useState<any>(null);
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Unique Org ID</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">App Type</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
+                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Account Name</TableHead>
+                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Login ID</TableHead>
                       <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">MRR</TableHead>
+                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Last Used</TableHead>
                       <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {displayOrgs.map((org: any) => (
-                      <TableRow key={org.id} className="hover:bg-brand-primary-tint">
+                    {displayAccounts.map((account: any) => (
+                      <TableRow key={account.id} className="hover:bg-brand-primary-tint">
                         <TableCell>
                           <div className="flex items-center gap-3">
                             <Avatar className="w-8 h-8">
                               <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-medium">
-                                {org.name.split(" ").map(n => n[0]).join("")}
+                                {account.name ? account.name.split(" ").map((n: string) => n[0]).join("") : "?"}
                               </AvatarFallback>
                             </Avatar>
-                            <div>
-                              <div className="font-medium text-gray-900">{org.name}</div>
-                              <div className="text-xs text-gray-500">{org.domain}</div>
-                            </div>
+                            <div className="font-medium text-gray-900">{account.name}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <span className="mono">{org.id}</span>
-                            <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-brand-primary">
-                              <Copy className="w-3 h-3" />
-                            </Button>
+                            <span className="mono">{account.loginId}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <AppTypeBadge type={org.appType} />
+                          <StatusBadge status={account.status} />
                         </TableCell>
-                        <TableCell>
-                          <PlanBadge plan={org.plan} />
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge status={org.status} />
-                        </TableCell>
-                        <TableCell className="text-right font-mono">
-                          {org.mrr}
+                        <TableCell className="text-gray-500 text-sm">
+                          {account.lastUsed}
                         </TableCell>
                         <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem className="text-brand-primary">
-                                <ExternalLink className="w-4 h-4 mr-2" /> View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>Manage IDs</DropdownMenuItem>
-                              <DropdownMenuItem>Change Plan</DropdownMenuItem>
-                              <DropdownMenuItem>Suspend</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}

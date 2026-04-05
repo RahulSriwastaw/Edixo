@@ -2,6 +2,8 @@
 
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import '../../../../core/storage/hive_service.dart';
+import 'tool_registry.dart';
 
 part 'tool_provider.g.dart';
 
@@ -21,6 +23,8 @@ enum Tool {
   navigate,      // Pan/zoom canvas
   // Special
   magicPen, eyedropper,
+  // Math / Geometry
+  ruler, protractor, compass,
 }
 
 enum StrokeTip { round, flat, brush }
@@ -87,7 +91,9 @@ class ToolSettings {
   final Tool            activeTool;
   final InteractionMode interactionMode;
   final SubjectMode     activeMode;
-  final List<Tool>      pinnedTools;
+  final List<Tool>      toolbarTools;
+  final Set<Tool>       enabledTools;
+  final String?         selectedElementId;
   final Map<Tool, ToolSettings> toolSettings;
 
   const ToolSettings({
@@ -100,7 +106,41 @@ class ToolSettings {
     this.activeTool    = Tool.softPen,
     this.interactionMode = InteractionMode.drawMode,
     this.activeMode    = SubjectMode.none,
-    this.pinnedTools   = const [],
+    this.toolbarTools  = defaultToolbarTools,
+    this.enabledTools  = const {
+      Tool.softPen,
+      Tool.hardPen,
+      Tool.highlighter,
+      Tool.chalk,
+      Tool.calligraphy,
+      Tool.spray,
+      Tool.laserPointer,
+      Tool.softEraser,
+      Tool.hardEraser,
+      Tool.objectEraser,
+      Tool.areaEraser,
+      Tool.line,
+      Tool.arrow,
+      Tool.doubleArrow,
+      Tool.rectangle,
+      Tool.roundedRect,
+      Tool.circle,
+      Tool.triangle,
+      Tool.star,
+      Tool.polygon,
+      Tool.callout,
+      Tool.textBox,
+      Tool.stickyNote,
+      Tool.select,
+      Tool.selectObject,
+      Tool.navigate,
+      Tool.magicPen,
+      Tool.eyedropper,
+      Tool.ruler,
+      Tool.protractor,
+      Tool.compass,
+    },
+    this.selectedElementId,
     this.toolSettings  = const {},
   });
 
@@ -114,7 +154,10 @@ class ToolSettings {
     Tool?            activeTool,
     InteractionMode? interactionMode,
     SubjectMode?     activeMode,
-    List<Tool>?      pinnedTools,
+    List<Tool>?      toolbarTools,
+    Set<Tool>?       enabledTools,
+    String?          selectedElementId,
+    bool             clearSelectedElement = false,
     Map<Tool, ToolSettings>? toolSettings,
   }) => ToolSettings(
     color:           color           ?? this.color,
@@ -126,7 +169,11 @@ class ToolSettings {
     activeTool:      activeTool      ?? this.activeTool,
     interactionMode: interactionMode ?? this.interactionMode,
     activeMode:      activeMode      ?? this.activeMode,
-    pinnedTools:     pinnedTools     ?? this.pinnedTools,
+    toolbarTools:    toolbarTools    ?? this.toolbarTools,
+    enabledTools:    enabledTools    ?? this.enabledTools,
+    selectedElementId: clearSelectedElement
+        ? null
+        : (selectedElementId ?? this.selectedElementId),
     toolSettings:    toolSettings    ?? this.toolSettings,
   );
 
@@ -141,14 +188,19 @@ class ToolSettings {
 
 @riverpod
 class ToolNotifier extends _$ToolNotifier {
+  static const _toolbarStorageKey = 'whiteboard.toolbar.tools.v1';
+
   @override
-  ToolSettings build() => const ToolSettings(
-    toolSettings: {
-      Tool.softPen:     ToolSettings(strokeWidth: 4.0, color: Color(0xFFFFFFFF)),
-      Tool.highlighter: ToolSettings(strokeWidth: 15.0, color: Color(0xFFFFE66D), opacity: 0.3),
-      Tool.softEraser:  ToolSettings(strokeWidth: 20.0),
-    },
-  );
+  ToolSettings build() {
+    final settings = <Tool, ToolSettings>{
+      for (final definition in toolRegistry)
+        definition.tool: definition.defaultSettings,
+    };
+    final enabled = <Tool>{
+      for (final definition in toolRegistry) definition.tool,
+    };
+    return ToolSettings(toolSettings: settings, enabledTools: enabled);
+  }
 
   void selectTool(Tool tool) {
     final mode = _autoInteractionMode(tool);
@@ -186,13 +238,144 @@ class ToolNotifier extends _$ToolNotifier {
   }
 
   void setSubjectMode(SubjectMode mode) => state = state.copyWith(activeMode: mode);
-  
-  void setPinnedTools(List<Tool> tools) => state = state.copyWith(pinnedTools: tools);
 
   void updateSettings(Tool tool, ToolSettings settings) {
     final newSettings = Map<Tool, ToolSettings>.from(state.toolSettings);
     newSettings[tool] = settings;
     state = state.copyWith(toolSettings: newSettings);
+  }
+
+  void setSelectedElement(String? elementId) {
+    state = state.copyWith(
+      selectedElementId: elementId,
+      clearSelectedElement: elementId == null,
+    );
+  }
+
+  // Backend hook: call after subscription payload is fetched on login.
+  void setEnabledToolsFromBackend(Iterable<String> allowedToolIds) {
+    final next = <Tool>{};
+    for (final definition in toolRegistry) {
+      if (allowedToolIds.contains(definition.id)) {
+        next.add(definition.tool);
+      }
+    }
+
+    // If backend returns empty list unexpectedly, keep current behavior safe.
+    if (next.isEmpty) return;
+
+    final filteredToolbar = state.toolbarTools
+        .where((tool) => next.contains(tool))
+        .toList();
+
+    state = state.copyWith(
+      enabledTools: next,
+      toolbarTools: filteredToolbar.isEmpty ? defaultToolbarTools.where(next.contains).toList() : filteredToolbar,
+      activeTool: next.contains(state.activeTool)
+          ? state.activeTool
+          : (filteredToolbar.isNotEmpty ? filteredToolbar.first : next.first),
+    );
+    _persistToolbar();
+  }
+
+  void setToolbarTools(List<Tool> tools) {
+    final unique = <Tool>{};
+    final sanitized = <Tool>[];
+    for (final tool in tools) {
+      if (!toolRegistryByTool.containsKey(tool)) continue;
+      if (!state.enabledTools.contains(tool)) continue;
+      if (unique.add(tool)) sanitized.add(tool);
+    }
+    if (sanitized.isEmpty) {
+      sanitized.addAll(defaultToolbarTools);
+    }
+    state = state.copyWith(toolbarTools: sanitized);
+    _persistToolbar();
+  }
+
+  void addToolToToolbar(Tool tool, {int? atIndex}) {
+    if (!toolRegistryByTool.containsKey(tool)) return;
+    if (!state.enabledTools.contains(tool)) return;
+    if (state.toolbarTools.contains(tool)) return;
+
+    final next = List<Tool>.from(state.toolbarTools);
+    if (atIndex != null && atIndex >= 0 && atIndex <= next.length) {
+      next.insert(atIndex, tool);
+    } else {
+      next.add(tool);
+    }
+    state = state.copyWith(toolbarTools: next);
+    _persistToolbar();
+  }
+
+  void removeToolFromToolbar(Tool tool) {
+    final next = List<Tool>.from(state.toolbarTools)..remove(tool);
+    if (next.isEmpty) return;
+
+    state = state.copyWith(
+      toolbarTools: next,
+      activeTool: state.activeTool == tool ? next.first : state.activeTool,
+    );
+    _persistToolbar();
+  }
+
+  void moveToolInToolbar({required int oldIndex, required int newIndex}) {
+    if (oldIndex < 0 || oldIndex >= state.toolbarTools.length) return;
+    if (newIndex < 0 || newIndex > state.toolbarTools.length) return;
+
+    final next = List<Tool>.from(state.toolbarTools);
+    final item = next.removeAt(oldIndex);
+    final adjustedIndex = newIndex > oldIndex ? newIndex - 1 : newIndex;
+    next.insert(adjustedIndex.clamp(0, next.length), item);
+    state = state.copyWith(toolbarTools: next);
+    _persistToolbar();
+  }
+
+  Future<void> loadToolbarFromStorage() async {
+    final box = _settingsBoxOrNull();
+    if (box == null) return;
+
+    try {
+      final raw = box.get(_toolbarStorageKey);
+      if (raw is! List) return;
+
+      final tools = <Tool>[];
+      for (final entry in raw) {
+        if (entry is! String) continue;
+
+        Tool? parsed;
+        for (final value in Tool.values) {
+          if (value.name == entry) {
+            parsed = value;
+            break;
+          }
+        }
+
+        if (parsed != null && toolRegistryByTool.containsKey(parsed)) {
+          tools.add(parsed);
+        }
+      }
+      state = state.copyWith(
+        toolbarTools: tools.isEmpty ? defaultToolbarTools : tools,
+      );
+    } catch (_) {
+      state = state.copyWith(toolbarTools: defaultToolbarTools);
+    }
+  }
+
+  dynamic _settingsBoxOrNull() {
+    try {
+      return HiveService.getSettingsBox();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> _persistToolbar() async {
+    final box = _settingsBoxOrNull();
+    if (box == null) return;
+
+    await box.put(_toolbarStorageKey, state.toolbarTools.map((t) => t.name).toList());
   }
 
   void toggleInteractionMode() {

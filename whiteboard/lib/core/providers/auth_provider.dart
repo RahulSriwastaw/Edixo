@@ -1,6 +1,5 @@
 // lib/core/providers/auth_provider.dart
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../features/auth/data/models/teacher_model.dart';
 import '../storage/secure_storage.dart';

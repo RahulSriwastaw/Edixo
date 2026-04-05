@@ -119,10 +119,18 @@ class KeyboardShortcutService {
           if (selectedId != null) {
             ref.read(questionWidgetNotifierProvider.notifier).remove(selectedId);
             ref.read(selectedWidgetNotifierProvider.notifier).deselect();
+            return true;
+          }
+          final selectedElementId = ref.read(toolNotifierProvider).selectedElementId;
+          if (selectedElementId != null) {
+            ref.read(canvasNotifierProvider.notifier).deleteObject(selectedElementId);
+            ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
+            return true;
           }
           return true;
         case LogicalKeyboardKey.escape:
           ref.read(selectedWidgetNotifierProvider.notifier).deselect();
+          ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
           return true;
       }
     }
@@ -137,6 +145,18 @@ class KeyboardShortcutService {
             return true;
           case LogicalKeyboardKey.bracketLeft:
             ref.read(questionWidgetNotifierProvider.notifier).sendToBack(selectedId);
+            return true;
+        }
+      }
+
+      final selectedElementId = ref.read(toolNotifierProvider).selectedElementId;
+      if (selectedElementId != null) {
+        switch (key) {
+          case LogicalKeyboardKey.bracketRight:
+            ref.read(canvasNotifierProvider.notifier).bringObjectToFront(selectedElementId);
+            return true;
+          case LogicalKeyboardKey.bracketLeft:
+            ref.read(canvasNotifierProvider.notifier).sendObjectToBack(selectedElementId);
             return true;
         }
       }
