@@ -36,6 +36,10 @@ function createCompatId(prefix: string) {
     return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function slugify(value: string) {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general';
+}
+
 type AirtableCompatRecord = {
     id: string;
     fields: Record<string, unknown>;
@@ -287,6 +291,67 @@ async function syncAirtableTableCompat(tableName: string) {
         failedCount: 0,
         total: records.length,
     };
+}
+
+async function ensureCompatibilitySetsFromQuestions() {
+    const sourceRows = await prisma.$queryRawUnsafe<Array<{ source: string; total: number | string }>>(`
+        SELECT
+            COALESCE(NULLIF(airtable_table_name, ''), NULLIF(subject_name, ''), 'General') AS source,
+            COUNT(*) AS total
+        FROM questions
+        GROUP BY COALESCE(NULLIF(airtable_table_name, ''), NULLIF(subject_name, ''), 'General')
+        ORDER BY COUNT(*) DESC
+    `);
+
+    let index = 1;
+    for (const row of sourceRows) {
+        const source = row.source || 'General';
+        const total = Number(row.total || 0);
+        if (total <= 0) continue;
+
+        const slug = slugify(source);
+        const setPrimaryId = `compat-set-${slug}`;
+        const setCode = `CMP-${slug.toUpperCase().slice(0, 24)}`;
+        const setName = `${source} Auto Set`;
+        const setDescription = `Auto-generated compatibility set for ${source} questions.`;
+
+        await prisma.$executeRawUnsafe(`
+            INSERT INTO question_sets (id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at)
+            VALUES (
+                ${sqlQuote(setPrimaryId)},
+                ${sqlQuote(setCode)},
+                '123456',
+                ${sqlQuote(setName)},
+                ${sqlQuote(setDescription)},
+                ${total},
+                ${sqlQuote(source)},
+                NULL,
+                TRUE,
+                NOW()
+            )
+            ON CONFLICT (id) DO UPDATE SET
+                total_questions = EXCLUDED.total_questions,
+                name = EXCLUDED.name,
+                description = EXCLUDED.description,
+                subject = EXCLUDED.subject
+        `);
+
+        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(setPrimaryId)}`);
+
+        await prisma.$executeRawUnsafe(`
+            INSERT INTO question_set_items (set_id, question_id, sort_order)
+            SELECT
+                ${sqlQuote(setPrimaryId)} AS set_id,
+                id AS question_id,
+                ROW_NUMBER() OVER (ORDER BY created_at DESC) AS sort_order
+            FROM questions
+            WHERE COALESCE(NULLIF(airtable_table_name, ''), NULLIF(subject_name, ''), 'General') = ${sqlQuote(source)}
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
+
+        index += 1;
+    }
 }
 
 function buildQuestionWhereClause(req: express.Request) {
@@ -1119,6 +1184,7 @@ app.post('/api/qbank/sync-airtable', async (req, res) => {
         }
 
         const result = await syncAirtableTableCompat(tableName);
+        await ensureCompatibilitySetsFromQuestions();
         res.json({ success: true, message: 'Airtable synchronization completed', data: result });
     } catch (error: any) {
         logger.error('Airtable sync compatibility error:', error);
@@ -1154,6 +1220,7 @@ async function startServer() {
         await prisma.$connect();
         logger.info('✅ PostgreSQL connected');
         await ensureQuestionBankCompatibilityData();
+        await ensureCompatibilitySetsFromQuestions();
         logger.info('✅ Question-bank compatibility tables ready');
 
         const port = env.PORT;
