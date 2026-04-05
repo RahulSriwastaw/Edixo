@@ -7,6 +7,7 @@ import '../../../presentation/providers/session_provider.dart';
 import '../../../presentation/providers/slide_provider.dart';
 import '../dialogs/import_content_dialog.dart';
 import '../dialogs/end_class_dialog.dart';
+import '../dialogs/background_settings_dialog.dart';
 
 class TopToolbar extends ConsumerWidget {
   const TopToolbar({super.key});
@@ -94,7 +95,17 @@ class TopToolbar extends ConsumerWidget {
 
           const SizedBox(width: AppDimensions.borderRadiusM),
 
-          // 5. End Class Button
+          // 5. Background Settings Button
+          IconButton(
+            icon: const Icon(Icons.image_search_outlined, size: 20),
+            color: AppColors.textPrimary,
+            tooltip: 'Background Settings',
+            onPressed: () => showBackgroundSettingsDialog(context),
+          ),
+
+          const SizedBox(width: AppDimensions.borderRadiusM),
+
+          // 6. End Class Button
           OutlinedButton.icon(
             onPressed: () => _showEndClassDialog(context),
             icon: const Icon(Icons.stop, size: 18),

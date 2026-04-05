@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../question_widget/data/models/question_widget_model.dart';
 import '../../../../question_widget/presentation/providers/question_widget_provider.dart';
 import '../../../../question_widget/presentation/providers/selected_widget_provider.dart';
+import '../../../../question_widget/presentation/widgets/question_settings_panel.dart';
 import '../../providers/tool_provider.dart';
 import '../../providers/canvas_size_provider.dart';
 
@@ -343,6 +344,13 @@ class _DraggableResizableQuestionWidgetState
               right: 0,
               child: Row(
                 children: [
+                  // Settings button
+                  _ActionButton(
+                    icon: Icons.settings_outlined,
+                    tooltip: 'Settings',
+                    onTap: () => showQuestionSettingsDialog(context, widget.id),
+                  ),
+                  const SizedBox(width: 4),
                   // Lock button
                   _ActionButton(
                     icon: Icons.lock_open,

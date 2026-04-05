@@ -3,6 +3,7 @@ import '../../data/datasources/set_import_remote_ds.dart';
 import '../../../../features/whiteboard/presentation/providers/slide_provider.dart';
 import '../../../../features/whiteboard/data/models/slide_model.dart';
 import '../../../../features/whiteboard/data/models/set_metadata_model.dart';
+import '../../../../features/question_widget/presentation/providers/question_widget_provider.dart';
 
 part 'set_import_provider.g.dart';
 
@@ -20,11 +21,16 @@ class SetImportNotifier extends _$SetImportNotifier {
       questionNumber: s.questionNumber,
       questionText: s.questionText,
       questionImageUrl: s.questionImageUrl,
-      options: s.options.map((opt) => SlideOption(
-        label: '',
-        text: opt,
-        imageUrl: null,
-      )).toList(),
+      options: s.options.asMap().entries.map((entry) {
+        final index = entry.key;
+        final text = entry.value;
+        final labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+        return SlideOption(
+          label: labels[index] ?? '${index + 1}',
+          text: text,
+          imageUrl: null,
+        );
+      }).toList(),
       correctAnswer: s.correctAnswer,
     )).toList();
     
@@ -33,6 +39,11 @@ class SetImportNotifier extends _$SetImportNotifier {
       title: setId,
       questionCount: slides.length,
     );
+    
+    // Load slides into the whiteboard
     ref.read(slideNotifierProvider.notifier).loadSlides(slides, metadata);
+    
+    // Initialize question widgets on the canvas
+    ref.read(questionWidgetNotifierProvider.notifier).populateFromSlides(slides);
   }
 }

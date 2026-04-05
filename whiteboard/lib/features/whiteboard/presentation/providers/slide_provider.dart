@@ -6,6 +6,7 @@ import '../../data/models/slide_annotation.dart';
 import '../../data/models/set_metadata_model.dart';
 import 'canvas_provider.dart';
 import '../../../question_widget/presentation/providers/selected_widget_provider.dart';
+import '../../../question_widget/presentation/providers/question_widget_provider.dart';
 
 part 'slide_provider.g.dart';
 
@@ -102,5 +103,8 @@ class SlideNotifier extends _$SlideNotifier {
     ref.read(canvasNotifierProvider.notifier).loadFromAnnotation(
       saved ?? SlideAnnotationData(slideId: slide.slideId),
     );
+    
+    // Load question widgets for this slide
+    ref.read(questionWidgetNotifierProvider.notifier).populateFromSlides([slide]);
   }
 }

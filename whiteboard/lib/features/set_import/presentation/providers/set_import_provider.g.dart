@@ -6,7 +6,7 @@ part of 'set_import_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$setImportNotifierHash() => r'844d20c1a8831400d23dc381527504dcc0848fa2';
+String _$setImportNotifierHash() => r'1e2469467a712feff18b49cf08c0f478bbef825e';
 
 /// See also [SetImportNotifier].
 @ProviderFor(SetImportNotifier)

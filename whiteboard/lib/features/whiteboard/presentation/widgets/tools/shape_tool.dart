@@ -1,6 +1,7 @@
 // lib/features/whiteboard/presentation/widgets/tools/shape_tool.dart
 // Shape Tool: Rectangle, Circle, Line, Arrow
 
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -173,4 +174,3 @@ class ShapeToolHandler {
     }
   }
 }
-import '../../../data/models/canvas_object_model.dart';
