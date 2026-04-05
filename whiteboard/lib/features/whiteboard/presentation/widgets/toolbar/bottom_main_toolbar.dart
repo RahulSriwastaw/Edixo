@@ -9,6 +9,8 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import 'tool_picker_panel.dart';
 import 'tool_settings_sheet.dart';
+import '../../dialogs/pen_picker_dialog.dart';
+import '../../dialogs/eraser_popup.dart';
 
 class BottomMainToolbar extends ConsumerStatefulWidget {
   const BottomMainToolbar({super.key});
@@ -261,7 +263,7 @@ class _DropSlot extends StatelessWidget {
 
 // ── Tool button ──────────────────────────────────────────────────────────────
 
-class _ToolbarToolButton extends StatelessWidget {
+class _ToolbarToolButton extends ConsumerStatefulWidget {
   final Tool tool;
   final bool selected;
   final VoidCallback onTap;
@@ -277,22 +279,75 @@ class _ToolbarToolButton extends StatelessWidget {
   });
 
   @override
+  ConsumerState<_ToolbarToolButton> createState() => _ToolbarToolButtonState();
+}
+
+class _ToolbarToolButtonState extends ConsumerState<_ToolbarToolButton> {
+  @override
   Widget build(BuildContext context) {
-    final def = toolRegistryByTool[tool];
+    final def = toolRegistryByTool[widget.tool];
     if (def == null) return const SizedBox.shrink();
 
+    // Determine if this is a pen or eraser tool for special long-press handling
+    final isPenTool = [
+      Tool.softPen,
+      Tool.hardPen,
+      Tool.highlighter,
+      Tool.chalk,
+      Tool.calligraphy,
+      Tool.spray,
+    ].contains(widget.tool);
+
+    final isEraserTool = [
+      Tool.softEraser,
+      Tool.hardEraser,
+      Tool.objectEraser,
+      Tool.areaEraser,
+    ].contains(widget.tool);
+
     return LongPressDraggable<Tool>(
-      data: tool,
+      data: widget.tool,
       feedback: Material(
           color: Colors.transparent,
           child: _visual(def, selected: true, small: true)),
       childWhenDragging: Opacity(
-          opacity: 0.35, child: _visual(def, selected: selected)),
+          opacity: 0.35, child: _visual(def, selected: widget.selected)),
       child: GestureDetector(
-        onTap: onTap,
-        onDoubleTap: onDoubleTap,
-        onLongPress: onRemove,
-        child: _visual(def, selected: selected),
+        onTap: widget.onTap,
+        onDoubleTap: widget.onDoubleTap,
+        onLongPress: () {
+          if (isPenTool) {
+            _showPenPickerDialog();
+          } else if (isEraserTool) {
+            _showEraserPopup();
+          } else {
+            widget.onRemove();
+          }
+        },
+        child: _visual(def, selected: widget.selected),
+      ),
+    );
+  }
+
+  void _showPenPickerDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => const PenPickerDialog(),
+    );
+  }
+
+  void _showEraserPopup() {
+    final renderBox = context.findRenderObject() as RenderBox?;
+    if (renderBox == null) return;
+
+    final position = renderBox.localToGlobal(Offset.zero);
+    final size = renderBox.size;
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      builder: (_) => EraserPopup(
+        position: Offset(position.dx + size.width / 2, position.dy),
       ),
     );
   }
@@ -308,13 +363,34 @@ class _ToolbarToolButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Tooltip(
-        message:
-            '${def.name} (double-tap: settings, long-press: remove)',
+        message: '${def.name} (long-press: ${_getLongPressTooltip()})',
         child: Icon(def.icon,
             size: small ? 18 : 20,
             color: selected ? Colors.white : Colors.white70),
       ),
     );
+  }
+
+  String _getLongPressTooltip() {
+    final isPenTool = [
+      Tool.softPen,
+      Tool.hardPen,
+      Tool.highlighter,
+      Tool.chalk,
+      Tool.calligraphy,
+      Tool.spray,
+    ].contains(widget.tool);
+
+    final isEraserTool = [
+      Tool.softEraser,
+      Tool.hardEraser,
+      Tool.objectEraser,
+      Tool.areaEraser,
+    ].contains(widget.tool);
+
+    if (isPenTool) return 'open pen settings';
+    if (isEraserTool) return 'select erase mode';
+    return 'remove from toolbar';
   }
 }
 

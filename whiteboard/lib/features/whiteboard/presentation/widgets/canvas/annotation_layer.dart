@@ -1052,20 +1052,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
           }
           _clearLiveEdit();
         },
-        onDuplicate: null,
-        onColorChange: (color) {
-          final notifier = ref.read(canvasNotifierProvider.notifier);
-          for (final id in _groupStrokeIds) {
-            notifier.updateStrokeStyle(id, colorARGB: color.toARGB32());
-          }
-          for (final id in _groupObjectIds) {
-            notifier.updateObjectTransform(
-              id,
-              borderColorARGB: color.toARGB32(),
-              fillColorARGB: color.withValues(alpha: 0.18).toARGB32(),
-            );
-          }
-        },
         onSettings: null,
       ),
     );
@@ -1093,18 +1079,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
             : (!isStroke && selectedObj != null)
                 ? () => ref.read(canvasNotifierProvider.notifier).duplicateObject(selectedId)
                 : null,
-        onColorChange: isStroke
-            ? (color) => ref.read(canvasNotifierProvider.notifier).updateStrokeStyle(
-                  selectedId,
-                  colorARGB: color.toARGB32(),
-                )
-            : (!isStroke && selectedObj != null)
-                ? (color) => ref.read(canvasNotifierProvider.notifier).updateObjectTransform(
-                      selectedId,
-                      borderColorARGB: color.toARGB32(),
-                      fillColorARGB: color.withValues(alpha: 0.18).toARGB32(),
-                    )
-                : null,
         onSettings: isStroke
             ? (selectedStroke != null ? () => _openStrokePropertiesSheet(selectedStroke) : null)
             : (!isStroke && selectedObj != null)
@@ -1122,28 +1096,22 @@ class _SelectionActionBar extends StatelessWidget {
   final StrokeModel? selectedStroke;
   final VoidCallback onDelete;
   final VoidCallback? onDuplicate;
-  final ValueChanged<Color>? onColorChange;
   final VoidCallback? onSettings;
 
   const _SelectionActionBar({
     required this.isStroke, required this.selectedObj, required this.selectedStroke, required this.onDelete,
-    this.onDuplicate, this.onColorChange, this.onSettings,
+    this.onDuplicate, this.onSettings,
   });
-
-  static const _quickColors = <Color>[
-    Color(0xFFFFFFFF), Color(0xFFFF5252), Color(0xFFFFAB40),
-    Color(0xFF69F0AE), Color(0xFF40C4FF), Color(0xFFE040FB),
-  ];
 
   @override
   Widget build(BuildContext context) {
     return Material(
       color: Colors.transparent,
       child: Container(
-        height: 44,
+        height: 42,
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E38),
-          borderRadius: BorderRadius.circular(22),
+          borderRadius: BorderRadius.circular(20),
           border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.55), blurRadius: 14, offset: const Offset(0, 5))],
         ),
@@ -1151,42 +1119,15 @@ class _SelectionActionBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(width: 8),
-            if (onColorChange != null) ...[
-              for (final c in _quickColors) _ColorDot(color: c, onTap: () => onColorChange!(c)),
-              _BarDivider(),
-            ],
             if (onSettings != null) _BarBtn(icon: Icons.tune, tooltip: 'Properties', onTap: onSettings!),
             if (onDuplicate != null) _BarBtn(icon: Icons.file_copy_outlined, tooltip: 'Duplicate', onTap: onDuplicate!),
             _BarBtn(icon: Icons.delete_outline, tooltip: 'Delete', color: const Color(0xFFFF5252), onTap: onDelete),
-            const SizedBox(width: 4),
+            const SizedBox(width: 6),
           ],
         ),
       ),
     );
   }
-}
-
-class _ColorDot extends StatelessWidget {
-  final Color color;
-  final VoidCallback onTap;
-  const _ColorDot({required this.color, required this.onTap});
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 24, height: 24,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1.5)),
-        ),
-      );
-}
-
-class _BarDivider extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 1, height: 24, margin: const EdgeInsets.symmetric(horizontal: 4),
-        color: Colors.white.withValues(alpha: 0.15));
 }
 
 class _BarBtn extends StatelessWidget {
@@ -1199,7 +1140,7 @@ class _BarBtn extends StatelessWidget {
   Widget build(BuildContext context) => Tooltip(
         message: tooltip,
         child: GestureDetector(onTap: onTap,
-          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+          child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               child: Icon(icon, size: 20, color: color))));
 }
 
@@ -1307,6 +1248,152 @@ class _PropLabel extends StatelessWidget {
       child: Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w600)));
 }
 
+class _SectionHeader extends StatelessWidget {
+  final String title;
+  const _SectionHeader(this.title);
+  @override
+  Widget build(BuildContext context) => Text(
+    title,
+    style: TextStyle(
+      color: Colors.white.withValues(alpha: 0.4),
+      fontSize: 10,
+      fontWeight: FontWeight.w700,
+      letterSpacing: 1.2,
+    ),
+  );
+}
+
+// ── Smooth Property Section Widget ──────────────────────────────────────────
+class _SmoothPropertySection extends StatelessWidget {
+  final String title;
+  final String description;
+  final IconData icon;
+  final Widget child;
+
+  const _SmoothPropertySection({
+    required this.title,
+    required this.description,
+    required this.icon,
+    required this.child,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.06),
+          width: 1,
+        ),
+      ),
+      padding: const EdgeInsets.all(14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4511E).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(
+                  icon,
+                  size: 16,
+                  color: const Color(0xFFF4511E),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.8),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.35),
+                      fontSize: 9,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
+// ── Enhanced Styled Slider ──────────────────────────────────────────────────
+class _EnhancedStyledSlider extends StatefulWidget {
+  final double value;
+  final double min;
+  final double max;
+  final ValueChanged<double> onChanged;
+
+  const _EnhancedStyledSlider({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  @override
+  State<_EnhancedStyledSlider> createState() => _EnhancedStyledSliderState();
+}
+
+class _EnhancedStyledSliderState extends State<_EnhancedStyledSlider> {
+  late double _currentValue;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentValue = widget.value;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SliderTheme(
+      data: SliderThemeData(
+        trackHeight: 6,
+        thumbShape: const RoundSliderThumbShape(
+          enabledThumbRadius: 10,
+          elevation: 4,
+        ),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 16),
+        activeTrackColor: const Color(0xFFF4511E),
+        inactiveTrackColor: Colors.white.withValues(alpha: 0.1),
+        thumbColor: const Color(0xFFF4511E),
+        overlayColor: const Color(0xFFF4511E).withValues(alpha: 0.2),
+      ),
+      child: Slider(
+        value: _currentValue,
+        min: widget.min,
+        max: widget.max,
+        onChanged: (value) {
+          setState(() => _currentValue = value);
+          widget.onChanged(value);
+        },
+      ),
+    );
+  }
+}
+
 class _StyledSlider extends StatelessWidget {
   final double value, min, max;
   final ValueChanged<double> onChanged;
@@ -1343,6 +1430,110 @@ class _ColorRow extends StatelessWidget {
   }
 }
 
+// ── Compact color grid for stroke properties ────────────────────────────────
+class _CompactColorGrid extends StatelessWidget {
+  final Color selected;
+  final ValueChanged<Color> onSelect;
+
+  const _CompactColorGrid({required this.selected, required this.onSelect});
+
+  static const _palette = <Color>[
+    Color(0xFFFFFFFF), Color(0xFF000000), Color(0xFFFF5252), Color(0xFFFF7043),
+    Color(0xFFFFAB40), Color(0xFFFFEB3B), Color(0xFF69F0AE), Color(0xFF26C6DA),
+    Color(0xFF40C4FF), Color(0xFF448AFF), Color(0xFFE040FB), Color(0xFF8D6E63),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final selectedARGB = selected.toARGB32();
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: _palette.map((c) {
+        final sel = c.toARGB32() == selectedARGB;
+        return GestureDetector(
+          onTap: () => onSelect(c),
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: c,
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: sel ? const Color(0xFFF4511E) : Colors.white.withValues(alpha: 0.2),
+                width: sel ? 2 : 1,
+              ),
+              boxShadow: sel
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFFF4511E).withValues(alpha: 0.3),
+                        blurRadius: 4,
+                      )
+                    ]
+                  : null,
+            ),
+            child: sel
+                ? Icon(
+                    Icons.check,
+                    size: 14,
+                    color: c.computeLuminance() > 0.5 ? Colors.black87 : Colors.white,
+                  )
+                : null,
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+// ── Compact property row ────────────────────────────────────────────────────
+class _CompactPropRow extends StatelessWidget {
+  final String label;
+  final String value;
+  final Widget slider;
+
+  const _CompactPropRow(this.label, this.value, this.slider);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white54,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF4511E).withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: Text(
+                value,
+                style: const TextStyle(
+                  color: Color(0xFFF4511E),
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        slider,
+      ],
+    );
+  }
+}
+
 class _StrokePropertiesSheet extends StatefulWidget {
   final StrokeModel stroke;
   final void Function({
@@ -1362,12 +1553,16 @@ class _StrokePropertiesSheet extends StatefulWidget {
   State<_StrokePropertiesSheet> createState() => _StrokePropertiesSheetState();
 }
 
-class _StrokePropertiesSheetState extends State<_StrokePropertiesSheet> {
+class _StrokePropertiesSheetState extends State<_StrokePropertiesSheet>
+    with SingleTickerProviderStateMixin {
   late Color _color;
   late double _strokeWidth;
   late double _opacity;
   double _scale = 1.0;
   double _rotation = 0.0;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
 
   @override
   void initState() {
@@ -1375,122 +1570,357 @@ class _StrokePropertiesSheetState extends State<_StrokePropertiesSheet> {
     _color = widget.stroke.color;
     _strokeWidth = widget.stroke.strokeWidth;
     _opacity = widget.stroke.opacity;
+
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.1),
+      end: Offset.zero,
+    ).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   void _applyAndClose() {
-    widget.onApply(
-      color: _color,
-      strokeWidth: _strokeWidth,
-      opacity: _opacity,
-      scale: _scale,
-      rotation: _rotation,
-    );
-    Navigator.pop(context);
+    _animationController.reverse().then((_) {
+      widget.onApply(
+        color: _color,
+        strokeWidth: _strokeWidth,
+        opacity: _opacity,
+        scale: _scale,
+        rotation: _rotation,
+      );
+      Navigator.pop(context);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(10, 0, 10, 16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1B1B32),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-        ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  margin: const EdgeInsets.only(top: 10, bottom: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white24,
-                    borderRadius: BorderRadius.circular(2),
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(16),
+          elevation: 0,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 440,
+              maxHeight: 800,
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0F0F1E),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  width: 1.5,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.7),
+                    blurRadius: 48,
+                    offset: const Offset(0, 20),
+                    spreadRadius: 4,
+                  ),
+                  BoxShadow(
+                    color: const Color(0xFFF4511E).withValues(alpha: 0.12),
+                    blurRadius: 32,
+                    offset: const Offset(0, 0),
+                    spreadRadius: 0,
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(24),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Premium Header
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color(0xFF1A1A2E),
+                              const Color(0xFF0F0F1E),
+                            ],
+                          ),
+                          border: Border(
+                            bottom: BorderSide(
+                              color: const Color(0xFFF4511E).withValues(alpha: 0.15),
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(24, 20, 20, 20),
+                        child: Row(
+                          children: [
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0, end: 1),
+                              duration: const Duration(milliseconds: 600),
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          const Color(0xFFF4511E).withValues(alpha: 0.3),
+                                          const Color(0xFFF4511E).withValues(alpha: 0.05),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(14),
+                                      border: Border.all(
+                                        color: const Color(0xFFF4511E).withValues(alpha: 0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: const Icon(
+                                      Icons.brush,
+                                      color: Color(0xFFF4511E),
+                                      size: 24,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Stroke Properties',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 18,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Customize your pen stroke',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.45),
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Material(
+                              color: Colors.transparent,
+                              child: IconButton(
+                                onPressed: () => Navigator.pop(context),
+                                icon: const Icon(Icons.close, color: Colors.white38, size: 22),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                                style: IconButton.styleFrom(
+                                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                                  hoverColor: Colors.white.withValues(alpha: 0.1),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Content with smooth spacing
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Color Section with smooth transition
+                            _SmoothPropertySection(
+                              title: 'COLOR',
+                              description: 'Choose your stroke color',
+                              icon: Icons.palette,
+                              child: _CompactColorGrid(
+                                selected: _color,
+                                onSelect: (c) => setState(() => _color = c),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Width Section
+                            _SmoothPropertySection(
+                              title: 'STROKE WIDTH',
+                              description: 'Adjust pen thickness',
+                              icon: Icons.line_weight,
+                              child: _CompactPropRow('Width', '${_strokeWidth.toStringAsFixed(1)}px',
+                                _EnhancedStyledSlider(
+                                  value: _strokeWidth.clamp(1.0, 30.0),
+                                  min: 1,
+                                  max: 30,
+                                  onChanged: (v) => setState(() => _strokeWidth = v),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Appearance Section
+                            _SmoothPropertySection(
+                              title: 'APPEARANCE',
+                              description: 'Control transparency',
+                              icon: Icons.opacity,
+                              child: _CompactPropRow('Opacity', '${(_opacity * 100).toInt()}%',
+                                _EnhancedStyledSlider(
+                                  value: _opacity.clamp(0.1, 1.0),
+                                  min: 0.1,
+                                  max: 1.0,
+                                  onChanged: (v) => setState(() => _opacity = v),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            // Transform Section
+                            _SmoothPropertySection(
+                              title: 'TRANSFORM',
+                              description: 'Scale and rotate',
+                              icon: Icons.transform,
+                              child: Column(
+                                children: [
+                                  _CompactPropRow('Scale', '${_scale.toStringAsFixed(2)}x',
+                                    _EnhancedStyledSlider(
+                                      value: _scale,
+                                      min: 0.5,
+                                      max: 2.5,
+                                      onChanged: (v) => setState(() => _scale = v),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  _CompactPropRow('Rotate', '${_rotation.toStringAsFixed(0)}°',
+                                    _EnhancedStyledSlider(
+                                      value: _rotation,
+                                      min: -180,
+                                      max: 180,
+                                      onChanged: (v) => setState(() => _rotation = v),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            // Action Buttons with smooth effects
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => Navigator.pop(context),
+                                      borderRadius: BorderRadius.circular(12),
+                                      highlightColor: Colors.white.withValues(alpha: 0.05),
+                                      splashColor: Colors.white.withValues(alpha: 0.08),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 14),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: Colors.white.withValues(alpha: 0.15),
+                                            width: 1.5,
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                          color: Colors.white.withValues(alpha: 0.03),
+                                        ),
+                                        child: const Center(
+                                          child: Text(
+                                            'Cancel',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 14,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: _applyAndClose,
+                                      borderRadius: BorderRadius.circular(12),
+                                      splashColor: Colors.white.withValues(alpha: 0.1),
+                                      highlightColor: const Color(0xFFE63D00),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(vertical: 14),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              const Color(0xFFF4511E),
+                                              const Color(0xFFE63D00),
+                                            ],
+                                          ),
+                                          borderRadius: BorderRadius.circular(12),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFFF4511E).withValues(alpha: 0.35),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                              spreadRadius: 2,
+                                            ),
+                                          ],
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.check, size: 18, color: Colors.white),
+                                            const SizedBox(width: 6),
+                                            const Text(
+                                              'Apply Changes',
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize: 14,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 4, 12, 0),
-                child: Row(
-                  children: [
-                    const Icon(Icons.edit, color: Color(0xFFF4511E), size: 20),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Stroke Properties',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 15),
-                    ),
-                    const Spacer(),
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white38, size: 20),
-                      onPressed: () => Navigator.pop(context),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(color: Colors.white12, height: 16),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const _PropLabel('Stroke Color'),
-                    _ColorRow(
-                      selected: _color,
-                      onSelect: (c) => setState(() => _color = c),
-                    ),
-                    const SizedBox(height: 14),
-                    _PropLabel('Stroke Width  ${_strokeWidth.toStringAsFixed(1)} px'),
-                    _StyledSlider(
-                      value: _strokeWidth.clamp(1.0, 30.0),
-                      min: 1,
-                      max: 30,
-                      onChanged: (v) => setState(() => _strokeWidth = v),
-                    ),
-                    _PropLabel('Opacity  ${(_opacity * 100).toInt()}%'),
-                    _StyledSlider(
-                      value: _opacity.clamp(0.1, 1.0),
-                      min: 0.1,
-                      max: 1.0,
-                      onChanged: (v) => setState(() => _opacity = v),
-                    ),
-                    _PropLabel('Resize (Scale)  ${_scale.toStringAsFixed(2)}x'),
-                    _StyledSlider(
-                      value: _scale,
-                      min: 0.5,
-                      max: 2.5,
-                      onChanged: (v) => setState(() => _scale = v),
-                    ),
-                    _PropLabel('Rotate  ${_rotation.toStringAsFixed(0)} deg'),
-                    _StyledSlider(
-                      value: _rotation,
-                      min: -180,
-                      max: 180,
-                      onChanged: (v) => setState(() => _rotation = v),
-                    ),
-                    const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: _applyAndClose,
-                        icon: const Icon(Icons.check, size: 16),
-                        label: const Text('Apply Changes'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFF4511E),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -1506,10 +1936,17 @@ class AnnotationPainter extends CustomPainter {
   final bool showSelectionHandles;
   final String? selectedStrokeId;
   final List<Offset> lassoPoints;
-    final Rect? groupSelectionRect;
+  final Rect? groupSelectionRect;
 
-  AnnotationPainter({required this.strokes, required this.objects,
-      this.selectedObjectId, this.showSelectionHandles = false, this.selectedStrokeId, this.lassoPoints = const <Offset>[], this.groupSelectionRect});
+  AnnotationPainter({
+    required this.strokes,
+    required this.objects,
+    this.selectedObjectId,
+    this.showSelectionHandles = false,
+    this.selectedStrokeId,
+    this.lassoPoints = const <Offset>[],
+    this.groupSelectionRect,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
