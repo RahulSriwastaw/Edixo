@@ -21,12 +21,12 @@ export default function SuperAdminLogin() {
         setLoading(true);
 
         try {
-            const res = await fetch(`${API_URL}/auth/login`, {
+            const res = await fetch(`${API_URL}/auth/super-admin/login`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ email, password, role: "SUPER_ADMIN" }),
+                body: JSON.stringify({ username: email, password }),
             });
 
             const data = await res.json();
@@ -65,10 +65,10 @@ export default function SuperAdminLogin() {
                 <CardContent>
                     <form onSubmit={handleLogin} className="space-y-4">
                         <div className="space-y-2">
-                            <label className="text-sm font-medium">Email address</label>
+                            <label className="text-sm font-medium">Username</label>
                             <Input
-                                type="email"
-                                placeholder="admin@eduhub.in"
+                                type="text"
+                                placeholder="admin"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
@@ -78,7 +78,7 @@ export default function SuperAdminLogin() {
                             <label className="text-sm font-medium">Password</label>
                             <Input
                                 type="password"
-                                placeholder="SuperAdmin@123"
+                                placeholder="admin123"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -96,7 +96,7 @@ export default function SuperAdminLogin() {
             </Card>
 
             <p className="mt-8 text-sm text-gray-400">
-                Use <span className="font-mono text-gray-500">admin@eduhub.in</span> / <span className="font-mono text-gray-500">SuperAdmin@123</span>
+                Use <span className="font-mono text-gray-500">admin</span> / <span className="font-mono text-gray-500">admin123</span>
             </p>
         </div>
     );

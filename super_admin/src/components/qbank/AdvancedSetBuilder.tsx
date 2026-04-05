@@ -126,7 +126,6 @@ export function AdvancedSetBuilder() {
   // --- Cart & Set Creation State ---
   const [showCart, setShowCart] = useState(false);
   const [setName, setSetName] = useState("");
-  const [setDuration, setSetDuration] = useState("60");
   const [isCreatingSet, setIsCreatingSet] = useState(false);
   const [previewQuestion, setPreviewQuestion] = useState<any | null>(null);
 
@@ -233,6 +232,61 @@ export function AdvancedSetBuilder() {
     );
   };
 
+  const selectCurrentView = () => {
+    const currentPageIds = questions.map(q => q.id);
+    setSelectedQuestionIds(prev => {
+      const newSelection = new Set([...prev, ...currentPageIds]);
+      return Array.from(newSelection);
+    });
+    toast.success(`Added ${currentPageIds.length} questions from current view`);
+  };
+
+  const selectAllQuestions = async () => {
+    try {
+      setIsLoading(true);
+      const url = new URL(`${API_URL}/qbank/questions`);
+      if (searchQuery) url.searchParams.append("search", searchQuery);
+      if (selectedExam !== "all") url.searchParams.append("exam", selectedExam);
+      if (selectedSubject !== "all") url.searchParams.append("subject", selectedSubject);
+      if (selectedChapter !== "all") url.searchParams.append("chapter", selectedChapter);
+      if (selectedYear !== "all") url.searchParams.append("year", selectedYear.toString());
+      if (selectedShift !== "all") url.searchParams.append("shift", selectedShift);
+      if (selectedDifficulty !== "all") url.searchParams.append("difficulty", selectedDifficulty);
+      if (selectedType !== "all") url.searchParams.append("type", selectedType);
+      if (selectedSource !== "all") url.searchParams.append("source", selectedSource);
+      if (filters.length > 0) url.searchParams.append("filters", JSON.stringify(filters));
+      url.searchParams.append("limit", "10000"); // Fetch max results
+
+      const res = await fetch(url.toString(), {
+          headers: getAuthHeaders()
+      });
+      const result = await res.json();
+      if (result.success) {
+        const allIds = result.data.questions.map((q: any) => q.id);
+        setSelectedQuestionIds(prev => {
+          const newSelection = new Set([...prev, ...allIds]);
+          return Array.from(newSelection);
+        });
+        toast.success(`Added all ${allIds.length} matching questions to selection`);
+      } else {
+        toast.error("Failed to fetch all questions");
+      }
+    } catch (err) {
+      console.error("Failed to select all questions", err);
+      toast.error("Error fetching all questions");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const deselectCurrentView = () => {
+    const currentPageIds = questions.map(q => q.id);
+    setSelectedQuestionIds(prev =>
+      prev.filter(id => !currentPageIds.includes(id))
+    );
+    toast.info(`Removed ${currentPageIds.length} questions from current view`);
+  };
+
   const handleCreateSet = async () => {
     if (!setName) {
       toast.error("Please enter a set name");
@@ -250,7 +304,6 @@ export function AdvancedSetBuilder() {
         headers: getAuthHeaders(),
         body: JSON.stringify({
           name: setName,
-          durationMins: parseInt(setDuration),
           questionIds: selectedQuestionIds
         })
       });
@@ -523,9 +576,45 @@ export function AdvancedSetBuilder() {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-slate-700">Available Questions</span>
                 <Badge variant="outline" className="bg-white">{totalQuestions}</Badge>
+                {selectedQuestionIds.length > 0 && (
+                  <Badge className="bg-brand-primary/10 text-brand-primary border-brand-primary/30">
+                    {selectedQuestionIds.length} selected
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-2">
-                 {/* Selection controls if needed */}
+                {selectedQuestionIds.length > 0 && (
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    className="text-xs gap-1.5 hover:bg-red-50 hover:text-red-700 hover:border-red-200"
+                    onClick={deselectCurrentView}
+                    disabled={questions.length === 0}
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    Deselect View ({questions.filter(q => selectedQuestionIds.includes(q.id)).length})
+                  </Button>
+                )}
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200"
+                  onClick={selectCurrentView}
+                  disabled={questions.length === 0}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Select Current View ({questions.length})
+                </Button>
+                <Button 
+                  variant="outline"
+                  size="sm"
+                  className="text-xs gap-1.5 hover:bg-brand-primary/10 hover:text-brand-primary hover:border-brand-primary"
+                  onClick={selectAllQuestions}
+                  disabled={totalQuestions === 0 || isLoading}
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  Select All ({totalQuestions})
+                </Button>
               </div>
             </div>
 
@@ -656,27 +745,17 @@ export function AdvancedSetBuilder() {
           <DialogHeader>
             <DialogTitle>Create New Question Set</DialogTitle>
             <DialogDescription>
-              Give your selection a name and duration to create a reusable set.
+              Give your selection a name to create a reusable set.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
-            <div className="grid grid-cols-2 gap-4">
-               <div className="space-y-2">
-                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Set Name</label>
-                 <Input 
-                    placeholder="e.g., SSC CGL Math Practice" 
-                    value={setName}
-                    onChange={(e) => setSetName(e.target.value)}
-                 />
-               </div>
-               <div className="space-y-2">
-                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Duration (Mins)</label>
-                 <Input 
-                    type="number" 
-                    value={setDuration}
-                    onChange={(e) => setSetDuration(e.target.value)}
-                 />
-               </div>
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Set Name</label>
+              <Input 
+                placeholder="e.g., SSC CGL Math Practice" 
+                value={setName}
+                onChange={(e) => setSetName(e.target.value)}
+              />
             </div>
 
             <div className="space-y-2">
