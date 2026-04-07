@@ -6,7 +6,7 @@ part of 'tool_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$toolNotifierHash() => r'4f985439663a9a51376d5e87e6aa1500d0068caf';
+String _$toolNotifierHash() => r'746683d2149105478f7b8d33aa7449f1751f0549';
 
 /// See also [ToolNotifier].
 @ProviderFor(ToolNotifier)

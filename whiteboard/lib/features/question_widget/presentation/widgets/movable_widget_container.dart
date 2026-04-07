@@ -70,9 +70,16 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
           width: widget.width,
           height: widget.height,
           decoration: BoxDecoration(
-            border: _isSelected
-                ? Border.all(color: Colors.blueAccent, width: 2, style: BorderStyle.none)
-                : null,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: _isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.orange.withValues(alpha: 0.25),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                    ),
+                  ]
+                : [],
           ),
           child: Stack(
             clipBehavior: Clip.none,
@@ -142,8 +149,10 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
     }
 
     // Constraints
-    if (newWidth < 100) return;
-    if (newHeight < 60) return;
+    if (newWidth < 100) newWidth = 100;
+    if (newHeight < 60) newHeight = 60;
+    if (newWidth > 1920) newWidth = 1920;
+    if (newHeight > 1080) newHeight = 1080;
 
     widget.onMove(Offset(newX, newY));
     widget.onResize(Size(newWidth, newHeight));
@@ -156,18 +165,24 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
       right: right,
       bottom: bottom,
       child: GestureDetector(
-        onPanStart: (_) => ref.read(isDraggingWidgetProvider.notifier).state = true,
+        onPanStart: (_) {
+          ref.read(isDraggingWidgetProvider.notifier).state = true;
+        },
         onPanUpdate: (d) => onDrag(d.delta),
         onPanEnd: (_) => ref.read(isDraggingWidgetProvider.notifier).state = false,
         child: Container(
-          width: _handleSize,
-          height: _handleSize,
+          width: 16,
+          height: 16,
           decoration: BoxDecoration(
-            color: Colors.blueAccent,
+            color: Colors.orange,
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white, width: 2),
+            border: Border.all(color: Colors.white, width: 2.5),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4, offset: const Offset(0, 2)),
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
             ],
           ),
         ),

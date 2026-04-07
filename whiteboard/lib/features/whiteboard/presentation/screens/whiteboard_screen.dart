@@ -8,16 +8,15 @@ import '../widgets/toolbar/top_toolbar.dart';
 import '../widgets/overlays/slide_panel_drawer.dart';
 import '../widgets/teaching_tools/spotlight_overlay.dart';
 import '../widgets/teaching_tools/class_timer.dart';
-import '../widgets/teaching_tools/screen_cover.dart';
-
 import '../widgets/subject_tools/ruler_widget.dart';
-import '../widgets/teaching_tools/compass_widget.dart';
+import '../widgets/subject_tools/protractor_widget.dart';
+import '../widgets/subject_tools/compass_widget.dart';
 import '../widgets/ai/ai_assistant_panel.dart';
 import '../widgets/panels/next_question_preview_panel.dart';
 import '../../services/keyboard_shortcut_service.dart';
 import '../providers/app_mode_provider.dart';
 import '../providers/slide_provider.dart';
-
+import '../providers/teaching_tools_provider.dart';
 
 
 class WhiteboardScreen extends ConsumerStatefulWidget {

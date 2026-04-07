@@ -221,9 +221,9 @@ class _DraggableResizableQuestionWidgetState
   }
 
   void _handleResizeEnd() {
-    // Clamp size to min/max bounds
-    final clampedWidth = _size.width.clamp(200.0, 1800.0);
-    final clampedHeight = _size.height.clamp(100.0, 900.0);
+    // Clamp size to min/max bounds - relaxed for more freedom
+    final clampedWidth = _size.width.clamp(100.0, 1920.0);
+    final clampedHeight = _size.height.clamp(60.0, 1080.0);
     final clampedSize = Size(clampedWidth, clampedHeight);
 
     ref.read(questionWidgetNotifierProvider.notifier).updateSize(widget.id, clampedSize);
@@ -237,7 +237,7 @@ class _DraggableResizableQuestionWidgetState
 
     return GestureDetector(
       onTap: () {
-        if (canEdit) {
+        if (widget.canEdit) {
           ref.read(selectedWidgetNotifierProvider.notifier).select(widget.id);
           ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
         }
@@ -271,11 +271,11 @@ class _DraggableResizableQuestionWidgetState
                   width: isSelected ? 3.0 : widget.model.style.borderWidth,
                 ),
                 borderRadius: BorderRadius.circular(widget.model.style.borderRadius),
-                boxShadow: widget.model.style.hasShadow
+                boxShadow: widget.model.style.hasShadow || isSelected
                     ? [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 8,
+                          color: isSelected ? Colors.orange.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.3),
+                          blurRadius: isSelected ? 12 : 8,
                           offset: const Offset(2, 2),
                         ),
                       ]
@@ -345,16 +345,16 @@ class _DraggableResizableQuestionWidgetState
           if (isSelected && canEdit) ...[
             // Resize handles (4 corners)
             Positioned(
-              top: -6,
-              left: -6,
+              top: -8,
+              left: -8,
               child: _ResizeHandle(
                 handle: ResizeHandle.topLeft,
                 onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
-                      (_size.width - delta.dx).clamp(200.0, 1800.0),
-                      (_size.height - delta.dy).clamp(100.0, 900.0),
+                      (_size.width - delta.dx).clamp(100.0, 1920.0),
+                      (_size.height - delta.dy).clamp(60.0, 1080.0),
                     );
                     _position = Offset(
                       _position.dx + delta.dx,
@@ -366,16 +366,16 @@ class _DraggableResizableQuestionWidgetState
               ),
             ),
             Positioned(
-              top: -6,
-              right: -6,
+              top: -8,
+              right: -8,
               child: _ResizeHandle(
                 handle: ResizeHandle.topRight,
                 onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
-                      (_size.width + delta.dx).clamp(200.0, 1800.0),
-                      (_size.height - delta.dy).clamp(100.0, 900.0),
+                      (_size.width + delta.dx).clamp(100.0, 1920.0),
+                      (_size.height - delta.dy).clamp(60.0, 1080.0),
                     );
                     _position = Offset(
                       _position.dx,
@@ -387,16 +387,16 @@ class _DraggableResizableQuestionWidgetState
               ),
             ),
             Positioned(
-              bottom: -6,
-              left: -6,
+              bottom: -8,
+              left: -8,
               child: _ResizeHandle(
                 handle: ResizeHandle.bottomLeft,
                 onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
-                      (_size.width - delta.dx).clamp(200.0, 1800.0),
-                      (_size.height + delta.dy).clamp(100.0, 900.0),
+                      (_size.width - delta.dx).clamp(100.0, 1920.0),
+                      (_size.height + delta.dy).clamp(60.0, 1080.0),
                     );
                     _position = Offset(
                       _position.dx + delta.dx,
@@ -408,16 +408,16 @@ class _DraggableResizableQuestionWidgetState
               ),
             ),
             Positioned(
-              bottom: -6,
-              right: -6,
+              bottom: -8,
+              right: -8,
               child: _ResizeHandle(
                 handle: ResizeHandle.bottomRight,
                 onResizeStart: () {},
                 onResizeUpdate: (delta) {
                   setState(() {
                     _size = Size(
-                      (_size.width + delta.dx).clamp(200.0, 1800.0),
-                      (_size.height + delta.dy).clamp(100.0, 900.0),
+                      (_size.width + delta.dx).clamp(100.0, 1920.0),
+                      (_size.height + delta.dy).clamp(60.0, 1080.0),
                     );
                   });
                 },
@@ -515,12 +515,19 @@ class _ResizeHandleState extends State<_ResizeHandle> {
       child: MouseRegion(
         cursor: _getCursor(),
         child: Container(
-          width: 12,
-          height: 12,
+          width: 16,
+          height: 16,
           decoration: BoxDecoration(
             color: _isResizing ? Colors.orange : Colors.white,
-            borderRadius: BorderRadius.circular(2),
-            border: Border.all(color: Colors.orange, width: 2),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.orange, width: 2.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 4,
+                spreadRadius: 1,
+              ),
+            ],
           ),
         ),
       ),

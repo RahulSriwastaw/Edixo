@@ -49,31 +49,27 @@ class QuestionDisplayWidget extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
               child: FittedBox(
-                fit: BoxFit.scaleDown,
+                fit: BoxFit.contain,
                 alignment: Alignment.topLeft,
-                child: ConstrainedBox(
-                  // constrain the width to something reasonable so text wraps compactly
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (imageUrl != null)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12.0),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: Image.network(
-                              imageUrl!,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) =>
-                                  const Icon(Icons.broken_image, color: Colors.white24),
-                            ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (imageUrl != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.network(
+                            imageUrl!,
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.broken_image, color: Colors.white24),
                           ),
                         ),
-                      _buildText(context),
-                    ],
-                  ),
+                      ),
+                    _buildText(context),
+                  ],
                 ),
               ),
             ),
