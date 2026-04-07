@@ -12,10 +12,7 @@ import '../widgets/subject_tools/ruler_widget.dart';
 import '../widgets/subject_tools/protractor_widget.dart';
 import '../widgets/subject_tools/compass_widget.dart';
 import '../widgets/ai/ai_assistant_panel.dart';
-import '../widgets/panels/next_question_preview_panel.dart';
 import '../../services/keyboard_shortcut_service.dart';
-import '../providers/app_mode_provider.dart';
-import '../providers/slide_provider.dart';
 import '../providers/teaching_tools_provider.dart';
 
 
@@ -29,7 +26,6 @@ class WhiteboardScreen extends ConsumerStatefulWidget {
 class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
   bool _showTimer = false;
   bool _showAiAssistant = false;
-  bool _showNextPreview = false;
   late KeyboardShortcutService _shortcutService;
 
   @override
@@ -52,7 +48,6 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final appMode = ref.watch(appModeNotifierProvider);
     final teachingState = ref.watch(teachingToolsNotifierProvider);
 
     return Scaffold(
@@ -96,18 +91,6 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
             ),
 
 
-          // 7.5 Next Question Preview (Left side, toggleable)
-          if (_showNextPreview && ref.watch(slideNotifierProvider).hasSlides)
-            Positioned(
-              top: 70,
-              left: 20,
-              bottom: 100,
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height - 170,
-                child: const NextQuestionPreviewPanel(),
-              ),
-            ),
-
           // 8. Subject Tools
           if (teachingState.activeMathTools.contains('ruler')) const RulerWidget(),
           if (teachingState.activeMathTools.contains('protractor')) const ProtractorWidget(),
@@ -121,60 +104,9 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
               bottom: 0,
               child: AiAssistantPanel(),
             ),
-
-          // Next Question Preview Toggle Button
-          Positioned(
-            top: 70,
-            left: _showNextPreview ? 340 : 20,
-            child: _ToolButton(
-              icon: _showNextPreview
-                  ? Icons.preview
-                  : Icons.preview_outlined,
-              label: _showNextPreview ? 'Hide Preview' : 'Show Preview',
-              isActive: _showNextPreview,
-              onTap: () => setState(() => _showNextPreview = !_showNextPreview),
-            ),
-          ),
         ],
       ),
     );
   }
 }
 
-
-class _ToolButton extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _ToolButton({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 44,
-        height: 44,
-        decoration: BoxDecoration(
-          color: isActive ? Colors.orange : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Tooltip(
-          message: label,
-          child: Icon(
-            icon,
-            size: 20,
-            color: isActive ? Colors.white : Colors.white70,
-          ),
-        ),
-      ),
-    );
-  }
-}
