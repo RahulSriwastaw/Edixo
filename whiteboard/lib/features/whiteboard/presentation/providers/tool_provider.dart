@@ -222,6 +222,10 @@ class ToolNotifier extends _$ToolNotifier {
       ref.read(teachingToolsNotifierProvider.notifier).toggleMathTool('protractor');
       return;
     }
+    if (tool == Tool.compass) {
+      ref.read(teachingToolsNotifierProvider.notifier).toggleMathTool('compass');
+      return;
+    }
 
     final mode = _autoInteractionMode(tool);
     state = state.copyWith(activeTool: tool, interactionMode: mode);

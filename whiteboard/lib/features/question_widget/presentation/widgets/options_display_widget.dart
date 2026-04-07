@@ -38,61 +38,61 @@ class _OptionsDisplayWidgetState extends State<OptionsDisplayWidget> {
             : Border.all(color: Colors.white12),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: FittedBox(
-          fit: BoxFit.contain,
+          fit: BoxFit.scaleDown,
           alignment: Alignment.topLeft,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 800),
+            constraints: const BoxConstraints(maxWidth: 600),
             child: ListView.separated(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
               itemCount: widget.options.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-        itemBuilder: (context, index) {
-          final option = widget.options[index];
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final option = widget.options[index];
 
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(
-                color: Colors.white24,
-                width: 1.0,
-              ),
-            ),
-            child: Row(
-              children: [
-                // Option Label (A, B, C, D)
-                Container(
-                  width: 32,
-                  height: 32,
-                  decoration: const BoxDecoration(
-                    color: Colors.orange,
-                    shape: BoxShape.circle,
-                  ),
-                  alignment: Alignment.center,
-                  child: Text(
-                    option.label,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                return Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.white12,
+                      width: 1.0,
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                
-                // Option Text
-                Expanded(
-                  child: _buildOptionText(option.text),
-                ),
-              ],
+                  child: Row(
+                    children: [
+                      // Option Label (A, B, C, D)
+                      Container(
+                        width: 24,
+                        height: 24,
+                        decoration: const BoxDecoration(
+                          color: Colors.orange,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          option.label,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      
+                      // Option Text
+                      Expanded(
+                        child: _buildOptionText(option.text),
+                      ),
+                    ],
+                  ),
+                );
+              },
             ),
-            );
-          },
-        ),
           ),
         ),
       ),

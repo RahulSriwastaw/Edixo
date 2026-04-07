@@ -42,30 +42,33 @@ class QuestionDisplayWidget extends StatelessWidget {
         ],
       ),
       child: Stack(
+        clipBehavior: Clip.none,
         children: [
           // Question Content (Auto-scaling)
           Positioned.fill(
             child: Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.fromLTRB(16, 28, 16, 12),
               child: FittedBox(
-                fit: BoxFit.contain,
+                fit: BoxFit.scaleDown,
                 alignment: Alignment.topLeft,
                 child: ConstrainedBox(
-                  // constrain the width to something reasonable so text wraps
-                  constraints: const BoxConstraints(maxWidth: 800),
+                  // constrain the width to something reasonable so text wraps compactly
+                  constraints: const BoxConstraints(maxWidth: 600),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const SizedBox(height: 32), // Space for badge
                       if (imageUrl != null)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 12.0),
-                          child: Image.network(
-                            imageUrl!,
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) =>
-                                const Icon(Icons.broken_image, color: Colors.white24),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              imageUrl!,
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const Icon(Icons.broken_image, color: Colors.white24),
+                            ),
                           ),
                         ),
                       _buildText(context),
@@ -75,24 +78,26 @@ class QuestionDisplayWidget extends StatelessWidget {
               ),
             ),
           ),
-          // ... [rest of the badges logic stays same or fits below]
 
           // Question Number Badge
           Positioned(
             top: 0,
             left: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: const BoxDecoration(
                 color: Colors.orange,
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(11),
+                  bottomRight: Radius.circular(12),
+                ),
               ),
               child: Text(
                 'Q $questionNumber',
                 style: const TextStyle(
                   color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -104,17 +109,21 @@ class QuestionDisplayWidget extends StatelessWidget {
               top: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.white10,
-                  borderRadius: BorderRadius.circular(4),
-                  border: Border.all(color: Colors.white24),
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: const BorderRadius.only(
+                    topRight: Radius.circular(11),
+                    bottomLeft: Radius.circular(12),
+                  ),
                 ),
                 child: Text(
                   source!,
                   style: const TextStyle(
-                    color: Colors.white70,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
                     fontSize: 10,
+                    letterSpacing: 0.5,
                   ),
                 ),
               ),

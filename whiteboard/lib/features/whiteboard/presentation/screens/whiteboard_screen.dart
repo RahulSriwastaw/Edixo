@@ -11,8 +11,7 @@ import '../widgets/teaching_tools/class_timer.dart';
 import '../widgets/teaching_tools/screen_cover.dart';
 
 import '../widgets/subject_tools/ruler_widget.dart';
-import '../widgets/subject_tools/protractor_widget.dart';
-import '../widgets/subject_tools/compass_widget.dart';
+import '../widgets/teaching_tools/compass_widget.dart';
 import '../widgets/ai/ai_assistant_panel.dart';
 import '../widgets/panels/next_question_preview_panel.dart';
 import '../../services/keyboard_shortcut_service.dart';
@@ -29,9 +28,6 @@ class WhiteboardScreen extends ConsumerStatefulWidget {
 }
 
 class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
-  bool _showRuler = false;
-  bool _showProtractor = false;
-  bool _showCompass = false;
   bool _showTimer = false;
   bool _showAiAssistant = false;
   bool _showNextPreview = false;
@@ -55,28 +51,10 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
     return _shortcutService.handleKeyEvent(event);
   }
 
-  void _toggleSubjectTool(String tool) {
-    setState(() {
-      switch (tool) {
-        case 'ruler':
-          _showRuler = !_showRuler;
-          _showProtractor = false;
-          _showCompass = false;
-        case 'protractor':
-          _showProtractor = !_showProtractor;
-          _showRuler = false;
-          _showCompass = false;
-        case 'compass':
-          _showCompass = !_showCompass;
-          _showRuler = false;
-          _showProtractor = false;
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final appMode = ref.watch(appModeNotifierProvider);
+    final teachingState = ref.watch(teachingToolsNotifierProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0D0D0D),
@@ -132,21 +110,9 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
             ),
 
           // 8. Subject Tools
-          if (_showRuler) const RulerWidget(),
-          if (_showProtractor) const ProtractorWidget(),
-          if (_showCompass) const CompassWidget(),
-
-          // 9. Subject Tools Toggle (Bottom-left)
-          Positioned(
-            bottom: 80,
-            left: 20,
-            child: _SubjectToolsToggle(
-              onToggle: _toggleSubjectTool,
-              showRuler: _showRuler,
-              showProtractor: _showProtractor,
-              showCompass: _showCompass,
-            ),
-          ),
+          if (teachingState.activeMathTools.contains('ruler')) const RulerWidget(),
+          if (teachingState.activeMathTools.contains('protractor')) const ProtractorWidget(),
+          if (teachingState.activeMathTools.contains('compass')) const CompassWidget(),
 
           // 10. AI Assistant Panel (Right side)
           if (_showAiAssistant)
@@ -176,56 +142,6 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
   }
 }
 
-class _SubjectToolsToggle extends StatelessWidget {
-  final Function(String) onToggle;
-  final bool showRuler;
-  final bool showProtractor;
-  final bool showCompass;
-
-  const _SubjectToolsToggle({
-    required this.onToggle,
-    required this.showRuler,
-    required this.showProtractor,
-    required this.showCompass,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          _ToolButton(
-            icon: Icons.straighten,
-            label: 'Ruler',
-            isActive: showRuler,
-            onTap: () => onToggle('ruler'),
-          ),
-          const SizedBox(height: 4),
-          _ToolButton(
-            icon: Icons.architecture,
-            label: 'Protractor',
-            isActive: showProtractor,
-            onTap: () => onToggle('protractor'),
-          ),
-          const SizedBox(height: 4),
-          _ToolButton(
-            icon: Icons.circle,
-            label: 'Compass',
-            isActive: showCompass,
-            onTap: () => onToggle('compass'),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ToolButton extends StatelessWidget {
   final IconData icon;
