@@ -139,20 +139,22 @@ class SessionNotifier extends _$SessionNotifier {
     final canvas      = ref.read(canvasNotifierProvider);
     final slideState  = ref.read(slideNotifierProvider);
     final widgetState = ref.read(questionWidgetNotifierProvider);
-    final currentIdx  = slideState.currentSlideIndex;
+    final currentIdx  = slideState.currentPageIndex;
     final covered     = List<int>.from(state.slidesCovered);
     if (!covered.contains(currentIdx)) covered.add(currentIdx);
 
+
     // Include saved per-slide annotations plus current in-memory canvas state.
     final annotations = Map<String, SlideAnnotationData>.from(slideState.savedAnnotations);
-    final currentSlide = slideState.currentSlide;
-    if (currentSlide != null) {
-      annotations[currentSlide.slideId] = SlideAnnotationData(
-        slideId: currentSlide.slideId,
+    final currentPage = slideState.currentPage;
+    if (currentPage != null) {
+      annotations[currentPage.id] = SlideAnnotationData(
+        slideId: currentPage.id,
         strokes: canvas.strokes,
         objects: canvas.objects,
       );
     }
+
 
     return {
       'sessionId':     state.sessionId,

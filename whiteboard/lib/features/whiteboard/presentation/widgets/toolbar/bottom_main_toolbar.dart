@@ -1,4 +1,4 @@
-﻿import 'dart:ui';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../presentation/providers/canvas_provider.dart';
@@ -60,26 +60,9 @@ class _BottomMainToolbarState extends ConsumerState<BottomMainToolbar> {
                 child: Row(
                   children: [
                     _ModeToggle(
+                      activeTool: toolState.activeTool,
                       mode: toolState.interactionMode,
-                      onChanged: (_) => toolNotifier.toggleInteractionMode(),
-                    ),
-                    const SizedBox(width: 6),
-                    IconButton(
-                      tooltip: 'Select elements',
-                      onPressed: () => toolNotifier.selectTool(Tool.select),
-                      icon: Icon(
-                        Icons.ads_click,
-                        size: 20,
-                        color: toolState.activeTool == Tool.select
-                            ? Colors.white
-                            : Colors.white70,
-                      ),
-                      style: IconButton.styleFrom(
-                        fixedSize: const Size(40, 40),
-                        backgroundColor: toolState.activeTool == Tool.select
-                            ? AppColors.accentOrange
-                            : Colors.white10,
-                      ),
+                      onSelectTool: (t) => toolNotifier.selectTool(t),
                     ),
                     const VerticalDivider(
                         width: 24, indent: 16, endIndent: 16,
@@ -149,19 +132,20 @@ class _BottomMainToolbarState extends ConsumerState<BottomMainToolbar> {
                           width: 24, indent: 16, endIndent: 16,
                           color: Colors.white24),
                       _SlideNavigation(
-                        slideIndex: slideState.currentSlideIndex,
-                        totalSlides: slideState.slides.length,
-                        onPrev: slideState.currentSlideIndex > 0
+                        slideIndex: slideState.currentPageIndex,
+                        totalSlides: slideState.pages.length,
+                        onPrev: slideState.currentPageIndex > 0
                             ? () => slideNotifier.navigateToSlide(
-                                slideState.currentSlideIndex - 1)
+                                slideState.currentPageIndex - 1)
                             : null,
-                        onNext: slideState.currentSlideIndex <
-                                slideState.slides.length - 1
+                        onNext: slideState.currentPageIndex <
+                                slideState.pages.length - 1
                             ? () => slideNotifier.navigateToSlide(
-                                slideState.currentSlideIndex + 1)
+                                slideState.currentPageIndex + 1)
                             : null,
                       ),
                     ],
+
                   ],
                 ),
               ),
@@ -397,10 +381,11 @@ class _ToolbarToolButtonState extends ConsumerState<_ToolbarToolButton> {
 // ── Mode toggle ──────────────────────────────────────────────────────────────
 
 class _ModeToggle extends StatelessWidget {
+  final Tool activeTool;
   final InteractionMode mode;
-  final ValueChanged<InteractionMode> onChanged;
+  final Function(Tool) onSelectTool;
 
-  const _ModeToggle({required this.mode, required this.onChanged});
+  const _ModeToggle({required this.activeTool, required this.mode, required this.onSelectTool});
 
   @override
   Widget build(BuildContext context) {
@@ -412,13 +397,15 @@ class _ModeToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           _ToggleItem(
-              isSelected: mode == InteractionMode.selectMode,
-              icon: Icons.near_me_outlined,
-              onTap: () => onChanged(InteractionMode.selectMode)),
+              isSelected: activeTool == Tool.selectObject,
+              icon: Icons.open_with,
+              label: 'Move Question',
+              onTap: () => onSelectTool(Tool.selectObject)),
           _ToggleItem(
-              isSelected: mode == InteractionMode.drawMode,
-              icon: Icons.gesture,
-              onTap: () => onChanged(InteractionMode.drawMode)),
+              isSelected: activeTool == Tool.select,
+              icon: Icons.highlight_alt,
+              label: 'Adjust Drawing',
+              onTap: () => onSelectTool(Tool.select)),
         ],
       ),
     );
@@ -428,11 +415,13 @@ class _ModeToggle extends StatelessWidget {
 class _ToggleItem extends StatelessWidget {
   final bool isSelected;
   final IconData icon;
+  final String label;
   final VoidCallback onTap;
 
   const _ToggleItem(
       {required this.isSelected,
       required this.icon,
+      required this.label,
       required this.onTap});
 
   @override
@@ -440,15 +429,26 @@ class _ToggleItem extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 36,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: isSelected ? AppColors.accentOrange : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Icon(icon,
-            size: 18,
-            color: isSelected ? Colors.white : Colors.white54),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon,
+                size: 18,
+                color: isSelected ? Colors.white : Colors.white54),
+            const SizedBox(width: 6),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isSelected ? Colors.white : Colors.white54)),
+          ],
+        ),
       ),
     );
   }

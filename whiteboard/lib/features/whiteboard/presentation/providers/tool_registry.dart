@@ -256,6 +256,20 @@ const List<ToolDefinition> toolRegistry = [
     category: ToolLibraryCategory.measure,
     icon: Icons.explore_outlined,
   ),
+  ToolDefinition(
+    id: 'spotlight',
+    tool: Tool.spotlight,
+    name: 'Spotlight',
+    category: ToolLibraryCategory.review,
+    icon: Icons.highlight_outlined,
+  ),
+  ToolDefinition(
+    id: 'india-map',
+    tool: Tool.indiaMap,
+    name: 'India Map',
+    category: ToolLibraryCategory.insert,
+    icon: Icons.map_outlined,
+  ),
 ];
 
 final Map<Tool, ToolDefinition> toolRegistryByTool = {

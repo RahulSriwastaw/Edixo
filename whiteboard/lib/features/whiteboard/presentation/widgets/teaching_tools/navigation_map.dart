@@ -6,6 +6,10 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import '../../providers/slide_provider.dart';
 import '../../providers/session_provider.dart';
+import '../../../data/models/page_models.dart';
+
+
+
 
 /// Navigation map - shows all slides as thumbnails for quick navigation
 class NavigationMap extends ConsumerWidget {
@@ -39,27 +43,34 @@ class NavigationMap extends ConsumerWidget {
               ),
               const Spacer(),
               Text(
-                '${slideState.slides.length} slides',
+                '${slideState.pages.length} slides',
                 style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
               ),
+
             ],
           ),
           const SizedBox(height: 12),
 
-          // Slide thumbnails
-          Expanded(
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxHeight: 400),
             child: ListView.builder(
-              itemCount: slideState.slides.length,
+              shrinkWrap: true,
+              itemCount: slideState.pages.length,
               itemBuilder: (context, index) {
-                final slide = slideState.slides[index];
-                final isCurrentSlide = index == slideState.currentSlideIndex;
+                final page = slideState.pages[index];
+                final isCurrentSlide = index == slideState.currentPageIndex;
                 final isCovered = sessionState.slidesCovered.contains(index);
+
+                String questionText = 'Blank Page';
+                if (page is SetImportPage) {
+                  questionText = page.slide.questionText;
+                }
 
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8),
                   child: _SlideThumbnail(
                     slideNumber: index + 1,
-                    questionText: slide.questionText,
+                    questionText: questionText,
                     isCurrentSlide: isCurrentSlide,
                     isCovered: isCovered,
                     onTap: () {
@@ -70,6 +81,7 @@ class NavigationMap extends ConsumerWidget {
               },
             ),
           ),
+
         ],
       ),
     );

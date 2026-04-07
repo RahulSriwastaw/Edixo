@@ -36,7 +36,16 @@ class SetRemoteDataSource {
         },
       );
 
-      return Success(response.data['valid'] as bool? ?? false);
+      final data = response.data as Map<String, dynamic>? ?? {};
+      final isValid = data['valid'] as bool? ?? false;
+
+      if (!isValid) {
+        // Return a Failure with the server's reason message (e.g. "Set has no questions")
+        final reason = data['reason'] as String? ?? 'Invalid set ID or password';
+        return Failure(failure_types.NotFoundFailure(reason));
+      }
+
+      return const Success(true);
     } on DioException catch (e) {
       return Failure(mapDioException(e));
     } catch (e) {

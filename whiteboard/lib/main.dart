@@ -13,6 +13,9 @@ import 'features/whiteboard/data/models/slide_annotation.dart';
 import 'features/whiteboard/data/models/session_model.dart';
 import 'features/question_widget/data/models/question_widget_model.dart';
 import 'features/question_widget/data/models/question_widget_style.dart';
+import 'features/question_widget/data/models/set_layout_models.dart';
+import 'features/whiteboard/data/models/page_models.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +40,14 @@ void main() async {
   Hive.registerAdapter(QuestionWidgetModelAdapter());     // typeId: 10
   Hive.registerAdapter(QuestionWidgetStyleAdapter());     // typeId: 11
   Hive.registerAdapter(OffsetAdapter());             // typeId: 20 (custom)
+  Hive.registerAdapter(BaseWidgetLayoutAdapter());   // typeId: 21
+  Hive.registerAdapter(QuestionLayoutAdapter());     // typeId: 22
+  Hive.registerAdapter(OptionsLayoutAdapter());      // typeId: 23
+  Hive.registerAdapter(SetSettingsModelAdapter());   // typeId: 24
+  Hive.registerAdapter(PageTypeAdapter());           // typeId: 25
+  Hive.registerAdapter(SetImportPageAdapter());      // typeId: 27
+  Hive.registerAdapter(BlankPageAdapter());          // typeId: 28
+
 
   // Initialize all Hive boxes
   await HiveService.init();

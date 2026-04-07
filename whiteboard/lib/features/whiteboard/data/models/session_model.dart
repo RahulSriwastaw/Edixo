@@ -13,7 +13,7 @@ class WhiteboardSessionModel extends HiveObject {
   @HiveField(2) final String   teacherId;
   @HiveField(3) final DateTime startTime;
   @HiveField(4) final DateTime lastSaved;
-  @HiveField(5) final int      currentSlideIndex;
+  @HiveField(5) final int      currentPageIndex;
   @HiveField(6) final List<int> slidesCovered;
   @HiveField(7) final String   annotationsJson; // JSON-encoded Map<slideId, annotation>
 
@@ -23,7 +23,7 @@ class WhiteboardSessionModel extends HiveObject {
     required this.teacherId,
     required this.startTime,
     required this.lastSaved,
-    required this.currentSlideIndex,
+    required this.currentPageIndex,
     required this.slidesCovered,
     required this.annotationsJson,
   });
@@ -34,7 +34,7 @@ class WhiteboardSessionModel extends HiveObject {
     'teacherId': teacherId,
     'startTime': startTime.toIso8601String(),
     'lastSaved': lastSaved.toIso8601String(),
-    'currentSlideIndex': currentSlideIndex,
+    'currentPageIndex': currentPageIndex,
     'slidesCovered': slidesCovered,
     'annotationsJson': annotationsJson,
   };
@@ -46,8 +46,9 @@ class WhiteboardSessionModel extends HiveObject {
       teacherId:       json['teacherId'] as String,
       startTime:       DateTime.parse(json['startTime'] as String),
       lastSaved:       DateTime.parse(json['lastSaved'] as String),
-      currentSlideIndex: json['currentSlideIndex'] as int,
+      currentPageIndex: json['currentPageIndex'] as int,
       slidesCovered:   List<int>.from(json['slidesCovered'] as List),
       annotationsJson: json['annotationsJson'] as String,
     );
 }
+

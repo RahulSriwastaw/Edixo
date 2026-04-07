@@ -34,6 +34,9 @@ dependencies:
   google_fonts: ^6.2.1
   flutter_colorpicker: ^1.1.0
   flutter_html: ^3.0.0-beta.2     # Use Html() widget from this package
+  flutter_math_fork: ^0.7.2       # For LaTeX rendering
+  flutter_svg: ^2.0.10             # For vector maps
+
 
   # ── Export ────────────────────────────────────────────────────────
   pdf: ^3.10.8

@@ -88,6 +88,35 @@ router.post('/validate-set', async (req, res, next) => {
   try {
     const { setId, password } = req.body ?? {};
     if (!setId || !password) throw new AppError('Set ID and password are required', 400);
+    
+    const safeSetId = setId.replace(/'/g, "''");
+    const setRows = await prisma.$queryRawUnsafe<Array<{ pin: string; id: string }>>(`
+        SELECT pin, id FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
+    `);
+    
+    if (setRows.length === 0) {
+      return res.json({ success: true, valid: false, reason: 'Set not found' });
+    }
+    
+    if (setRows[0].pin !== password) {
+      return res.json({ success: true, valid: false, reason: 'Invalid password' });
+    }
+
+    // Check that set actually has linked questions
+    const setPrimaryId = setRows[0].id;
+    const countRows = await prisma.$queryRawUnsafe<Array<{ cnt: number | string }>>(`
+        SELECT COUNT(*) AS cnt FROM question_set_items WHERE set_id = '${setPrimaryId.replace(/'/g, "''")}'
+    `);
+    const questionCount = Number(countRows[0]?.cnt ?? 0);
+    
+    if (questionCount === 0) {
+      return res.json({ 
+        success: true, 
+        valid: false, 
+        reason: 'This set has no questions. Please add questions from the Super Admin panel → Question Bank → Sets → Edit this set.' 
+      });
+    }
+
     res.json({ success: true, valid: true });
   } catch (err) {
     next(err);
@@ -96,13 +125,26 @@ router.post('/validate-set', async (req, res, next) => {
 
 router.get('/sets/:setId/metadata', async (req, res, next) => {
   try {
+    const { setId } = req.params;
+    const safeSetId = setId.replace(/'/g, "''");
+
+    // Query the raw SQL question_sets table (used by both compat sets and AdvancedSetBuilder-created sets)
+    const setRows = await prisma.$queryRawUnsafe<Array<any>>(`
+        SELECT id, name, subject, total_questions,
+               (SELECT COUNT(*) FROM question_set_items WHERE set_id = question_sets.id) AS actual_count
+        FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
+    `);
+    
+    if (setRows.length === 0) throw new AppError('Set not found', 404);
+    const set = setRows[0];
+
     res.json({
       success: true,
       data: {
-        id: req.params.setId,
-        title: `Set ${req.params.setId}`,
-        subject: 'General',
-        questionCount: 2,
+        id: setId,
+        title: set.name || `Set ${setId}`,
+        subject: set.subject || 'General',
+        questionCount: Number(set.actual_count || set.total_questions || 0),
       },
     });
   } catch (err) {
@@ -139,40 +181,69 @@ router.post('/session/start', async (req, res, next) => {
   }
 });
 
-router.get('/sets/:setId/questions', async (_req, res, next) => {
+router.get('/sets/:setId/questions', async (req, res, next) => {
   try {
-    const questions = [
-      {
-        id: 'mock-1',
-        questionNumber: 1,
-        questionText: 'What is the sum of 12 + 15?',
-        questionImage: null,
-        options: [
-          { label: 'A', text: '25', imageUrl: null },
-          { label: 'B', text: '27', imageUrl: null },
-          { label: 'C', text: '30', imageUrl: null },
-        ],
-        correctAnswer: 'B',
-        examSource: 'Practice',
-        subject: 'Mathematics',
-      },
-      {
-        id: 'mock-2',
-        questionNumber: 2,
-        questionText: 'Identify the verb in the sentence "She runs fast".',
-        questionImage: null,
-        options: [
-          { label: 'A', text: 'Runs', imageUrl: null },
-          { label: 'B', text: 'Fast', imageUrl: null },
-          { label: 'C', text: 'She', imageUrl: null },
-        ],
-        correctAnswer: 'A',
-        examSource: 'Practice',
-        subject: 'English',
-      },
-    ];
+    const { setId } = req.params;
 
-    res.json({ success: true, data: { questions } });
+    // Raw SQL compat tables (used by both compat sets and AdvancedSetBuilder-created sets)
+    const safeSetId = setId.replace(/'/g, "''");
+    const setRows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
+        SELECT id FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
+    `);
+    
+    if (setRows.length === 0) throw new AppError('Question set not found', 404);
+    const setPrimaryId = setRows[0].id;
+
+    // Get questions from compat tables
+    const questions = await prisma.$queryRawUnsafe<Array<any>>(`
+        SELECT q.id, q.question_id, q.text_en, q.text_hi, q.type, q.difficulty, q.subject_name, q.chapter_name, q.exam, q.collection, q.year, q.airtable_table_name, q.question_no, q.explanation_en, q.explanation_hi, q.point_cost, q.usage_count, q.is_approved, q.is_global
+        FROM questions q
+        JOIN question_set_items qsi ON q.id = qsi.question_id
+        WHERE qsi.set_id = '${setPrimaryId}'
+        ORDER BY qsi.sort_order ASC
+    `);
+
+    const questionIds = questions.map((q) => q.id);
+    let optionsByQuestion: Record<string, any[]> = {};
+    
+    if (questionIds.length > 0) {
+        const idsList = questionIds.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
+        const options = await prisma.$queryRawUnsafe<Array<any>>(`
+            SELECT id, question_id, text_en, text_hi, is_correct, sort_order
+            FROM question_options
+            WHERE question_id IN (${idsList})
+            ORDER BY sort_order ASC
+        `);
+        
+        optionsByQuestion = options.reduce((acc, opt) => {
+            acc[opt.question_id] = acc[opt.question_id] || [];
+            acc[opt.question_id].push(opt);
+            return acc;
+        }, {});
+    }
+
+    const formattedQuestions = questions.map((q, idx) => {
+        const opts = optionsByQuestion[q.id] || [];
+        const answerLabelIndex = opts.findIndex(o => o.is_correct);
+        const correctAnswerLabel = answerLabelIndex >= 0 ? String.fromCharCode(65 + answerLabelIndex) : null;
+
+        return {
+            id: q.id,
+            questionNumber: idx + 1,
+            questionText: q.text_en || q.text_hi || '',
+            questionImage: null,
+            options: opts.map((o, index) => ({
+                label: String.fromCharCode(65 + index),
+                text: o.text_en || o.text_hi || '',
+                imageUrl: null
+            })),
+            correctAnswer: correctAnswerLabel,
+            examSource: q.exam || 'Practice',
+            subject: q.subject_name || 'General',
+        };
+    });
+
+    res.json({ success: true, data: { questions: formattedQuestions } });
   } catch (err) {
     next(err);
   }

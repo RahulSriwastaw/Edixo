@@ -106,31 +106,13 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
                         final int? size = int.tryParse(value);
                         if (size != null && size >= 10 && size <= 48) {
                           _style = _style.copyWith(
-                            questionFontSize: size,
+                            questionFontSize: size.toDouble(),
                           );
                           _applyStyle();
                         }
                       },
                     ),
-                    _buildSwitchWithLabel(
-                      'Bold Text',
-                      _style.questionFontWeight == FontWeight.bold,
-                      (value) {
-                        _style = _style.copyWith(
-                          questionFontWeight: value ? FontWeight.bold : FontWeight.normal,
-                        );
-                        _applyStyle();
-                      },
-                    ),
-                    _buildSliderWithLabel(
-                      'Line Spacing',
-                      _style.lineHeight,
-                      1.0, 3.0, 0.1,
-                      (value) {
-                        _style = _style.copyWith(lineHeight: value);
-                        _applyStyle();
-                      },
-                    ),
+
 
                     const SizedBox(height: 24),
 
@@ -188,7 +170,7 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
                       onChanged: (value) {
                         final int? padding = int.tryParse(value);
                         if (padding != null && padding >= 0 && padding <= 50) {
-                          _style = _style.copyWith(padding: padding);
+                          _style = _style.copyWith(padding: padding.toDouble());
                           _applyStyle();
                         }
                       },
@@ -200,7 +182,7 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
                       onChanged: (value) {
                         final int? radius = int.tryParse(value);
                         if (radius != null && radius >= 0 && radius <= 30) {
-                          _style = _style.copyWith(borderRadius: radius);
+                          _style = _style.copyWith(borderRadius: radius.toDouble());
                           _applyStyle();
                         }
                       },
@@ -477,6 +459,7 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
                     ),
                   ),
                 )).toList(),
+              ),
             ],
           ),
         ),

@@ -4,6 +4,9 @@ import '../../../../../core/constants/app_colors.dart';
 import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import '../../providers/slide_provider.dart';
+import '../../../data/models/page_models.dart';
+
+
 
 class NextQuestionPreviewPanel extends ConsumerWidget {
   const NextQuestionPreviewPanel({super.key});
@@ -26,11 +29,13 @@ class NextQuestionPreviewPanel extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slideState = ref.watch(slideNotifierProvider);
-    final currentIndex = slideState.currentSlideIndex;
-    final slides = slideState.slides;
+    final currentIndex = slideState.currentPageIndex;
+    final pages = slideState.pages;
+
 
     // Check if there's a next slide
-    if (!slideState.hasSlides || currentIndex >= slides.length - 1) {
+    if (!slideState.hasSlides || currentIndex >= pages.length - 1) {
+
       return Container(
         width: 300,
         decoration: BoxDecoration(
@@ -72,9 +77,16 @@ class NextQuestionPreviewPanel extends ConsumerWidget {
       );
     }
 
-    final nextSlide = slides[currentIndex + 1];
+    final nextPage = pages[currentIndex + 1];
+    
+    if (nextPage is! SetImportPage) {
+      return const SizedBox.shrink(); // Hide preview if next page is not a set question
+    }
+
+    final nextSlide = nextPage.slide;
     final questionText = _stripHtmlTags(nextSlide.questionText);
     final questionNum = nextSlide.questionNumber;
+
 
     return Container(
       width: 320,
@@ -248,12 +260,13 @@ class NextQuestionPreviewPanel extends ConsumerWidget {
 
                     // Slide counter
                     Text(
-                      '${currentIndex + 1} / ${slides.length}',
+                      '${currentIndex + 1} / ${pages.length}',
                       style: AppTextStyles.caption.copyWith(
                         color: AppColors.textTertiary,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
+
                   ],
                 ),
               ),

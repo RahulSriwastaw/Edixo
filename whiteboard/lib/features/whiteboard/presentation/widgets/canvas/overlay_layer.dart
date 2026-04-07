@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../teaching_tools/spotlight_overlay.dart';
+import '../teaching_tools/india_map_overlay.dart';
+import '../../../../subject_tools/presentation/widgets/math_tools_layer.dart';
 
 class OverlayLayer extends ConsumerWidget {
   const OverlayLayer({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    // In Phase 2, overlay layer is empty
-    // Will add laser pointer, spotlight, selection box in Phase 3+
-    return const SizedBox.expand();
+    return const Stack(
+      children: [
+        // 1. Spotlight (Focused Teaching)
+        SpotlightOverlay(),
+
+        // 2. India Map (Geography/GS Context)
+        IndiaMapOverlay(),
+
+        // 3. Math Tools (Ruler, Protractor)
+        MathToolsLayer(),
+
+        // TODO: Selection box, Laser Pointer
+      ],
+    );
   }
 }

@@ -2,7 +2,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/network/dio_client.dart';
-import '../models/set_slide_model.dart';
+import '../../../whiteboard/data/models/slide_model.dart';
 
 final setImportRemoteDsProvider = Provider((ref) => SetImportRemoteDataSource(ref.watch(dioProvider)));
 
@@ -14,13 +14,13 @@ class SetImportRemoteDataSource {
   Future<List<SetSlideModel>> importSet(String setId, {String? password}) async {
     try {
       final response = await _dio.get(
-        '/whiteboard/sets/$setId',
+        '/whiteboard/sets/$setId/questions',
         queryParameters: {'password': password},
       );
-      final slides = (response.data['slides'] as List)
-          .map((slide) => SetSlideModel.fromJson(slide))
+      final questions = (response.data['data']['questions'] as List)
+          .map((q) => SetSlideModel.fromJson(q as Map<String, dynamic>))
           .toList();
-      return slides;
+      return questions;
     } on DioException {
       rethrow;
     }

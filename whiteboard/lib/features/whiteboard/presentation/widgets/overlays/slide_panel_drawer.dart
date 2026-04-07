@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/slide_provider.dart';
+import '../../../data/models/page_models.dart';
 import '../../../../whiteboard/data/models/slide_model.dart';
+
+
 
 class SlidePanelDrawer extends ConsumerWidget {
   const SlidePanelDrawer({super.key});
@@ -9,8 +12,9 @@ class SlidePanelDrawer extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final slideState = ref.watch(slideNotifierProvider);
-    final slides = slideState.slides;
+    final pages = slideState.pages;
     final slideNotifier = ref.read(slideNotifierProvider.notifier);
+
 
     return Drawer(
       backgroundColor: const Color(0xFF1A1A1A),
@@ -27,14 +31,15 @@ class SlidePanelDrawer extends ConsumerWidget {
                 const Text('Slide Manager', 
                   style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                 const Spacer(),
-                Text('${slides.length} Slides', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text('${pages.length} Slides', style: const TextStyle(color: Colors.white54, fontSize: 12)),
               ],
             ),
           ),
+
           
           // Slide List
           Expanded(
-            child: slides.isEmpty
+            child: pages.isEmpty
                 ? const Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
@@ -49,18 +54,18 @@ class SlidePanelDrawer extends ConsumerWidget {
                   )
                 : ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    itemCount: slides.length,
+                    itemCount: pages.length,
                     itemBuilder: (context, index) {
-                      final slide = slides[index];
-                      final isSelected = slideState.currentSlideIndex == index;
-                      final hasSavedAnnotation = slideState.savedAnnotations.containsKey(slide.slideId);
+                      final page = pages[index];
+                      final isSelected = slideState.currentPageIndex == index;
+                      final hasSavedAnnotation = slideState.savedAnnotations.containsKey(page.id);
                       
                       return Padding(
-                        key: ValueKey(slide.slideId),
+                        key: ValueKey(page.id),
                         padding: const EdgeInsets.only(bottom: 10),
                         child: _SlideTile(
                           index: index,
-                          slide: slide,
+                          page: page,
                           isSelected: isSelected,
                           hasAnnotation: hasSavedAnnotation,
                           onTap: () {
@@ -72,6 +77,7 @@ class SlidePanelDrawer extends ConsumerWidget {
                     },
                   ),
           ),
+
         ],
       ),
     );
@@ -80,18 +86,19 @@ class SlidePanelDrawer extends ConsumerWidget {
 
 class _SlideTile extends StatelessWidget {
   final int index;
-  final SetSlideModel slide;
+  final WhiteboardPage page;
   final bool isSelected;
   final bool hasAnnotation;
   final VoidCallback onTap;
 
   const _SlideTile({
     required this.index,
-    required this.slide,
+    required this.page,
     required this.isSelected,
     required this.hasAnnotation,
     required this.onTap,
   });
+
 
   /// Strip basic HTML tags for thumbnail preview text.
   String _stripHtml(String html) {
@@ -107,7 +114,22 @@ class _SlideTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final questionPreview = _stripHtml(slide.questionText);
+    String title = 'Blank Page';
+    String previewText = 'Empty surface';
+    String? source;
+    int? qNum;
+    int optCount = 0;
+
+    if (page is SetImportPage) {
+      final slide = (page as SetImportPage).slide;
+      title = 'Question ${slide.questionNumber}';
+      previewText = slide.questionText;
+      source = slide.examSource;
+      qNum = slide.questionNumber;
+      optCount = slide.options.length;
+    }
+
+    final questionPreview = _stripHtml(previewText);
     final truncated = questionPreview.length > 80
         ? '${questionPreview.substring(0, 80)}…'
         : questionPreview;
@@ -129,7 +151,7 @@ class _SlideTile extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Thumbnail area — mini question preview
+            // Thumbnail area
             Container(
               height: 72,
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
@@ -145,19 +167,21 @@ class _SlideTile extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF6B35).withValues(alpha: 0.85),
+                          color: qNum != null 
+                              ? const Color(0xFFFF6B35).withValues(alpha: 0.85)
+                              : Colors.blueGrey,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          'Q${slide.questionNumber}',
+                          qNum != null ? 'Q$qNum' : 'PAGE',
                           style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ),
-                      if (slide.examSource != null) ...[
+                      if (source != null) ...[
                         const SizedBox(width: 6),
                         Expanded(
                           child: Text(
-                            slide.examSource!,
+                            source,
                             style: const TextStyle(color: Colors.white38, fontSize: 9),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -196,10 +220,10 @@ class _SlideTile extends StatelessWidget {
                       message: 'Has annotations',
                       child: Icon(Icons.edit_note, color: Color(0xFFFF6B35), size: 14),
                     ),
-                  if (slide.options.isNotEmpty) ...[
+                  if (optCount > 0) ...[
                     const SizedBox(width: 4),
                     Text(
-                      '${slide.options.length} opts',
+                      '$optCount opts',
                       style: const TextStyle(color: Colors.white24, fontSize: 9),
                     ),
                   ],
@@ -212,4 +236,5 @@ class _SlideTile extends StatelessWidget {
     );
   }
 }
+
 

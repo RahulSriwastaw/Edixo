@@ -7,6 +7,17 @@ import '../../../../question_widget/presentation/providers/selected_widget_provi
 import '../../../../question_widget/presentation/widgets/question_settings_panel.dart';
 import '../../providers/tool_provider.dart';
 import '../../providers/canvas_size_provider.dart';
+import '../../providers/slide_provider.dart';
+import '../../../data/models/page_models.dart';
+
+
+import '../../../../question_widget/presentation/providers/set_layout_notifier.dart';
+import '../../../../question_widget/presentation/providers/interaction_state_provider.dart';
+import '../../../../question_widget/data/models/set_layout_models.dart';
+import '../../../../question_widget/presentation/widgets/movable_widget_container.dart';
+import '../../../../question_widget/presentation/widgets/question_display_widget.dart';
+import '../../../../question_widget/presentation/widgets/options_display_widget.dart';
+
 
 class EditableQuestionLayer extends ConsumerStatefulWidget {
   const EditableQuestionLayer({super.key});
@@ -16,6 +27,9 @@ class EditableQuestionLayer extends ConsumerStatefulWidget {
 }
 
 class _EditableQuestionLayerState extends ConsumerState<EditableQuestionLayer> {
+  // Live drag positions keyed by widget id — used during drag to update Positioned
+  final Map<String, Offset> _dragPositions = {};
+
   @override
   void initState() {
     super.initState();
@@ -51,24 +65,31 @@ class _EditableQuestionLayerState extends ConsumerState<EditableQuestionLayer> {
     final toolState = ref.watch(toolNotifierProvider);
     final widgets = ref.watch(questionWidgetNotifierProvider);
     final canvasSize = ref.watch(canvasSizeProvider);
-    final canEditWidgets = toolState.interactionMode == InteractionMode.selectMode &&
-        (toolState.activeTool == Tool.select || toolState.activeTool == Tool.selectObject);
+    final slideState = ref.watch(slideNotifierProvider);
+    final currentPage = slideState.currentPage;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.translucent,
-      onTap: () {
-        if (!canEditWidgets) return;
-        ref.read(selectedWidgetNotifierProvider.notifier).deselect();
-      },
-      child: Stack(
-        clipBehavior: Clip.none,
-        children: widgets.entries.map((entry) {
+    final canEditWidgets = toolState.interactionMode == InteractionMode.selectMode &&
+        toolState.activeTool == Tool.selectObject;
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // 1. Handle Set Import Page (New high-fidelity widgets)
+        if (currentPage is SetImportPage) ...[
+          _buildSetImportWidgets(context, currentPage, canvasSize, canEditWidgets),
+        ],
+
+        // 2. Handle existing/manual Question Widgets (Backward compatibility)
+        ...widgets.entries.map((entry) {
           final id = entry.key;
           final widgetModel = entry.value;
+          final livePos = _dragPositions[id];
+          final left = (livePos?.dx ?? widgetModel.x).clamp(0.0, canvasSize.width - widgetModel.width);
+          final top = (livePos?.dy ?? widgetModel.y).clamp(0.0, canvasSize.height - widgetModel.height);
 
           return Positioned(
-            left: widgetModel.x.clamp(0.0, canvasSize.width - widgetModel.width),
-            top: widgetModel.y.clamp(0.0, canvasSize.height - widgetModel.height),
+            left: left,
+            top: top,
             width: widgetModel.width,
             height: widgetModel.height,
             child: DraggableResizableQuestionWidget(
@@ -77,10 +98,66 @@ class _EditableQuestionLayerState extends ConsumerState<EditableQuestionLayer> {
               model: widgetModel,
               canvasSize: canvasSize,
               canEdit: canEditWidgets,
+              onDragUpdate: (pos) => setState(() => _dragPositions[id] = pos),
+              onDragEnd: () => setState(() => _dragPositions.remove(id)),
             ),
           );
-        }).toList(),
-      ),
+        }),
+      ],
+    );
+  }
+
+  Widget _buildSetImportWidgets(BuildContext context, SetImportPage page, Size canvasSize, bool canEdit) {
+    final layoutState = ref.watch(setLayoutNotifierProvider);
+    final qNum = page.slide.questionNumber;
+    
+    final qLayout = layoutState.questionLayouts[qNum];
+    final oLayout = layoutState.optionsLayouts[qNum];
+    
+    if (qLayout == null || oLayout == null) return const SizedBox.shrink();
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // Question Widget
+        MovableWidgetContainer(
+          id: '${layoutState.setId}_q${qNum}_question',
+          x: qLayout.x,
+          y: qLayout.y,
+          width: qLayout.width,
+          height: qLayout.height,
+          isLocked: qLayout.isLocked,
+          canEdit: canEdit,
+          onMove: (pos) => ref.read(setLayoutNotifierProvider.notifier).updateQuestionLayout(qNum, qLayout.copyWith(x: pos.dx, y: pos.dy)),
+          onResize: (size) => ref.read(setLayoutNotifierProvider.notifier).updateQuestionLayout(qNum, qLayout.copyWith(width: size.width, height: size.height)),
+          onToggleLock: () => ref.read(setLayoutNotifierProvider.notifier).updateQuestionLayout(qNum, qLayout.copyWith(isLocked: !qLayout.isLocked)),
+          child: QuestionDisplayWidget(
+            questionNumber: qNum,
+            text: page.slide.questionText,
+            source: page.slide.examSource,
+            imageUrl: page.slide.questionImageUrl,
+            settings: layoutState.settings,
+          ),
+        ),
+
+        // Options Widget
+        MovableWidgetContainer(
+          id: '${layoutState.setId}_q${qNum}_options',
+          x: oLayout.x,
+          y: oLayout.y,
+          width: oLayout.width,
+          height: oLayout.height,
+          isLocked: oLayout.isLocked,
+          canEdit: canEdit,
+          onMove: (pos) => ref.read(setLayoutNotifierProvider.notifier).updateOptionsLayout(qNum, oLayout.copyWith(x: pos.dx, y: pos.dy)),
+          onResize: (size) => ref.read(setLayoutNotifierProvider.notifier).updateOptionsLayout(qNum, oLayout.copyWith(width: size.width, height: size.height)),
+          onToggleLock: () => ref.read(setLayoutNotifierProvider.notifier).updateOptionsLayout(qNum, oLayout.copyWith(isLocked: !oLayout.isLocked)),
+          child: OptionsDisplayWidget(
+            options: page.slide.options,
+            settings: layoutState.settings,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -92,6 +169,8 @@ class DraggableResizableQuestionWidget extends ConsumerStatefulWidget {
   final QuestionWidgetModel model;
   final Size canvasSize;
   final bool canEdit;
+  final ValueChanged<Offset>? onDragUpdate;
+  final VoidCallback? onDragEnd;
 
   const DraggableResizableQuestionWidget({
     required Key key,
@@ -99,6 +178,8 @@ class DraggableResizableQuestionWidget extends ConsumerStatefulWidget {
     required this.model,
     required this.canvasSize,
     required this.canEdit,
+    this.onDragUpdate,
+    this.onDragEnd,
   }) : super(key: key);
 
   @override
@@ -167,9 +248,15 @@ class _DraggableResizableQuestionWidgetState
               setState(() {
                 _position += details.delta;
               });
+              widget.onDragUpdate?.call(_position);
             }
           : null,
-      onPanEnd: canEdit ? (_) => _handleDragEnd() : null,
+      onPanEnd: canEdit
+          ? (_) {
+              _handleDragEnd();
+              widget.onDragEnd?.call();
+            }
+          : null,
       child: Stack(
         clipBehavior: Clip.none,
         children: [

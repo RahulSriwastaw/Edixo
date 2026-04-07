@@ -3,10 +3,27 @@ import jwt from 'jsonwebtoken';
 import { env } from '../config/env';
 import { safeRedisGet, redisKeys } from '../config/redis';
 import { AppError } from './errorHandler';
+import { prisma } from '../config/database';
+
+const prismaAny = prisma as any;
+
+function hasLoginSessionModel(): boolean {
+    return typeof prismaAny.whiteboardLoginSession?.count === 'function';
+}
+
+function isMissingSessionTableError(err: unknown): boolean {
+    const message = err instanceof Error ? err.message : String(err ?? '');
+    const code = (err as any)?.code;
+    return code === 'P2021' || message.includes('whiteboard_login_sessions') || message.includes('does not exist');
+}
 
 export interface JwtPayload {
     userId: string;
     role: string;
+    jti?: string;
+    loginId?: string;
+    username?: string;
+    name?: string;
     permissions?: string[];
     type?: string;
     iat?: number;
@@ -48,6 +65,29 @@ export const authenticate = async (
             : env.JWT_SECRET;
 
         const verified = jwt.verify(token, secret) as JwtPayload;
+
+        // Whiteboard tokens are session-bound and can be revoked server-side.
+        if (verified.role === 'WHITEBOARD_USER' && verified.jti && hasLoginSessionModel()) {
+            try {
+                const activeSession = await prismaAny.whiteboardLoginSession.findFirst({
+                    where: {
+                        tokenId: verified.jti,
+                        revokedAt: null,
+                        expiresAt: { gt: new Date() },
+                    },
+                    select: { id: true },
+                });
+
+                if (!activeSession) {
+                    throw new AppError('Session expired. Please login again', 401);
+                }
+            } catch (err) {
+                if (!isMissingSessionTableError(err)) {
+                    throw err;
+                }
+            }
+        }
+
         req.user = verified;
         next();
     } catch (err) {

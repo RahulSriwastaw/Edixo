@@ -17,6 +17,8 @@ function getToken(): string {
 async function request<T = any>(method: string, path: string, options: { body?: any, params?: any } = {}): Promise<T> {
     const token = getToken();
     let url = `${BACKEND_URL}${path}`;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000);
 
     if (options.params) {
         const query = new URLSearchParams();
@@ -35,14 +37,29 @@ async function request<T = any>(method: string, path: string, options: { body?: 
         url = url.replace('://localhost:', '://127.0.0.1:');
     }
 
-    const res = await fetch(url, {
-        method,
-        headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
-    });
+    let res: Response;
+    try {
+        res = await fetch(url, {
+            method,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            },
+            signal: controller.signal,
+            ...(options.body !== undefined ? { body: JSON.stringify(options.body) } : {}),
+        });
+    } catch (error) {
+        clearTimeout(timeoutId);
+        const message = error instanceof Error ? error.message : '';
+        if (message.toLowerCase().includes('failed to fetch')) {
+            throw new Error(`Backend unavailable at ${BACKEND_URL}. Start eduhub-backend server and retry.`);
+        }
+        if (message.toLowerCase().includes('aborted')) {
+            throw new Error(`Request timeout while connecting to ${BACKEND_URL}`);
+        }
+        throw error;
+    }
+    clearTimeout(timeoutId);
 
     if (res.status === 401 && typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         document.cookie = "sb_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";

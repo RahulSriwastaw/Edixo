@@ -5,21 +5,40 @@ import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import '../../../presentation/providers/session_provider.dart';
 import '../../../presentation/providers/slide_provider.dart';
+import '../../../data/models/page_models.dart';
 import '../dialogs/import_content_dialog.dart';
 import '../dialogs/end_class_dialog.dart';
 import '../dialogs/background_settings_dialog.dart';
+import '../set_settings_bottom_sheet.dart';
 
 class TopToolbar extends ConsumerWidget {
-  const TopToolbar({super.key});
+  final VoidCallback onToggleAi;
+  final VoidCallback onToggleTimer;
+  final bool isAiActive;
+  final bool isTimerActive;
+
+  const TopToolbar({
+    super.key,
+    required this.onToggleAi,
+    required this.onToggleTimer,
+    required this.isAiActive,
+    required this.isTimerActive,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final sessionState = ref.watch(sessionNotifierProvider);
     final slideState   = ref.watch(slideNotifierProvider);
+    final slideNotifier = ref.read(slideNotifierProvider.notifier);
+    
     final hasSlides    = slideState.hasSlides;
     final setName      = slideState.setMetadata?.title ?? (hasSlides ? 'Imported Set' : 'EduBoard Pro');
-    final slideIndex   = slideState.currentSlideIndex;
-    final totalSlides  = slideState.slides.length;
+    final slideIndex   = slideState.currentPageIndex;
+    final totalSlides  = slideState.pages.length;
+    
+    final currentPage = slideState.currentPage;
+    final int? currentQuestion = (currentPage is SetImportPage) ? currentPage.slide.questionNumber : null;
+
 
     return Container(
       height: AppDimensions.topBarHeight,
@@ -74,6 +93,73 @@ class TopToolbar extends ConsumerWidget {
           _SaveStatusIndicator(status: sessionState.saveStatus),
 
           const SizedBox(width: AppDimensions.borderRadiusL),
+
+          // Slide Navigation Buttons (Added per request)
+          if (hasSlides) ...[
+            IconButton(
+              icon: const Icon(Icons.chevron_left),
+              color: slideIndex > 0 ? AppColors.textPrimary : Colors.white24,
+              tooltip: 'Previous Slide',
+              onPressed: slideIndex > 0 ? () => slideNotifier.navigateToSlide(slideIndex - 1) : null,
+            ),
+            IconButton(
+              icon: const Icon(Icons.chevron_right),
+              color: slideIndex < totalSlides - 1 ? AppColors.textPrimary : Colors.white24,
+              tooltip: 'Next Slide',
+              onPressed: slideIndex < totalSlides - 1 ? () => slideNotifier.navigateToSlide(slideIndex + 1) : null,
+            ),
+            const SizedBox(width: AppDimensions.borderRadiusL),
+          ],
+
+          // Timer Toggle
+          IconButton(
+            onPressed: onToggleTimer,
+            icon: Icon(isTimerActive ? Icons.timer_off : Icons.timer, color: isTimerActive ? AppColors.accentOrange : AppColors.textPrimary),
+            tooltip: isTimerActive ? 'Hide Timer' : 'Show Timer',
+          ),
+          const SizedBox(width: 8),
+          
+          // AI Assistant Toggle
+          ElevatedButton.icon(
+            onPressed: onToggleAi,
+            icon: const Icon(Icons.smart_toy, size: 18),
+            label: const Text('AI'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: isAiActive ? Colors.white12 : Colors.orange,
+              foregroundColor: isAiActive ? Colors.orange : Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+          const SizedBox(width: AppDimensions.borderRadiusM),
+
+          // Question Settings (Added per request)
+          if (currentQuestion != null) ...[
+            ElevatedButton.icon(
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  backgroundColor: Colors.transparent,
+                  isScrollControlled: true,
+                  builder: (_) => SetSettingsBottomSheet(currentQuestionNumber: currentQuestion),
+                );
+              },
+              icon: const Icon(Icons.settings, size: 18),
+              label: const Text('Q-Settings'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.accentOrange,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.borderRadiusL,
+                  vertical: AppDimensions.borderRadiusS,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                ),
+              ),
+            ),
+            const SizedBox(width: AppDimensions.borderRadiusM),
+          ],
 
           // 4. Import (Set / PDF) Button
           ElevatedButton.icon(

@@ -82,9 +82,9 @@ class KeyboardShortcutService {
         case LogicalKeyboardKey.arrowDown:
         case LogicalKeyboardKey.pageDown:
           final slideState = ref.read(slideNotifierProvider);
-          if (slideState.currentSlideIndex < slideState.slides.length - 1) {
+          if (slideState.currentPageIndex < slideState.pages.length - 1) {
             ref.read(slideNotifierProvider.notifier).navigateToSlide(
-              slideState.currentSlideIndex + 1,
+              slideState.currentPageIndex + 1,
             );
           }
           return true;
@@ -92,21 +92,23 @@ class KeyboardShortcutService {
         case LogicalKeyboardKey.arrowUp:
         case LogicalKeyboardKey.pageUp:
           final slideState = ref.read(slideNotifierProvider);
-          if (slideState.currentSlideIndex > 0) {
+          if (slideState.currentPageIndex > 0) {
             ref.read(slideNotifierProvider.notifier).navigateToSlide(
-              slideState.currentSlideIndex - 1,
+              slideState.currentPageIndex - 1,
             );
           }
           return true;
+
         case LogicalKeyboardKey.home:
           ref.read(slideNotifierProvider.notifier).navigateToSlide(0);
           return true;
         case LogicalKeyboardKey.end:
           final slideState = ref.read(slideNotifierProvider);
           ref.read(slideNotifierProvider.notifier).navigateToSlide(
-            slideState.slides.length - 1,
+            slideState.pages.length - 1,
           );
           return true;
+
       }
     }
 

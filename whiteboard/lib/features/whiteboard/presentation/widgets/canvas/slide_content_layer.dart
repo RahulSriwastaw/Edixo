@@ -14,11 +14,12 @@ class SlideContentLayer extends ConsumerWidget {
     final slideState = ref.watch(slideNotifierProvider);
     final pdfPages   = ref.watch(pdfPagesProvider);
 
-    final currentSlide = slideState.currentSlide;
-    if (currentSlide == null) return const SizedBox.expand();
+    final currentPage = slideState.currentPage;
+    if (currentPage == null) return const SizedBox.expand();
 
-    final pageBytes = pdfPages[currentSlide.slideId];
+    final pageBytes = pdfPages[currentPage.id];
     if (pageBytes == null) return const SizedBox.expand();
+
 
     // PDF page — render full-frame, absorb no pointer events (annotation layer is above)
     return Positioned.fill(

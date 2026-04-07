@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/storage/hive_service.dart';
 import 'tool_registry.dart';
+import 'teaching_tools_provider.dart';
 
 part 'tool_provider.g.dart';
 
@@ -25,6 +26,8 @@ enum Tool {
   magicPen, eyedropper,
   // Math / Geometry
   ruler, protractor, compass,
+  // Teaching Overlays
+  spotlight, indiaMap,
 }
 
 enum StrokeTip { round, flat, brush }
@@ -203,6 +206,23 @@ class ToolNotifier extends _$ToolNotifier {
   }
 
   void selectTool(Tool tool) {
+    if (tool == Tool.spotlight) {
+      ref.read(teachingToolsNotifierProvider.notifier).toggleSpotlight();
+      return;
+    }
+    if (tool == Tool.indiaMap) {
+      ref.read(teachingToolsNotifierProvider.notifier).toggleIndiaMap();
+      return;
+    }
+    if (tool == Tool.ruler) {
+      ref.read(teachingToolsNotifierProvider.notifier).toggleMathTool('ruler');
+      return;
+    }
+    if (tool == Tool.protractor) {
+      ref.read(teachingToolsNotifierProvider.notifier).toggleMathTool('protractor');
+      return;
+    }
+
     final mode = _autoInteractionMode(tool);
     state = state.copyWith(activeTool: tool, interactionMode: mode);
   }
@@ -379,10 +399,17 @@ class ToolNotifier extends _$ToolNotifier {
   }
 
   void toggleInteractionMode() {
-    final next = state.interactionMode == InteractionMode.drawMode
-        ? InteractionMode.selectMode
-        : InteractionMode.drawMode;
-    state = state.copyWith(interactionMode: next);
+    if (state.interactionMode == InteractionMode.drawMode) {
+      state = state.copyWith(
+        interactionMode: InteractionMode.selectMode,
+        activeTool: Tool.select,
+      );
+    } else {
+      state = state.copyWith(
+        interactionMode: InteractionMode.drawMode,
+        activeTool: Tool.softPen,
+      );
+    }
   }
 
   InteractionMode _autoInteractionMode(Tool tool) {

@@ -23,7 +23,7 @@ class WhiteboardSessionModelAdapter
       teacherId: fields[2] as String,
       startTime: fields[3] as DateTime,
       lastSaved: fields[4] as DateTime,
-      currentSlideIndex: fields[5] as int,
+      currentPageIndex: fields[5] as int,
       slidesCovered: (fields[6] as List).cast<int>(),
       annotationsJson: fields[7] as String,
     );
@@ -44,7 +44,7 @@ class WhiteboardSessionModelAdapter
       ..writeByte(4)
       ..write(obj.lastSaved)
       ..writeByte(5)
-      ..write(obj.currentSlideIndex)
+      ..write(obj.currentPageIndex)
       ..writeByte(6)
       ..write(obj.slidesCovered)
       ..writeByte(7)

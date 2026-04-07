@@ -43,8 +43,9 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
       final pdfFile = await ExportService.generatePdf(
         sessionId: sessionState.sessionId!,
         slideAnnotations: annotations,
-        slideCount: slideState.slides.length,
+        slideCount: slideState.pages.length,
       );
+
 
       setState(() {
         _exportProgress = 0.5;
@@ -55,9 +56,10 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
       final pngFiles = await ExportService.generatePngs(
         sessionId: sessionState.sessionId!,
         slideAnnotations: annotations,
-        slideCount: slideState.slides.length,
+        slideCount: slideState.pages.length,
         canvasSize: const Size(1920, 1080),
       );
+
 
       setState(() {
         _exportProgress = 0.75;

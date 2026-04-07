@@ -6,7 +6,7 @@ part of 'current_slide_id_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$currentSlideIdHash() => r'9487d584519ec005a0691d9a6b4d15b7ce0c2d0a';
+String _$currentSlideIdHash() => r'8675d5a7c1d53c4416a14bceb0586b25737d9002';
 
 /// Derived from slideNotifierProvider — always gives current slide's ID or null.
 ///

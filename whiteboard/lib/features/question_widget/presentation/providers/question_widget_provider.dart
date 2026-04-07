@@ -39,6 +39,10 @@ class QuestionWidgetNotifier extends _$QuestionWidgetNotifier {
     state = initial;
   }
 
+  void clear() {
+    state = {};
+  }
+
   void updatePosition(String id, Offset pos) {
     final widget = state[id];
     if (widget == null || widget.isLocked) return;

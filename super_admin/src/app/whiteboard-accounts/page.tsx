@@ -9,6 +9,7 @@ import {
   Key,
   Trash2,
   Monitor,
+  Save,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,12 +34,54 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+
+type ApiResult<T = any> = {
+  success?: boolean;
+  message?: string;
+  data?: T;
+};
+
+type WhiteboardAccount = {
+  id: string;
+  username?: string;
+  loginId?: string;
+  name?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  activeLoginCount?: number;
+  maxConcurrentLogins?: number;
+};
+
+const isAuthError = (message?: string) => {
+  const normalized = (message || "").toLowerCase();
+  return (
+    normalized.includes("invalid token") ||
+    normalized.includes("unauthorized") ||
+    normalized.includes("session expired") ||
+    normalized.includes("jwt")
+  );
+};
+
+const forceReLogin = () => {
+  if (typeof document !== "undefined") {
+    document.cookie = "sb_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+  }
+
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("token");
+    localStorage.removeItem("sb_token");
+    window.location.href = "/login";
+  }
+};
 
 export default function WhiteboardAccountsPage() {
   const { isOpen } = useSidebarStore();
   const [notice, setNotice] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [accounts, setAccounts] = useState<any[]>([]);
+  const [accounts, setAccounts] = useState<WhiteboardAccount[]>([]);
+  const [limitDrafts, setLimitDrafts] = useState<Record<string, string>>({});
+  const [savingLimitId, setSavingLimitId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -50,28 +93,41 @@ export default function WhiteboardAccountsPage() {
     username: "",
     password: "",
     name: "",
+    maxConcurrentLogins: "1",
   });
 
   const fetchAccounts = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/whiteboard-accounts`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-      });
-      const result = await response.json();
+      const result = await api.get<ApiResult<WhiteboardAccount[]>>("/whiteboard-accounts");
       if (result.success) {
-        setAccounts(result.data);
+        const fetchedAccounts = result.data || [];
+        setAccounts(fetchedAccounts);
+        setLimitDrafts(
+          Object.fromEntries(
+            fetchedAccounts.map((account) => [
+              account.id,
+              String(account.maxConcurrentLogins ?? 1),
+            ]),
+          ),
+        );
       } else {
-        throw new Error(result.message);
+        if (isAuthError(result.message)) {
+          toast.error("Session expired. Please log in again.");
+          forceReLogin();
+          return;
+        }
+        throw new Error(result.message || "Failed to fetch whiteboard accounts");
       }
     } catch (error) {
-      console.error("Error fetching whiteboard accounts:", error);
-      toast.error("Failed to load whiteboard accounts");
-      // Fallback for development
-      setAccounts([
-            { id: "1", username: "teacher1", loginId: "teacher1", name: "Math Teacher", isActive: true, createdAt: new Date().toISOString() },
-            { id: "2", username: "teacher2", loginId: "teacher2", name: "Science Teacher", isActive: true, createdAt: new Date().toISOString() },
-      ]);
+      const message = error instanceof Error ? error.message : "";
+      if (isAuthError(message)) {
+        toast.error("Session expired. Please log in again.");
+        forceReLogin();
+        return;
+      }
+      toast.error(message || "Failed to load whiteboard accounts");
+      setAccounts([]);
     } finally {
       setIsLoading(false);
     }
@@ -86,20 +142,40 @@ export default function WhiteboardAccountsPage() {
   }, []);
 
   const handleAddAccount = async () => {
-    if (!newAccount.username) {
+    const username = newAccount.username.trim();
+    const password = newAccount.password.trim();
+    const name = newAccount.name.trim();
+    const maxConcurrentLogins = Number(newAccount.maxConcurrentLogins);
+
+    if (!username) {
       toast.error("Username is required");
-        return;
+      return;
     }
+
+    if (username.length < 3) {
+      toast.error("Username must be at least 3 characters");
+      return;
+    }
+
+    if (password && password.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+
+    if (!Number.isInteger(maxConcurrentLogins) || maxConcurrentLogins < 1 || maxConcurrentLogins > 10) {
+      toast.error("Max active logins must be between 1 and 10");
+      return;
+    }
+
+    const payload: { username: string; password?: string; name?: string; maxConcurrentLogins: number } = {
+      username,
+      maxConcurrentLogins,
+    };
+    if (password) payload.password = password;
+    if (name) payload.name = name;
+
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/whiteboard-accounts`, {
-          method: 'POST',
-          headers: { 
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('token')}` 
-          },
-          body: JSON.stringify(newAccount)
-      });
-      const result = await response.json();
+      const result = await api.post<ApiResult<any>>("/whiteboard-accounts", payload);
       if (result.success) {
         const creds = result?.data?.credentials;
         if (creds?.username && creds?.password) {
@@ -109,31 +185,49 @@ export default function WhiteboardAccountsPage() {
           toast.success("Whiteboard account created");
         }
         setShowAddDialog(false);
-        setNewAccount({ username: "", password: "", name: "" });
+        setNewAccount({ username: "", password: "", name: "", maxConcurrentLogins: "1" });
         fetchAccounts();
       } else {
+        if (isAuthError(result.message)) {
+          toast.error("Session expired. Please log in again.");
+          forceReLogin();
+          return;
+        }
         toast.error(result.message || "Failed to create account");
       }
     } catch (error) {
-      toast.error("Failed to create account");
+      const message = error instanceof Error ? error.message : "";
+      if (isAuthError(message)) {
+        toast.error("Session expired. Please log in again.");
+        forceReLogin();
+        return;
+      }
+      toast.error(message || "Failed to create account");
     }
   };
 
   const handleDelete = async () => {
     if (accountToDelete) {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/whiteboard-accounts/${accountToDelete}`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
-        });
-        const result = await response.json();
+        const result = await api.delete<ApiResult<any>>(`/whiteboard-accounts/${accountToDelete}`);
         if (result.success) {
             toast.success("Account deleted");
             setShowDeleteDialog(false);
             setAccountToDelete(null);
             fetchAccounts();
+        } else if (isAuthError(result.message)) {
+            toast.error("Session expired. Please log in again.");
+            forceReLogin();
+        } else {
+            toast.error(result.message || "Failed to delete account");
         }
       } catch (error) {
+        const message = error instanceof Error ? error.message : "";
+        if (isAuthError(message)) {
+          toast.error("Session expired. Please log in again.");
+          forceReLogin();
+          return;
+        }
         toast.error("Failed to delete account");
       }
     }
@@ -144,16 +238,47 @@ export default function WhiteboardAccountsPage() {
     (acc.name && acc.name.toLowerCase().includes(search.toLowerCase()))
   );
 
+  const handleSaveLoginLimit = async (account: WhiteboardAccount) => {
+    const draftValue = Number(limitDrafts[account.id] ?? account.maxConcurrentLogins ?? 1);
+    if (!Number.isInteger(draftValue) || draftValue < 1 || draftValue > 10) {
+      toast.error("Max active logins must be between 1 and 10");
+      return;
+    }
+
+    setSavingLimitId(account.id);
+    try {
+      const result = await api.patch<ApiResult<WhiteboardAccount>>(`/whiteboard-accounts/${account.id}`, {
+        maxConcurrentLogins: draftValue,
+      });
+
+      if (result.success && result.data) {
+        setAccounts((prev) =>
+          prev.map((item) => (item.id === account.id ? { ...item, ...result.data } : item)),
+        );
+        setLimitDrafts((prev) => ({ ...prev, [account.id]: String(draftValue) }));
+        toast.success("Login limit updated");
+      } else if (isAuthError(result.message)) {
+        toast.error("Session expired. Please log in again.");
+        forceReLogin();
+      } else {
+        toast.error(result.message || "Failed to update login limit");
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (isAuthError(message)) {
+        toast.error("Session expired. Please log in again.");
+        forceReLogin();
+        return;
+      }
+      toast.error(message || "Failed to update login limit");
+    } finally {
+      setSavingLimitId(null);
+    }
+  };
+
   const handleResetPassword = async (accountId: string) => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/whiteboard-accounts/${accountId}/reset-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-      });
-      const result = await response.json();
+      const result = await api.post<ApiResult<any>>(`/whiteboard-accounts/${accountId}/reset-password`);
       if (result.success) {
         const creds = result?.data?.credentials;
         if (creds?.username && creds?.password) {
@@ -161,11 +286,20 @@ export default function WhiteboardAccountsPage() {
           setShowCredentialsDialog(true);
         }
         toast.success('Password reset successful');
+      } else if (isAuthError(result.message)) {
+        toast.error("Session expired. Please log in again.");
+        forceReLogin();
       } else {
         toast.error(result.message || 'Failed to reset password');
       }
-    } catch {
-      toast.error('Failed to reset password');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      if (isAuthError(message)) {
+        toast.error("Session expired. Please log in again.");
+        forceReLogin();
+        return;
+      }
+      toast.error(message || 'Failed to reset password');
     }
   };
 
@@ -224,6 +358,8 @@ export default function WhiteboardAccountsPage() {
                       <tr className="border-b bg-gray-50">
                         <th className="text-left p-4 font-medium text-gray-500 text-sm">Username</th>
                         <th className="text-left p-4 font-medium text-gray-500 text-sm">Teacher Name</th>
+                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Active Logins</th>
+                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Max Allowed</th>
                         <th className="text-center p-4 font-medium text-gray-500 text-sm">Status</th>
                         <th className="text-left p-4 font-medium text-gray-500 text-sm">Created At</th>
                         <th className="text-center p-4 font-medium text-gray-500 text-sm">Actions</th>
@@ -232,16 +368,47 @@ export default function WhiteboardAccountsPage() {
                     <tbody>
                       {isLoading ? (
                         <tr>
-                          <td colSpan={5} className="p-8 text-center text-gray-500">Loading accounts...</td>
+                          <td colSpan={7} className="p-8 text-center text-gray-500">Loading accounts...</td>
                         </tr>
                       ) : filteredAccounts.length === 0 ? (
                         <tr>
-                          <td colSpan={5} className="p-8 text-center text-gray-500">No accounts found</td>
+                          <td colSpan={7} className="p-8 text-center text-gray-500">No accounts found</td>
                         </tr>
                       ) : filteredAccounts.map((acc) => (
                         <tr key={acc.id} className="border-b hover:bg-gray-50 transition-colors">
                           <td className="p-4 font-medium text-gray-900">{acc.username || acc.loginId}</td>
                           <td className="p-4 text-gray-600">{acc.name || "N/A"}</td>
+                          <td className="p-4 text-center">
+                            <Badge className="bg-blue-100 text-blue-700 font-normal">
+                              {acc.activeLoginCount ?? 0}
+                            </Badge>
+                          </td>
+                          <td className="p-4">
+                            <div className="flex items-center justify-center gap-2">
+                              <Input
+                                type="number"
+                                min={1}
+                                max={10}
+                                value={limitDrafts[acc.id] ?? String(acc.maxConcurrentLogins ?? 1)}
+                                onChange={(e) =>
+                                  setLimitDrafts((prev) => ({
+                                    ...prev,
+                                    [acc.id]: e.target.value,
+                                  }))
+                                }
+                                className="h-8 w-20 text-center"
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleSaveLoginLimit(acc)}
+                                disabled={savingLimitId === acc.id}
+                                className="h-8 px-2"
+                              >
+                                <Save className="w-3.5 h-3.5" />
+                              </Button>
+                            </div>
+                          </td>
                           <td className="p-4 text-center">
                             <Badge className={acc.isActive ? "bg-green-100 text-green-700 font-normal" : "bg-red-100 text-red-700 font-normal"}>
                               {acc.isActive ? "Active" : "Inactive"}
@@ -321,6 +488,17 @@ export default function WhiteboardAccountsPage() {
                 value={newAccount.name}
                 onChange={(e) => setNewAccount({...newAccount, name: e.target.value})}
               />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Max Active Logins</label>
+              <Input
+                type="number"
+                min={1}
+                max={10}
+                value={newAccount.maxConcurrentLogins}
+                onChange={(e) => setNewAccount({ ...newAccount, maxConcurrentLogins: e.target.value })}
+              />
+              <p className="text-xs text-gray-500">1 recommended. Isse same ID se multiple devices login control hoga.</p>
             </div>
           </div>
           <DialogFooter>

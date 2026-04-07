@@ -6,6 +6,8 @@ import 'slide_content_layer.dart';
 import 'editable_question_layer.dart';
 import 'annotation_layer.dart';
 import 'overlay_layer.dart';
+import '../../../../question_widget/presentation/providers/interaction_state_provider.dart';
+
 
 class WhiteboardCanvas extends ConsumerStatefulWidget {
   const WhiteboardCanvas({super.key});
@@ -29,9 +31,11 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
   @override
   Widget build(BuildContext context) {
     final toolState = ref.watch(toolNotifierProvider);
+    final isDraggingWidget = ref.watch(isDraggingWidgetProvider);
     
-    // Zoom/Pan is only enabled in Navigate mode OR via 2-finger gesture (handled by InteractiveViewer automatically)
-    final panEnabled = toolState.activeTool == Tool.navigate;
+    // Zoom/Pan is enabled in Navigate mode AND only if no widget is being dragged
+    final panEnabled = toolState.activeTool == Tool.navigate && !isDraggingWidget;
+
 
     return LayoutBuilder(
       builder: (context, constraints) {

@@ -992,11 +992,12 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
       child: Stack(
         children: [
           GestureDetector(
-            behavior: HitTestBehavior.opaque,
+            behavior: HitTestBehavior.translucent,
             onScaleStart: _onScaleStart,
             onScaleUpdate: _onScaleUpdate,
             onScaleEnd: _onScaleEnd,
             child: Listener(
+              behavior: HitTestBehavior.translucent,
               onPointerDown: _onPointerDown,
               onPointerMove: _onPointerMove,
               onPointerUp: _onPointerUp,

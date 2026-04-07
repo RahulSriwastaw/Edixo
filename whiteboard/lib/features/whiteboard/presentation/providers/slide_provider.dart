@@ -7,47 +7,54 @@ import '../../data/models/set_metadata_model.dart';
 import 'canvas_provider.dart';
 import '../../../question_widget/presentation/providers/selected_widget_provider.dart';
 import '../../../question_widget/presentation/providers/question_widget_provider.dart';
+import '../../data/models/page_models.dart';
+
+
+import '../../../question_widget/presentation/providers/set_layout_notifier.dart';
+import 'app_mode_provider.dart';
+
 
 part 'slide_provider.g.dart';
 
 // ── SlideState ──────────────────────────────────────────────────────────────
 
 class SlideState {
-  final List<SetSlideModel>              slides;
-  final int                              currentSlideIndex;
+  final List<WhiteboardPage>            pages;
+  final int                              currentPageIndex;
   final SetMetadataModel?                setMetadata;
   final Map<String, SlideAnnotationData> savedAnnotations;
 
   const SlideState({
-    required this.slides,
-    required this.currentSlideIndex,
+    required this.pages,
+    required this.currentPageIndex,
     this.setMetadata,
     required this.savedAnnotations,
   });
 
   factory SlideState.initial() => const SlideState(
-    slides:            [],
-    currentSlideIndex: 0,
+    pages:            [],
+    currentPageIndex: 0,
     savedAnnotations:  {},
   );
 
-  SetSlideModel? get currentSlide =>
-    slides.isEmpty ? null : slides[currentSlideIndex];
+  WhiteboardPage? get currentPage =>
+    pages.isEmpty ? null : pages[currentPageIndex];
 
-  bool get hasSlides => slides.isNotEmpty;
+  bool get hasSlides => pages.isNotEmpty;
 
   SlideState copyWith({
-    List<SetSlideModel>?              slides,
-    int?                              currentSlideIndex,
+    List<WhiteboardPage>?              pages,
+    int?                              currentPageIndex,
     SetMetadataModel?                 setMetadata,
     Map<String, SlideAnnotationData>? savedAnnotations,
   }) => SlideState(
-    slides:            slides            ?? this.slides,
-    currentSlideIndex: currentSlideIndex ?? this.currentSlideIndex,
+    pages:            pages            ?? this.pages,
+    currentPageIndex: currentPageIndex ?? this.currentPageIndex,
     setMetadata:       setMetadata       ?? this.setMetadata,
     savedAnnotations:  savedAnnotations  ?? this.savedAnnotations,
   );
 }
+
 
 // ── SlideNotifier ───────────────────────────────────────────────────────────
 
@@ -58,25 +65,34 @@ class SlideNotifier extends _$SlideNotifier {
 
   /// Called after successful Set import.
   void loadSlides(List<SetSlideModel> slides, SetMetadataModel metadata) {
+    final pages = slides.map((s) => SetImportPage(id: s.slideId, slide: s)).toList();
+    
     state = SlideState(
-      slides:            slides,
-      currentSlideIndex: 0,
+      pages:            pages,
+      currentPageIndex: 0,
       setMetadata:       metadata,
       savedAnnotations:  {},
     );
+    
+    // Initialize layout for the set
+    ref.read(setLayoutNotifierProvider.notifier).initSet(metadata.setId);
+
+    
     // Load first slide canvas
-    _activateSlide(0);
+    if (pages.isNotEmpty) {
+      _activateSlide(0);
+    }
   }
 
   /// Navigate to a different slide by index.
   void navigateToSlide(int index) {
-    if (index < 0 || index >= state.slides.length) return;
-    if (index == state.currentSlideIndex) return;
+    if (index < 0 || index >= state.pages.length) return;
+    if (index == state.currentPageIndex) return;
 
     // 1. Persist current canvas annotations before leaving
     _persistCurrentCanvas();
     // 2. Update index
-    state = state.copyWith(currentSlideIndex: index);
+    state = state.copyWith(currentPageIndex: index);
     // 3. Load new slide canvas
     _activateSlide(index);
     // 4. Deselect any selected widget
@@ -85,26 +101,31 @@ class SlideNotifier extends _$SlideNotifier {
 
   void _persistCurrentCanvas() {
     final canvas  = ref.read(canvasNotifierProvider);
-    final slideId = state.currentSlide?.slideId;
-    if (slideId == null) return;
+    final pageId = state.currentPage?.id;
+    if (pageId == null) return;
     final annotation = SlideAnnotationData(
-      slideId: slideId,
+      slideId: pageId,
       strokes: List.from(canvas.strokes),
       objects: List.from(canvas.objects),
     );
     state = state.copyWith(
-      savedAnnotations: {...state.savedAnnotations, slideId: annotation},
+      savedAnnotations: {...state.savedAnnotations, pageId: annotation},
     );
   }
 
   void _activateSlide(int index) {
-    final slide  = state.slides[index];
-    final saved  = state.savedAnnotations[slide.slideId];
+    final page  = state.pages[index];
+    final saved  = state.savedAnnotations[page.id];
     ref.read(canvasNotifierProvider.notifier).loadFromAnnotation(
-      saved ?? SlideAnnotationData(slideId: slide.slideId),
+      saved ?? SlideAnnotationData(slideId: page.id),
     );
     
-    // Load question widgets for this slide
-    ref.read(questionWidgetNotifierProvider.notifier).populateFromSlides([slide]);
+    if (page is SetImportPage) {
+      // Load layouts for this question
+      ref.read(setLayoutNotifierProvider.notifier).loadLayoutsForQuestion(page.slide.questionNumber);
+      // Also enter Slide Mode if not already
+      ref.read(appModeNotifierProvider.notifier).enterSlideMode();
+    }
   }
 }
+

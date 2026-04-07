@@ -65,23 +65,26 @@ class SetImportNotifier extends _$SetImportNotifier {
     );
 
     await validateResult.fold(
-      (isValid) async {
-        if (!isValid) {
-          state = state.copyWith(
-            state: SetImportState.failure,
-            error: const NotFoundFailure('Invalid set ID or password'),
-            debugMessage: 'Invalid set ID or password',
-          );
-          return;
-        }
-
-        // Step 2: Fetch questions
+      (_) async {
+        // Validation passed — fetch questions
         state = state.copyWith(state: SetImportState.importing);
 
         final questionsResult = await ref.read(setRemoteDsProvider).fetchQuestions(setId);
 
         await questionsResult.fold(
           (questions) async {
+            // Guard: empty question set (extra safety)
+            if (questions.isEmpty) {
+              state = state.copyWith(
+                state: SetImportState.failure,
+                error: const NotFoundFailure(
+                  'This set has no questions. Please add questions from the Super Admin panel.',
+                ),
+                debugMessage: 'Set returned 0 questions',
+              );
+              return;
+            }
+
             // Step 3: Fetch metadata
             final metadataResult = await ref.read(setRemoteDsProvider).fetchMetadata(setId);
 
@@ -107,7 +110,7 @@ class SetImportNotifier extends _$SetImportNotifier {
                   (sessionId) async {
                     // Step 5: Load slides into providers
                     ref.read(slideNotifierProvider.notifier).loadSlides(questions, metadata);
-                    ref.read(questionWidgetNotifierProvider.notifier).populateFromSlides(questions);
+                    ref.read(questionWidgetNotifierProvider.notifier).clear();
                     ref.read(appModeNotifierProvider.notifier).enterSlideMode();
                     ref.read(sessionNotifierProvider.notifier).startSession(sessionId);
 
@@ -145,6 +148,7 @@ class SetImportNotifier extends _$SetImportNotifier {
         );
       },
       (failure) {
+        // validate-set returned valid:false — backend's reason message is shown
         state = state.copyWith(
           state: SetImportState.failure,
           error: failure,

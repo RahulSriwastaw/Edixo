@@ -9,7 +9,7 @@ import '../widgets/overlays/slide_panel_drawer.dart';
 import '../widgets/teaching_tools/spotlight_overlay.dart';
 import '../widgets/teaching_tools/class_timer.dart';
 import '../widgets/teaching_tools/screen_cover.dart';
-import '../widgets/teaching_tools/navigation_map.dart';
+
 import '../widgets/subject_tools/ruler_widget.dart';
 import '../widgets/subject_tools/protractor_widget.dart';
 import '../widgets/subject_tools/compass_widget.dart';
@@ -18,6 +18,8 @@ import '../widgets/panels/next_question_preview_panel.dart';
 import '../../services/keyboard_shortcut_service.dart';
 import '../providers/app_mode_provider.dart';
 import '../providers/slide_provider.dart';
+
+
 
 class WhiteboardScreen extends ConsumerStatefulWidget {
   const WhiteboardScreen({super.key});
@@ -84,12 +86,17 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
           // 1. The 5-Layer Canvas (Layer 1-5 already inside)
           const WhiteboardCanvas(),
 
-          // 2. Top Toolbar (Session info, Import Set, End Class)
-          const Positioned(
+          // 2. Top Toolbar (Session info, Import Set, End Class, AI, Timer)
+          Positioned(
             top: 0,
             left: 0,
             right: 0,
-            child: TopToolbar(),
+            child: TopToolbar(
+              isAiActive: _showAiAssistant,
+              isTimerActive: _showTimer,
+              onToggleAi: () => setState(() => _showAiAssistant = !_showAiAssistant),
+              onToggleTimer: () => setState(() => _showTimer = !_showTimer),
+            ),
           ),
 
           // 3. Main Tool Controls (Bottom)
@@ -100,7 +107,6 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
 
           // 5. Teaching Tools Overlays
           const SpotlightOverlay(),
-          const ScreenCover(),
 
           // 6. Timer panel (teacher-controlled)
           if (_showTimer)
@@ -112,13 +118,6 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
               ),
             ),
 
-          // 7. Navigation Map (Bottom-right, toggleable)
-          if (appMode == AppMode.slideMode)
-            Positioned(
-              bottom: 80,
-              right: _showAiAssistant ? 340 : 20,
-              child: const NavigationMap(),
-            ),
 
           // 7.5 Next Question Preview (Left side, toggleable)
           if (_showNextPreview && ref.watch(slideNotifierProvider).hasSlides)
@@ -158,19 +157,7 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
               child: AiAssistantPanel(),
             ),
 
-          // 11. Watch icon for timer
-          Positioned(
-            top: 70,
-            right: (_showAiAssistant ? 340 : 20) + (_showTimer ? 340 : 0),
-            child: _ToolButton(
-              icon: _showTimer ? Icons.watch_later : Icons.watch_later_outlined,
-              label: _showTimer ? 'Hide Timer' : 'Show Timer',
-              isActive: _showTimer,
-              onTap: () => setState(() => _showTimer = !_showTimer),
-            ),
-          ),
-
-          // 11.5 Next Question Preview Toggle Button
+          // Next Question Preview Toggle Button
           Positioned(
             top: 70,
             left: _showNextPreview ? 340 : 20,
@@ -183,29 +170,6 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
               onTap: () => setState(() => _showNextPreview = !_showNextPreview),
             ),
           ),
-
-          // 12. AI Assistant Toggle Button
-          if (!_showAiAssistant)
-            Positioned(
-              top: 70,
-              right: (_showTimer ? 380 : 80),
-              child: ElevatedButton.icon(
-                onPressed: () => setState(() => _showAiAssistant = true),
-                icon: const Icon(Icons.smart_toy, size: 18),
-                label: const Text('AI'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-              ),
-            ),
         ],
       ),
     );
