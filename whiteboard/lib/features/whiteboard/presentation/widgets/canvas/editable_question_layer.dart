@@ -234,6 +234,8 @@ class _DraggableResizableQuestionWidgetState
     final isSelected = ref.watch(selectedWidgetNotifierProvider) == widget.id;
     final isLocked = widget.model.isLocked;
     final canEdit = widget.canEdit && !isLocked;
+    final style = widget.model.style;
+    final showBg = style.showCardBackground;
 
     return GestureDetector(
       onTap: () {
@@ -260,18 +262,33 @@ class _DraggableResizableQuestionWidgetState
       child: Stack(
         clipBehavior: Clip.none,
         children: [
+          // Selection Outline (Dashed, only when background is hidden)
+          if (isSelected && !showBg)
+             Positioned.fill(
+               child: Container(
+                 decoration: BoxDecoration(
+                   borderRadius: BorderRadius.circular(style.borderRadius),
+                   border: Border.all(
+                     color: Colors.orange.withValues(alpha: 0.5),
+                     width: 1,
+                     style: BorderStyle.solid, // Could use dashed painter if available
+                   ),
+                 ),
+               ),
+             ),
+
           // Main widget content
           Material(
             color: Colors.transparent,
             child: Container(
               decoration: BoxDecoration(
-                color: Color(widget.model.style.questionBgColorARGB),
+                color: showBg ? Color(style.questionBgColorARGB) : Colors.transparent,
                 border: Border.all(
-                  color: isSelected ? Colors.orange : Color(widget.model.style.borderColorARGB),
-                  width: isSelected ? 3.0 : widget.model.style.borderWidth,
+                  color: isSelected ? Colors.orange : (showBg ? Color(style.borderColorARGB) : Colors.transparent),
+                  width: (isSelected || showBg) ? (isSelected ? 3.0 : style.borderWidth) : 0,
                 ),
-                borderRadius: BorderRadius.circular(widget.model.style.borderRadius),
-                boxShadow: widget.model.style.hasShadow || isSelected
+                borderRadius: BorderRadius.circular(style.borderRadius),
+                boxShadow: (showBg && (style.hasShadow || isSelected))
                     ? [
                         BoxShadow(
                           color: isSelected ? Colors.orange.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.3),
@@ -281,7 +298,7 @@ class _DraggableResizableQuestionWidgetState
                       ]
                     : [],
               ),
-              padding: EdgeInsets.all(widget.model.style.padding),
+              padding: EdgeInsets.all(style.padding),
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,9 +307,9 @@ class _DraggableResizableQuestionWidgetState
                     Text(
                       widget.model.questionText,
                       style: TextStyle(
-                        color: Color(widget.model.style.questionTextColorARGB),
-                        fontSize: widget.model.style.questionFontSize.toDouble(),
-                        fontFamily: widget.model.style.fontFamily,
+                        color: Color(style.questionTextColorARGB),
+                        fontSize: style.questionFontSize.toDouble(),
+                        fontFamily: style.fontFamily,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -307,16 +324,17 @@ class _DraggableResizableQuestionWidgetState
                               width: 28,
                               height: 28,
                               decoration: BoxDecoration(
-                                color: Color(widget.model.style.optionBgColorARGB),
+                                color: Color(style.optionBgColorARGB),
                                 borderRadius: BorderRadius.circular(4),
+                                border: (showBg || Color(style.optionBgColorARGB).alpha > 0) ? null : Border.all(color: Colors.white24),
                               ),
                               alignment: Alignment.center,
                               child: Text(
                                 option.label,
                                 style: TextStyle(
-                                  color: Color(widget.model.style.optionTextColorARGB),
+                                  color: Color(style.optionTextColorARGB),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: widget.model.style.optionFontSize.toDouble(),
+                                  fontSize: style.optionFontSize.toDouble(),
                                 ),
                               ),
                             ),
@@ -325,9 +343,9 @@ class _DraggableResizableQuestionWidgetState
                               child: Text(
                                 option.text,
                                 style: TextStyle(
-                                  color: Color(widget.model.style.optionTextColorARGB),
-                                  fontSize: widget.model.style.optionFontSize.toDouble(),
-                                  fontFamily: widget.model.style.fontFamily,
+                                  color: Color(style.optionTextColorARGB),
+                                  fontSize: style.optionFontSize.toDouble(),
+                                  fontFamily: style.fontFamily,
                                 ),
                               ),
                             ),

@@ -25,6 +25,9 @@ class AuthInterceptor extends Interceptor {
     final token = await storage.readAccessToken();
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
+      // print('Dio Interceptor: Attaching token to ${options.path}');
+    } else {
+      // print('Dio Interceptor: No token found for ${options.path}');
     }
     handler.next(options);
   }
@@ -35,8 +38,10 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 401) {
+      // print('Dio Interceptor: 401 error on ${err.requestOptions.path}');
       final refreshed = await _tryRefresh();
       if (refreshed) {
+        // print('Dio Interceptor: Token refreshed, retrying ${err.requestOptions.path}');
         // Retry original request with new token
         final storage = _ref.read(secureStorageProvider);
         final token = await storage.readAccessToken();
@@ -46,9 +51,11 @@ class AuthInterceptor extends Interceptor {
           final response = await dio.fetch(err.requestOptions);
           handler.resolve(response);
           return;
-        } catch (_) {
-          // Retry also failed
+        } catch (e) {
+          // print('Dio Interceptor: Retry failed: $e');
         }
+      } else {
+        // print('Dio Interceptor: Refresh failed for ${err.requestOptions.path}');
       }
       // Refresh failed — logout user
       // TODO: Trigger logout via authProvider.notifier.logout()

@@ -228,6 +228,64 @@ router.post('/logout', authenticate, async (_req, res, next) => {
   }
 });
 
+router.post('/refresh', async (req, res, next) => {
+  try {
+    const { refreshToken } = req.body ?? {};
+    if (!refreshToken) throw new AppError('Refresh token required', 400);
+
+    // Decode to pick the right secret
+    const decoded = jwt.decode(refreshToken) as any;
+    if (!decoded) throw new AppError('Invalid refresh token', 401);
+
+    const secret = decoded.role === 'SUPER_ADMIN'
+      ? env.JWT_SUPER_ADMIN_SECRET
+      : env.JWT_SECRET;
+
+    const verified = jwt.verify(refreshToken, secret) as any;
+    if (verified.type !== 'refresh') throw new AppError('Invalid token type', 401);
+
+    // Session check for whiteboard users
+    if (verified.role === 'WHITEBOARD_USER' && verified.jti && hasLoginSessionModel()) {
+      try {
+        const activeSession = await prismaAny.whiteboardLoginSession.findFirst({
+          where: {
+            tokenId: verified.jti,
+            revokedAt: null,
+            expiresAt: { gt: new Date() },
+          },
+        });
+        if (!activeSession) throw new AppError('Session revoked or expired', 401);
+      } catch (err) {
+        if (!isMissingSessionTableError(err)) throw err;
+      }
+    }
+
+    const tokenPayload = {
+      userId: verified.userId,
+      role: verified.role,
+      username: verified.username,
+      name: verified.name,
+      jti: verified.jti,
+    };
+
+    const newAccessToken = generateToken(tokenPayload, secret, env.JWT_EXPIRES_IN);
+    const newRefreshToken = generateToken({ ...tokenPayload, type: 'refresh' }, secret, env.JWT_REFRESH_EXPIRES_IN);
+
+    res.json({
+      success: true,
+      data: {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+        user: tokenPayload,
+      },
+    });
+  } catch (err) {
+    if (err instanceof jwt.TokenExpiredError) return next(new AppError('Refresh token expired', 401));
+    if (err instanceof jwt.JsonWebTokenError) return next(new AppError('Invalid refresh token', 401));
+    next(err);
+  }
+});
+
 router.get('/me', authenticate, async (req, res, next) => {
   try {
     res.json({ success: true, data: req.user });

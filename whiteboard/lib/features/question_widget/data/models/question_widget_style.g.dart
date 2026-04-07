@@ -33,13 +33,14 @@ class QuestionWidgetStyleAdapter extends TypeAdapter<QuestionWidgetStyle> {
       bgImageUrl: fields[13] as String?,
       bgImageOpacity: fields[14] as double,
       bgImageFitIndex: fields[15] as int,
+      showCardBackground: fields[16] == null ? true : fields[16] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, QuestionWidgetStyle obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(17)
       ..writeByte(0)
       ..write(obj.questionTextColorARGB)
       ..writeByte(1)
@@ -71,7 +72,9 @@ class QuestionWidgetStyleAdapter extends TypeAdapter<QuestionWidgetStyle> {
       ..writeByte(14)
       ..write(obj.bgImageOpacity)
       ..writeByte(15)
-      ..write(obj.bgImageFitIndex);
+      ..write(obj.bgImageFitIndex)
+      ..writeByte(16)
+      ..write(obj.showCardBackground);
   }
 
   @override

@@ -103,6 +103,7 @@ class SetSettingsModel extends HiveObject {
   @HiveField(11, defaultValue: 0x00000000) final int optionBorderColor;
   @HiveField(12, defaultValue: 0.0) final double optionBorderWidth;
   @HiveField(13, defaultValue: null) final String? backgroundPreset;
+  @HiveField(14, defaultValue: true) final bool showCardBackground;
 
   SetSettingsModel({
     required this.questionColor,
@@ -119,6 +120,7 @@ class SetSettingsModel extends HiveObject {
     this.optionBorderColor = 0x00000000,
     this.optionBorderWidth = 0.0,
     this.backgroundPreset,
+    this.showCardBackground = true,
   });
 
   static SetSettingsModel get defaults => SetSettingsModel(
@@ -134,6 +136,7 @@ class SetSettingsModel extends HiveObject {
     optionBorderColor: 0x00000000,
     optionBorderWidth: 0.0,
     backgroundPreset: null,
+    showCardBackground: true,
   );
 
   SetSettingsModel copyWith({
@@ -151,6 +154,7 @@ class SetSettingsModel extends HiveObject {
     int? optionBorderColor,
     double? optionBorderWidth,
     String? backgroundPreset,
+    bool? showCardBackground,
     bool clearBackground = false,
   }) => SetSettingsModel(
     questionColor: questionColor ?? this.questionColor,
@@ -167,5 +171,6 @@ class SetSettingsModel extends HiveObject {
     optionBorderColor: optionBorderColor ?? this.optionBorderColor,
     optionBorderWidth: optionBorderWidth ?? this.optionBorderWidth,
     backgroundPreset: clearBackground ? null : (backgroundPreset ?? this.backgroundPreset),
+    showCardBackground: showCardBackground ?? this.showCardBackground,
   );
 }

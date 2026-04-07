@@ -27,6 +27,7 @@ class QuestionWidgetStyle extends HiveObject {
   @HiveField(14) final double bgImageOpacity;
   // ✅ v3.1 FIX: Store as int index instead of BoxFit (Flutter type not Hive-serializable)
   @HiveField(15) final int   bgImageFitIndex;
+  @HiveField(16, defaultValue: true) final bool   showCardBackground;
 
   // Getter for convenient access
   BoxFit get bgImageFit => BoxFit.values[bgImageFitIndex];
@@ -48,6 +49,7 @@ class QuestionWidgetStyle extends HiveObject {
     this.bgImageUrl,
     required this.bgImageOpacity,
     required this.bgImageFitIndex,
+    this.showCardBackground = true,
   });
 
   // Default coaching aesthetic: black bg, white question, yellow options
@@ -68,6 +70,7 @@ class QuestionWidgetStyle extends HiveObject {
     bgImageUrl:            null,
     bgImageOpacity:        1.0,
     bgImageFitIndex:       0,  // BoxFit.fill = index 0
+    showCardBackground:    true,
   );
 
   QuestionWidgetStyle copyWith({
@@ -78,6 +81,7 @@ class QuestionWidgetStyle extends HiveObject {
     int? borderColorARGB, bool? hasShadow, double? padding,
     String? bgImagePath, String? bgImageUrl,
     double? bgImageOpacity, int? bgImageFitIndex,
+    bool? showCardBackground,
   }) => QuestionWidgetStyle(
     questionTextColorARGB: questionTextColorARGB ?? this.questionTextColorARGB,
     questionBgColorARGB:   questionBgColorARGB   ?? this.questionBgColorARGB,
@@ -95,6 +99,7 @@ class QuestionWidgetStyle extends HiveObject {
     bgImageUrl:            bgImageUrl            ?? this.bgImageUrl,
     bgImageOpacity:        bgImageOpacity        ?? this.bgImageOpacity,
     bgImageFitIndex:       bgImageFitIndex       ?? this.bgImageFitIndex,
+    showCardBackground:    showCardBackground    ?? this.showCardBackground,
   );
 
   Map<String, dynamic> toJson() => {

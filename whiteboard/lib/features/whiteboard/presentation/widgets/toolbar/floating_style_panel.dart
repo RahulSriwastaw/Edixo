@@ -212,6 +212,25 @@ class FloatingStylePanel extends ConsumerWidget {
                     ),
                   ),
 
+                  // 7.5. Card Background toggle
+                  _StyleSection(
+                    title: 'Card Background',
+                    child: SwitchListTile(
+                      value: style.showCardBackground,
+                      onChanged: (v) => notifier.updateStyle(
+                        selectedWidgetId,
+                        style.copyWith(showCardBackground: v),
+                      ),
+                      activeThumbColor: AppColors.accentOrange,
+                      contentPadding: EdgeInsets.zero,
+                      dense: true,
+                      title: Text(
+                        style.showCardBackground ? 'Show' : 'Hide',
+                        style: AppTextStyles.caption.copyWith(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ),
+
                   // 8. Background Image
                   _StyleSection(
                     title: 'Background Image',

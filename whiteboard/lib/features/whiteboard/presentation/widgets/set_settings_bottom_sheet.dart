@@ -227,6 +227,12 @@ class SetSettingsBottomSheet extends ConsumerWidget {
               onChanged: (v) => _update(ref, settings.copyWith(showSourceBadge: v)),
               activeColor: Colors.orange,
             ),
+            SwitchListTile(
+              title: const Text('Show Card Background', style: TextStyle(color: Colors.white70)),
+              value: settings.showCardBackground,
+              onChanged: (v) => _update(ref, settings.copyWith(showCardBackground: v)),
+              activeColor: Colors.orange,
+            ),
 
             const SizedBox(height: 32),
 

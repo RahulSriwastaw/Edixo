@@ -195,6 +195,14 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
                         _applyStyle();
                       },
                     ),
+                    _buildSwitchWithLabel(
+                      'Show Card Background',
+                      _style.showCardBackground,
+                      (value) {
+                        _style = _style.copyWith(showCardBackground: value);
+                        _applyStyle();
+                      },
+                    ),
 
                     const SizedBox(height: 32),
 

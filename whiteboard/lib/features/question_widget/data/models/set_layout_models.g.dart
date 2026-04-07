@@ -169,13 +169,14 @@ class SetSettingsModelAdapter extends TypeAdapter<SetSettingsModel> {
       optionBorderColor: fields[11] == null ? 0 : fields[11] as int,
       optionBorderWidth: fields[12] == null ? 0.0 : fields[12] as double,
       backgroundPreset: fields[13] as String?,
+      showCardBackground: fields[14] == null ? true : fields[14] as bool,
     );
   }
 
   @override
   void write(BinaryWriter writer, SetSettingsModel obj) {
     writer
-      ..writeByte(14)
+      ..writeByte(15)
       ..writeByte(0)
       ..write(obj.questionColor)
       ..writeByte(1)
@@ -203,7 +204,9 @@ class SetSettingsModelAdapter extends TypeAdapter<SetSettingsModel> {
       ..writeByte(12)
       ..write(obj.optionBorderWidth)
       ..writeByte(13)
-      ..write(obj.backgroundPreset);
+      ..write(obj.backgroundPreset)
+      ..writeByte(14)
+      ..write(obj.showCardBackground);
   }
 
   @override

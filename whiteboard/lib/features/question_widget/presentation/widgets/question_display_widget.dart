@@ -23,23 +23,27 @@ class QuestionDisplayWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final showBg = settings.showCardBackground;
+
     return Container(
       decoration: BoxDecoration(
-        color: Color(settings.questionBg),
+        color: showBg ? Color(settings.questionBg) : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
-        border: settings.questionBorderWidth > 0
+        border: (showBg && settings.questionBorderWidth > 0)
             ? Border.all(
                 color: Color(settings.questionBorderColor),
                 width: settings.questionBorderWidth,
               )
             : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: showBg
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ]
+            : [],
       ),
       child: Stack(
         clipBehavior: Clip.none,
@@ -76,31 +80,32 @@ class QuestionDisplayWidget extends StatelessWidget {
           ),
 
           // Question Number Badge
-          Positioned(
-            top: 0,
-            left: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
-              decoration: const BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(11),
-                  bottomRight: Radius.circular(12),
+          if (showBg)
+            Positioned(
+              top: 0,
+              left: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                decoration: const BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(11),
+                    bottomRight: Radius.circular(12),
+                  ),
                 ),
-              ),
-              child: Text(
-                'Q $questionNumber',
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 12,
+                child: Text(
+                  'Q $questionNumber',
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
-          ),
 
           // Source Badge
-          if (settings.showSourceBadge && source != null)
+          if (showBg && settings.showSourceBadge && source != null)
             Positioned(
               top: 0,
               right: 0,

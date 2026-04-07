@@ -4,9 +4,6 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/set_layout_models.dart';
 import '../../../whiteboard/data/models/slide_model.dart';
 
-
-
-
 class OptionsDisplayWidget extends StatefulWidget {
   final List<SlideOption> options;
   final SetSettingsModel settings;
@@ -24,76 +21,78 @@ class OptionsDisplayWidget extends StatefulWidget {
 class _OptionsDisplayWidgetState extends State<OptionsDisplayWidget> {
   @override
   Widget build(BuildContext context) {
-    if (!widget.settings.showOptions) return const SizedBox.shrink();
+    final showBg = widget.settings.showCardBackground;
 
     return Container(
       decoration: BoxDecoration(
-        color: Color(widget.settings.optionBg),
-        borderRadius: BorderRadius.circular(12),
-        border: widget.settings.optionBorderWidth > 0
-            ? Border.all(
-                color: Color(widget.settings.optionBorderColor),
-                width: widget.settings.optionBorderWidth,
-              )
-            : Border.all(color: Colors.white12),
+        color: showBg ? Color(widget.settings.optionBg) : Colors.transparent,
+        borderRadius: BorderRadius.circular(8), // Using default radius as SetSettingsModel lacks one
+        border: isSelectedBorder()
+            ? Border.all(color: Colors.orange, width: 2)
+            : (showBg ? Border.all(color: Color(widget.settings.optionBorderColor), width: widget.settings.optionBorderWidth > 0 ? widget.settings.optionBorderWidth : 1) : null),
+        boxShadow: (showBg && widget.settings.optionBg != 0x00000000)
+            ? [const BoxShadow(color: Colors.black26, blurRadius: 4, offset: Offset(2, 2))]
+            : [],
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: FittedBox(
           fit: BoxFit.contain,
           alignment: Alignment.topLeft,
-          child: ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: widget.options.length,
-            separatorBuilder: (context, index) => const SizedBox(height: 8),
-            itemBuilder: (context, index) {
-              final option = widget.options[index];
+          child: SizedBox(
+            width: 800, // Base width to fix unbounded constraints
+            child: ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: widget.options.length,
+              separatorBuilder: (context, index) => const SizedBox(height: 8),
+              itemBuilder: (context, index) {
+                final option = widget.options[index];
 
-              return Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.white12,
-                    width: 1.0,
+                return Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(8),
                   ),
-                ),
-                child: Row(
-                  children: [
-                    // Option Label (A, B, C, D)
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: const BoxDecoration(
-                        color: Colors.orange,
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        option.label,
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 12,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Option Label (A, B, C, D)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.orange,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Text(
+                          option.label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    
-                    // Option Text
-                    Expanded(
-                      child: _buildOptionText(option.text),
-                    ),
-                  ],
-                ),
-              );
-            },
+                      const SizedBox(width: 12),
+                      
+                      // Option Text
+                      Expanded(
+                        child: _buildOptionText(option.text),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
           ),
         ),
       ),
     );
+  }
+
+  bool isSelectedBorder() {
+    // Logic for selection border if needed
+    return false;
   }
 
   Widget _buildOptionText(String text) {
