@@ -12,6 +12,7 @@ import '../../data/models/page_models.dart';
 
 import '../../../question_widget/presentation/providers/set_layout_notifier.dart';
 import 'app_mode_provider.dart';
+import 'slide_capture_provider.dart';
 
 
 part 'slide_provider.g.dart';
@@ -21,19 +22,20 @@ part 'slide_provider.g.dart';
 class SlideState {
   final List<WhiteboardPage>            pages;
   final int                              currentPageIndex;
-  final SetMetadataModel?                setMetadata;
+  final List<SetMetadataModel>           importedSets;
   final Map<String, SlideAnnotationData> savedAnnotations;
 
   const SlideState({
     required this.pages,
     required this.currentPageIndex,
-    this.setMetadata,
+    required this.importedSets,
     required this.savedAnnotations,
   });
 
   factory SlideState.initial() => const SlideState(
     pages:            [],
     currentPageIndex: 0,
+    importedSets:     [],
     savedAnnotations:  {},
   );
 
@@ -45,12 +47,12 @@ class SlideState {
   SlideState copyWith({
     List<WhiteboardPage>?              pages,
     int?                              currentPageIndex,
-    SetMetadataModel?                 setMetadata,
+    List<SetMetadataModel>?           importedSets,
     Map<String, SlideAnnotationData>? savedAnnotations,
   }) => SlideState(
     pages:            pages            ?? this.pages,
     currentPageIndex: currentPageIndex ?? this.currentPageIndex,
-    setMetadata:       setMetadata       ?? this.setMetadata,
+    importedSets:     importedSets     ?? this.importedSets,
     savedAnnotations:  savedAnnotations  ?? this.savedAnnotations,
   );
 }
@@ -63,23 +65,47 @@ class SlideNotifier extends _$SlideNotifier {
   @override
   SlideState build() => SlideState.initial();
 
-  /// Called after successful Set import.
+  /// Called after successful Set import (initial load or Start New Session).
   void loadSlides(List<SetSlideModel> slides, SetMetadataModel metadata) {
-    final pages = slides.map((s) => SetImportPage(id: s.slideId, slide: s)).toList();
+    final pages = slides.map((s) => SetImportPage(id: s.slideId, slide: s, setId: metadata.setId)).toList();
     
     state = SlideState(
       pages:            pages,
       currentPageIndex: 0,
-      setMetadata:       metadata,
+      importedSets:     [metadata],
       savedAnnotations:  {},
     );
     
-    // Initialize layout for the set
-    ref.read(setLayoutNotifierProvider.notifier).initSet(metadata.setId);
-
+    // Clear capture cache for the new session
+    ref.read(slideCaptureProvider.notifier).clear();
     
+    // Initialize layout for the set
+    ref.read(setLayoutNotifierProvider.notifier).initSet(metadata.setId, visualSettings: metadata.visualSettings);
+
     // Load first slide canvas
     if (pages.isNotEmpty) {
+      _activateSlide(0);
+    }
+  }
+
+  /// Appends new slides to the current session.
+  void appendSlides(List<SetSlideModel> slides, SetMetadataModel metadata) {
+    final newPages = slides.map((s) => SetImportPage(id: s.slideId, slide: s, setId: metadata.setId)).toList();
+    final previousPageIndex = state.currentPageIndex;
+    
+    state = state.copyWith(
+      pages: [...state.pages, ...newPages],
+      importedSets: [...state.importedSets, metadata],
+    );
+
+    // Clear capture cache for the new set to ensure fresh captures
+    ref.read(slideCaptureProvider.notifier).clear();
+
+    // Initialize layout for the new set
+    ref.read(setLayoutNotifierProvider.notifier).initSet(metadata.setId, visualSettings: metadata.visualSettings);
+
+    // If we were at 0 and now have slides, activate
+    if (previousPageIndex == 0 && state.pages.length == newPages.length) {
       _activateSlide(0);
     }
   }
@@ -89,9 +115,15 @@ class SlideNotifier extends _$SlideNotifier {
     if (index < 0 || index >= state.pages.length) return;
     if (index == state.currentPageIndex) return;
 
-    // 1. Persist current canvas annotations before leaving
+    // 1. Trigger background capture of the slide we're leaving
+    // We do this in a fire-and-forget manner to keep navigation snappy
+    final currentKey = ref.read(canvasRepaintKeyProvider);
+    final currentIndex = state.currentPageIndex;
+    ref.read(slideCaptureProvider.notifier).captureSlide(currentIndex, currentKey);
+
+    // 2. Persist current canvas annotations
     _persistCurrentCanvas();
-    // 2. Update index
+    // 3. Update index
     state = state.copyWith(currentPageIndex: index);
     // 3. Load new slide canvas
     _activateSlide(index);
@@ -121,7 +153,10 @@ class SlideNotifier extends _$SlideNotifier {
     );
     
     if (page is SetImportPage) {
-      // Load layouts for this question
+      // 1. MUST re-initialize layout notifier with the correct setId and its settings
+      ref.read(setLayoutNotifierProvider.notifier).initSet(page.setId);
+      
+      // 2. Load layouts for this specific question
       ref.read(setLayoutNotifierProvider.notifier).loadLayoutsForQuestion(page.slide.questionNumber);
       // Also enter Slide Mode if not already
       ref.read(appModeNotifierProvider.notifier).enterSlideMode();

@@ -8,7 +8,9 @@ import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import '../../providers/session_provider.dart';
 import '../../providers/slide_provider.dart';
+import '../../providers/canvas_provider.dart';
 import '../../../services/export_service.dart';
+import '../../../services/pdf_exporter_service.dart';
 
 class EndClassDialog extends ConsumerStatefulWidget {
   const EndClassDialog({super.key});
@@ -18,77 +20,9 @@ class EndClassDialog extends ConsumerStatefulWidget {
 }
 
 class _EndClassDialogState extends ConsumerState<EndClassDialog> {
-  bool _isExporting = false;
-  double _exportProgress = 0.0;
-  String _exportStatus = '';
-
   Future<void> _handleEndClass() async {
-    setState(() {
-      _isExporting = true;
-      _exportProgress = 0.0;
-      _exportStatus = 'Generating PDF...';
-    });
-
-    try {
-      final sessionState = ref.read(sessionNotifierProvider);
-      final slideState = ref.read(slideNotifierProvider);
-
-      if (sessionState.sessionId == null) {
-        _showError('No active session');
-        return;
-      }
-
-      // Step 1: Generate PDF
-      final annotations = slideState.savedAnnotations.values.toList();
-      final pdfFile = await ExportService.generatePdf(
-        sessionId: sessionState.sessionId!,
-        slideAnnotations: annotations,
-        slideCount: slideState.pages.length,
-      );
-
-
-      setState(() {
-        _exportProgress = 0.5;
-        _exportStatus = 'Generating PNG images...';
-      });
-
-      // Step 2: Generate PNGs
-      final pngFiles = await ExportService.generatePngs(
-        sessionId: sessionState.sessionId!,
-        slideAnnotations: annotations,
-        slideCount: slideState.pages.length,
-        canvasSize: const Size(1920, 1080),
-      );
-
-
-      setState(() {
-        _exportProgress = 0.75;
-        _exportStatus = 'Creating ZIP archive...';
-      });
-
-      // Step 3: Create ZIP
-      await ExportService.createZip(
-        sessionId: sessionState.sessionId!,
-        pngFiles: pngFiles,
-      );
-
-      setState(() {
-        _exportProgress = 1.0;
-        _exportStatus = 'Export complete!';
-      });
-
-      // Step 4: Show success and close
-      if (!mounted) return;
-      await Future.delayed(const Duration(seconds: 1));
-      if (!mounted) return;
-      context.pop();
-      _showSuccess('Class notes saved: ${pdfFile.path}');
-    } catch (e) {
-      setState(() {
-        _isExporting = false;
-        _exportStatus = 'Export failed: $e';
-      });
-    }
+    final pdfService = PdfExporterService(ref);
+    await pdfService.exportSessionToPdf(context);
   }
 
   void _showError(String message) {
@@ -120,44 +54,36 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppDimensions.borderRadiusL),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+      child: Container(
+        constraints: const BoxConstraints(maxWidth: 400), // More compact width
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Header
             Row(
               children: [
-                Icon(
-                  Icons.stop_circle,
-                  color: _isExporting ? AppColors.accentOrange : AppColors.error,
-                  size: 28,
+                const Icon(
+                  Icons.stop_rounded,
+                  color: AppColors.error,
+                  size: 22,
                 ),
-                const SizedBox(width: AppDimensions.borderRadiusM),
+                const SizedBox(width: 12),
                 Text(
-                  _isExporting ? 'Exporting Class...' : 'End Class',
-                  style: AppTextStyles.heading2,
+                  'End Class Session',
+                  style: AppTextStyles.heading2.copyWith(fontSize: 18),
                 ),
               ],
             ),
             const SizedBox(height: AppDimensions.borderRadiusL),
 
-            if (!_isExporting) ...[
-              // Warning Message
-              Text(
-                'Are you sure you want to end this class? All slides will be exported to PDF and PNG.',
-                style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: AppDimensions.topBarHeight),
-
               // Session Info
               Container(
-                padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
+                padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.bgSecondary,
-                  borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                  color: AppColors.bgSecondary.withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -170,62 +96,58 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                       ),
                     ),
                     const SizedBox(height: AppDimensions.borderRadiusS),
-                    Text(
-                      'Session ID: ${sessionState.sessionId ?? 'N/A'}',
-                      style: AppTextStyles.body,
-                    ),
-                    const SizedBox(height: AppDimensions.borderRadiusS),
-                    Text(
-                      'Slides: ${sessionState.slidesCovered.length}',
-                      style: AppTextStyles.body,
-                    ),
-                    const SizedBox(height: AppDimensions.borderRadiusS),
-                    Text(
-                      'Last Saved: ${sessionState.lastSavedAt != null ? _formatTime(sessionState.lastSavedAt!) : 'Never'}',
-                      style: AppTextStyles.body,
-                    ),
+                    _detailRow('Session ID', sessionState.sessionId ?? 'N/A'),
+                    const SizedBox(height: 8),
+                    _detailRow('Slides Covered', '${sessionState.slidesCovered.length}'),
+                    const SizedBox(height: 8),
+                    _detailRow('Duration', _formatTime(sessionState.classDuration)),
                   ],
                 ),
               ),
-              const SizedBox(height: AppDimensions.topBarHeight),
+              const SizedBox(height: 20),
 
               // Action Buttons
               Row(
                 children: [
                   // Cancel Button
                   Expanded(
-                    child: OutlinedButton(
+                    child: TextButton(
                       onPressed: () => context.pop(),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
-                        side: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
                         'Cancel',
-                        style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                        style: AppTextStyles.body.copyWith(
+                          color: AppColors.textTertiary,
+                          fontSize: 14,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(width: AppDimensions.borderRadiusL),
-
+                  const SizedBox(width: 12),
                   // End Class Button
                   Expanded(
                     child: ElevatedButton(
                       onPressed: _handleEndClass,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.error,
-                        padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusM),
+                        foregroundColor: Colors.white,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                          borderRadius: BorderRadius.circular(8),
                         ),
+                      ).copyWith(
+                        overlayColor: WidgetStateProperty.all(Colors.white10),
                       ),
-                      child: Text(
+                      child: const Text(
                         'End & Export',
-                        style: AppTextStyles.body.copyWith(
-                          color: Colors.white,
+                        style: TextStyle(
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -233,42 +155,39 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                   ),
                 ],
               ),
-            ] else ...[
-              // Export Progress
-              Column(
-                children: [
-                  const SizedBox(height: AppDimensions.borderRadiusL),
-                  LinearProgressIndicator(
-                    value: _exportProgress,
-                    backgroundColor: AppColors.bgSecondary,
-                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
-                    minHeight: 8,
-                  ),
-                  const SizedBox(height: AppDimensions.borderRadiusM),
-                  Text(
-                    _exportStatus,
-                    style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppDimensions.borderRadiusL),
-                  if (_exportProgress >= 1.0)
-                    const Icon(
-                      Icons.check_circle,
-                      color: AppColors.success,
-                      size: 48,
-                    ),
-                ],
-              ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  String _formatTime(DateTime time) {
-    final hour = time.hour.toString().padLeft(2, '0');
-    final minute = time.minute.toString().padLeft(2, '0');
-    return '$hour:$minute';
+  Widget _detailRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: AppTextStyles.caption.copyWith(
+            color: AppColors.textTertiary,
+            fontSize: 13,
+          ),
+        ),
+        Text(
+          value,
+          style: AppTextStyles.body.copyWith(
+            color: AppColors.textPrimary,
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatTime(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return "${twoDigits(duration.inHours)}:$minutes:$seconds";
   }
 }
