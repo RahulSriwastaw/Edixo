@@ -19,15 +19,18 @@ class SetImportPageAdapter extends TypeAdapter<SetImportPage> {
     return SetImportPage(
       id: fields[0] as String,
       slide: fields[2] as SetSlideModel,
+      setId: fields[3] as String,
     );
   }
 
   @override
   void write(BinaryWriter writer, SetImportPage obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(4)
       ..writeByte(2)
       ..write(obj.slide)
+      ..writeByte(3)
+      ..write(obj.setId)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)

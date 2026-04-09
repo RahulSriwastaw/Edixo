@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/constants/app_colors.dart';
 import '../../providers/background_settings_provider.dart';
 import '../../../../question_widget/presentation/providers/set_layout_notifier.dart';
+import '../../../../../core/constants/api_constants.dart';
 
 class BackgroundLayer extends ConsumerWidget {
   const BackgroundLayer({super.key});
@@ -16,7 +17,7 @@ class BackgroundLayer extends ConsumerWidget {
     return Stack(
       children: [
         // Base background format based on preset
-        _buildPresetBackground(preset),
+        _buildPresetBackground(preset, setLayout.settings.screenBg),
         
         // Custom background image (if enabled)
         if (settings.enableCustomBackground &&
@@ -25,7 +26,7 @@ class BackgroundLayer extends ConsumerWidget {
             child: Opacity(
               opacity: settings.backgroundOpacity,
               child: Image.network(
-                settings.backgroundImageUrl!,
+                ApiConstants.resolveUrl(settings.backgroundImageUrl!),
                 fit: settings.stretchBackground
                     ? BoxFit.cover
                     : BoxFit.contain,
@@ -39,9 +40,9 @@ class BackgroundLayer extends ConsumerWidget {
     );
   }
 
-  Widget _buildPresetBackground(String? preset) {
-    if (preset == null) {
-      return CustomPaint(painter: BackgroundPainter(), child: const SizedBox.expand());
+  Widget _buildPresetBackground(String? preset, int bgColor) {
+    if (preset == null || preset.isEmpty) {
+      return CustomPaint(painter: BackgroundPainter(Color(bgColor)), child: const SizedBox.expand());
     }
 
     BoxDecoration decoration;
@@ -71,17 +72,18 @@ class BackgroundLayer extends ConsumerWidget {
         );
         break;
       default:
-        if (preset.startsWith('http')) {
+        final resolvedUrl = ApiConstants.resolveUrl(preset ?? '');
+        if (resolvedUrl.startsWith('http')) {
           return SizedBox.expand(
             child: Image.network(
-              preset,
+              resolvedUrl,
               fit: BoxFit.cover,
               alignment: Alignment.center,
-              errorBuilder: (_, __, ___) => CustomPaint(painter: BackgroundPainter(), child: const SizedBox.expand()),
+              errorBuilder: (_, __, ___) => CustomPaint(painter: BackgroundPainter(Color(bgColor)), child: const SizedBox.expand()),
             ),
           );
         }
-        return CustomPaint(painter: BackgroundPainter(), child: const SizedBox.expand());
+        return CustomPaint(painter: BackgroundPainter(Color(bgColor)), child: const SizedBox.expand());
     }
 
     return Container(
@@ -130,12 +132,13 @@ class _GridLinesPainter extends CustomPainter {
 }
 
 class BackgroundPainter extends CustomPainter {
-  BackgroundPainter();
+  final Color color;
+  BackgroundPainter(this.color);
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Fill with dark coaching app background
-    final bgPaint = Paint()..color = AppColors.bgPrimary;
+    // Fill with provided background color
+    final bgPaint = Paint()..color = color;
     canvas.drawRect(
       Rect.fromLTWH(0, 0, size.width, size.height),
       bgPaint,

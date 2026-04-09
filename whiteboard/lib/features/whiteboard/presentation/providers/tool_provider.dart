@@ -5,6 +5,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/storage/hive_service.dart';
 import 'tool_registry.dart';
 import 'teaching_tools_provider.dart';
+import '../../../question_widget/presentation/providers/interaction_state_provider.dart';
 
 part 'tool_provider.g.dart';
 
@@ -35,6 +36,120 @@ enum StrokeTip { round, flat, brush }
 enum InteractionMode { drawMode, selectMode }
 
 enum SubjectMode { none, math, physics, chemistry, biology, geography, general, englishHindi, sscRailway, upsc }
+
+enum LaserEffect { standard, whiteBurn }
+
+enum LaserTrailMode { trail, point }
+
+enum LaserTimingMode { immediate, afterDelay }
+
+class LaserPointerSettings {
+  final LaserEffect effect;
+  final LaserTrailMode trailMode;
+  final bool glowEnabled;
+  final double glowIntensity;       // 0.0 - 1.0
+  final double glowBlur;            // blur radius
+  final double trailDuration;       // in seconds (0.5-5.0)
+  final double trailSize;           // 0.5-64 pt (width multiplier)
+  final bool highlightMode;         // effect applies to border and fill
+  final LaserTimingMode timingMode;
+  final double delayDuration;       // delay before disappear in seconds
+  final double pointSize;           // size of point when in point mode
+
+  const LaserPointerSettings({
+    this.effect = LaserEffect.standard,
+    this.trailMode = LaserTrailMode.trail,
+    this.glowEnabled = true,
+    this.glowIntensity = 0.6,
+    this.glowBlur = 8.0,
+    this.trailDuration = 2.0,
+    this.trailSize = 1.0,
+    this.highlightMode = false,
+    this.timingMode = LaserTimingMode.immediate,
+    this.delayDuration = 2.0,
+    this.pointSize = 1.0,
+  });
+
+  LaserPointerSettings copyWith({
+    LaserEffect? effect,
+    LaserTrailMode? trailMode,
+    bool? glowEnabled,
+    double? glowIntensity,
+    double? glowBlur,
+    double? trailDuration,
+    double? trailSize,
+    bool? highlightMode,
+    LaserTimingMode? timingMode,
+    double? delayDuration,
+    double? pointSize,
+  }) => LaserPointerSettings(
+    effect: effect ?? this.effect,
+    trailMode: trailMode ?? this.trailMode,
+    glowEnabled: glowEnabled ?? this.glowEnabled,
+    glowIntensity: glowIntensity ?? this.glowIntensity,
+    glowBlur: glowBlur ?? this.glowBlur,
+    trailDuration: trailDuration ?? this.trailDuration,
+    trailSize: trailSize ?? this.trailSize,
+    highlightMode: highlightMode ?? this.highlightMode,
+    timingMode: timingMode ?? this.timingMode,
+    delayDuration: delayDuration ?? this.delayDuration,
+    pointSize: pointSize ?? this.pointSize,
+  );
+}
+
+// ── ShapeSettings ───────────────────────────────────────────────────────
+
+enum ShapeBorderStyle { solid, dashed, dotted }
+
+class ShapeSettings {
+  final bool borderEnabled;
+  final bool fillEnabled;
+  final Color borderColor;
+  final Color fillColor;
+  final double borderWidth;           // 1.0-50.0 pt
+  final ShapeBorderStyle borderStyle;
+  final bool highlightMode;           // effect applies to border and fill
+  final double dashLength;            // for dashed style
+  final double dashGap;               // for dashed style
+  final double dotRadius;             // for dotted style
+
+  const ShapeSettings({
+    this.borderEnabled = true,
+    this.fillEnabled = false,
+    this.borderColor = const Color(0xFFFFFFFF),
+    this.fillColor = const Color(0xFF000000),
+    this.borderWidth = 3.0,
+    this.borderStyle = ShapeBorderStyle.solid,
+    this.highlightMode = false,
+    this.dashLength = 5.0,
+    this.dashGap = 5.0,
+    this.dotRadius = 3.0,
+  });
+
+  ShapeSettings copyWith({
+    bool? borderEnabled,
+    bool? fillEnabled,
+    Color? borderColor,
+    Color? fillColor,
+    double? borderWidth,
+    ShapeBorderStyle? borderStyle,
+    bool? highlightMode,
+    double? dashLength,
+    double? dashGap,
+    double? dotRadius,
+  }) => ShapeSettings(
+    borderEnabled: borderEnabled ?? this.borderEnabled,
+    fillEnabled: fillEnabled ?? this.fillEnabled,
+    borderColor: borderColor ?? this.borderColor,
+    fillColor: fillColor ?? this.fillColor,
+    borderWidth: borderWidth ?? this.borderWidth,
+    borderStyle: borderStyle ?? this.borderStyle,
+    highlightMode: highlightMode ?? this.highlightMode,
+    dashLength: dashLength ?? this.dashLength,
+    dashGap: dashGap ?? this.dashGap,
+    dotRadius: dotRadius ?? this.dotRadius,
+  );
+}
 
 extension ToolExt on Tool {
   bool get isDrawingTool => const {
@@ -89,6 +204,8 @@ class ToolSettings {
   final double          smoothness;      // 0.0–1.0 (legacy simple smoothing)
   final StrokeTip       tip;
   final SmoothingSettings smoothing;      // New advanced smoothing
+  final LaserPointerSettings laserSettings;
+  final ShapeSettings   shapeSettings;
 
   // These were in ToolState but needed here for Riverpod type compatibility
   final Tool            activeTool;
@@ -106,6 +223,8 @@ class ToolSettings {
     this.smoothness    = 0.5,
     this.tip           = StrokeTip.round,
     this.smoothing     = const SmoothingSettings(),
+    this.laserSettings = const LaserPointerSettings(),
+    this.shapeSettings = const ShapeSettings(),
     this.activeTool    = Tool.softPen,
     this.interactionMode = InteractionMode.drawMode,
     this.activeMode    = SubjectMode.none,
@@ -154,6 +273,8 @@ class ToolSettings {
     double?          smoothness,
     StrokeTip?       tip,
     SmoothingSettings? smoothing,
+    LaserPointerSettings? laserSettings,
+    ShapeSettings?   shapeSettings,
     Tool?            activeTool,
     InteractionMode? interactionMode,
     SubjectMode?     activeMode,
@@ -169,6 +290,8 @@ class ToolSettings {
     smoothness:      smoothness      ?? this.smoothness,
     tip:             tip             ?? this.tip,
     smoothing:       smoothing       ?? this.smoothing,
+    laserSettings:   laserSettings   ?? this.laserSettings,
+    shapeSettings:   shapeSettings   ?? this.shapeSettings,
     activeTool:      activeTool      ?? this.activeTool,
     interactionMode: interactionMode ?? this.interactionMode,
     activeMode:      activeMode      ?? this.activeMode,
@@ -229,6 +352,11 @@ class ToolNotifier extends _$ToolNotifier {
 
     final mode = _autoInteractionMode(tool);
     state = state.copyWith(activeTool: tool, interactionMode: mode);
+
+    // Clear question widget selection if not in Move Question mode
+    if (tool != Tool.selectObject) {
+      ref.read(selectedSetWidgetIdProvider.notifier).state = null;
+    }
   }
 
   void setColor(Color color) {
@@ -259,6 +387,113 @@ class ToolNotifier extends _$ToolNotifier {
     final newSettings = Map<Tool, ToolSettings>.from(state.toolSettings);
     newSettings[state.activeTool] = state.currentSettings.copyWith(tip: tip);
     state = state.copyWith(toolSettings: newSettings);
+  }
+
+  void setLaserEffect(LaserEffect effect) {
+    final newLaserSettings = state.laserSettings.copyWith(effect: effect);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserGlowEnabled(bool enabled) {
+    final newLaserSettings = state.laserSettings.copyWith(glowEnabled: enabled);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserGlowIntensity(double intensity) {
+    final newLaserSettings = state.laserSettings.copyWith(glowIntensity: intensity);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserTrailDuration(double duration) {
+    final newLaserSettings = state.laserSettings.copyWith(trailDuration: duration);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserTrailSize(double size) {
+    final newLaserSettings = state.laserSettings.copyWith(trailSize: size);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserTrailMode(LaserTrailMode mode) {
+    final newLaserSettings = state.laserSettings.copyWith(trailMode: mode);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserGlowBlur(double blur) {
+    final newLaserSettings = state.laserSettings.copyWith(glowBlur: blur);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserHighlightMode(bool enabled) {
+    final newLaserSettings = state.laserSettings.copyWith(highlightMode: enabled);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserTimingMode(LaserTimingMode mode) {
+    final newLaserSettings = state.laserSettings.copyWith(timingMode: mode);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserDelayDuration(double duration) {
+    final newLaserSettings = state.laserSettings.copyWith(delayDuration: duration);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  void setLaserPointSize(double size) {
+    final newLaserSettings = state.laserSettings.copyWith(pointSize: size);
+    state = state.copyWith(laserSettings: newLaserSettings);
+  }
+
+  // ── Shape settings ──────────────────────────────────────────────────────
+
+  void setShapeBorderEnabled(bool enabled) {
+    final newShapeSettings = state.shapeSettings.copyWith(borderEnabled: enabled);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeFillEnabled(bool enabled) {
+    final newShapeSettings = state.shapeSettings.copyWith(fillEnabled: enabled);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeBorderColor(Color color) {
+    final newShapeSettings = state.shapeSettings.copyWith(borderColor: color);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeFillColor(Color color) {
+    final newShapeSettings = state.shapeSettings.copyWith(fillColor: color);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeBorderWidth(double width) {
+    final newShapeSettings = state.shapeSettings.copyWith(borderWidth: width);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeBorderStyle(ShapeBorderStyle style) {
+    final newShapeSettings = state.shapeSettings.copyWith(borderStyle: style);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeHighlightMode(bool enabled) {
+    final newShapeSettings = state.shapeSettings.copyWith(highlightMode: enabled);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeDashLength(double length) {
+    final newShapeSettings = state.shapeSettings.copyWith(dashLength: length);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeDashGap(double gap) {
+    final newShapeSettings = state.shapeSettings.copyWith(dashGap: gap);
+    state = state.copyWith(shapeSettings: newShapeSettings);
+  }
+
+  void setShapeDotRadius(double radius) {
+    final newShapeSettings = state.shapeSettings.copyWith(dotRadius: radius);
+    state = state.copyWith(shapeSettings: newShapeSettings);
   }
 
   void setSubjectMode(SubjectMode mode) => state = state.copyWith(activeMode: mode);

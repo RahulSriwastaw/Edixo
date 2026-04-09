@@ -243,10 +243,13 @@ class StrokeRenderer {
     final points = stroke.points;
     if (points.length < 2) return;
 
+    final color = Color(stroke.colorARGB);
+    final baseWidth = stroke.strokeWidth;
+    
     // Glow effect
     final glowPaint = Paint()
-      ..color = const Color(0xFFFF0000).withValues(alpha: 0.3)
-      ..strokeWidth = stroke.strokeWidth * 3
+      ..color = color.withValues(alpha: stroke.opacity * 0.3)
+      ..strokeWidth = baseWidth * 3
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke
@@ -261,8 +264,8 @@ class StrokeRenderer {
 
     // Core line
     final corePaint = Paint()
-      ..color = const Color(0xFFFF0000).withValues(alpha: 0.9)
-      ..strokeWidth = stroke.strokeWidth
+      ..color = color.withValues(alpha: stroke.opacity * 0.9)
+      ..strokeWidth = baseWidth
       ..strokeCap = StrokeCap.round
       ..strokeJoin = StrokeJoin.round
       ..style = PaintingStyle.stroke

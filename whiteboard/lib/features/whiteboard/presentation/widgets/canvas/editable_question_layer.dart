@@ -17,7 +17,8 @@ import '../../../../question_widget/data/models/set_layout_models.dart';
 import '../../../../question_widget/presentation/widgets/movable_widget_container.dart';
 import '../../../../question_widget/presentation/widgets/question_display_widget.dart';
 import '../../../../question_widget/presentation/widgets/options_display_widget.dart';
-
+import '../../providers/floating_overlay_provider.dart';
+import '../overlays/floating_movable_panel.dart';
 
 class EditableQuestionLayer extends ConsumerStatefulWidget {
   const EditableQuestionLayer({super.key});
@@ -453,7 +454,17 @@ class _DraggableResizableQuestionWidgetState
                   _ActionButton(
                     icon: Icons.settings_outlined,
                     tooltip: 'Settings',
-                    onTap: () => showQuestionSettingsDialog(context, widget.id),
+                    onTap: () {
+                      ref.read(floatingOverlayNotifierProvider.notifier).togglePanel(
+                        'questionSettings_${widget.id}',
+                        FloatingMovablePanel(
+                          panelId: 'questionSettings_${widget.id}',
+                          title: 'Question Settings',
+                          child: QuestionSettingsPanel(widgetId: widget.id),
+                        ),
+                        initialPosition: const Offset(800, 100),
+                      );
+                    },
                   ),
                   const SizedBox(width: 4),
                   // Lock button

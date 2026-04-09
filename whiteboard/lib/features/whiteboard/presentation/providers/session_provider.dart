@@ -159,6 +159,7 @@ class SessionNotifier extends _$SessionNotifier {
     return {
       'sessionId':     state.sessionId,
       'lastSaved':     DateTime.now().toIso8601String(),
+      'setIds':        slideState.importedSets.map((s) => s.setId).toList(),
       'slideIndex':    currentIdx,
       'slidesCovered': covered,
       'annotations': annotations.map((k, v) => MapEntry(k, v.toJson())),

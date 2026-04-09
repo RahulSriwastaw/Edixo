@@ -6,7 +6,7 @@ part of 'slide_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$slideNotifierHash() => r'19d55819e4595bbc0959aabe453cc56e1a80bf6c';
+String _$slideNotifierHash() => r'37cb7c2426d1ef44fee3c1995f7bdead5a4be48b';
 
 /// See also [SlideNotifier].
 @ProviderFor(SlideNotifier)

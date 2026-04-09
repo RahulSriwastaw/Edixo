@@ -4,6 +4,7 @@ import cors from 'cors';
 import compression from 'compression';
 import morgan from 'morgan';
 import { rateLimit } from 'express-rate-limit';
+import path from 'path';
 
 import { env } from './config/env';
 import { logger } from './config/logger';
@@ -304,7 +305,17 @@ async function ensureCompatibilitySetsFromQuestions() {
         ORDER BY COUNT(*) DESC
     `);
 
-    let index = 1;
+    // Helper: generate a deterministic 6-digit number from a string (stable across restarts)
+    function deterministicSixDigit(str: string, offset = 0): string {
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            hash = ((hash << 5) - hash) + str.charCodeAt(i) + offset;
+            hash |= 0;
+        }
+        const abs = Math.abs(hash);
+        return String(100000 + (abs % 900000));
+    }
+
     for (const row of sourceRows) {
         const source = row.source || 'General';
         const total = Number(row.total || 0);
@@ -312,16 +323,21 @@ async function ensureCompatibilitySetsFromQuestions() {
 
         const slug = slugify(source);
         const setPrimaryId = `compat-set-${slug}`;
-        const setCode = `CMP-${slug.toUpperCase().slice(0, 24)}`;
+        // Deterministic 6-digit numeric Set ID and PIN
+        const setCode = deterministicSixDigit(slug, 0);
+        const setPin = deterministicSixDigit(slug, 42);
         const setName = `${source} Auto Set`;
         const setDescription = `Auto-generated compatibility set for ${source} questions.`;
+
+        // Ensure numeric set IDs and PINs. Clear old ones to avoid unique constraint issues.
+        await prisma.$executeRawUnsafe(`UPDATE question_sets SET set_id = NULL WHERE id = ${sqlQuote(setPrimaryId)}`).catch(() => {});
 
         await prisma.$executeRawUnsafe(`
             INSERT INTO question_sets (id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at)
             VALUES (
                 ${sqlQuote(setPrimaryId)},
                 ${sqlQuote(setCode)},
-                '123456',
+                ${sqlQuote(setPin)},
                 ${sqlQuote(setName)},
                 ${sqlQuote(setDescription)},
                 ${total},
@@ -334,24 +350,27 @@ async function ensureCompatibilitySetsFromQuestions() {
                 total_questions = EXCLUDED.total_questions,
                 name = EXCLUDED.name,
                 description = EXCLUDED.description,
-                subject = EXCLUDED.subject
+                subject = EXCLUDED.subject,
+                set_id = EXCLUDED.set_id,
+                pin = EXCLUDED.pin
         `);
 
         await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(setPrimaryId)}`);
 
         await prisma.$executeRawUnsafe(`
             INSERT INTO question_set_items (set_id, question_id, sort_order)
-            SELECT
-                ${sqlQuote(setPrimaryId)} AS set_id,
-                id AS question_id,
-                ROW_NUMBER() OVER (ORDER BY created_at DESC) AS sort_order
-            FROM questions
-            WHERE COALESCE(NULLIF(airtable_table_name, ''), NULLIF(subject_name, ''), 'General') = ${sqlQuote(source)}
-            ORDER BY created_at DESC
-            LIMIT 100
+            SELECT set_id, question_id, sort_order FROM (
+                SELECT
+                    ${sqlQuote(setPrimaryId)} AS set_id,
+                    id AS question_id,
+                    ROW_NUMBER() OVER (ORDER BY created_at DESC) AS sort_order
+                FROM questions
+                WHERE COALESCE(NULLIF(airtable_table_name, ''), NULLIF(subject_name, ''), 'General') = ${sqlQuote(source)}
+                ORDER BY created_at DESC
+                LIMIT 100
+            ) sub
+            ON CONFLICT (set_id, question_id) DO UPDATE SET sort_order = EXCLUDED.sort_order
         `);
-
-        index += 1;
     }
 }
 
@@ -1389,6 +1408,9 @@ app.post('/api/qbank/sync-airtable', async (req, res) => {
         res.status(400).json({ success: false, message: error.message || 'Airtable synchronization failed' });
     }
 });
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // ─── API Routes ──────────────────────────────────────────────
 app.use('/api/auth', authRoutes);

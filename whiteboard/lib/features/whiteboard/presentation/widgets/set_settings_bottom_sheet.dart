@@ -6,46 +6,31 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../../../question_widget/presentation/providers/set_layout_notifier.dart';
 import '../../../question_widget/data/models/set_layout_models.dart';
+import '../providers/floating_overlay_provider.dart';
 
-class SetSettingsBottomSheet extends ConsumerWidget {
+class SetSettingsPanel extends ConsumerStatefulWidget {
   final int currentQuestionNumber;
 
-  const SetSettingsBottomSheet({super.key, required this.currentQuestionNumber});
+  const SetSettingsPanel({super.key, required this.currentQuestionNumber});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SetSettingsPanel> createState() => _SetSettingsPanelState();
+}
+
+class _SetSettingsPanelState extends ConsumerState<SetSettingsPanel> {
+  bool _isApplying = false;
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(setLayoutNotifierProvider);
     final settings = state.settings;
 
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Set Styles & Settings',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                ),
-              ],
-            ),
-            const Divider(color: Colors.white12, height: 32),
-
             // Colors Section
             const _SectionHeader(title: 'Colors'),
             const SizedBox(height: 16),
@@ -56,22 +41,22 @@ class SetSettingsBottomSheet extends ConsumerWidget {
                 _ColorPickerTile(
                   label: 'Q Text',
                   color: Color(settings.questionColor),
-                  onChanged: (c) => _update(ref, settings.copyWith(questionColor: c.toARGB32())),
+                  onChanged: (c) => _update(settings.copyWith(questionColor: c.toARGB32())),
                 ),
                 _ColorPickerTile(
                   label: 'Q Bg',
                   color: Color(settings.questionBg),
-                  onChanged: (c) => _update(ref, settings.copyWith(questionBg: c.toARGB32())),
+                  onChanged: (c) => _update(settings.copyWith(questionBg: c.toARGB32())),
                 ),
                 _ColorPickerTile(
                   label: 'Opt Text',
                   color: Color(settings.optionColor),
-                  onChanged: (c) => _update(ref, settings.copyWith(optionColor: c.toARGB32())),
+                  onChanged: (c) => _update(settings.copyWith(optionColor: c.toARGB32())),
                 ),
                 _ColorPickerTile(
                   label: 'Opt Bg',
                   color: Color(settings.optionBg),
-                  onChanged: (c) => _update(ref, settings.copyWith(optionBg: c.toARGB32())),
+                  onChanged: (c) => _update(settings.copyWith(optionBg: c.toARGB32())),
                 ),
               ],
             ),
@@ -85,14 +70,14 @@ class SetSettingsBottomSheet extends ConsumerWidget {
               value: settings.questionFontSize,
               min: 12,
               max: 80,
-              onChanged: (v) => _update(ref, settings.copyWith(questionFontSize: v)),
+              onChanged: (v) => _update(settings.copyWith(questionFontSize: v)),
             ),
             _SliderTile(
               label: 'Options',
               value: settings.optionFontSize,
               min: 12,
               max: 60,
-              onChanged: (v) => _update(ref, settings.copyWith(optionFontSize: v)),
+              onChanged: (v) => _update(settings.copyWith(optionFontSize: v)),
             ),
 
             const SizedBox(height: 32),
@@ -105,12 +90,12 @@ class SetSettingsBottomSheet extends ConsumerWidget {
                 _ColorPickerTile(
                   label: 'Q Border',
                   color: Color(settings.questionBorderColor),
-                  onChanged: (c) => _update(ref, settings.copyWith(questionBorderColor: c.toARGB32())),
+                  onChanged: (c) => _update(settings.copyWith(questionBorderColor: c.toARGB32())),
                 ),
                 _ColorPickerTile(
                   label: 'Opt Border',
                   color: Color(settings.optionBorderColor),
-                  onChanged: (c) => _update(ref, settings.copyWith(optionBorderColor: c.toARGB32())),
+                  onChanged: (c) => _update(settings.copyWith(optionBorderColor: c.toARGB32())),
                 ),
               ],
             ),
@@ -119,14 +104,14 @@ class SetSettingsBottomSheet extends ConsumerWidget {
               value: settings.questionBorderWidth,
               min: 0,
               max: 20,
-              onChanged: (v) => _update(ref, settings.copyWith(questionBorderWidth: v)),
+              onChanged: (v) => _update(settings.copyWith(questionBorderWidth: v)),
             ),
             _SliderTile(
               label: 'Option Border Width',
               value: settings.optionBorderWidth,
               min: 0,
               max: 20,
-              onChanged: (v) => _update(ref, settings.copyWith(optionBorderWidth: v)),
+              onChanged: (v) => _update(settings.copyWith(optionBorderWidth: v)),
             ),
 
             const SizedBox(height: 32),
@@ -163,47 +148,29 @@ class SetSettingsBottomSheet extends ConsumerWidget {
                           if (v == 'custom') return; // Do nothing if they click the placeholder
                           
                           if (v == null) {
-                            _update(ref, settings.copyWith(clearBackground: true));
+                            _update(settings.copyWith(clearBackground: true));
                           } else {
-                            _update(ref, settings.copyWith(backgroundPreset: v));
+                            _update(settings.copyWith(backgroundPreset: v));
                           }
                         },
                       ),
                       const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () async {
-                            final result = await FilePicker.platform.pickFiles(type: FileType.image);
-                            if (result == null || result.files.isEmpty) return;
-                            
-                            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Uploading background...')));
-                            try {
-                              final dio = ref.read(dioProvider);
-                              final file = result.files.first;
-                              final formData = FormData.fromMap({
-                                'file': MultipartFile.fromBytes(file.bytes!, filename: file.name),
-                              });
-                              
-                              final response = await dio.post('/upload/image', data: formData);
-                              
-                              if (response.data['success'] == true) {
-                                final url = response.data['data']['url'];
-                                _update(ref, settings.copyWith(backgroundPreset: url));
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Background uploaded!')));
-                              }
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to upload: $e')));
-                            }
-                          },
-                          icon: const Icon(Icons.upload_file),
-                          label: const Text('Upload Custom Image'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                            side: const BorderSide(color: Colors.orange),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
+                      TextFormField(
+                        initialValue: isCustom ? settings.backgroundPreset : '',
+                        style: const TextStyle(color: Colors.white),
+                        decoration: InputDecoration(
+                          hintText: 'Or paste Custom Image URL here (Press Enter)',
+                          hintStyle: const TextStyle(color: Colors.white54),
+                          filled: true,
+                          fillColor: Colors.white10,
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8), borderSide: BorderSide.none),
+                          prefixIcon: const Icon(Icons.link, color: Colors.white54),
                         ),
+                        onFieldSubmitted: (val) {
+                          if (val.isNotEmpty) {
+                            _update(settings.copyWith(backgroundPreset: val));
+                          }
+                        },
                       ),
                     ],
                   );
@@ -218,19 +185,19 @@ class SetSettingsBottomSheet extends ConsumerWidget {
             SwitchListTile(
               title: const Text('Show Options', style: TextStyle(color: Colors.white70)),
               value: settings.showOptions,
-              onChanged: (v) => _update(ref, settings.copyWith(showOptions: v)),
+              onChanged: (v) => _update(settings.copyWith(showOptions: v)),
               activeColor: Colors.orange,
             ),
             SwitchListTile(
               title: const Text('Show Source Badge', style: TextStyle(color: Colors.white70)),
               value: settings.showSourceBadge,
-              onChanged: (v) => _update(ref, settings.copyWith(showSourceBadge: v)),
+              onChanged: (v) => _update(settings.copyWith(showSourceBadge: v)),
               activeColor: Colors.orange,
             ),
             SwitchListTile(
               title: const Text('Show Card Background', style: TextStyle(color: Colors.white70)),
               value: settings.showCardBackground,
-              onChanged: (v) => _update(ref, settings.copyWith(showCardBackground: v)),
+              onChanged: (v) => _update(settings.copyWith(showCardBackground: v)),
               activeColor: Colors.orange,
             ),
 
@@ -241,9 +208,9 @@ class SetSettingsBottomSheet extends ConsumerWidget {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () {
-                      ref.read(setLayoutNotifierProvider.notifier).resetLayout(currentQuestionNumber);
-                      Navigator.pop(context);
+                    onPressed: _isApplying ? null : () {
+                      ref.read(setLayoutNotifierProvider.notifier).resetLayout(widget.currentQuestionNumber);
+                      ref.read(floatingOverlayNotifierProvider.notifier).hidePanel('setSettings');
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Layout reset.')));
                     },
                     icon: const Icon(Icons.refresh),
@@ -258,13 +225,22 @@ class SetSettingsBottomSheet extends ConsumerWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () {
-                      ref.read(setLayoutNotifierProvider.notifier).applySettingsToAll();
-                      Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Applied to all pages.')));
+                    onPressed: _isApplying ? null : () async {
+                      setState(() => _isApplying = true);
+                      try {
+                        await ref.read(setLayoutNotifierProvider.notifier).applyLayoutToAll(widget.currentQuestionNumber);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Layout & Settings applied to all pages.')));
+                          ref.read(floatingOverlayNotifierProvider.notifier).hidePanel('setSettings');
+                        }
+                      } finally {
+                        if (mounted) setState(() => _isApplying = false);
+                      }
                     },
-                    icon: const Icon(Icons.done_all),
-                    label: const Text('Apply to All'),
+                    icon: _isApplying 
+                      ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.black))
+                      : const Icon(Icons.done_all),
+                    label: Text(_isApplying ? 'Applying...' : 'Apply to All'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.orange,
                       foregroundColor: Colors.black,
@@ -281,7 +257,7 @@ class SetSettingsBottomSheet extends ConsumerWidget {
     );
   }
 
-  void _update(WidgetRef ref, SetSettingsModel settings) {
+  void _update(SetSettingsModel settings) {
     ref.read(setLayoutNotifierProvider.notifier).updateSettings(settings);
   }
 }

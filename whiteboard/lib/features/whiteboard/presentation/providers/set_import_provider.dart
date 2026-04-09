@@ -55,6 +55,7 @@ class SetImportNotifier extends _$SetImportNotifier {
   Future<void> importSet({
     required String setId,
     required String password,
+    bool isAppend = false,
   }) async {
     // Step 1: Validate set
     state = state.copyWith(state: SetImportState.validating);
@@ -90,7 +91,7 @@ class SetImportNotifier extends _$SetImportNotifier {
 
             await metadataResult.fold(
               (metadata) async {
-                // Step 4: Start session
+                // Step 4: Handle Session
                 final teacher = ref.read(authNotifierProvider);
                 if (teacher == null) {
                   state = state.copyWith(
@@ -101,33 +102,46 @@ class SetImportNotifier extends _$SetImportNotifier {
                   return;
                 }
 
-                final sessionResult = await ref.read(setRemoteDsProvider).startSession(
-                  setId: setId,
-                  teacherId: teacher.id,
-                );
+                if (isAppend) {
+                  // APPEND MODE: Just add slides to current session
+                  ref.read(slideNotifierProvider.notifier).appendSlides(questions, metadata);
+                  ref.read(appModeNotifierProvider.notifier).enterSlideMode();
+                  
+                  state = state.copyWith(
+                    state: SetImportState.success,
+                    metadata: metadata,
+                    slides: questions,
+                  );
+                } else {
+                  // NEW SESSION MODE: Start a new session
+                  final sessionResult = await ref.read(setRemoteDsProvider).startSession(
+                    setId: setId,
+                    teacherId: teacher.id,
+                  );
 
-                await sessionResult.fold(
-                  (sessionId) async {
-                    // Step 5: Load slides into providers
-                    ref.read(slideNotifierProvider.notifier).loadSlides(questions, metadata);
-                    ref.read(questionWidgetNotifierProvider.notifier).clear();
-                    ref.read(appModeNotifierProvider.notifier).enterSlideMode();
-                    ref.read(sessionNotifierProvider.notifier).startSession(sessionId);
+                  await sessionResult.fold(
+                    (sessionId) async {
+                      // Step 5: Load slides into providers
+                      ref.read(slideNotifierProvider.notifier).loadSlides(questions, metadata);
+                      ref.read(questionWidgetNotifierProvider.notifier).clear();
+                      ref.read(appModeNotifierProvider.notifier).enterSlideMode();
+                      ref.read(sessionNotifierProvider.notifier).startSession(sessionId);
 
-                    state = state.copyWith(
-                      state: SetImportState.success,
-                      metadata: metadata,
-                      slides: questions,
-                    );
-                  },
-                  (failure) {
-                    state = state.copyWith(
-                      state: SetImportState.failure,
-                      error: failure,
-                      debugMessage: failure.message,
-                    );
-                  },
-                );
+                      state = state.copyWith(
+                        state: SetImportState.success,
+                        metadata: metadata,
+                        slides: questions,
+                      );
+                    },
+                    (failure) {
+                      state = state.copyWith(
+                        state: SetImportState.failure,
+                        error: failure,
+                        debugMessage: failure.message,
+                      );
+                    },
+                  );
+                }
               },
               (failure) {
                 state = state.copyWith(

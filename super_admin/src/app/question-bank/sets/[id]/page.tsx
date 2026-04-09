@@ -38,6 +38,7 @@ import { ShareModal } from "@/components/set-system/ShareModal";
 import { QuestionSetExportModal } from "@/components/set-system/QuestionSetExportModal";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { WhiteboardSettings } from "@/components/set-system/WhiteboardSettings";
 
 // Global API utility
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -60,7 +61,6 @@ const linkedMockTests = [
   { id: "MOCK-384729", name: "Railway NTPC Mock Test", attempts: 12 },
   { id: "MOCK-493820", name: "UPSC Prelims Practice", attempts: 0 },
 ];
-
 
 const linkedEBooks = [
   { id: "BOOK-103847", name: "SSC Practice Book", downloads: 23 },
@@ -118,19 +118,30 @@ export default function SetDetailPage() {
 
   const [setData, setSetData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchSet = async () => {
       try {
         const token = getToken();
-        const res = await fetch(`${API_URL}/qbank/sets/${setId}`, {
+        // Use the whiteboard metadata endpoint to get visual settings too
+        const res = await fetch(`${API_URL}/whiteboard/sets/${setId}/metadata`, {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
-        if (res.ok) {
+        
+        // Also fetch general qbank data if needed, but for now metadata is enough for settings
+        const qbankRes = await fetch(`${API_URL}/qbank/sets/${setId}`, {
+            headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+
+        if (res.ok && qbankRes.ok) {
           const resData = await res.json();
+          const qbankData = await qbankRes.json();
+          
           setSetData({
-            ...resData.data,
-            questions: resData.data.items?.map((item: any) => ({
+            ...qbankData.data,
+            visualSettings: resData.data.visual_settings, // from whiteboard metadata
+            questions: qbankData.data.items?.map((item: any) => ({
               id: item.question.id,
               text: stripHtml(item.question.textEn || item.question.textHi || 'Untitled'),
               difficulty: item.question.difficulty?.toLowerCase() || 'medium',
@@ -145,12 +156,33 @@ export default function SetDetailPage() {
         }
       } catch (error) {
         console.error("Error fetching set details:", error);
+        setError("Failed to load question set data");
       } finally {
         setIsLoading(false);
       }
     };
     fetchSet();
   }, [setId]);
+
+  // Handler for saving whiteboard settings from the component
+  const handleSaveWhiteboardSettings = async (settings: any) => {
+    const token = getToken();
+    const res = await fetch(`${API_URL}/whiteboard/sets/${setId}/visual-settings`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ visual_settings: settings })
+    });
+
+    if (!res.ok) {
+      throw new Error('Failed to save settings');
+    }
+    
+    // Update local state
+    setSetData((prev: any) => ({ ...prev, visualSettings: settings }));
+  };
 
   if (isLoading || !setData) {
     return (
@@ -159,7 +191,14 @@ export default function SetDetailPage() {
         <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 p-6 flex items-center justify-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F4511E]"></div>
+            {error ? (
+                <div className="text-center space-y-4">
+                    <p className="text-red-500 font-medium">{error}</p>
+                    <Button onClick={() => window.location.reload()}>Retry</Button>
+                </div>
+            ) : (
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F4511E]"></div>
+            )}
           </main>
         </div>
       </div>
@@ -185,14 +224,13 @@ export default function SetDetailPage() {
   const handleDragStart = (index: number) => setDraggedIndex(index);
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
-    // Reorder logic would go here
   };
   const handleDragEnd = () => setDraggedIndex(null);
 
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
@@ -299,6 +337,7 @@ export default function SetDetailPage() {
                 <TabsTrigger value="share">Share</TabsTrigger>
                 <TabsTrigger value="access-log">Access Log</TabsTrigger>
                 <TabsTrigger value="settings">Settings</TabsTrigger>
+                <TabsTrigger value="whiteboard">Whiteboard</TabsTrigger>
               </TabsList>
 
               {/* Questions Tab */}
@@ -342,15 +381,21 @@ export default function SetDetailPage() {
                 </Card>
               </TabsContent>
 
+              {/* Whiteboard Tab */}
+              <TabsContent value="whiteboard" className="mt-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <WhiteboardSettings 
+                    setId={setId} 
+                    initialSettings={setData.visualSettings} 
+                    onSave={handleSaveWhiteboardSettings} 
+                />
+              </TabsContent>
+
               {/* Used In Tab */}
               <TabsContent value="used-in" className="mt-4 space-y-6">
-                {/* Live Sync Badge */}
                 <div className="flex items-center gap-2 p-3 bg-green-50 rounded-lg border border-green-200">
                   <Zap className="w-5 h-5 text-green-600" />
                   <span className="text-sm text-green-700 font-medium">Live-synced — Updates automatically reflect in all linked content</span>
                 </div>
-
-                {/* MockTests */}
                 <Card>
                   <CardContent className="p-4 space-y-3">
                     <h3 className="font-medium text-gray-900">Linked MockTests ({linkedMockTests.length})</h3>
@@ -372,29 +417,6 @@ export default function SetDetailPage() {
                     ))}
                   </CardContent>
                 </Card>
-
-                {/* eBooks */}
-                <Card>
-                  <CardContent className="p-4 space-y-3">
-                    <h3 className="font-medium text-gray-900">Linked eBooks ({linkedEBooks.length})</h3>
-                    {linkedEBooks.map((book) => (
-                      <div key={book.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center">
-                            <Download className="w-5 h-5 text-blue-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{book.name}</p>
-                            <p className="text-xs text-gray-500">{book.id} • {book.downloads} downloads</p>
-                          </div>
-                        </div>
-                        <Button variant="ghost" size="sm">
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    ))}
-                  </CardContent>
-                </Card>
               </TabsContent>
 
               {/* Share Tab */}
@@ -407,55 +429,21 @@ export default function SetDetailPage() {
                         <Share2 className="w-4 h-4 mr-2" /> Share
                       </Button>
                     </div>
-
                     <div className="space-y-4">
-                      <div>
-                        <p className="text-sm text-gray-500 mb-2">Users (2)</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                <Users className="w-4 h-4 text-orange-600" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium">Rahul Kumar</p>
-                                <p className="text-xs text-gray-500">Mar 1 • 2 accesses</p>
-                              </div>
+                      {["Rahul Kumar", "Amit Sharma"].map((user, i) => (
+                        <div key={user} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
+                              {user[0]}
                             </div>
-                            <Button variant="ghost" size="sm" className="text-red-500">Revoke</Button>
-                          </div>
-                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
-                                <Users className="w-4 h-4 text-orange-600" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium">Amit Sharma</p>
-                                <p className="text-xs text-gray-500">Mar 2 • 5 accesses</p>
-                              </div>
+                            <div>
+                              <p className="text-sm font-medium">{user}</p>
+                              <p className="text-xs text-gray-500">Shared on Mar {i + 1}</p>
                             </div>
-                            <Button variant="ghost" size="sm" className="text-red-500">Revoke</Button>
                           </div>
+                          <Button variant="ghost" size="sm" className="text-red-500">Revoke</Button>
                         </div>
-                      </div>
-
-                      <div>
-                        <p className="text-sm text-gray-500 mb-2">Organizations (1)</p>
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <Building2 className="w-4 h-4 text-blue-600" />
-                              </div>
-                              <div>
-                                <p className="text-sm font-medium">Apex Academy</p>
-                                <p className="text-xs text-gray-500">48 members</p>
-                              </div>
-                            </div>
-                            <Button variant="ghost" size="sm" className="text-red-500">Revoke</Button>
-                          </div>
-                        </div>
-                      </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
@@ -471,7 +459,6 @@ export default function SetDetailPage() {
                           <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Date/Time</th>
                           <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">User</th>
                           <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Method</th>
-                          <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">IP</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -482,7 +469,6 @@ export default function SetDetailPage() {
                             <td className="p-4">
                               <Badge variant="outline">{log.source}</Badge>
                             </td>
-                            <td className="p-4 text-sm text-gray-500">{log.ip}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -515,55 +501,15 @@ export default function SetDetailPage() {
                               className="text-[#F4511E]"
                             />
                             <div>
-                              <p className="font-medium capitalize">{vis.replace("_", "-")}</p>
-                              <p className="text-sm text-gray-500">
-                                {vis === "private" && "Only accessible with PIN"}
-                                {vis === "org_only" && "Org members + PIN access"}
-                                {vis === "public" && "Listed on public website"}
-                              </p>
+                                <p className="font-medium capitalize">{vis.replace("_", "-")}</p>
+                                <p className="text-sm text-gray-500">
+                                    {vis === "private" && "Only accessible with PIN"}
+                                    {vis === "org_only" && "Org members + PIN access"}
+                                    {vis === "public" && "Listed on public website"}
+                                </p>
                             </div>
                           </label>
                         ))}
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-6">
-                      <h3 className="font-medium mb-4">Permissions</h3>
-                      <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Allow PDF Download</p>
-                            <p className="text-sm text-gray-500">Users can download content as PDF</p>
-                          </div>
-                          <Switch checked={false} />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">Show Solutions</p>
-                            <p className="text-sm text-gray-500">Display solutions after submission</p>
-                          </div>
-                          <Switch checked={false} />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-6">
-                      <h3 className="font-medium mb-4">Expiry</h3>
-                      <div className="flex items-center gap-4">
-                        <Switch />
-                        <div className="flex-1">
-                          <Input type="datetime-local" disabled />
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-6">
-                      <h3 className="font-medium mb-4 text-red-600">Danger Zone</h3>
-                      <div className="flex gap-3">
-                        <Button variant="outline">Archive Set</Button>
-                        <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
-                          Delete Set
-                        </Button>
                       </div>
                     </div>
                   </CardContent>
@@ -574,17 +520,14 @@ export default function SetDetailPage() {
         </main>
       </div>
 
-      {/* Share Modal */}
       <ShareModal
         open={showShareModal}
         onOpenChange={setShowShareModal}
-        contentId={setData.setId}
-        contentPassword={setData.pin}
-        contentName={setData.name}
+        contentId={setData?.setId || ""}
+        contentPassword={setData?.pin || ""}
+        contentName={setData?.name || ""}
         contentType="set"
       />
-
-
     </div>
   );
 }

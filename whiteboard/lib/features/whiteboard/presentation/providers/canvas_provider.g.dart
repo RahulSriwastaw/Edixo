@@ -6,6 +6,21 @@ part of 'canvas_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+String _$canvasRepaintKeyHash() => r'e0b3c5a9e05e9a3271a425f62a02cbd6721e2f84';
+
+/// See also [canvasRepaintKey].
+@ProviderFor(canvasRepaintKey)
+final canvasRepaintKeyProvider = AutoDisposeProvider<GlobalKey>.internal(
+  canvasRepaintKey,
+  name: r'canvasRepaintKeyProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$canvasRepaintKeyHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+typedef CanvasRepaintKeyRef = AutoDisposeProviderRef<GlobalKey>;
 String _$canvasNotifierHash() => r'7ab9caa5d5e4d82e09a27d26af868397a037ccf2';
 
 /// See also [CanvasNotifier].

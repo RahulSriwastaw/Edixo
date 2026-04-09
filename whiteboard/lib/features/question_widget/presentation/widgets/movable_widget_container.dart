@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/interaction_state_provider.dart';
+import '../../../whiteboard/presentation/providers/tool_provider.dart';
 
 class MovableWidgetContainer extends ConsumerStatefulWidget {
   final String id;
@@ -39,6 +40,16 @@ class MovableWidgetContainer extends ConsumerStatefulWidget {
 class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer> {
   bool get _isSelected => ref.watch(selectedSetWidgetIdProvider) == widget.id;
 
+  double? _liveX;
+  double? _liveY;
+  double? _liveWidth;
+  double? _liveHeight;
+
+  double get currentX => _liveX ?? widget.x;
+  double get currentY => _liveY ?? widget.y;
+  double get currentW => _liveWidth ?? widget.width;
+  double get currentH => _liveHeight ?? widget.height;
+
   double get _handleSize => kIsWeb || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.linux
       ? 12.0
       : 24.0;
@@ -46,29 +57,53 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: widget.x,
-      top: widget.y,
+      left: currentX,
+      top: currentY,
       child: GestureDetector(
         onTap: () {
-          if (widget.canEdit) {
+          final activeTool = ref.read(toolNotifierProvider).activeTool;
+          if (widget.canEdit && activeTool == Tool.selectObject) {
             ref.read(selectedSetWidgetIdProvider.notifier).state = widget.id;
           }
         },
-        onLongPress: widget.canEdit ? widget.onToggleLock : null,
+        onLongPress: widget.canEdit ? () {
+          final activeTool = ref.read(toolNotifierProvider).activeTool;
+          if (activeTool == Tool.selectObject) {
+            widget.onToggleLock();
+          }
+        } : null,
         onPanStart: widget.canEdit ? (_) {
           if (!widget.isLocked) {
             ref.read(isDraggingWidgetProvider.notifier).state = true;
+            setState(() {
+              _liveX = widget.x;
+              _liveY = widget.y;
+            });
           }
         } : null,
         onPanUpdate: widget.canEdit ? (details) {
-          if (!widget.isLocked) {
-            widget.onMove(Offset(widget.x + details.delta.dx, widget.y + details.delta.dy));
+          if (!widget.isLocked && _liveX != null && _liveY != null) {
+            setState(() {
+              _liveX = _liveX! + details.delta.dx;
+              _liveY = _liveY! + details.delta.dy;
+            });
           }
         } : null,
-        onPanEnd: widget.canEdit ? (_) => ref.read(isDraggingWidgetProvider.notifier).state = false : null,
+        onPanEnd: widget.canEdit ? (_) {
+          if (!widget.isLocked) {
+            if (_liveX != null && _liveY != null) {
+              widget.onMove(Offset(_liveX!, _liveY!));
+            }
+            setState(() {
+              _liveX = null;
+              _liveY = null;
+            });
+            ref.read(isDraggingWidgetProvider.notifier).state = false;
+          }
+        } : null,
         child: Container(
-          width: widget.width,
-          height: widget.height,
+          width: currentW,
+          height: currentH,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             boxShadow: _isSelected
@@ -128,10 +163,10 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
   }
 
   void _resize({double? top, double? left, double? right, double? bottom}) {
-    double newX = widget.x;
-    double newY = widget.y;
-    double newWidth = widget.width;
-    double newHeight = widget.height;
+    double newX = currentX;
+    double newY = currentY;
+    double newWidth = currentW;
+    double newHeight = currentH;
 
     if (top != null) {
       newY += top;
@@ -154,8 +189,12 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
     if (newWidth > 1920) newWidth = 1920;
     if (newHeight > 1080) newHeight = 1080;
 
-    widget.onMove(Offset(newX, newY));
-    widget.onResize(Size(newWidth, newHeight));
+    setState(() {
+      _liveX = newX;
+      _liveY = newY;
+      _liveWidth = newWidth;
+      _liveHeight = newHeight;
+    });
   }
 
   Widget _Handle({double? top, double? left, double? right, double? bottom, required Function(Offset) onDrag}) {
@@ -167,9 +206,29 @@ class _MovableWidgetContainerState extends ConsumerState<MovableWidgetContainer>
       child: GestureDetector(
         onPanStart: (_) {
           ref.read(isDraggingWidgetProvider.notifier).state = true;
+          setState(() {
+            _liveX = widget.x;
+            _liveY = widget.y;
+            _liveWidth = widget.width;
+            _liveHeight = widget.height;
+          });
         },
         onPanUpdate: (d) => onDrag(d.delta),
-        onPanEnd: (_) => ref.read(isDraggingWidgetProvider.notifier).state = false,
+        onPanEnd: (_) {
+          if (_liveX != null && _liveY != null) {
+            widget.onMove(Offset(_liveX!, _liveY!));
+          }
+          if (_liveWidth != null && _liveHeight != null) {
+            widget.onResize(Size(_liveWidth!, _liveHeight!));
+          }
+          setState(() {
+            _liveX = null;
+            _liveY = null;
+            _liveWidth = null;
+            _liveHeight = null;
+          });
+          ref.read(isDraggingWidgetProvider.notifier).state = false;
+        },
         child: Container(
           width: 16,
           height: 16,

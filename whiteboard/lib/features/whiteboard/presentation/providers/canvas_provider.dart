@@ -492,6 +492,11 @@ class CanvasNotifier extends _$CanvasNotifier {
 }
 
 // Helper extension to keep undo stack bounded at 50
-extension _ListBound<T> on List<T> {
+extension ListBound<T> on List<T> {
   List<T> takeLast50() => length >= 50 ? sublist(length - 49) : this;
+}
+
+@riverpod
+GlobalKey canvasRepaintKey(CanvasRepaintKeyRef ref) {
+  return GlobalKey();
 }

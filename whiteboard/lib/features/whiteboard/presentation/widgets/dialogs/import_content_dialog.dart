@@ -1,4 +1,4 @@
-﻿// lib/features/whiteboard/presentation/widgets/dialogs/import_content_dialog.dart
+// lib/features/whiteboard/presentation/widgets/dialogs/import_content_dialog.dart
 //
 // Unified import dialog with two tabs:
 //   - Question Set: Set ID + Password via setImportNotifierProvider
@@ -12,6 +12,7 @@ import '../../../../../core/constants/app_dimensions.dart';
 import '../../../../../core/constants/app_text_styles.dart';
 import '../../providers/set_import_provider.dart';
 import '../../providers/pdf_import_provider.dart';
+import '../../providers/slide_provider.dart';
 
 Future<void> showImportContentDialog(BuildContext context) {
   return showDialog<void>(
@@ -155,6 +156,7 @@ class _SetImportTabState extends ConsumerState<_SetImportTab> {
   late final TextEditingController _passwordCtrl;
   late final FocusNode _setIdFocus;
   late final FocusNode _passwordFocus;
+  bool _isAppend = true;
 
   @override
   void initState() {
@@ -163,6 +165,10 @@ class _SetImportTabState extends ConsumerState<_SetImportTab> {
     _passwordCtrl = TextEditingController();
     _setIdFocus = FocusNode();
     _passwordFocus = FocusNode();
+    
+    // Default to append if a session is already active
+    final hasSlides = ref.read(slideNotifierProvider).hasSlides;
+    _isAppend = hasSlides;
   }
 
   @override
@@ -182,6 +188,7 @@ class _SetImportTabState extends ConsumerState<_SetImportTab> {
     await ref.read(setImportNotifierProvider.notifier).importSet(
           setId: setId,
           password: password.isEmpty ? 'public' : password,
+          isAppend: _isAppend,
         );
 
     final importState = ref.read(setImportNotifierProvider);
@@ -217,6 +224,7 @@ class _SetImportTabState extends ConsumerState<_SetImportTab> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(setImportNotifierProvider);
+    final hasSlides = ref.read(slideNotifierProvider).hasSlides;
     final loading = state.state == SetImportState.validating ||
         state.state == SetImportState.importing;
 
@@ -253,17 +261,18 @@ class _SetImportTabState extends ConsumerState<_SetImportTab> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'Enter your set credentials to load questions instantly.',
-                  style: AppTextStyles.caption,
-                ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _setIdCtrl,
                   focusNode: _setIdFocus,
                   enabled: !loading,
-                  keyboardType: TextInputType.number,
+                  keyboardType: TextInputType.text,
+                  enableInteractiveSelection: true,
+                  contextMenuBuilder: (context, editableTextState) {
+                    return AdaptiveTextSelectionToolbar.editableText(
+                      editableTextState: editableTextState,
+                    );
+                  },
                   textInputAction: TextInputAction.next,
                   onSubmitted: (_) => _passwordFocus.requestFocus(),
                   decoration: _inputDecoration('Set ID', Icons.numbers),
@@ -274,10 +283,47 @@ class _SetImportTabState extends ConsumerState<_SetImportTab> {
                   focusNode: _passwordFocus,
                   enabled: !loading,
                   obscureText: true,
+                  enableInteractiveSelection: true,
+                  contextMenuBuilder: (context, editableTextState) {
+                    return AdaptiveTextSelectionToolbar.editableText(
+                      editableTextState: editableTextState,
+                    );
+                  },
                   textInputAction: TextInputAction.done,
                   onSubmitted: loading ? null : (_) => _import(),
                   decoration: _inputDecoration('Password', Icons.lock_outline),
                 ),
+                if (hasSlides) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.bgPrimary.withValues(alpha: 0.4),
+                      borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.add_to_photos_outlined, size: 18, color: AppColors.accentOrange),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Append to Current Class', style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600)),
+                              Text('Adds slides to the end of your session', style: AppTextStyles.caption.copyWith(fontSize: 10)),
+                            ],
+                          ),
+                        ),
+                        Switch(
+                          value: _isAppend,
+                          onChanged: loading ? null : (v) => setState(() => _isAppend = v),
+                          activeColor: AppColors.accentOrange,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),

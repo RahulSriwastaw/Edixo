@@ -6,7 +6,6 @@ const SINGLE_OWNER_DISABLED_PREFIXES = [
     '/org-admin',
     '/mockbook/org',
     '/question-bank/points',
-    '/question-bank/sets/create',
     '/mocktests/create-from-sets',
 ];
 

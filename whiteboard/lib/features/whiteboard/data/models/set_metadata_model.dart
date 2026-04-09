@@ -6,11 +6,14 @@ class SetMetadataModel {
   final String? subject;
   final int     questionCount;
 
+  final Map<String, dynamic>? visualSettings;
+
   const SetMetadataModel({
     required this.setId,
     required this.title,
     this.subject,
     required this.questionCount,
+    this.visualSettings,
   });
 
   factory SetMetadataModel.fromJson(Map<String, dynamic> json) => SetMetadataModel(
@@ -18,6 +21,7 @@ class SetMetadataModel {
     title:         json['title'] as String,
     subject:       json['subject'] as String?,
     questionCount: json['questionCount'] as int? ?? 0,
+    visualSettings: json['visual_settings'] as Map<String, dynamic>?,
   );
 
   Map<String, dynamic> toJson() => {
@@ -25,5 +29,6 @@ class SetMetadataModel {
     'title': title,
     'subject': subject,
     'questionCount': questionCount,
+    'visual_settings': visualSettings,
   };
 }

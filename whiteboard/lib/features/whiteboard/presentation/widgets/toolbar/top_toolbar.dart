@@ -8,8 +8,9 @@ import '../../../presentation/providers/slide_provider.dart';
 import '../../../data/models/page_models.dart';
 import '../dialogs/import_content_dialog.dart';
 import '../dialogs/end_class_dialog.dart';
-import '../dialogs/background_settings_dialog.dart';
 import '../set_settings_bottom_sheet.dart';
+import '../../providers/floating_overlay_provider.dart';
+import '../overlays/floating_movable_panel.dart';
 
 class TopToolbar extends ConsumerWidget {
   final VoidCallback onToggleAi;
@@ -32,7 +33,8 @@ class TopToolbar extends ConsumerWidget {
     final slideNotifier = ref.read(slideNotifierProvider.notifier);
     
     final hasSlides    = slideState.hasSlides;
-    final setName      = slideState.setMetadata?.title ?? (hasSlides ? 'Imported Set' : 'EduBoard Pro');
+    final firstSet     = slideState.importedSets.isNotEmpty ? slideState.importedSets.first : null;
+    final setName      = firstSet?.title ?? (hasSlides ? 'Imported Set' : 'EduBoard Pro');
     final slideIndex   = slideState.currentPageIndex;
     final totalSlides  = slideState.pages.length;
     
@@ -137,11 +139,14 @@ class TopToolbar extends ConsumerWidget {
           if (currentQuestion != null) ...[
             ElevatedButton.icon(
               onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  isScrollControlled: true,
-                  builder: (_) => SetSettingsBottomSheet(currentQuestionNumber: currentQuestion),
+                ref.read(floatingOverlayNotifierProvider.notifier).togglePanel(
+                  'setSettings',
+                  FloatingMovablePanel(
+                    panelId: 'setSettings',
+                    title: 'Set Styles & Settings',
+                    child: SetSettingsPanel(currentQuestionNumber: currentQuestion),
+                  ),
+                  initialPosition: const Offset(800, 100),
                 );
               },
               icon: const Icon(Icons.settings, size: 18),
@@ -181,15 +186,7 @@ class TopToolbar extends ConsumerWidget {
 
           const SizedBox(width: AppDimensions.borderRadiusM),
 
-          // 5. Background Settings Button
-          IconButton(
-            icon: const Icon(Icons.image_search_outlined, size: 20),
-            color: AppColors.textPrimary,
-            tooltip: 'Background Settings',
-            onPressed: () => showBackgroundSettingsDialog(context),
-          ),
 
-          const SizedBox(width: AppDimensions.borderRadiusM),
 
           // 6. End Class Button
           OutlinedButton.icon(

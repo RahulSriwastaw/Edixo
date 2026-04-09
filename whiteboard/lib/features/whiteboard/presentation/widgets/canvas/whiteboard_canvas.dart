@@ -6,7 +6,10 @@ import 'slide_content_layer.dart';
 import 'editable_question_layer.dart';
 import 'annotation_layer.dart';
 import 'overlay_layer.dart';
+import '../../providers/canvas_provider.dart';
 import '../../../../question_widget/presentation/providers/interaction_state_provider.dart';
+import '../../../../question_widget/presentation/providers/set_layout_notifier.dart';
+import '../../providers/floating_overlay_provider.dart';
 
 
 class WhiteboardCanvas extends ConsumerStatefulWidget {
@@ -36,46 +39,66 @@ class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
     // Zoom/Pan is enabled in Navigate mode AND only if no widget is being dragged
     final panEnabled = toolState.activeTool == Tool.navigate && !isDraggingWidget;
 
-
+    final setLayout = ref.watch(setLayoutNotifierProvider);
+    
     return LayoutBuilder(
       builder: (context, constraints) {
-        return ClipRect(
-          child: Container(
-            color: const Color(0xFF0D0D0D),
-            child: InteractiveViewer(
-              transformationController: _transformController,
-              boundaryMargin: const EdgeInsets.all(500),
-              minScale: 0.25,
-              maxScale: 4.0,
-              panEnabled: panEnabled,
-              scaleEnabled: panEnabled,
-              child: const Center(
-                child: SizedBox(
-                   width: _canvasWidth,
-                   height: _canvasHeight,
-                   child: Stack(
-                     clipBehavior: Clip.none,
-                     children: [
-                       // 1. Background Layer (Templates/Grids)
-                       BackgroundLayer(),
-                       
-                       // 2. Slide Content Layer (Read-only background images)
-                       SlideContentLayer(),
-                       
-                       // 3. Editable Question Layer (Interactive widgets)
-                       EditableQuestionLayer(),
-                       
-                       // 4. Annotation Layer (Strokes, shapes, textboxes)
-                       AnnotationLayer(),
-                       
-                       // 5. Overlay Layer (Laser pointer, spotlight)
-                       OverlayLayer(),
-                     ],
-                   ),
+        final canvasKey = ref.watch(canvasRepaintKeyProvider);
+        
+        return Stack(
+          children: [
+            ClipRect(
+              child: Container(
+                color: Color(setLayout.settings.screenBg),
+                child: InteractiveViewer(
+                  transformationController: _transformController,
+                  boundaryMargin: const EdgeInsets.all(500),
+                  minScale: 0.25,
+                  maxScale: 4.0,
+                  panEnabled: panEnabled,
+                  scaleEnabled: panEnabled,
+                  child: RepaintBoundary(
+                    key: canvasKey,
+                    child: const Center(
+                      child: SizedBox(
+                         width: _canvasWidth,
+                         height: _canvasHeight,
+                         child: Stack(
+                           clipBehavior: Clip.none,
+                           children: [
+                             // 1. Background Layer (Templates/Grids)
+                             BackgroundLayer(),
+                             
+                             // 2. Slide Content Layer (Read-only background images)
+                             SlideContentLayer(),
+                             
+                             // 3. Editable Question Layer (Interactive widgets)
+                             EditableQuestionLayer(),
+                             
+                             // 4. Annotation Layer (Strokes, shapes, textboxes)
+                             AnnotationLayer(),
+                             
+                             // 5. Overlay Layer (Laser pointer, spotlight)
+                             OverlayLayer(),
+                           ],
+                         ),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+            // Floating Overlays Layer
+            Consumer(
+              builder: (context, ref, _) {
+                final overlays = ref.watch(floatingOverlayNotifierProvider);
+                if (overlays.isEmpty) return const SizedBox.shrink();
+                return Stack(
+                  children: overlays.values.map((panel) => panel.child).toList(),
+                );
+              },
+            ),
+          ],
         );
       },
     );

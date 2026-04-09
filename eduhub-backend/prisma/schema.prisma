@@ -9,31 +9,15 @@ datasource db {
 }
 
 model WhiteboardAccount {
-  id                  String                  @id @default(uuid())
-  loginId             String                  @unique
-  password            String
-  name                String?
-  isActive            Boolean                 @default(true)
-  maxConcurrentLogins Int                     @default(1)
-  createdAt           DateTime                @default(now())
-  updatedAt           DateTime                @updatedAt
-  loginSessions       WhiteboardLoginSession[]
+  id        String   @id @default(uuid())
+  loginId   String   @unique
+  password  String
+  name      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("whiteboard_accounts")
-}
-
-model WhiteboardLoginSession {
-  id        String             @id @default(uuid())
-  accountId String
-  tokenId   String             @unique
-  expiresAt DateTime
-  revokedAt DateTime?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  account   WhiteboardAccount  @relation(fields: [accountId], references: [id], onDelete: Cascade)
-
-  @@index([accountId, revokedAt, expiresAt])
-  @@map("whiteboard_login_sessions")
 }
 
 model WhiteboardSession {
@@ -60,4 +44,84 @@ model PlatformAuditLog {
 
   @@index([createdAt])
   @@map("platform_audit_logs")
+}
+
+model airtable_sync_folders {
+  id              String   @id
+  name            String
+  slug            String   @unique
+  total_questions Int      @default(0)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+}
+
+model airtable_sync_metadata {
+  table_name      String    @id
+  total_questions Int       @default(0)
+  last_sync_at    DateTime? @db.Timestamptz(6)
+  status          String    @default("NOT_SYNCED")
+  error           String?
+}
+
+model question_options {
+  id          String    @id
+  question_id String
+  text_en     String?
+  text_hi     String?
+  is_correct  Boolean   @default(false)
+  sort_order  Int       @default(0)
+  questions   questions @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model question_set_items {
+  set_id        String
+  question_id   String
+  sort_order    Int           @default(0)
+  questions     questions     @relation(fields: [question_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  question_sets question_sets @relation(fields: [set_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([set_id, question_id])
+}
+
+model question_sets {
+  id                 String               @id
+  set_id             String               @unique
+  pin                String
+  name               String
+  description        String?
+  total_questions    Int                  @default(0)
+  subject            String?
+  chapter            String?
+  is_global          Boolean              @default(false)
+  pdf_notes          Json?
+  visual_settings    Json?
+  created_at         DateTime             @default(now()) @db.Timestamptz(6)
+  updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  question_set_items question_set_items[]
+}
+
+model questions {
+  id                  String               @id
+  question_id         String               @unique
+  text_en             String
+  text_hi             String?
+  type                String               @default("mcq")
+  difficulty          String               @default("medium")
+  subject_name        String?
+  chapter_name        String?
+  point_cost          Int                  @default(5)
+  usage_count         Int                  @default(0)
+  is_approved         Boolean              @default(false)
+  is_global           Boolean              @default(false)
+  created_at          DateTime             @default(now()) @db.Timestamptz(6)
+  question_no         Int?
+  explanation_en      String?
+  explanation_hi      String?
+  exam                String?
+  collection          String?
+  year                Int?
+  airtable_table_name String?
+  record_id           String?
+  question_options    question_options[]
+  question_set_items  question_set_items[]
 }

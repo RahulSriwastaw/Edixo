@@ -1,6 +1,7 @@
 // lib/features/whiteboard/services/keyboard_shortcut_service.dart
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../presentation/providers/tool_provider.dart';
 import '../presentation/providers/canvas_provider.dart';
@@ -20,6 +21,11 @@ class KeyboardShortcutService {
   /// Returns true if the key was handled
   bool handleKeyEvent(KeyEvent event) {
     if (event is! KeyDownEvent) return false;
+
+    // Do not handle shortcuts if focus is on an input field (fixes copy-paste and typing)
+    if (FocusManager.instance.primaryFocus?.context?.widget is EditableText) {
+      return false;
+    }
 
     final key = event.logicalKey;
     final isCtrl = HardwareKeyboard.instance.isControlPressed;

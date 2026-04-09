@@ -69,14 +69,92 @@ const storage = multer.diskStorage({
   },
   filename: (_req, file, cb) => {
     const timestamp = Date.now();
-    cb(null, `${timestamp}-${file.originalname}`);
+    const sanitizedName = file.originalname.replace(/[^a-zA-Z0-9.]/g, '_');
+    cb(null, `${timestamp}-${sanitizedName}`);
   },
 });
 const upload = multer({ storage });
 
+router.post('/sets/:setId/visual-settings', async (req, res, next) => {
+  try {
+    const { setId } = req.params;
+    const { visual_settings } = req.body;
+
+    if (!visual_settings || typeof visual_settings !== 'object') {
+      throw new AppError('Visual settings are required', 400);
+    }
+
+    // Update the set with visual settings (Support both setId and id)
+    await prisma.question_sets.updateMany({
+      where: {
+        OR: [
+          { set_id: setId },
+          { id: setId }
+        ]
+      },
+      data: {
+        visual_settings: visual_settings as any,
+        updated_at: new Date()
+      }
+    });
+
+    res.json({ success: true, data: { message: 'Visual settings updated successfully', visual_settings } });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, res, next) => {
   try {
+    const { setId } = req.params;
     if (!req.file) throw new AppError('PDF file is required', 400);
+    
+    const { fileSize, totalPages } = req.body ?? {};
+    const url = `/uploads/whiteboard/${req.file.filename}`;
+
+    const pdfNotes = {
+      url,
+      fileSize: fileSize ? Number(fileSize) : (req.file.size / (1024 * 1024)).toFixed(2),
+      totalPages: totalPages ? Number(totalPages) : 1,
+      createdAt: new Date().toISOString(),
+    };
+
+    // Update the set with PDF notes
+    await prisma.$executeRawUnsafe(`
+      UPDATE question_sets 
+      SET pdf_notes = $1::jsonb, updated_at = NOW() 
+      WHERE set_id = $2 OR id = $3
+    `, JSON.stringify(pdfNotes), setId, setId);
+
+    res.status(201).json({ success: true, data: pdfNotes });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.get('/sets/:setId/notes', async (req, res, next) => {
+  try {
+    const { setId } = req.params;
+    const safeSetId = String(setId).replace(/'/g, "''");
+    
+    const rows = await prisma.$queryRawUnsafe<Array<any>>(`
+      SELECT pdf_notes FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
+    `);
+
+    if (rows.length === 0) throw new AppError('Set not found', 404);
+    
+    res.json({ 
+      success: true, 
+      data: rows[0].pdf_notes || null 
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/upload-image', upload.single('file'), async (req, res, next) => {
+  try {
+    if (!req.file) throw new AppError('Image file is required', 400);
     const url = `/uploads/whiteboard/${req.file.filename}`;
     res.status(201).json({ success: true, data: { url } });
   } catch (err) {
@@ -89,7 +167,7 @@ router.post('/validate-set', async (req, res, next) => {
     const { setId, password } = req.body ?? {};
     if (!setId || !password) throw new AppError('Set ID and password are required', 400);
     
-    const safeSetId = setId.replace(/'/g, "''");
+    const safeSetId = String(setId).replace(/'/g, "''");
     const setRows = await prisma.$queryRawUnsafe<Array<{ pin: string; id: string }>>(`
         SELECT pin, id FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
     `);
@@ -102,10 +180,9 @@ router.post('/validate-set', async (req, res, next) => {
       return res.json({ success: true, valid: false, reason: 'Invalid password' });
     }
 
-    // Check that set actually has linked questions
     const setPrimaryId = setRows[0].id;
     const countRows = await prisma.$queryRawUnsafe<Array<{ cnt: number | string }>>(`
-        SELECT COUNT(*) AS cnt FROM question_set_items WHERE set_id = '${setPrimaryId.replace(/'/g, "''")}'
+        SELECT COUNT(*) AS cnt FROM question_set_items WHERE set_id = '${String(setPrimaryId).replace(/'/g, "''")}'
     `);
     const questionCount = Number(countRows[0]?.cnt ?? 0);
     
@@ -113,7 +190,7 @@ router.post('/validate-set', async (req, res, next) => {
       return res.json({ 
         success: true, 
         valid: false, 
-        reason: 'This set has no questions. Please add questions from the Super Admin panel → Question Bank → Sets → Edit this set.' 
+        reason: 'This set exists but contains no questions. Please add questions to this set from the Question Bank before importing.' 
       });
     }
 
@@ -126,11 +203,10 @@ router.post('/validate-set', async (req, res, next) => {
 router.get('/sets/:setId/metadata', async (req, res, next) => {
   try {
     const { setId } = req.params;
-    const safeSetId = setId.replace(/'/g, "''");
+    const safeSetId = String(setId).replace(/'/g, "''");
 
-    // Query the raw SQL question_sets table (used by both compat sets and AdvancedSetBuilder-created sets)
     const setRows = await prisma.$queryRawUnsafe<Array<any>>(`
-        SELECT id, name, subject, total_questions,
+        SELECT id, name, subject, total_questions, visual_settings,
                (SELECT COUNT(*) FROM question_set_items WHERE set_id = question_sets.id) AS actual_count
         FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
     `);
@@ -145,6 +221,7 @@ router.get('/sets/:setId/metadata', async (req, res, next) => {
         title: set.name || `Set ${setId}`,
         subject: set.subject || 'General',
         questionCount: Number(set.actual_count || set.total_questions || 0),
+        visual_settings: set.visual_settings || null,
       },
     });
   } catch (err) {
@@ -184,17 +261,16 @@ router.post('/session/start', async (req, res, next) => {
 router.get('/sets/:setId/questions', async (req, res, next) => {
   try {
     const { setId } = req.params;
-
-    // Raw SQL compat tables (used by both compat sets and AdvancedSetBuilder-created sets)
-    const safeSetId = setId.replace(/'/g, "''");
-    const setRows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
-        SELECT id FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
+    const safeSetId = String(setId).replace(/'/g, "''");
+    
+    const setRows = await prisma.$queryRawUnsafe<Array<{ id: string, visual_settings: any }>>(`
+        SELECT id, visual_settings FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
     `);
     
     if (setRows.length === 0) throw new AppError('Question set not found', 404);
     const setPrimaryId = setRows[0].id;
+    const visualSettings = setRows[0].visual_settings;
 
-    // Get questions from compat tables
     const questions = await prisma.$queryRawUnsafe<Array<any>>(`
         SELECT q.id, q.question_id, q.text_en, q.text_hi, q.type, q.difficulty, q.subject_name, q.chapter_name, q.exam, q.collection, q.year, q.airtable_table_name, q.question_no, q.explanation_en, q.explanation_hi, q.point_cost, q.usage_count, q.is_approved, q.is_global
         FROM questions q
@@ -243,7 +319,7 @@ router.get('/sets/:setId/questions', async (req, res, next) => {
         };
     });
 
-    res.json({ success: true, data: { questions: formattedQuestions } });
+    res.json({ success: true, data: { questions: formattedQuestions, visualSettings } });
   } catch (err) {
     next(err);
   }

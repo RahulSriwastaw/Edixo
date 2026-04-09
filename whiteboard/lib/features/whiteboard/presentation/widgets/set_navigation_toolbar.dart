@@ -8,10 +8,8 @@ import '../../data/models/page_models.dart';
 import '../../../question_widget/data/models/set_layout_models.dart';
 import '../../../question_widget/presentation/providers/set_layout_notifier.dart';
 import 'set_settings_bottom_sheet.dart';
-
-
-
-
+import '../providers/floating_overlay_provider.dart';
+import 'overlays/floating_movable_panel.dart';
 
 class SetNavigationToolbar extends ConsumerStatefulWidget {
   const SetNavigationToolbar({super.key});
@@ -123,13 +121,15 @@ class _SetNavigationToolbarState extends ConsumerState<SetNavigationToolbar> {
             _NavButton(
               icon: Icons.settings,
               onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  backgroundColor: Colors.transparent,
-                  builder: (context) => SetSettingsBottomSheet(
-                    currentQuestionNumber: (slideState.currentPage as SetImportPage?)?.slide.questionNumber ?? 1,
+                final pageNum = (slideState.currentPage as SetImportPage?)?.slide.questionNumber ?? 1;
+                ref.read(floatingOverlayNotifierProvider.notifier).togglePanel(
+                  'setSettings',
+                  FloatingMovablePanel(
+                    panelId: 'setSettings',
+                    title: 'Set Styles & Settings',
+                    child: SetSettingsPanel(currentQuestionNumber: pageNum),
                   ),
-
+                  initialPosition: const Offset(800, 100),
                 );
               },
               tooltip: 'Settings',

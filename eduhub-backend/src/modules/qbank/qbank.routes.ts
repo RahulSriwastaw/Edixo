@@ -24,42 +24,58 @@ router.get('/sets/:setId/questions', async (req, res, next) => {
             throw new AppError('Password is required', 400);
         }
 
-        const questionSet = await prisma.questionSet.findUnique({
-            where: { setId },
-            include: {
-                items: {
-                    include: { question: { include: { options: true } } },
-                    orderBy: { sortOrder: 'asc' },
-                },
-            },
-        });
+        const safeSetId = String(setId).replace(/'/g, "''");
+        const setRows = await prisma.$queryRawUnsafe<Array<{ id: string; set_id: string; name: string; pin: string; total_questions: number }>>(`
+            SELECT id, set_id, name, pin, total_questions FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
+        `);
 
-        if (!questionSet) throw new AppError('Set not found', 404);
+        if (setRows.length === 0) throw new AppError('Set not found', 404);
+        const questionSet = setRows[0];
         if (questionSet.pin !== password) throw new AppError('Invalid password', 401);
 
         const labels = ['A', 'B', 'C', 'D', 'E', 'F'];
+        const setPrimaryId = questionSet.id;
 
-        const questions = questionSet.items.map((item, idx) => {
-            const q = item.question;
-            const opts = q?.options
-                .sort((a, b) => a.sortOrder - b.sortOrder)
-                .map((o, i) => ({
-                    label: labels[i] ?? `O${i + 1}`,
-                    text: o.textEn || o.textHi || '',
-                    imageUrl: o.imageUrl,
-                })) ?? [];
+        const rawQuestions = await prisma.$queryRawUnsafe<Array<any>>(`
+            SELECT q.id, q.question_id, q.text_en, q.text_hi, q.type, q.difficulty, q.subject_name, q.exam
+            FROM questions q
+            JOIN question_set_items qsi ON q.id = qsi.question_id
+            WHERE qsi.set_id = '${setPrimaryId}'
+            ORDER BY qsi.sort_order ASC
+        `);
 
-            const correctIndex = q?.options.findIndex((o) => o.isCorrect) ?? -1;
+        const questionIds = rawQuestions.map((q: any) => q.id);
+        let optionsByQuestion: Record<string, any[]> = {};
+        if (questionIds.length > 0) {
+            const idsList = questionIds.map((id: string) => `'${id.replace(/'/g, "''")}'`).join(',');
+            const options = await prisma.$queryRawUnsafe<Array<any>>(`
+                SELECT id, question_id, text_en, text_hi, is_correct, sort_order
+                FROM question_options WHERE question_id IN (${idsList}) ORDER BY sort_order ASC
+            `);
+            optionsByQuestion = options.reduce((acc: any, opt: any) => {
+                acc[opt.question_id] = acc[opt.question_id] || [];
+                acc[opt.question_id].push(opt);
+                return acc;
+            }, {});
+        }
+
+        const questions = rawQuestions.map((q: any, idx: number) => {
+            const opts = (optionsByQuestion[q.id] || []).map((o: any, i: number) => ({
+                label: labels[i] ?? `O${i + 1}`,
+                text: o.text_en || o.text_hi || '',
+                imageUrl: null,
+            }));
+            const correctIndex = (optionsByQuestion[q.id] || []).findIndex((o: any) => o.is_correct);
 
             return {
-                id: q?.id ?? `q-${idx}`,
-                questionId: q?.questionId,
-                text: q?.textEn || q?.textHi || 'Question text not available',
-                questionImageUrl: q?.imageUrl,
+                id: q.id ?? `q-${idx}`,
+                questionId: q.question_id,
+                text: q.text_en || q.text_hi || 'Question text not available',
+                questionImageUrl: null,
                 options: opts,
                 correctOption: correctIndex >= 0 ? labels[correctIndex] : null,
-                subject: q?.subjectName,
-                examSource: q?.exam,
+                subject: q.subject_name,
+                examSource: q.exam,
             };
         });
 
@@ -68,9 +84,9 @@ router.get('/sets/:setId/questions', async (req, res, next) => {
             data: {
                 set: {
                     id: questionSet.id,
-                    setId: questionSet.setId,
+                    setId: questionSet.set_id,
                     name: questionSet.name,
-                    totalQuestions: questionSet.totalQuestions,
+                    totalQuestions: Number(questionSet.total_questions) || questions.length,
                     subject: questions.find((q) => q.subject)?.subject ?? null,
                     exam: questions.find((q) => q.examSource)?.examSource ?? null,
                     year: null,
@@ -624,11 +640,12 @@ router.get('/dashboard', async (req, res, next) => {
         const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
 
         // 1. Basic Stats
-        const [totalQuestions, publicQuestions, setMapCount] = await Promise.all([
-            prisma.question.count({ where: isSuperAdmin ? {} : { orgId: org?.id } }),
-            prisma.question.count({ where: { isGlobal: true } }),
-            prisma.questionSet.count({ where: isSuperAdmin ? {} : { orgId: org?.id } }),
-        ]);
+        const totalQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>('SELECT COUNT(*) AS cnt FROM questions');
+        const publicQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>('SELECT COUNT(*) AS cnt FROM questions WHERE is_global = true');
+        const setCountRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>('SELECT COUNT(*) AS cnt FROM question_sets');
+        const totalQuestions = Number(totalQuestionsRow[0]?.cnt ?? 0);
+        const publicQuestions = Number(publicQuestionsRow[0]?.cnt ?? 0);
+        const setMapCount = Number(setCountRow[0]?.cnt ?? 0);
 
         // 2. Questions by Subject (Root folders)
         const rootFolders = await prisma.qBankFolder.findMany({
@@ -796,50 +813,39 @@ router.get('/chapters', async (req, res, next) => {
 // ─── GET /api/qbank/sets ─────────────────────────────────────
 router.get('/sets', async (req, res, next) => {
     try {
-        const { page = 1, limit = 50, search, orgId: queryOrgId } = req.query;
-        const skip = (Number(page) - 1) * Number(limit);
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-        const orgIdFromHeader = req.headers['x-org-id'] as string;
-        
-        const org = (req.user?.orgId && req.user.orgId !== 'undefined') 
-            ? await prisma.organization.findFirst({ where: { orgId: req.user.orgId } }) 
-            : null;
+        const { page = 1, limit = 50, search } = req.query;
+        const offset = (Number(page) - 1) * Number(limit);
 
-        const where: any = {};
-
-        // Filtering logic:
-        if (isSuperAdmin) {
-            if (queryOrgId) {
-                const targetOrg = await prisma.organization.findFirst({ where: { orgId: queryOrgId as string } });
-                if (targetOrg) where.orgId = targetOrg.id;
-            } else if (orgIdFromHeader) {
-                const targetOrg = await prisma.organization.findFirst({ where: { orgId: orgIdFromHeader } });
-                if (targetOrg) where.orgId = targetOrg.id;
-            }
-        } else if (org) {
-            where.orgId = org.id;
-        }
+        let whereClause = '1=1';
+        const params: any[] = [];
 
         if (search) {
-            where.OR = [
-                { name: { contains: search as string, mode: 'insensitive' } },
-                { setId: { contains: search as string, mode: 'insensitive' } }
-            ];
+            params.push(`%${search}%`);
+            whereClause += ` AND (name ILIKE $${params.length} OR set_id ILIKE $${params.length})`;
         }
 
-        const [sets, total] = await Promise.all([
-            prisma.questionSet.findMany({
-                where,
-                skip,
-                take: Number(limit),
-                include: {
-                    _count: { select: { items: true } },
-                    folder: { select: { id: true, name: true } }
-                },
-                orderBy: { createdAt: 'desc' }
-            }),
-            prisma.questionSet.count({ where })
+        const setsQuery = `
+            SELECT qs.id, qs.set_id AS "setId", qs.pin, qs.name, qs.description,
+                   qs.total_questions AS "totalQuestions", qs.subject, qs.chapter,
+                   qs.is_global AS "isGlobal", qs.pdf_notes, qs.created_at AS "createdAt",
+                   (SELECT COUNT(*) FROM question_set_items qsi WHERE qsi.set_id = qs.id) AS "itemCount"
+            FROM question_sets qs
+            WHERE ${whereClause}
+            ORDER BY qs.created_at DESC
+            LIMIT ${Number(limit)} OFFSET ${offset}
+        `;
+        const countQuery = `SELECT COUNT(*) AS cnt FROM question_sets WHERE ${whereClause}`;
+
+        const [rawSets, countRows] = await Promise.all([
+            prisma.$queryRawUnsafe<Array<any>>(setsQuery, ...params),
+            prisma.$queryRawUnsafe<Array<{cnt: bigint}>>(countQuery, ...params),
         ]);
+
+        const sets = rawSets.map((s: any) => ({
+            ...s,
+            _count: { items: Number(s.itemCount || 0) },
+        }));
+        const total = Number(countRows[0]?.cnt ?? 0);
 
         res.json({ success: true, data: { sets, total } });
     } catch (err) { next(err); }
@@ -848,22 +854,51 @@ router.get('/sets', async (req, res, next) => {
 // ─── GET /api/qbank/sets/:id ──────────────────────────────────
 router.get('/sets/:id', async (req, res, next) => {
     try {
-        const set = await prisma.questionSet.findUnique({
-            where: { id: req.params.id },
-            include: {
-                items: {
-                    include: {
-                        question: {
-                            include: { options: true }
-                        }
-                    },
-                    orderBy: { sortOrder: 'asc' }
-                },
-                _count: { select: { items: true } }
+        const safeId = String(req.params.id).replace(/'/g, "''");
+        const setRows = await prisma.$queryRawUnsafe<Array<any>>(`
+            SELECT qs.id, qs.set_id AS "setId", qs.pin, qs.name, qs.description,
+                   qs.total_questions AS "totalQuestions", qs.subject, qs.chapter,
+                   qs.is_global AS "isGlobal", qs.pdf_notes, qs.created_at AS "createdAt"
+            FROM question_sets qs WHERE qs.id = '${safeId}' OR qs.set_id = '${safeId}' LIMIT 1
+        `);
+        if (setRows.length === 0) throw new AppError('Question set not found', 404);
+        const set = setRows[0];
+
+        // Fetch items with questions + options
+        const itemRows = await prisma.$queryRawUnsafe<Array<any>>(`
+            SELECT qsi.sort_order,
+                   q.id AS q_id, q.question_id, q.text_en AS "textEn", q.text_hi AS "textHi",
+                   q.type, q.difficulty, q.subject_name AS "subjectName", q.explanation_en AS "explanationEn",
+                   q.explanation_hi AS "explanationHi", q.point_cost AS "pointCost"
+            FROM question_set_items qsi
+            JOIN questions q ON q.id = qsi.question_id
+            WHERE qsi.set_id = '${set.id}'
+            ORDER BY qsi.sort_order ASC
+        `);
+
+        const optRows = itemRows.length > 0
+            ? await prisma.$queryRawUnsafe<Array<any>>(`
+                SELECT id, question_id, text_en AS "textEn", text_hi AS "textHi",
+                       is_correct AS "isCorrect", sort_order AS "sortOrder"
+                FROM question_options
+                WHERE question_id IN (${itemRows.map(r => `'${r.q_id.replace(/'/g, "''")}' `).join(',')})
+                ORDER BY sort_order ASC
+              `)
+            : [];
+
+        const optByQ: Record<string, any[]> = {};
+        optRows.forEach((o: any) => { optByQ[o.question_id] = optByQ[o.question_id] || []; optByQ[o.question_id].push(o); });
+
+        const items = itemRows.map((r: any) => ({
+            question: {
+                id: r.q_id, questionId: r.question_id, textEn: r.textEn, textHi: r.textHi,
+                type: r.type, difficulty: r.difficulty, subjectName: r.subjectName,
+                explanationEn: r.explanationEn, explanationHi: r.explanationHi, pointCost: r.pointCost,
+                options: optByQ[r.q_id] || []
             }
-        });
-        if (!set) throw new AppError('Question set not found', 404);
-        res.json({ success: true, data: set });
+        }));
+
+        res.json({ success: true, data: { ...set, items, _count: { items: items.length } } });
     } catch (err) { next(err); }
 });
 
@@ -879,49 +914,45 @@ router.post('/sets', async (req, res, next) => {
         });
         const body = schema.parse(req.body);
 
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-        let orgId = req.user?.orgId;
-        let org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
-
-        if (!org && isSuperAdmin) {
-            // Default to first org if Super Admin doesn't have one (though usually they context-switch)
-            org = await prisma.organization.findFirst({ where: { deletedAt: null } });
-        }
-
-        if (!org) throw new AppError('Organization context required', 400);
-
         // Generate unique 6-digit setId
         let setId = '';
         let isUnique = false;
         while (!isUnique) {
             setId = String(Math.floor(100000 + Math.random() * 900000));
-            const existing = await prisma.questionSet.findUnique({ where: { setId } });
-            if (!existing) isUnique = true;
+            const existing = await prisma.$queryRawUnsafe<Array<{id: string}>>(`SELECT id FROM question_sets WHERE set_id = '${setId}' LIMIT 1`);
+            if (existing.length === 0) isUnique = true;
         }
 
         const pin = String(Math.floor(100000 + Math.random() * 900000));
+        const newId = `set-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const subject = body.questionIds.length > 0 ? null : null; // Can be extended later
 
-        const questionSet = await prisma.questionSet.create({
-            data: {
-                name: body.name,
-                description: body.description,
-                setId,
-                pin,
-                orgId: org.id,
-                folderId: body.folderId,
-                totalQuestions: body.questionIds.length,
-                durationMins: body.durationMins,
-                items: {
-                    create: body.questionIds.map((qId, index) => ({
-                        questionId: qId,
-                        sortOrder: index,
-                    }))
-                }
-            },
-            include: {
-                _count: { select: { items: true } }
-            }
-        });
+        // Insert into question_sets table
+        await prisma.$executeRawUnsafe(`
+            INSERT INTO question_sets (id, set_id, name, description, pin, total_questions, subject, is_global, created_at, updated_at)
+            VALUES ('${newId}', '${setId}', $1, $2, '${pin}', ${body.questionIds.length}, NULL, false, NOW(), NOW())
+        `, body.name, body.description || null);
+
+        // Insert question_set_items
+        for (let i = 0; i < body.questionIds.length; i++) {
+            const safeQId = body.questionIds[i].replace(/'/g, "''");
+            await prisma.$executeRawUnsafe(`
+                INSERT INTO question_set_items (set_id, question_id, sort_order)
+                VALUES ('${newId}', '${safeQId}', ${i})
+                ON CONFLICT (set_id, question_id) DO UPDATE SET sort_order = EXCLUDED.sort_order
+            `);
+        }
+
+        const questionSet = {
+            id: newId,
+            setId,
+            pin,
+            name: body.name,
+            description: body.description || null,
+            totalQuestions: body.questionIds.length,
+            isGlobal: false,
+            _count: { items: body.questionIds.length }
+        };
 
         res.status(201).json({ success: true, data: questionSet });
     } catch (err) { next(err); }
@@ -931,16 +962,9 @@ router.post('/sets', async (req, res, next) => {
 router.delete('/sets', async (req, res, next) => {
     try {
         const { ids } = z.object({ ids: z.array(z.string()) }).parse(req.body);
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-        const orgId = req.user?.orgId;
-        const org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
-
-        const where: any = { id: { in: ids } };
-        if (!isSuperAdmin && org) {
-            where.orgId = org.id;
-        }
-
-        await prisma.questionSet.deleteMany({ where });
+        if (ids.length === 0) return res.json({ success: true, message: '0 sets deleted' });
+        const safeIds = ids.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
+        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id IN (${safeIds})`);
         res.json({ success: true, message: `${ids.length} sets deleted successfully` });
     } catch (err) { next(err); }
 });
@@ -948,18 +972,10 @@ router.delete('/sets', async (req, res, next) => {
 // ─── DELETE /api/qbank/sets/:id ───────────────────────────────
 router.delete('/sets/:id', async (req, res, next) => {
     try {
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-        const orgId = req.user?.orgId;
-        const org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
-
-        const set = await prisma.questionSet.findUnique({ where: { id: req.params.id } });
-        if (!set) throw new AppError('Question set not found', 404);
-
-        if (!isSuperAdmin && org && set.orgId !== org.id) {
-            throw new AppError('Unauthorized: You can only delete your own sets', 403);
-        }
-
-        await prisma.questionSet.delete({ where: { id: req.params.id } });
+        const safeId = String(req.params.id).replace(/'/g, "''");
+        const existing = await prisma.$queryRawUnsafe<Array<{id: string}>>(`SELECT id FROM question_sets WHERE id = '${safeId}' LIMIT 1`);
+        if (existing.length === 0) throw new AppError('Question set not found', 404);
+        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id = '${safeId}'`);
         res.json({ success: true, message: 'Question set deleted successfully' });
     } catch (err) { next(err); }
 });
@@ -1095,22 +1111,56 @@ router.get('/questions', async (req, res, next) => {
             }
         }
 
-        const orderBy: any = [];
-        if (groupBy && typeof groupBy === 'string' && groupBy !== 'none') {
-            orderBy.push({ [groupBy]: 'asc' });
-        }
-        orderBy.push({ createdAt: 'desc' });
+        // Use raw SQL against local questions table (question bank)
+        const limitNum = Number(limit);
+        const skipNum = Number(skip);
+        let rawWhere = '1=1';
+        const rawParams: any[] = [];
 
-        const [questions, total] = await Promise.all([
-            prisma.question.findMany({
-                where,
-                skip,
-                take: Number(limit),
-                include: { options: true, folder: { select: { id: true, name: true, path: true } } },
-                orderBy,
-            }),
-            prisma.question.count({ where }),
-        ]);
+        if (search) {
+            rawParams.push(`%${search}%`);
+            rawWhere += ` AND (text_en ILIKE $${rawParams.length} OR text_hi ILIKE $${rawParams.length})`;
+        }
+        if (difficulty && difficulty !== 'all') {
+            rawParams.push(String(difficulty).toUpperCase());
+            rawWhere += ` AND difficulty = $${rawParams.length}`;
+        }
+        if (type && type !== 'all') {
+            const typeMap: any = { 'mcq': 'MCQ_SINGLE', 'multi_select': 'MCQ_MULTIPLE', 'integer': 'FILL_IN_BLANK', 'true_false': 'TRUE_FALSE' };
+            rawParams.push(typeMap[type as string] || type);
+            rawWhere += ` AND type = $${rawParams.length}`;
+        }
+
+        const questionsRaw = await prisma.$queryRawUnsafe<Array<any>>(`
+            SELECT id, question_id AS "questionId", text_en AS "textEn", text_hi AS "textHi",
+                   type, difficulty, subject_name AS "subjectName", chapter_name AS "chapterName",
+                   exam, year, point_cost AS "pointCost", usage_count AS "usageCount",
+                   is_global AS "isGlobal", is_approved AS "isApproved", created_at AS "createdAt"
+            FROM questions
+            WHERE ${rawWhere}
+            ORDER BY created_at DESC
+            LIMIT ${limitNum} OFFSET ${skipNum}
+        `, ...rawParams);
+
+        const totalRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>(`
+            SELECT COUNT(*) AS cnt FROM questions WHERE ${rawWhere}
+        `, ...rawParams);
+
+        // Fetch options for loaded questions
+        const qIds = questionsRaw.map((q: any) => q.id);
+        let optsByQ: Record<string, any[]> = {};
+        if (qIds.length > 0) {
+            const idsList = qIds.map((id: string) => `'${id.replace(/'/g, "''")}'`).join(',');
+            const opts = await prisma.$queryRawUnsafe<Array<any>>(`
+                SELECT id, question_id AS "question_id", text_en AS "textEn", text_hi AS "textHi",
+                       is_correct AS "isCorrect", sort_order AS "sortOrder"
+                FROM question_options WHERE question_id IN (${idsList}) ORDER BY sort_order ASC
+            `);
+            opts.forEach((o: any) => { optsByQ[o.question_id] = optsByQ[o.question_id] || []; optsByQ[o.question_id].push(o); });
+        }
+
+        const questions = questionsRaw.map((q: any) => ({ ...q, options: optsByQ[q.id] || [], folder: null }));
+        const total = Number(totalRow[0]?.cnt ?? 0);
 
         res.json({ success: true, data: { questions, total } });
     } catch (err) { next(err); }

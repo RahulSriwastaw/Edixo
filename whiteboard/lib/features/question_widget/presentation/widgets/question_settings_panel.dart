@@ -6,23 +6,16 @@ import '../../../../core/constants/app_text_styles.dart';
 import '../../data/models/question_widget_style.dart';
 import '../providers/question_widget_provider.dart';
 
-Future<void> showQuestionSettingsDialog(BuildContext context, String widgetId) {
-  return showDialog<void>(
-    context: context,
-    builder: (_) => QuestionSettingsDialog(widgetId: widgetId),
-  );
-}
-
-class QuestionSettingsDialog extends ConsumerStatefulWidget {
+class QuestionSettingsPanel extends ConsumerStatefulWidget {
   final String widgetId;
 
-  const QuestionSettingsDialog({required this.widgetId, super.key});
+  const QuestionSettingsPanel({required this.widgetId, super.key});
 
   @override
-  ConsumerState<QuestionSettingsDialog> createState() => _QuestionSettingsDialogState();
+  ConsumerState<QuestionSettingsPanel> createState() => _QuestionSettingsPanelState();
 }
 
-class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog> {
+class _QuestionSettingsPanelState extends ConsumerState<QuestionSettingsPanel> {
   late QuestionWidgetStyle _style;
   late TextEditingController _fontSizeController;
   late TextEditingController _paddingController;
@@ -51,52 +44,15 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
   Widget build(BuildContext context) {
     final widgetModel = ref.watch(questionWidgetNotifierProvider)[widget.widgetId];
     if (widgetModel == null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => Navigator.of(context).pop());
       return const SizedBox.shrink();
     }
 
-    return Dialog(
-      backgroundColor: AppColors.bgPrimary,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppDimensions.borderRadiusL),
-      ),
-      child: SizedBox(
-        width: 400,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 8, 0),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.settings_outlined,
-                    color: AppColors.accentOrange,
-                    size: 26,
-                  ),
-                  const SizedBox(width: 10),
-                  Text('Question Settings', style: AppTextStyles.heading2),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 20),
-                    onPressed: () => Navigator.of(context).pop(),
-                    tooltip: 'Close',
-                  ),
-                ],
-              ),
-            ),
-
-            const Divider(height: 1, color: Color(0x22FFFFFF)),
-
-            // Content
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // Text Settings Section
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Text Settings Section
                     _buildSectionHeader('Text Style'),
                     _buildTextFieldWithLabel(
                       'Font Size',
@@ -204,35 +160,7 @@ class _QuestionSettingsDialogState extends ConsumerState<QuestionSettingsDialog>
                       },
                     ),
 
-                    const SizedBox(height: 32),
-
-                    // Action Buttons
-                    Row(
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: const Text('Cancel'),
-                        ),
-                        const Spacer(),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
-                          icon: const Icon(Icons.check, size: 18),
-                          label: const Text('Apply'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.accentOrange,
-                            foregroundColor: AppColors.bgPrimary,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }

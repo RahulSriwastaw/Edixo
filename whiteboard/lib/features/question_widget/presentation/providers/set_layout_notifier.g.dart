@@ -6,7 +6,7 @@ part of 'set_layout_notifier.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$setLayoutNotifierHash() => r'8470dc421005d609c25f4efa0b6d093981aca028';
+String _$setLayoutNotifierHash() => r'acffe9c0459e9bae79ae0420391cf0695c562927';
 
 /// See also [SetLayoutNotifier].
 @ProviderFor(SetLayoutNotifier)

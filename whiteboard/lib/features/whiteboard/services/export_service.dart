@@ -1,23 +1,19 @@
 // lib/features/whiteboard/services/export_service.dart
 
-import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:archive/archive_io.dart';
+import 'package:archive/archive.dart';
 import '../data/models/stroke_model.dart';
 import '../data/models/canvas_object_model.dart';
 import '../data/models/slide_annotation.dart';
 
 /// Service for exporting whiteboard sessions to PDF/PNG
 class ExportService {
-  /// Generate PDF from session annotations
-  /// Runs in compute() isolate to avoid blocking main thread
-  static Future<File> generatePdf({
-    required String sessionId,
+  /// Generate PDF from session annotations in memory
+  static Future<Uint8List> generatePdf({
     required List<SlideAnnotationData> slideAnnotations,
     required int slideCount,
   }) async {
@@ -40,31 +36,22 @@ class ExportService {
       );
     }
 
-    // Save to temporary file
-    final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/session_$sessionId.pdf');
-    await file.writeAsBytes(await pdf.save());
-
-    return file;
+    return await pdf.save();
   }
 
-  /// Generate PNG images from strokes
-  /// Returns list of image file paths
-  static Future<List<File>> generatePngs({
-    required String sessionId,
+  /// Generate PNG images from strokes in memory
+  static Future<List<Uint8List>> generatePngs({
     required List<SlideAnnotationData> slideAnnotations,
     required int slideCount,
     required Size canvasSize,
   }) async {
-    final tempDir = await getTemporaryDirectory();
-    final files = <File>[];
+    final images = <Uint8List>[];
 
     for (int i = 0; i < slideCount; i++) {
       final annotation = i < slideAnnotations.length
           ? slideAnnotations[i]
           : SlideAnnotationData(slideId: 'slide-$i');
 
-      // Create a recorder to capture the canvas
       final recorder = ui.PictureRecorder();
       final canvas = Canvas(recorder);
 
@@ -84,7 +71,6 @@ class ExportService {
         _drawObjectOnCanvas(canvas, obj);
       }
 
-      // Convert to image
       final picture = recorder.endRecording();
       final image = await picture.toImage(
         canvasSize.width.toInt(),
@@ -93,32 +79,29 @@ class ExportService {
       final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
       final pngBytes = byteData!.buffer.asUint8List();
 
-      // Save to file
-      final file = File('${tempDir.path}/slide_${i + 1}.png');
-      await file.writeAsBytes(pngBytes);
-      files.add(file);
+      images.add(pngBytes);
     }
 
-    return files;
+    return images;
   }
 
-  /// Create ZIP archive from PNG files
-  static Future<File> createZip({
-    required String sessionId,
-    required List<File> pngFiles,
+  /// Create ZIP archive from PNG bytes in memory
+  static Future<Uint8List> createZip({
+    required List<Uint8List> pngDataList,
   }) async {
-    final encoder = ZipFileEncoder();
-    final tempDir = await getTemporaryDirectory();
-    final zipFile = File('${tempDir.path}/session_$sessionId.zip');
+    final archive = Archive();
 
-    encoder.create(zipFile.path);
-
-    for (final file in pngFiles) {
-      await encoder.addFile(file);
+    for (int i = 0; i < pngDataList.length; i++) {
+      final archiveFile = ArchiveFile(
+        'slide_${i + 1}.png',
+        pngDataList[i].length,
+        pngDataList[i],
+      );
+      archive.addFile(archiveFile);
     }
 
-    await encoder.close();
-    return zipFile;
+    final zipData = ZipEncoder().encode(archive);
+    return Uint8List.fromList(zipData!);
   }
 
   /// Draw a stroke on canvas (for PNG export)

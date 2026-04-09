@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Layers, Plus, Search, MoreHorizontal, Eye, Edit, Copy, Trash2, Globe, Lock,
-  ArrowUpDown, Filter, Download, Building2, Share2, BookOpen, Check
+  ArrowUpDown, Filter, Download, Building2, Share2, BookOpen, Check, FileText, DownloadCloud
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -189,6 +189,7 @@ export default function QuestionSetsPage() {
                           <th className="w-12 p-4 text-center"><Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} /></th>
                           <th className="text-left p-4 font-medium">Set Name</th>
                           <th className="text-left p-4 font-medium">ID / Password</th>
+                          <th className="text-center p-4 font-medium">Notes / PDF</th>
                           <th className="text-center p-4 font-medium">Questions</th>
                           <th className="text-center p-4 font-medium">Actions</th>
                         </tr>
@@ -201,6 +202,28 @@ export default function QuestionSetsPage() {
                             <td className="p-4">
                               <code className="text-xs bg-gray-100 px-1 rounded block">{set.setId}</code>
                               <code className="text-xs text-gray-400 block">PWD: {set.pin}</code>
+                            </td>
+                            <td className="p-4 text-center">
+                              {set.pdf_notes ? (
+                                <div className="flex flex-col items-center gap-1">
+                                  <Link 
+                                    href={`${API_URL.replace('/api', '')}${set.pdf_notes.url}`} 
+                                    target="_blank"
+                                    className="flex items-center gap-1.5 px-2 py-1 bg-orange-50 text-orange-600 rounded-md hover:bg-orange-100 transition-colors border border-orange-200"
+                                  >
+                                    <FileText className="w-3.5 h-3.5" />
+                                    <span className="text-xs font-semibold">Notes PDF</span>
+                                    <DownloadCloud className="w-3 h-3" />
+                                  </Link>
+                                  <div className="text-[10px] text-gray-500 leading-tight">
+                                    {set.pdf_notes.totalPages} pages • {set.pdf_notes.fileSize}MB
+                                    <br/>
+                                    {new Date(set.pdf_notes.createdAt).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-gray-300 text-xs italic">No notes</span>
+                              )}
                             </td>
                             <td className="p-4 text-center"><Badge variant="outline">{set._count?.items || set.totalQuestions || 0}</Badge></td>
                             <td className="p-4 text-center">

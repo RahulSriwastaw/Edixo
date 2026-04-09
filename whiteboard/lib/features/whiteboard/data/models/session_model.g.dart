@@ -26,13 +26,14 @@ class WhiteboardSessionModelAdapter
       currentPageIndex: fields[5] as int,
       slidesCovered: (fields[6] as List).cast<int>(),
       annotationsJson: fields[7] as String,
+      setIds: (fields[8] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, WhiteboardSessionModel obj) {
     writer
-      ..writeByte(8)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.sessionId)
       ..writeByte(1)
@@ -48,7 +49,9 @@ class WhiteboardSessionModelAdapter
       ..writeByte(6)
       ..write(obj.slidesCovered)
       ..writeByte(7)
-      ..write(obj.annotationsJson);
+      ..write(obj.annotationsJson)
+      ..writeByte(8)
+      ..write(obj.setIds);
   }
 
   @override

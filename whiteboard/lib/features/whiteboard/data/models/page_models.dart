@@ -21,10 +21,12 @@ abstract class WhiteboardPage extends HiveObject {
 @HiveType(typeId: 27)
 class SetImportPage extends WhiteboardPage {
   @HiveField(2) final SetSlideModel slide;
+  @HiveField(3) final String setId;
 
   SetImportPage({
     required super.id,
     required this.slide,
+    required this.setId,
   }) : super(type: PageType.setImport);
 }
 
