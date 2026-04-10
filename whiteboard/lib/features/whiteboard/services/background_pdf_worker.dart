@@ -130,12 +130,15 @@ class BackgroundPdfWorker {
       await for (final message in controller.stream) {
         if (message is Uint8List) {
           result = message;
-        } else if (message is {'progress': double}) {
+        } else if (message is Map && message['progress'] is double) {
           debugPrint('PDF generation progress: ${(message['progress'] * 100).toStringAsFixed(0)}%');
         }
       }
 
-      return result ?? throw Exception('No PDF generated');
+      if (result == null) {
+        throw Exception('No PDF generated');
+      }
+      return result;
     } finally {
       await subscription.cancel();
       _workerBusy[workerIndex] = false;

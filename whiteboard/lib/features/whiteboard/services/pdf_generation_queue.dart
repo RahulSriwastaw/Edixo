@@ -165,8 +165,15 @@ class PdfGenerationQueue {
 
   /// Cancel a specific task
   bool cancelTask(String taskId) {
-    final inNormalQueue = _normalQueue.removeWhere((t) => t.id == taskId) > 0;
-    final inPriorityQueue = _priorityQueue.removeWhere((t) => t.id == taskId) > 0;
+    final inNormalQueue = _normalQueue.any((t) => t.id == taskId);
+    final inPriorityQueue = _priorityQueue.any((t) => t.id == taskId);
+    
+    if (inNormalQueue) {
+      _normalQueue.removeWhere((t) => t.id == taskId);
+    }
+    if (inPriorityQueue) {
+      _priorityQueue.removeWhere((t) => t.id == taskId);
+    }
     
     if (_activeTasks.containsKey(taskId)) {
       _activeTasks.remove(taskId);

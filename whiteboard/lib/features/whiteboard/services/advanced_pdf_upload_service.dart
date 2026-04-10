@@ -288,7 +288,7 @@ class AdvancedPdfUploadService {
 
       // Finalize upload
       onStatus('Finalizing upload...');
-      final finalizeResponse = await _finializeUpload(
+      final finalizeResponse = await _finalizeUpload(
         uploadId: uploadId,
         setId: setId,
         fileName: fileName,

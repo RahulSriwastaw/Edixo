@@ -1,5 +1,6 @@
 // lib/features/whiteboard/presentation/widgets/dialogs/end_class_dialog.dart
 
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,6 +10,7 @@ import '../../../../../core/constants/app_text_styles.dart';
 import '../../providers/session_provider.dart';
 import '../../providers/slide_provider.dart';
 import '../../providers/canvas_provider.dart';
+import '../../providers/slide_capture_provider.dart';
 import '../../../services/export_service.dart';
 import '../../../services/pdf_exporter_service.dart';
 import '../../../services/background_pdf_worker.dart';
@@ -368,9 +370,10 @@ class _EndClassDialogState extends ConsumerState<EndClassDialog> {
                               borderRadius: BorderRadius.circular(8),
                               color: Colors.white.withValues(alpha: 0.1),
                               boxShadow: [
-                                InsetShadow(
-                                  blur: 2,
+                                BoxShadow(
+                                  blurRadius: 2,
                                   color: Colors.black.withValues(alpha: 0.3),
+                                  offset: Offset(0, 1),
                                 ),
                               ],
                             ),
