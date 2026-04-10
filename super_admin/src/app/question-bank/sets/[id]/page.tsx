@@ -300,6 +300,40 @@ export default function SetDetailPage() {
                   </div>
                 </div>
 
+                {setData.pdf_notes && (
+                  <Card>
+                    <CardContent className="p-6 space-y-3 bg-orange-50 border-orange-200">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900">Whiteboard Notes PDF</h2>
+                          <p className="text-sm text-gray-600">Downloaded from this set after PDF upload.</p>
+                        </div>
+                        <Link
+                          href={`${API_URL.replace('/api', '')}${setData.pdf_notes.url}`}
+                          target="_blank"
+                          className="inline-flex items-center gap-2 rounded-md border border-orange-200 bg-white px-4 py-2 text-sm font-medium text-orange-700 shadow-sm hover:bg-orange-50"
+                        >
+                          <Download className="w-4 h-4" /> Download PDF
+                        </Link>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+                        <div>
+                          <span className="block text-xs text-gray-500">Pages</span>
+                          <span className="font-semibold">{setData.pdf_notes.totalPages || 0}</span>
+                        </div>
+                        <div>
+                          <span className="block text-xs text-gray-500">File size</span>
+                          <span className="font-semibold">{setData.pdf_notes.fileSize || 'N/A'} MB</span>
+                        </div>
+                        <div>
+                          <span className="block text-xs text-gray-500">Uploaded</span>
+                          <span className="font-semibold">{new Date(setData.pdf_notes.createdAt).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Actions Row */}
                 <div className="flex flex-wrap items-center gap-3">
                   <Button variant="outline" onClick={() => router.push(`/question-bank/sets/${setId}/edit`)}>

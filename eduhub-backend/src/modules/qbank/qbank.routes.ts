@@ -841,10 +841,14 @@ router.get('/sets', async (req, res, next) => {
             prisma.$queryRawUnsafe<Array<{cnt: bigint}>>(countQuery, ...params),
         ]);
 
-        const sets = rawSets.map((s: any) => ({
-            ...s,
-            _count: { items: Number(s.itemCount || 0) },
-        }));
+        const sets = rawSets.map((s: any) => {
+            const pdfNotes = typeof s.pdf_notes === 'string' ? JSON.parse(s.pdf_notes) : s.pdf_notes;
+            return {
+                ...s,
+                pdf_notes: pdfNotes,
+                _count: { items: Number(s.itemCount || 0) },
+            };
+        });
         const total = Number(countRows[0]?.cnt ?? 0);
 
         res.json({ success: true, data: { sets, total } });
@@ -863,6 +867,7 @@ router.get('/sets/:id', async (req, res, next) => {
         `);
         if (setRows.length === 0) throw new AppError('Question set not found', 404);
         const set = setRows[0];
+        set.pdf_notes = typeof set.pdf_notes === 'string' ? JSON.parse(set.pdf_notes) : set.pdf_notes;
 
         // Fetch items with questions + options
         const itemRows = await prisma.$queryRawUnsafe<Array<any>>(`

@@ -308,13 +308,17 @@ router.get('/sets/:setId/metadata', async (req, res, next) => {
     const safeSetId = String(setId).replace(/'/g, "''");
 
     const setRows = await prisma.$queryRawUnsafe<Array<any>>(`
-        SELECT id, name, subject, total_questions, visual_settings,
+        SELECT id, name, subject, total_questions, visual_settings, pdf_notes,
                (SELECT COUNT(*) FROM question_set_items WHERE set_id = question_sets.id) AS actual_count
         FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
     `);
     
     if (setRows.length === 0) throw new AppError('Set not found', 404);
     const set = setRows[0];
+    const pdfNotes = typeof set.pdf_notes === 'string' ? JSON.parse(set.pdf_notes) : set.pdf_notes;
+    const visualSettings = typeof set.visual_settings === 'string'
+      ? JSON.parse(set.visual_settings)
+      : set.visual_settings;
 
     res.json({
       success: true,
@@ -323,7 +327,8 @@ router.get('/sets/:setId/metadata', async (req, res, next) => {
         title: set.name || `Set ${setId}`,
         subject: set.subject || 'General',
         questionCount: Number(set.actual_count || set.total_questions || 0),
-        visual_settings: set.visual_settings || null,
+        visual_settings: visualSettings,
+        pdf_notes: pdfNotes,
       },
     });
   } catch (err) {

@@ -16,24 +16,29 @@ class WorkerMessage {
   WorkerMessage({required this.command, this.data});
 }
 
-/// Background PDF processing worker using Isolate pool
+/// Background PDF processing worker using Isolate pool (native) or main thread (web)
 class BackgroundPdfWorker {
   static const int poolSize = 3; // 3 concurrent workers
   final List<Isolate> _isolates = [];
   final List<ReceivePort> _receivePorts = [];
   final List<SendPort> _sendPorts = [];
   final List<bool> _workerBusy = [];
-  
+
   static BackgroundPdfWorker? _instance;
-  
+
   BackgroundPdfWorker._();
-  
+
   static BackgroundPdfWorker get instance => _instance ??= BackgroundPdfWorker._();
 
-  bool get isInitialized => _isolates.length == poolSize;
+  bool get isInitialized => kIsWeb ? true : _isolates.length == poolSize;
 
-  /// Initialize the worker pool
+  /// Initialize the worker pool (no-op on web)
   Future<void> initialize() async {
+    if (kIsWeb) {
+      debugPrint('✓ Web platform detected - using main thread for PDF generation');
+      return;
+    }
+
     if (isInitialized) return;
 
     for (int i = 0; i < poolSize; i++) {
@@ -77,7 +82,7 @@ class BackgroundPdfWorker {
     }
   }
 
-  /// Process PDF generation in background
+  /// Process PDF generation in background (native) or main thread (web)
   Future<Uint8List> generatePdf({
     required List<Uint8List> slideImages,
     required List<int> pageOrder,
@@ -86,8 +91,19 @@ class BackgroundPdfWorker {
   }) async {
     await initialize();
 
+    if (kIsWeb) {
+      // Web platform - generate PDF on main thread
+      return await _generatePdfOnMainThread(
+        slideImages: slideImages,
+        pageOrder: pageOrder,
+        deletedPages: deletedPages,
+        onProgress: onProgress,
+      );
+    }
+
+    // Native platform - use isolate workers
     final responsePort = ReceivePort();
-    
+
     try {
       final params = {
         'slideImages': slideImages,
@@ -104,6 +120,70 @@ class BackgroundPdfWorker {
     } finally {
       responsePort.close();
       onProgress(1.0);
+    }
+  }
+
+  /// Generate PDF on main thread (for web platform)
+  Future<Uint8List> _generatePdfOnMainThread({
+    required List<Uint8List> slideImages,
+    required List<int> pageOrder,
+    required Set<int> deletedPages,
+    required Function(double) onProgress,
+  }) async {
+    const pageSize = 50; // Process pages in chunks
+    final pdf = pw.Document();
+    int processedPages = 0;
+
+    try {
+      // Process pages in batches to avoid memory issues
+      for (int batch = 0; batch < pageOrder.length; batch += pageSize) {
+        final endIndex = (batch + pageSize).clamp(0, pageOrder.length);
+
+        for (int orderIndex = batch; orderIndex < endIndex; orderIndex++) {
+          final pageIndex = pageOrder[orderIndex];
+
+          if (deletedPages.contains(pageIndex) || pageIndex >= slideImages.length) {
+            continue;
+          }
+
+          final pngBytes = slideImages[pageIndex];
+          if (pngBytes.isEmpty) continue;
+
+          try {
+            final pdfImage = pw.MemoryImage(pngBytes);
+            pdf.addPage(
+              pw.Page(
+                pageFormat: PdfPageFormat.a4.landscape,
+                margin: pw.EdgeInsets.zero,
+                build: (pw.Context context) {
+                  return pw.Center(
+                    child: pw.Image(pdfImage, fit: pw.BoxFit.contain),
+                  );
+                },
+              ),
+            );
+
+            processedPages++;
+            final progress = processedPages / pageOrder.length;
+            onProgress(progress);
+            debugPrint('PDF generation progress: ${(progress * 100).toStringAsFixed(0)}%');
+
+            // Allow UI to update
+            await Future.delayed(const Duration(milliseconds: 10));
+          } catch (e) {
+            debugPrint('Error processing page $pageIndex: $e');
+            continue;
+          }
+        }
+      }
+
+      final pdfBytes = await pdf.save();
+      onProgress(1.0);
+      debugPrint('✓ PDF generated successfully: ${pdfBytes.length} bytes');
+      return pdfBytes;
+    } catch (e) {
+      debugPrint('PDF generation failed: $e');
+      rethrow;
     }
   }
 

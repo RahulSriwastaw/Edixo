@@ -11,6 +11,8 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:dio/dio.dart';
 import 'package:http_parser/http_parser.dart';
 
+import 'local_pdf_download.dart';
+
 import '../presentation/providers/slide_provider.dart';
 import '../presentation/providers/canvas_provider.dart';
 import '../presentation/providers/session_provider.dart';
@@ -201,15 +203,24 @@ class PdfExporterService {
       statusNotifier.value = "Uploading to server...";
       progressNotifier.value = 0.7;
 
+      final setId = slideState.importedSets.isNotEmpty
+          ? slideState.importedSets.first.setId
+          : 'unknown';
+      final fileName = "class_notes_${setId}_${DateTime.now().millisecondsSinceEpoch}.pdf";
+
       await _uploadPdfWithRetry(
         pdfBytes,
-        slideState.importedSets.isNotEmpty
-            ? slideState.importedSets.first.setId
-            : 'unknown',
+        setId,
         pageOrder.length,
+        fileName,
         statusNotifier,
         progressNotifier,
       );
+
+      if (kIsWeb) {
+        await downloadPdfLocally(pdfBytes, fileName);
+        statusNotifier.value = 'Local copy downloaded.';
+      }
 
       progressNotifier.value = 1.0;
       statusNotifier.value = "✓ Complete!";
@@ -253,6 +264,7 @@ class PdfExporterService {
     Uint8List pdfBytes,
     String setId,
     int totalPages,
+    String fileName,
     ValueNotifier<String> statusNotifier,
     ValueNotifier<double> progressNotifier,
   ) async {
@@ -261,7 +273,7 @@ class PdfExporterService {
 
     while (attempt < _maxRetries) {
       try {
-        await _uploadPdf(pdfBytes, setId, totalPages);
+        await _uploadPdf(pdfBytes, setId, totalPages, fileName);
         return; // Success
       } catch (e) {
         attempt++;
@@ -285,9 +297,9 @@ class PdfExporterService {
     Uint8List pdfBytes,
     String setId,
     int totalPages,
+    String fileName,
   ) async {
     try {
-      final fileName = "class_notes_${setId}_${DateTime.now().millisecondsSinceEpoch}.pdf";
       final fileSizeMB =
           (pdfBytes.lengthInBytes / (1024 * 1024)).toStringAsFixed(2);
 

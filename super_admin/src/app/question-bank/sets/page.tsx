@@ -85,7 +85,24 @@ export default function QuestionSetsPage() {
     fetchSets();
   }, [page]);
 
-  const filteredSets = sets.filter(set => {
+  const normalizedSets = sets.map((set) => {
+    let pdfNotes = null;
+    try {
+      if (set.pdf_notes) {
+        pdfNotes = typeof set.pdf_notes === 'string' 
+          ? JSON.parse(set.pdf_notes) 
+          : set.pdf_notes;
+      }
+    } catch (error) {
+      console.error(`Failed to parse pdf_notes for set ${set.id}:`, error, set.pdf_notes);
+    }
+    return {
+      ...set,
+      pdf_notes: pdfNotes,
+    };
+  });
+
+  const filteredSets = normalizedSets.filter(set => {
     const nameStr = set.name || "";
     const codeStr = set.setId || "";
     const matchesSearch = nameStr.toLowerCase().includes(search.toLowerCase()) || codeStr.toLowerCase().includes(search.toLowerCase());

@@ -105,30 +105,17 @@ class AdvancedPdfUploadService {
     required Function(String) onStatus,
   }) async {
     final uploadId = _generateUploadId();
-    debugPrint('📤 Starting chunked upload: $uploadId ($fileName)');
+    debugPrint('📤 Starting PDF upload: $uploadId ($fileName)');
 
     try {
-      // For small files, use direct upload
-      if (pdfBytes.length < config.chunkSize) {
-        return await _uploadSingleChunk(
-          pdfBytes: pdfBytes,
-          fileName: fileName,
-          setId: setId,
-          totalPages: totalPages,
-          apiUrl: apiUrl,
-          onProgress: onProgress,
-          onStatus: onStatus,
-        );
-      }
-
-      // For larger files, use chunked upload
-      return await _uploadChunked(
+      // Backend currently supports only the direct PDF upload endpoint.
+      // Chunked endpoints (/upload-chunk, /finalize-upload) are not implemented yet.
+      return await _uploadSingleChunk(
         pdfBytes: pdfBytes,
         fileName: fileName,
         setId: setId,
         totalPages: totalPages,
         apiUrl: apiUrl,
-        uploadId: uploadId,
         onProgress: onProgress,
         onStatus: onStatus,
       );
