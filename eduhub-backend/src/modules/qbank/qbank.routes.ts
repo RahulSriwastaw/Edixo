@@ -842,7 +842,14 @@ router.get('/sets', async (req, res, next) => {
         ]);
 
         const sets = rawSets.map((s: any) => {
-            const pdfNotes = typeof s.pdf_notes === 'string' ? JSON.parse(s.pdf_notes) : s.pdf_notes;
+            let pdfNotes = null;
+            try {
+              if (s.pdf_notes) {
+                pdfNotes = typeof s.pdf_notes === 'string' ? JSON.parse(s.pdf_notes) : s.pdf_notes;
+              }
+            } catch (parseError) {
+              console.error(`[QBank] Failed to parse pdf_notes for set ${s.id}:`, parseError, s.pdf_notes);
+            }
             return {
                 ...s,
                 pdf_notes: pdfNotes,
@@ -1169,6 +1176,42 @@ router.get('/questions', async (req, res, next) => {
 
         res.json({ success: true, data: { questions, total } });
     } catch (err) { next(err); }
+});
+
+// ─── DEBUG: GET all sets with pdf_notes ─────────────────────────────────
+router.get('/debug/sets-pdf-notes', async (req, res, next) => {
+    try {
+        const allSets = await prisma.$queryRawUnsafe<Array<any>>(`
+            SELECT id, set_id AS "setId", name, pdf_notes,
+                   (SELECT COUNT(*) FROM question_set_items WHERE set_id = question_sets.id) AS question_count
+            FROM question_sets
+            ORDER BY created_at DESC
+            LIMIT 100
+        `);
+
+        const setsWithParsed = allSets.map((s: any) => ({
+            ...s,
+            pdf_notes_parsed: (() => {
+                try {
+                    return typeof s.pdf_notes === 'string' ? JSON.parse(s.pdf_notes) : s.pdf_notes;
+                } catch (e) {
+                    return { parseError: String(e) };
+                }
+            })(),
+            pdf_notes_raw: s.pdf_notes,
+        }));
+
+        res.json({
+            success: true,
+            debug: {
+                totalSetsInDB: setsWithParsed.length,
+                setsWithPdfNotes: setsWithParsed.filter((s: any) => s.pdf_notes).length,
+            },
+            data: setsWithParsed,
+        });
+    } catch (err) { 
+        next(err); 
+    }
 });
 
 export default router;

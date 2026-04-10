@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Layers, Plus, Search, MoreHorizontal, Eye, Edit, Copy, Trash2, Globe, Lock,
-  ArrowUpDown, Filter, Download, Building2, Share2, BookOpen, Check, FileText, DownloadCloud
+  ArrowUpDown, Filter, Download, Building2, Share2, BookOpen, Check, FileText, DownloadCloud, RefreshCw
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -61,10 +61,12 @@ export default function QuestionSetsPage() {
   const [totalSets, setTotalSets] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [page, setPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const fetchSets = async () => {
+  const fetchSets = async (showRefreshing = false) => {
     try {
-      setIsLoading(true);
+      if (showRefreshing) setIsRefreshing(true);
+      else setIsLoading(true);
       const token = getToken();
       const response = await fetch(`${API_URL}/qbank/sets?page=${page}&limit=50`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -73,16 +75,28 @@ export default function QuestionSetsPage() {
         const resData = await response.json();
         setSets(resData.data?.sets || []);
         setTotalSets(resData.data?.total || 0);
+        if (showRefreshing) {
+          toast.success('Sets refreshed');
+        }
       }
     } catch (error) {
       console.error("Error fetching sets:", error);
     } finally {
-      setIsLoading(false);
+      if (showRefreshing) setIsRefreshing(false);
+      else setIsLoading(false);
     }
   };
 
   useEffect(() => {
     fetchSets();
+  }, [page]);
+
+  // Auto-refresh every 10 seconds to pick up newly uploaded PDFs
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchSets(false); // Silent refresh without showing loading state
+    }, 10000);
+    return () => clearInterval(interval);
   }, [page]);
 
   const normalizedSets = sets.map((set) => {
@@ -190,6 +204,16 @@ export default function QuestionSetsPage() {
                       <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                       <Input placeholder="Search sets..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
                     </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fetchSets(true)}
+                      disabled={isRefreshing}
+                      className="gap-2"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                      {isRefreshing ? 'Refreshing...' : 'Refresh'}
+                    </Button>
                     {selectedSets.length > 0 && (
                       <Button variant="outline" className="text-red-600 border-red-200" onClick={handleBulkDelete}>
                         <Trash2 className="w-4 h-4 mr-2" /> Delete {selectedSets.length}
