@@ -107,26 +107,114 @@ router.post('/sets/:setId/visual-settings', async (req, res, next) => {
 router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, res, next) => {
   try {
     const { setId } = req.params;
-    if (!req.file) throw new AppError('PDF file is required', 400);
     
+    // Validate file
+    if (!req.file) {
+      throw new AppError('PDF file is required', 400);
+    }
+    
+    if (req.file.mimetype !== 'application/pdf') {
+      throw new AppError('Only PDF files are allowed', 400);
+    }
+
+    if (req.file.size > 100 * 1024 * 1024) { // 100MB limit
+      throw new AppError('PDF file size exceeds 100MB limit', 413);
+    }
+
     const { fileSize, totalPages } = req.body ?? {};
-    const url = `/uploads/whiteboard/${req.file.filename}`;
+    
+    // Validate set exists
+    const setExists = await prisma.question_sets.findFirst({
+      where: {
+        OR: [
+          { set_id: setId },
+          { id: setId }
+        ]
+      },
+      select: { id: true }
+    });
+
+    if (!setExists) {
+      throw new AppError('Set not found', 404);
+    }
+
+    // Upload to S3 if configured, otherwise use local storage
+    let url: string;
+    const timestamp = Date.now();
+    const s3Key = `whiteboard-pdfs/${setId}/${timestamp}_${req.file.originalname}`;
+    
+    try {
+      // Try S3 upload if AWS is configured
+      if (env.AWS_S3_PDFS_BUCKET && env.AWS_ACCESS_KEY_ID) {
+        const { PutObjectCommand } = await import('@aws-sdk/client-s3');
+        const s3 = new (await import('@aws-sdk/client-s3')).S3Client({
+          region: env.AWS_REGION,
+          credentials: {
+            accessKeyId: env.AWS_ACCESS_KEY_ID,
+            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+          },
+        });
+
+        await s3.send(new PutObjectCommand({
+          Bucket: env.AWS_S3_PDFS_BUCKET,
+          Key: s3Key,
+          Body: req.file.buffer,
+          ContentType: 'application/pdf',
+          Metadata: {
+            setId,
+            uploadedAt: new Date().toISOString(),
+          },
+        }));
+
+        url = env.AWS_CLOUDFRONT_DOMAIN
+          ? `https://${env.AWS_CLOUDFRONT_DOMAIN}/${s3Key}`
+          : `https://${env.AWS_S3_PDFS_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${s3Key}`;
+      } else {
+        // Fallback to local storage
+        url = `/uploads/whiteboard/${timestamp}_${req.file.originalname}`;
+      }
+    } catch (s3Error) {
+      console.error('S3 upload failed, falling back to local storage:', s3Error);
+      url = `/uploads/whiteboard/${timestamp}_${req.file.originalname}`;
+    }
 
     const pdfNotes = {
       url,
-      fileSize: fileSize ? Number(fileSize) : (req.file.size / (1024 * 1024)).toFixed(2),
+      fileSize: fileSize 
+        ? Number(fileSize) 
+        : (req.file.size / (1024 * 1024)).toFixed(2),
       totalPages: totalPages ? Number(totalPages) : 1,
       createdAt: new Date().toISOString(),
+      uploadedBy: req.user?.id || 'anonymous',
     };
 
     // Update the set with PDF notes
-    await prisma.$executeRawUnsafe(`
-      UPDATE question_sets 
-      SET pdf_notes = $1::jsonb, updated_at = NOW() 
-      WHERE set_id = $2 OR id = $3
-    `, JSON.stringify(pdfNotes), setId, setId);
+    const result = await prisma.question_sets.update({
+      where: {
+        id: setExists.id,
+      },
+      data: {
+        pdf_notes: pdfNotes as any,
+        updated_at: new Date(),
+      },
+      select: {
+        id: true,
+        set_id: true,
+        pdf_notes: true,
+      }
+    });
 
-    res.status(201).json({ success: true, data: pdfNotes });
+    // Log the upload
+    console.log(`[Whiteboard PDF] Uploaded for set ${setId}: ${totalPages} pages, ${fileSize}MB`);
+
+    res.status(201).json({ 
+      success: true, 
+      data: {
+        ...pdfNotes,
+        setId,
+        message: 'PDF uploaded and saved successfully',
+      }
+    });
   } catch (err) {
     next(err);
   }
@@ -135,17 +223,31 @@ router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, re
 router.get('/sets/:setId/notes', async (req, res, next) => {
   try {
     const { setId } = req.params;
-    const safeSetId = String(setId).replace(/'/g, "''");
     
-    const rows = await prisma.$queryRawUnsafe<Array<any>>(`
-      SELECT pdf_notes FROM question_sets WHERE set_id = '${safeSetId}' OR id = '${safeSetId}' LIMIT 1
-    `);
+    const set = await prisma.question_sets.findFirst({
+      where: {
+        OR: [
+          { set_id: String(setId) },
+          { id: String(setId) }
+        ]
+      },
+      select: {
+        id: true,
+        set_id: true,
+        pdf_notes: true,
+      }
+    });
 
-    if (rows.length === 0) throw new AppError('Set not found', 404);
+    if (!set) {
+      throw new AppError('Set not found', 404);
+    }
     
     res.json({ 
       success: true, 
-      data: rows[0].pdf_notes || null 
+      data: {
+        ...set.pdf_notes,
+        setId: set.set_id,
+      }
     });
   } catch (err) {
     next(err);
