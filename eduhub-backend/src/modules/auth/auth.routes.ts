@@ -286,6 +286,96 @@ router.post('/refresh', async (req, res, next) => {
   }
 });
 
+router.post('/register', async (req, res, next) => {
+  try {
+    const schema = z.object({
+      email: z.string().email(),
+      password: z.string().min(8),
+      name: z.string().min(2),
+    });
+    const { email, password, name } = schema.parse(req.body);
+
+    const existingUser = await prismaAny.user.findUnique({ where: { email } });
+    if (existingUser) throw new AppError('User already exists', 400);
+
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    const user = await prismaAny.user.create({
+      data: {
+        email,
+        passwordHash,
+        role: 'TEACHER',
+        isActive: true,
+      },
+    });
+
+    const tokenPayload = {
+      userId: user.id,
+      email: user.email,
+      name,
+      role: user.role,
+    };
+
+    const accessToken = generateToken(tokenPayload, env.JWT_SECRET, env.JWT_EXPIRES_IN);
+    const refreshToken = generateToken({ ...tokenPayload, type: 'refresh' }, env.JWT_SECRET, env.JWT_REFRESH_EXPIRES_IN);
+
+    res.status(201).json({
+      success: true,
+      data: {
+        accessToken,
+        refreshToken,
+        user: tokenPayload,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post('/login', async (req, res, next) => {
+  try {
+    const schema = z.object({
+      email: z.string().email(),
+      password: z.string().min(1),
+    });
+    const { email, password } = schema.parse(req.body);
+
+    const user = await prismaAny.user.findUnique({ where: { email } });
+    if (!user || !user.isActive) {
+      throw new AppError('Invalid credentials', 401);
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) throw new AppError('Invalid credentials', 401);
+
+    // Update last login
+    await prismaAny.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+
+    const tokenPayload = {
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    };
+
+    const accessToken = generateToken(tokenPayload, env.JWT_SECRET, env.JWT_EXPIRES_IN);
+    const refreshToken = generateToken({ ...tokenPayload, type: 'refresh' }, env.JWT_SECRET, env.JWT_REFRESH_EXPIRES_IN);
+
+    res.json({
+      success: true,
+      data: {
+        accessToken,
+        refreshToken,
+        user: tokenPayload,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 router.get('/me', authenticate, async (req, res, next) => {
   try {
     res.json({ success: true, data: req.user });
