@@ -145,20 +145,23 @@ router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, re
     
     try {
       // Try S3 upload if AWS is configured
-      if (env.AWS_S3_PDFS_BUCKET && env.AWS_ACCESS_KEY_ID) {
+      if (env.AWS_S3_PDFS_BUCKET && env.AWS_ACCESS_KEY_ID && !env.AWS_ACCESS_KEY_ID.includes('your-aws-access-key')) {
         const { PutObjectCommand } = await import('@aws-sdk/client-s3');
         const s3 = new (await import('@aws-sdk/client-s3')).S3Client({
           region: env.AWS_REGION,
           credentials: {
             accessKeyId: env.AWS_ACCESS_KEY_ID,
-            secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+            secretAccessKey: env.AWS_SECRET_ACCESS_KEY!,
           },
         });
+
+        // Use buffer if available (memoryStorage), otherwise read from path (diskStorage)
+        const fileContent = req.file.buffer || fs.readFileSync(req.file.path);
 
         await s3.send(new PutObjectCommand({
           Bucket: env.AWS_S3_PDFS_BUCKET,
           Key: s3Key,
-          Body: req.file.buffer,
+          Body: fileContent,
           ContentType: 'application/pdf',
           Metadata: {
             setId,
@@ -170,12 +173,12 @@ router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, re
           ? `https://${env.AWS_CLOUDFRONT_DOMAIN}/${s3Key}`
           : `https://${env.AWS_S3_PDFS_BUCKET}.s3.${env.AWS_REGION}.amazonaws.com/${s3Key}`;
       } else {
-        // Fallback to local storage
-        url = `/uploads/whiteboard/${timestamp}_${req.file.originalname}`;
+        // Fallback to local storage - use the actual filename created by multer
+        url = `/uploads/whiteboard/${req.file.filename}`;
       }
     } catch (s3Error) {
       console.error('S3 upload failed, falling back to local storage:', s3Error);
-      url = `/uploads/whiteboard/${timestamp}_${req.file.originalname}`;
+      url = `/uploads/whiteboard/${req.file.filename}`;
     }
 
     const pdfNotes = {

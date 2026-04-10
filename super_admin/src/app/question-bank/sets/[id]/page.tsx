@@ -138,8 +138,19 @@ export default function SetDetailPage() {
           const resData = await res.json();
           const qbankData = await qbankRes.json();
           
+          // Parse pdf_notes safely from both sources
+          let pdfNotes = resData.data.pdf_notes || qbankData.data.pdf_notes;
+          if (pdfNotes && typeof pdfNotes === 'string') {
+            try {
+              pdfNotes = JSON.parse(pdfNotes);
+            } catch (e) {
+              console.error("Failed to parse pdf_notes:", e);
+            }
+          }
+
           setSetData({
             ...qbankData.data,
+            pdf_notes: pdfNotes,
             visualSettings: resData.data.visual_settings, // from whiteboard metadata
             questions: qbankData.data.items?.map((item: any) => ({
               id: item.question.id,
