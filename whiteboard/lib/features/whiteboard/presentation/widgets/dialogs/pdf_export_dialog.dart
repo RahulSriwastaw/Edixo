@@ -273,7 +273,7 @@ class _PdfExportDialogState extends ConsumerState<PdfExportDialog> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        onTap: onChanged as void Function()?,
+        onTap: () => onChanged(value),
         borderRadius: BorderRadius.circular(8),
         child: Padding(
           padding: const EdgeInsets.all(12),
