@@ -80,8 +80,13 @@ class _EditableQuestionLayerState extends ConsumerState<EditableQuestionLayer> {
           _buildSetImportWidgets(context, currentPage, canvasSize, canEditWidgets),
         ],
 
-        // 2. Handle existing/manual Question Widgets (Backward compatibility)
-        ...widgets.entries.map((entry) {
+        // 2. Handle manual Question Widgets (Filter out duplicates for current set slide)
+        ...widgets.entries.where((entry) {
+          if (currentPage is SetImportPage) {
+            return entry.value.slideId != currentPage.id;
+          }
+          return true;
+        }).map((entry) {
           final id = entry.key;
           final widgetModel = entry.value;
           final livePos = _dragPositions[id];

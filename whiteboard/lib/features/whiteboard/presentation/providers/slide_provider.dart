@@ -156,10 +156,11 @@ class SlideNotifier extends _$SlideNotifier {
       // 1. MUST re-initialize layout notifier with the correct setId and its settings
       ref.read(setLayoutNotifierProvider.notifier).initSet(page.setId);
       
-      // 2. Load layouts and populate widgets ONLY IF NOT a PDF import
+      // 2. Load layouts ONLY IF NOT a PDF import
       if (!page.setId.startsWith('pdf-')) {
         ref.read(setLayoutNotifierProvider.notifier).loadLayoutsForQuestion(page.slide.questionNumber);
-        ref.read(questionWidgetNotifierProvider.notifier).populateFromSlides([page.slide]);
+        // Note: We no longer populateFromSlides here because it creates a duplicate 
+        // combined card. The layout manager handles the separate q/o cards.
       } else {
         // Ensure manual widgets are cleared for PDF pages to avoid 'Page X' cards
         ref.read(questionWidgetNotifierProvider.notifier).clear();
