@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/set_layout_models.dart';
@@ -132,7 +133,7 @@ class QuestionDisplayWidget extends StatelessWidget {
   }
 
   Widget _buildText(BuildContext context) {
-    // Check if text contains LaTeX (wrapped in $$ or \( \))
+    // 1. Check if text contains LaTeX (wrapped in $$ or \( \))
     if (text.contains(RegExp(r'\$.*?\$')) || text.contains(r'\(')) {
       return Math.tex(
         text.replaceAll(r'$', ''),
@@ -143,7 +144,28 @@ class QuestionDisplayWidget extends StatelessWidget {
       );
     }
 
-    // Default rendering with Hindi support
+    // 2. Use HTML rendering if tags are present
+    if (text.contains('<')) {
+      return Html(
+        data: text,
+        style: {
+          "body": Style(
+            margin: Margins.zero,
+            padding: HtmlPaddings.zero,
+            fontSize: FontSize(settings.questionFontSize),
+            color: Color(settings.questionColor),
+            fontFamily: GoogleFonts.notoSansDevanagari().fontFamily,
+            lineHeight: LineHeight(1.5),
+          ),
+          "p": Style(
+            margin: Margins.zero,
+            padding: HtmlPaddings.zero,
+          ),
+        },
+      );
+    }
+
+    // 3. Default rendering with Hindi support
     return Text(
       text,
       style: GoogleFonts.notoSansDevanagari(

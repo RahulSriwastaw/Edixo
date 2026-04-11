@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../data/models/set_layout_models.dart';
@@ -87,7 +88,7 @@ class _OptionsDisplayWidgetState extends State<OptionsDisplayWidget> {
   }
 
   Widget _buildOptionText(String text) {
-    // Check if text contains LaTeX
+    // 1. Check if text contains LaTeX
     if (text.contains(RegExp(r'\$.*?\$')) || text.contains(r'\(')) {
       return Math.tex(
         text.replaceAll(r'$', ''),
@@ -98,6 +99,27 @@ class _OptionsDisplayWidgetState extends State<OptionsDisplayWidget> {
       );
     }
 
+    // 2. Use HTML rendering if tags are present
+    if (text.contains('<')) {
+      return Html(
+        data: text,
+        style: {
+          "body": Style(
+            margin: Margins.zero,
+            padding: HtmlPaddings.zero,
+            fontSize: FontSize(widget.settings.optionFontSize),
+            color: Color(widget.settings.optionColor),
+            fontFamily: GoogleFonts.notoSansDevanagari().fontFamily,
+          ),
+          "p": Style(
+            margin: Margins.zero,
+            padding: HtmlPaddings.zero,
+          ),
+        },
+      );
+    }
+
+    // 3. Fallback to standard Text
     return Text(
       text,
       style: GoogleFonts.notoSansDevanagari(
