@@ -8,6 +8,9 @@ import '../../data/models/slide_annotation.dart';
 import 'canvas_provider.dart';
 import 'slide_provider.dart';
 import '../../../question_widget/presentation/providers/question_widget_provider.dart';
+import '../../../../core/network/dio_client.dart';
+import '../../../../core/providers/auth_provider.dart';
+import 'package:flutter/foundation.dart';
 
 part 'session_provider.g.dart';
 
@@ -118,15 +121,41 @@ class SessionNotifier extends _$SessionNotifier {
 
     // 1. Always save to Hive first (offline-safe)
     final hiveBox = Hive.box<String>('pendingSync');
-    await hiveBox.put(state.sessionId, jsonEncode(payload));
+    await hiveBox.put(state.sessionId!, jsonEncode(payload));
 
-    // 2. If online → sync to server (TODO: implement server sync)
-    // For now, just mark saved locally
+    // 2. If it's a server session (not local-prefix) → sync to server
+    if (!state.sessionId!.startsWith('local-')) {
+      await _syncToServer(payload);
+    }
+
     state = state.copyWith(
       saveStatus:  SaveStatus.saved,
       isDirty:     false,
       lastSavedAt: DateTime.now(),
     );
+  }
+
+  Future<void> _syncToServer(Map<String, dynamic> payload) async {
+    try {
+      final dio = ref.read(dioProvider);
+      final slideState = ref.read(slideNotifierProvider);
+      final teacher = ref.read(authNotifierProvider);
+      
+      final setId = slideState.importedSets.isNotEmpty 
+          ? slideState.importedSets.first.setId 
+          : null;
+
+      await dio.post('/whiteboard/autosave', data: {
+        'sessionId': state.sessionId,
+        'setId': setId,
+        'teacherId': teacher?.id,
+        'data': payload,
+        'savedAt': DateTime.now().toIso8601String(),
+      });
+    } catch (e) {
+      debugPrint('Whiteboard server autosave failed: $e');
+      // Note: We have RetryInterceptor in Dio providing automatic retries.
+    }
   }
 
   /// Force immediate save (Ctrl+S)

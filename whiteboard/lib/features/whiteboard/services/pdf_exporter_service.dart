@@ -199,23 +199,31 @@ class PdfExporterService {
         await Future.delayed(const Duration(milliseconds: 100));
       }
 
-      // 4. Upload to Backend with retries
-      statusNotifier.value = "Uploading to server...";
-      progressNotifier.value = 0.7;
+      // 4. Upload to Backend (Optional for local sessions)
+      final isLocalSession = sessionState.sessionId?.startsWith('local-') ?? false;
 
       final setId = slideState.importedSets.isNotEmpty
           ? slideState.importedSets.first.setId
           : 'unknown';
       final fileName = "class_notes_${setId}_${DateTime.now().millisecondsSinceEpoch}.pdf";
 
-      await _uploadPdfWithRetry(
-        pdfBytes,
-        setId,
-        pageOrder.length,
-        fileName,
-        statusNotifier,
-        progressNotifier,
-      );
+      if (!isLocalSession) {
+        statusNotifier.value = "Uploading to server...";
+        progressNotifier.value = 0.7;
+
+        await _uploadPdfWithRetry(
+          pdfBytes,
+          setId,
+          pageOrder.length,
+          fileName,
+          statusNotifier,
+          progressNotifier,
+        );
+      } else {
+        statusNotifier.value = "Local session — skipping server upload.";
+        progressNotifier.value = 0.9;
+        await Future.delayed(const Duration(milliseconds: 500));
+      }
 
       if (kIsWeb) {
         await downloadPdfLocally(pdfBytes, fileName);
@@ -233,7 +241,7 @@ class PdfExporterService {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              '✓ Success! PDF with ${pageOrder.length} pages uploaded',
+              '✓ Success! PDF with ${pageOrder.length} pages ${isLocalSession ? "exported" : "uploaded"}',
             ),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,

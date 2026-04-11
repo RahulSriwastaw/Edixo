@@ -22,8 +22,10 @@ class WhiteboardCanvas extends ConsumerStatefulWidget {
 class _WhiteboardCanvasState extends ConsumerState<WhiteboardCanvas> {
   final TransformationController _transformController = TransformationController();
 
-  static const double _canvasWidth = 1920; 
-  static const double _canvasHeight = 1080;
+  // Canvas dimensions - MUST maintain 16:9 aspect ratio
+  // All exports, imports, and pages use this size
+  static const double _canvasWidth = 1920;   // 16 units
+  static const double _canvasHeight = 1080;  // 9 units (1920/1080 = 16/9)
 
   @override
   void dispose() {

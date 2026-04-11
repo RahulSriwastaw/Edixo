@@ -8,6 +8,8 @@ import '../../../presentation/providers/slide_provider.dart';
 import '../../../data/models/page_models.dart';
 import '../dialogs/import_content_dialog.dart';
 import '../dialogs/end_class_dialog.dart';
+import '../dialogs/pdf_export_dialog.dart';
+import '../dialogs/pdf_upload_dialog.dart';
 import '../set_settings_bottom_sheet.dart';
 import '../../providers/floating_overlay_provider.dart';
 import '../overlays/floating_movable_panel.dart';
@@ -186,7 +188,25 @@ class TopToolbar extends ConsumerWidget {
 
           const SizedBox(width: AppDimensions.borderRadiusM),
 
+          // 5. Export Button
+          ElevatedButton.icon(
+            onPressed: () => _showExportDialog(context, slideState),
+            icon: const Icon(Icons.file_download, size: 18),
+            label: const Text('Export'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppDimensions.borderRadiusL,
+                vertical: AppDimensions.borderRadiusS,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+              ),
+            ),
+          ),
 
+          const SizedBox(width: AppDimensions.borderRadiusM),
 
           // 6. End Class Button
           OutlinedButton.icon(
@@ -207,6 +227,13 @@ class TopToolbar extends ConsumerWidget {
           ),
         ],
       ),
+    );
+  }
+
+  void _showExportDialog(BuildContext context, SlideState slideState) {
+    showDialog(
+      context: context,
+      builder: (context) => PdfExportDialog(slideState: slideState),
     );
   }
 

@@ -305,7 +305,7 @@ class _PageArrangementPanelState extends ConsumerState<PageArrangementPanel> {
             ),
           ),
 
-          // Pages Grid
+          // Pages Grid - with Drag & Drop support
           Expanded(
             child: _currentState.pageOrder.isEmpty
                 ? Center(
@@ -330,8 +330,8 @@ class _PageArrangementPanelState extends ConsumerState<PageArrangementPanel> {
                 : SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: isMobile
-                        ? _buildVerticalPageLayout(cachedSlides)
-                        : _buildGridPageLayout(cachedSlides),
+                        ? _buildVerticalDraggableLayout(cachedSlides)
+                        : _buildGridDraggableLayout(cachedSlides),
                   ),
           ),
 
@@ -490,6 +490,83 @@ class _PageArrangementPanelState extends ConsumerState<PageArrangementPanel> {
     );
   }
 
+  Widget _buildGridDraggableLayout(Map<int, dynamic> cachedSlides) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 16 / 9, // 16:9 aspect ratio
+      ),
+      itemCount: _currentState.pageOrder.length,
+      itemBuilder: (context, index) {
+        final pageIndex = _currentState.pageOrder[index];
+        final thumbnail = cachedSlides[pageIndex];
+
+        return _PageDraggableThumbnailCard(
+          index: index,
+          pageNumber: pageIndex + 1,
+          displayOrder: index + 1,
+          thumbnail: thumbnail,
+          onDelete: () => _deletePageAt(index),
+          onMoveUp: index > 0 ? () => _movePageUp(index) : null,
+          onMoveDown: index < _currentState.pageOrder.length - 1 ? () => _movePageDown(index) : null,
+          onReorder: (fromIndex, toIndex) {
+            final newOrder = List<int>.from(_currentState.pageOrder);
+            if (fromIndex < toIndex) {
+              toIndex -= 1;
+            }
+            final item = newOrder.removeAt(fromIndex);
+            newOrder.insert(toIndex, item);
+            _addToHistory(_PageArrangementState(
+              pageOrder: newOrder,
+              deletedPages: Set.from(_currentState.deletedPages),
+            ));
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildVerticalDraggableLayout(Map<int, dynamic> cachedSlides) {
+    return Column(
+      children: List.generate(_currentState.pageOrder.length, (index) {
+        final pageIndex = _currentState.pageOrder[index];
+        final thumbnail = cachedSlides[pageIndex];
+
+        return Column(
+          children: [
+            _PageDraggableListItem(
+              index: index,
+              pageNumber: pageIndex + 1,
+              displayOrder: index + 1,
+              thumbnail: thumbnail,
+              onDelete: () => _deletePageAt(index),
+              onMoveUp: index > 0 ? () => _movePageUp(index) : null,
+              onMoveDown: index < _currentState.pageOrder.length - 1 ? () => _movePageDown(index) : null,
+              onReorder: (fromIndex, toIndex) {
+                final newOrder = List<int>.from(_currentState.pageOrder);
+                if (fromIndex < toIndex) {
+                  toIndex -= 1;
+                }
+                final item = newOrder.removeAt(fromIndex);
+                newOrder.insert(toIndex, item);
+                _addToHistory(_PageArrangementState(
+                  pageOrder: newOrder,
+                  deletedPages: Set.from(_currentState.deletedPages),
+                ));
+              },
+            ),
+            if (index < _currentState.pageOrder.length - 1)
+              const SizedBox(height: 12),
+          ],
+        );
+      }),
+    );
+  }
+
   Widget _buildGridPageLayout(Map<int, dynamic> cachedSlides) {
     return GridView.builder(
       shrinkWrap: true,
@@ -498,7 +575,7 @@ class _PageArrangementPanelState extends ConsumerState<PageArrangementPanel> {
         crossAxisCount: 4,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
-        childAspectRatio: 0.75,
+        childAspectRatio: 16 / 9, // 16:9 aspect ratio
       ),
       itemCount: _currentState.pageOrder.length,
       itemBuilder: (context, index) {
@@ -514,30 +591,6 @@ class _PageArrangementPanelState extends ConsumerState<PageArrangementPanel> {
           onMoveDown: index < _currentState.pageOrder.length - 1 ? () => _movePageDown(index) : null,
         );
       },
-    );
-  }
-
-  Widget _buildVerticalPageLayout(Map<int, dynamic> cachedSlides) {
-    return Column(
-      children: List.generate(_currentState.pageOrder.length, (index) {
-        final pageIndex = _currentState.pageOrder[index];
-        final thumbnail = cachedSlides[pageIndex];
-
-        return Column(
-          children: [
-            _PageCompactListItem(
-              pageNumber: pageIndex + 1,
-              displayOrder: index + 1,
-              thumbnail: thumbnail,
-              onDelete: () => _deletePageAt(index),
-              onMoveUp: index > 0 ? () => _movePageUp(index) : null,
-              onMoveDown: index < _currentState.pageOrder.length - 1 ? () => _movePageDown(index) : null,
-            ),
-            if (index < _currentState.pageOrder.length - 1)
-              const SizedBox(height: 12),
-          ],
-        );
-      }),
     );
   }
 
@@ -832,6 +885,462 @@ class _PageCompactListItem extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
                 onPressed: onDelete,
+                iconSize: 18,
+                splashRadius: 20,
+                padding: const EdgeInsets.all(4),
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// DRAGGABLE PAGE WIDGETS - For Drag & Drop Support
+// ═══════════════════════════════════════════════════════════════════════════
+
+class _PageDraggableThumbnailCard extends StatefulWidget {
+  final int index;
+  final int pageNumber;
+  final int displayOrder;
+  final dynamic thumbnail;
+  final VoidCallback onDelete;
+  final VoidCallback? onMoveUp;
+  final VoidCallback? onMoveDown;
+  final Function(int, int) onReorder;
+
+  const _PageDraggableThumbnailCard({
+    Key? key,
+    required this.index,
+    required this.pageNumber,
+    required this.displayOrder,
+    required this.thumbnail,
+    required this.onDelete,
+    required this.onReorder,
+    this.onMoveUp,
+    this.onMoveDown,
+  }) : super(key: key);
+
+  @override
+  State<_PageDraggableThumbnailCard> createState() => _PageDraggableThumbnailCardState();
+}
+
+class _PageDraggableThumbnailCardState extends State<_PageDraggableThumbnailCard>
+    with SingleTickerProviderStateMixin {
+  bool _showPreview = false;
+  bool _isDragging = false;
+  late AnimationController _dragAnimController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dragAnimController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _dragAnimController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Draggable<int>(
+      data: widget.index,
+      feedback: ScaleTransition(
+        scale: Tween<double>(begin: 1.0, end: 1.1).animate(_dragAnimController),
+        child: _buildCard(isDragging: true),
+      ),
+      onDragStarted: () {
+        setState(() => _isDragging = true);
+        _dragAnimController.forward();
+      },
+      onDraggableCanceled: (_, __) {
+        setState(() => _isDragging = false);
+        _dragAnimController.reverse();
+      },
+      childWhenDragging: Opacity(
+        opacity: 0.5,
+        child: _buildCard(isDragging: false),
+      ),
+      onDragCompleted: () {
+        setState(() => _isDragging = false);
+        _dragAnimController.reverse();
+      },
+      child: DragTarget<int>(
+        onAccept: (receivedIndex) {
+          widget.onReorder(receivedIndex, widget.index);
+        },
+        onWillAccept: (receivedIndex) {
+          return receivedIndex != widget.index;
+        },
+        builder: (context, candidateData, rejectedData) {
+          return _buildCard(
+            isDragging: false,
+            isDragTarget: candidateData.isNotEmpty,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildCard({
+    required bool isDragging,
+    bool isDragTarget = false,
+  }) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _showPreview = true),
+      onExit: (_) => setState(() => _showPreview = false),
+      child: Container(
+        decoration: BoxDecoration(
+          color: AppColors.bgSecondary,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: isDragTarget
+                ? Colors.blue.withValues(alpha: 0.8)
+                : Colors.white.withValues(alpha: 0.1),
+            width: isDragTarget ? 2 : 1,
+          ),
+          boxShadow: isDragging || isDragTarget
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.5),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ]
+              : null,
+        ),
+        child: Stack(
+          children: [
+            // Thumbnail
+            Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(8),
+                        topRight: Radius.circular(8),
+                      ),
+                    ),
+                    child: widget.thumbnail != null
+                        ? Image.memory(
+                            widget.thumbnail,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                          )
+                        : _buildPlaceholder(),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    border: Border(
+                      top: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                    ),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Page ${widget.displayOrder}',
+                        style: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                      Text(
+                        '(Slide ${widget.pageNumber})',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.textTertiary,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+
+            // Drag Indicator (top-left corner)
+            Positioned(
+              top: 4,
+              left: 4,
+              child: Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withValues(alpha: 0.8),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: const Icon(
+                  Icons.drag_handle,
+                  color: Colors.white,
+                  size: 14,
+                ),
+              ),
+            ),
+
+            // Overlay Actions
+            if (_showPreview && !isDragging)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.7),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (widget.onMoveUp != null)
+                          _ActionButton(
+                            icon: Icons.arrow_upward,
+                            tooltip: 'Move Up',
+                            onPressed: widget.onMoveUp!,
+                          ),
+                        const SizedBox(width: 8),
+                        if (widget.onMoveDown != null)
+                          _ActionButton(
+                            icon: Icons.arrow_downward,
+                            tooltip: 'Move Down',
+                            onPressed: widget.onMoveDown!,
+                          ),
+                        const SizedBox(width: 8),
+                        _ActionButton(
+                          icon: Icons.delete_outline,
+                          tooltip: 'Delete',
+                          onPressed: widget.onDelete,
+                          color: Colors.red,
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.grey.withValues(alpha: 0.2),
+      child: Icon(
+        Icons.image_not_supported,
+        color: AppColors.textTertiary.withValues(alpha: 0.5),
+        size: 24,
+      ),
+    );
+  }
+}
+
+class _PageDraggableListItem extends StatefulWidget {
+  final int index;
+  final int pageNumber;
+  final int displayOrder;
+  final dynamic thumbnail;
+  final VoidCallback onDelete;
+  final VoidCallback? onMoveUp;
+  final VoidCallback? onMoveDown;
+  final Function(int, int) onReorder;
+
+  const _PageDraggableListItem({
+    Key? key,
+    required this.index,
+    required this.pageNumber,
+    required this.displayOrder,
+    required this.thumbnail,
+    required this.onDelete,
+    required this.onReorder,
+    this.onMoveUp,
+    this.onMoveDown,
+  }) : super(key: key);
+
+  @override
+  State<_PageDraggableListItem> createState() => _PageDraggableListItemState();
+}
+
+class _PageDraggableListItemState extends State<_PageDraggableListItem>
+    with SingleTickerProviderStateMixin {
+  bool _isDragging = false;
+  late AnimationController _dragAnimController;
+
+  @override
+  void initState() {
+    super.initState();
+    _dragAnimController = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+  }
+
+  @override
+  void dispose() {
+    _dragAnimController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Draggable<int>(
+      data: widget.index,
+      feedback: ScaleTransition(
+        scale: Tween<double>(begin: 1.0, end: 1.05).animate(_dragAnimController),
+        child: _buildListItem(isDragging: true),
+      ),
+      onDragStarted: () {
+        setState(() => _isDragging = true);
+        _dragAnimController.forward();
+      },
+      onDraggableCanceled: (_, __) {
+        setState(() => _isDragging = false);
+        _dragAnimController.reverse();
+      },
+      childWhenDragging: Opacity(
+        opacity: 0.5,
+        child: _buildListItem(isDragging: false),
+      ),
+      onDragCompleted: () {
+        setState(() => _isDragging = false);
+        _dragAnimController.reverse();
+      },
+      child: DragTarget<int>(
+        onAccept: (receivedIndex) {
+          widget.onReorder(receivedIndex, widget.index);
+        },
+        onWillAccept: (receivedIndex) {
+          return receivedIndex != widget.index;
+        },
+        builder: (context, candidateData, rejectedData) {
+          return _buildListItem(
+            isDragging: false,
+            isDragTarget: candidateData.isNotEmpty,
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildListItem({
+    required bool isDragging,
+    bool isDragTarget = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.bgSecondary,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isDragTarget
+              ? Colors.blue.withValues(alpha: 0.8)
+              : Colors.white.withValues(alpha: 0.1),
+          width: isDragTarget ? 2 : 1,
+        ),
+        boxShadow: isDragging || isDragTarget
+            ? [
+                BoxShadow(
+                  color: Colors.blue.withValues(alpha: 0.5),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: Row(
+        children: [
+          // Drag Handle
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: Colors.blue.withValues(alpha: 0.8),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: const Icon(
+              Icons.drag_handle,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Thumbnail
+          Container(
+            width: 60,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.black.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: widget.thumbnail != null
+                  ? Image.memory(widget.thumbnail, fit: BoxFit.cover)
+                  : Icon(
+                      Icons.image_not_supported,
+                      color: AppColors.textTertiary.withValues(alpha: 0.5),
+                    ),
+            ),
+          ),
+          const SizedBox(width: 12),
+
+          // Info
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Page ${widget.displayOrder}',
+                  style: AppTextStyles.body.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  'Slide ${widget.pageNumber}',
+                  style: AppTextStyles.caption.copyWith(
+                    color: AppColors.textTertiary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Actions
+          Row(
+            children: [
+              if (widget.onMoveUp != null)
+                IconButton(
+                  icon: const Icon(Icons.arrow_upward),
+                  onPressed: widget.onMoveUp,
+                  iconSize: 18,
+                  splashRadius: 20,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                ),
+              if (widget.onMoveDown != null)
+                IconButton(
+                  icon: const Icon(Icons.arrow_downward),
+                  onPressed: widget.onMoveDown,
+                  iconSize: 18,
+                  splashRadius: 20,
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
+                ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline, color: Colors.red),
+                onPressed: widget.onDelete,
                 iconSize: 18,
                 splashRadius: 20,
                 padding: const EdgeInsets.all(4),

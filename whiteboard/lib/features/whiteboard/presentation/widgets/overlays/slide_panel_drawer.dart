@@ -121,13 +121,18 @@ class _SlideTile extends StatelessWidget {
     int optCount = 0;
 
     if (page is SetImportPage) {
-      final slide = (page as SetImportPage).slide;
-      title = 'Question ${slide.questionNumber}';
+      final importPage = page as SetImportPage;
+      final slide = importPage.slide;
+      final isPdf = importPage.setId.startsWith('pdf-');
+      
+      title = isPdf ? 'Page ${slide.questionNumber}' : 'Question ${slide.questionNumber}';
       previewText = slide.questionText;
-      source = slide.examSource;
+      source = isPdf ? null : slide.examSource;
       qNum = slide.questionNumber;
-      optCount = slide.options.length;
+      optCount = isPdf ? 0 : slide.options.length;
     }
+
+    final isPdfSource = (page is SetImportPage) && (page as SetImportPage).setId.startsWith('pdf-');
 
     final questionPreview = _stripHtml(previewText);
     final truncated = questionPreview.length > 80
@@ -168,12 +173,12 @@ class _SlideTile extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                         decoration: BoxDecoration(
                           color: qNum != null 
-                              ? const Color(0xFFFF6B35).withValues(alpha: 0.85)
+                              ? (isPdfSource ? Colors.cyan : const Color(0xFFFF6B35)).withValues(alpha: 0.85)
                               : Colors.blueGrey,
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
-                          qNum != null ? 'Q$qNum' : 'PAGE',
+                          qNum != null ? (isPdfSource ? 'P$qNum' : 'Q$qNum') : 'PAGE',
                           style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -207,9 +212,9 @@ class _SlideTile extends StatelessWidget {
               child: Row(
                 children: [
                   Text(
-                    'Slide ${index + 1}',
+                    isPdfSource ? 'Page ${index + 1}' : 'Slide ${index + 1}',
                     style: TextStyle(
-                      color: isSelected ? const Color(0xFFFF6B35) : Colors.white54,
+                      color: isSelected ? (isPdfSource ? Colors.cyan : const Color(0xFFFF6B35)) : Colors.white54,
                       fontSize: 11,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     ),

@@ -123,7 +123,6 @@ class SetImportNotifier extends _$SetImportNotifier {
                     (sessionId) async {
                       // Step 5: Load slides into providers
                       ref.read(slideNotifierProvider.notifier).loadSlides(questions, metadata);
-                      ref.read(questionWidgetNotifierProvider.notifier).clear();
                       ref.read(appModeNotifierProvider.notifier).enterSlideMode();
                       ref.read(sessionNotifierProvider.notifier).startSession(sessionId);
 

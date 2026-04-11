@@ -75,8 +75,8 @@ class _EditableQuestionLayerState extends ConsumerState<EditableQuestionLayer> {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        // 1. Handle Set Import Page (New high-fidelity widgets)
-        if (currentPage is SetImportPage) ...[
+        // 1. Handle Set Import Page (Load layout-manager widgets ONLY for real sets)
+        if (currentPage is SetImportPage && !currentPage.setId.startsWith('pdf-')) ...[
           _buildSetImportWidgets(context, currentPage, canvasSize, canEditWidgets),
         ],
 

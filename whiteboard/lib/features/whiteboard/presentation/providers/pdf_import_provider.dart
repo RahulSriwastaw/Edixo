@@ -11,6 +11,7 @@ import '../../data/models/set_metadata_model.dart';
 import '../../domain/services/pdf_import_service.dart';
 import 'slide_provider.dart';
 import 'pdf_pages_provider.dart';
+import 'session_provider.dart';
 
 part 'pdf_import_provider.g.dart';
 
@@ -96,6 +97,9 @@ class PdfImportNotifier extends _$PdfImportNotifier {
         questionCount: pages.length,
       );
       ref.read(slideNotifierProvider.notifier).loadSlides(slides, metadata);
+      
+      // Start a local session to enable autosave
+      ref.read(sessionNotifierProvider.notifier).startSession('local-${metadata.setId}');
 
       state = state.copyWith(status: PdfImportStatus.done);
 

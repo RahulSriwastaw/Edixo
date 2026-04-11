@@ -2,7 +2,6 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../data/datasources/set_import_remote_ds.dart';
 import '../../../../features/whiteboard/presentation/providers/slide_provider.dart';
 import '../../../../features/whiteboard/data/models/set_metadata_model.dart';
-import '../../../../features/question_widget/presentation/providers/question_widget_provider.dart';
 
 part 'set_import_provider.g.dart';
 
@@ -21,9 +20,7 @@ class SetImportNotifier extends _$SetImportNotifier {
     );
 
     // Load slides into the whiteboard
+    // Note: _activateSlide() will populate the question widget for the first slide
     ref.read(slideNotifierProvider.notifier).loadSlides(slides, metadata);
-
-    // Initialize question widgets on the canvas
-    ref.read(questionWidgetNotifierProvider.notifier).populateFromSlides(slides);
   }
 }
