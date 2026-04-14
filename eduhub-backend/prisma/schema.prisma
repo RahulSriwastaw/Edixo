@@ -93,10 +93,10 @@ model question_sets {
   subject            String?
   chapter            String?
   is_global          Boolean              @default(false)
-  pdf_notes          Json?
-  visual_settings    Json?
   created_at         DateTime             @default(now()) @db.Timestamptz(6)
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
+  pdf_notes          Json?
+  visual_settings    Json?
   question_set_items question_set_items[]
 }
 
@@ -126,15 +126,15 @@ model questions {
   question_set_items  question_set_items[]
 }
 
-model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  passwordHash  String
-  role          String    @default("USER")
-  isActive      Boolean   @default(true)
-  lastLoginAt   DateTime?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@map("users")
+model ai_settings {
+  id                String   @id @default("singleton")
+  defaultTextModel  String   @default("OPENROUTER_GEMMA_4_26B")
+  defaultImageModel String   @default("GEMINI_1_5_FLASH")
+  top5Models        Json     @default("[\"GEMINI_1_5_FLASH\", \"OPENROUTER_GEMMA_4_26B\", \"MODAL_GLM_5_1\"]")
+  apiKeyGemini      String?
+  apiKeyOpenRouter  String?
+  apiKeyModal       String?
+  apiKeyClaude      String?
+  updatedAt         DateTime @updatedAt
 }
+

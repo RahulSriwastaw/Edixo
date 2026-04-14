@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
 import { AIService } from './ai.service';
 import { z } from 'zod';
+import { prisma } from '../../config/database';
+import { logger } from '../../config/logger';
 
 export const queryCanvas = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -23,3 +25,150 @@ export const queryCanvas = async (req: Request, res: Response, next: NextFunctio
         next(err);
     }
 };
+
+export const processTool = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+         const schema = z.object({
+             modelId: z.string().optional(),
+             systemPrompt: z.string(),
+             userPrompt: z.string(),
+             imageBase64: z.string().optional(),
+             mimeType: z.string().optional()
+         });
+
+         const body = schema.parse(req.body);
+         const result = await AIService.processToolRequest(body);
+
+         res.json({ success: true, text: result });
+    } catch (err: any) {
+        if (err instanceof z.ZodError) {
+            return res.status(400).json({ success: false, message: err.errors[0]?.message || 'Invalid Request' });
+        }
+        next(err);
+    }
+};
+
+export const saveDraftQuestions = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = z.object({
+             sourceName: z.string().default("AI Extractor"),
+             questions: z.array(z.object({
+                 textEn: z.string(),
+                 textHi: z.string().optional(),
+                 options: z.array(z.object({
+                     textEn: z.string(),
+                     textHi: z.string().optional(),
+                     isCorrect: z.boolean().default(false),
+                     sortOrder: z.number().optional()
+                 })).optional(),
+                 correctOption: z.string().optional(),
+                 explanationEn: z.string().optional(),
+                 difficulty: z.string().optional()
+             }))
+        });
+
+        const { sourceName, questions } = schema.parse(req.body);
+        
+        let savedCount = 0;
+        for (const q of questions) {
+             const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random()*10000)}`;
+             const difficulty = (q.difficulty || 'medium').toLowerCase();
+             
+             // Wrap in a simple transaction-like sequence
+             await tryCatchTransaction(async () => {
+                 // 1. Insert Question
+                 await prisma.$executeRaw`
+                     INSERT INTO questions (id, question_id, text_en, text_hi, is_approved, type, difficulty, subject_name, chapter_name)
+                     VALUES (
+                         ${questionId}, ${questionId}, ${q.textEn}, ${q.textHi || null}, FALSE, 'mcq', ${difficulty}, ${sourceName}, 'Drafts'
+                     )
+                 `;
+
+                 // 2. Insert Options
+                 if (q.options && q.options.length > 0) {
+                     for (const [idx, opt] of q.options.entries()) {
+                         const optionId = `OPT-${Date.now()}-${Math.floor(Math.random()*10000)}-${idx}`;
+                         await prisma.$executeRaw`
+                             INSERT INTO question_options (id, question_id, text_en, text_hi, is_correct, sort_order)
+                             VALUES (
+                                 ${optionId}, ${questionId}, ${opt.textEn}, ${opt.textHi || opt.textEn}, ${opt.isCorrect}, ${opt.sortOrder || idx}
+                             )
+                         `;
+                     }
+                 }
+                 savedCount++;
+             });
+        }
+
+        res.json({ success: true, message: `Saved ${savedCount} drafts successfully with options.` });
+    } catch (err) {
+        logger.error("Save Draft Error:", err);
+        next(err);
+    }
+};
+
+// AI Settings Management
+export const getAISettings = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        let settings = await prisma.ai_settings.findUnique({ where: { id: 'singleton' } });
+        
+        if (!settings) {
+            // Initialize defaults if missing
+            settings = await prisma.ai_settings.create({
+                data: { id: 'singleton' }
+            });
+        }
+
+        const envStatus = {
+            gemini: !!process.env.GEMINI_API_KEY,
+            openrouter: !!process.env.OPENROUTER_API_KEY,
+            modal: !!process.env.MODAL_API_KEY,
+            claude: !!process.env.CLAUDE_API_KEY
+        };
+        
+        res.json({ success: true, data: { ...settings, envStatus } });
+    } catch (err) {
+        logger.error("Get AI Settings Error:", err);
+        next(err);
+    }
+};
+
+export const updateAISettings = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = z.object({
+            defaultTextModel: z.string().optional(),
+            defaultImageModel: z.string().optional(),
+            top5Models: z.array(z.string()).optional(),
+            apiKeyGemini: z.string().optional(),
+            apiKeyOpenRouter: z.string().optional(),
+            apiKeyModal: z.string().optional(),
+            apiKeyClaude: z.string().optional()
+        });
+
+        const data = schema.parse(req.body);
+        
+        const updated = await prisma.ai_settings.upsert({
+            where: { id: 'singleton' },
+            create: { id: 'singleton', ...data },
+            update: data
+        });
+
+        res.json({ success: true, data: updated, message: "AI Settings updated successfully." });
+    } catch (err: any) {
+        if (err instanceof z.ZodError) {
+            return res.status(400).json({ success: false, message: err.errors[0]?.message || 'Invalid Request' });
+        }
+        logger.error("Update AI Settings Error:", err);
+        next(err);
+    }
+};
+
+// Helper for simple sequential DB logic
+async function tryCatchTransaction(fn: () => Promise<void>) {
+    try {
+        await fn();
+    } catch (e) {
+        logger.error("DB Sequential Op Failed:", e);
+        // Continue with next question if one fails
+    }
+}

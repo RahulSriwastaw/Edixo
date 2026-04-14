@@ -17,6 +17,7 @@ import superAdminRoutes from './modules/superAdmin/superAdmin.routes';
 import whiteboardRoutes from './modules/whiteboard/whiteboard.routes';
 import whiteboardAccountRoutes from './modules/whiteboardAccount/whiteboardAccount.routes';
 import uploadRoutes from './modules/upload/upload.routes';
+import aiRoutes from './modules/ai/ai.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -40,6 +41,36 @@ function createCompatId(prefix: string) {
 
 function slugify(value: string) {
     return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'general';
+}
+
+function sixDigitPin() {
+    return String(100000 + Math.floor(Math.random() * 900000));
+}
+
+function stableHash(input: string) {
+    let hash = 0;
+    for (let i = 0; i < input.length; i += 1) {
+        hash = ((hash << 5) - hash) + input.charCodeAt(i);
+        hash |= 0;
+    }
+    return Math.abs(hash);
+}
+
+async function generateUniqueSixDigitSetId(seed: string, excludeSetPrimaryId?: string) {
+    const base = stableHash(seed);
+
+    for (let attempt = 0; attempt < 300; attempt += 1) {
+        const candidate = String(100000 + ((base + attempt * 9973) % 900000));
+        const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(
+            `SELECT id FROM question_sets WHERE set_id = ${sqlQuote(candidate)} LIMIT 1`
+        );
+
+        if (!rows[0] || rows[0].id === excludeSetPrimaryId) {
+            return candidate;
+        }
+    }
+
+    throw new Error('Failed to generate unique 6-digit setId');
 }
 
 type AirtableCompatRecord = {
@@ -347,12 +378,12 @@ async function ensureCompatibilitySetsFromQuestions() {
                 NOW()
             )
             ON CONFLICT (id) DO UPDATE SET
+                set_id = EXCLUDED.set_id,
+                pin = CASE WHEN question_sets.pin ~ '^[0-9]{6}$' THEN question_sets.pin ELSE EXCLUDED.pin END,
                 total_questions = EXCLUDED.total_questions,
                 name = EXCLUDED.name,
                 description = EXCLUDED.description,
-                subject = EXCLUDED.subject,
-                set_id = EXCLUDED.set_id,
-                pin = EXCLUDED.pin
+                subject = EXCLUDED.subject
         `);
 
         await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(setPrimaryId)}`);
@@ -478,14 +509,9 @@ async function ensureQuestionBankCompatibilityData() {
         )
     `);
 
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS question_no INTEGER`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS explanation_en TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS explanation_hi TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS exam TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS collection TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS year INTEGER`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS airtable_table_name TEXT`);
-    await prisma.$executeRawUnsafe(`ALTER TABLE questions ADD COLUMN IF NOT EXISTS record_id TEXT`);
+    // The following columns are verified to exist via latest schema introspection.
+    // Redundant ALTER TABLE calls are removed to prevent startup timeouts on large datasets.
+
 
     await prisma.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS question_options (
@@ -953,6 +979,92 @@ app.get('/api/qbank/sets', async (req, res, next) => {
     }
 });
 
+app.post('/api/qbank/sets', async (req, res, next) => {
+    try {
+        const name = String(req.body?.name || '').trim();
+        const description = String(req.body?.description || '').trim();
+        const requestedQuestionIds = Array.isArray(req.body?.questionIds)
+            ? [...new Set(req.body.questionIds.map((value: unknown) => String(value).trim()).filter(Boolean))]
+            : [];
+
+        if (!name) {
+            res.status(400).json({ success: false, message: 'Set name is required' });
+            return;
+        }
+
+        if (requestedQuestionIds.length === 0) {
+            res.status(400).json({ success: false, message: 'At least one question is required' });
+            return;
+        }
+
+        const quotedQuestionIds = requestedQuestionIds.map((value) => sqlQuote(String(value))).join(', ');
+
+        const existingQuestions = await prisma.$queryRawUnsafe<Array<{ id: string; subject_name: string | null; chapter_name: string | null }>>(`
+            SELECT id, subject_name, chapter_name
+            FROM questions
+            WHERE id IN (${quotedQuestionIds})
+            ORDER BY created_at DESC
+        `);
+
+        if (existingQuestions.length === 0) {
+            res.status(400).json({ success: false, message: 'Selected questions were not found' });
+            return;
+        }
+
+        const setPrimaryId = createCompatId('set');
+        const setId = await generateUniqueSixDigitSetId(`${name}:${Date.now()}`);
+        const pin = sixDigitPin();
+        const subject = existingQuestions.find((question) => question.subject_name)?.subject_name || null;
+        const chapter = existingQuestions.find((question) => question.chapter_name)?.chapter_name || null;
+
+        await prisma.$executeRawUnsafe(`
+            INSERT INTO question_sets (id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at)
+            VALUES (
+                ${sqlQuote(setPrimaryId)},
+                ${sqlQuote(setId)},
+                ${sqlQuote(pin)},
+                ${sqlQuote(name)},
+                ${nullableSqlValue(description || null)},
+                ${existingQuestions.length},
+                ${nullableSqlValue(subject)},
+                ${nullableSqlValue(chapter)},
+                TRUE,
+                NOW()
+            )
+        `);
+
+        for (let index = 0; index < existingQuestions.length; index += 1) {
+            await prisma.$executeRawUnsafe(`
+                INSERT INTO question_set_items (set_id, question_id, sort_order)
+                VALUES (
+                    ${sqlQuote(setPrimaryId)},
+                    ${sqlQuote(existingQuestions[index].id)},
+                    ${index + 1}
+                )
+                ON CONFLICT (set_id, question_id) DO UPDATE SET sort_order = EXCLUDED.sort_order
+            `);
+        }
+
+        res.status(201).json({
+            success: true,
+            data: {
+                id: setPrimaryId,
+                setId,
+                pin,
+                name,
+                description,
+                totalQuestions: existingQuestions.length,
+                subject,
+                chapter,
+                isGlobal: true,
+                _count: { items: existingQuestions.length },
+            },
+        });
+    } catch (error) {
+        next(error);
+    }
+});
+
 app.get('/api/qbank/sets/:id', async (req, res, next) => {
     try {
         const id = req.params.id;
@@ -1125,7 +1237,6 @@ app.post('/api/qbank/sets', async (req, res, next) => {
     }
 });
 
-// ─── PUT /api/qbank/sets/:id — Replace questions for a set ────────────────────
 app.put('/api/qbank/sets/:id', async (req, res, next) => {
     try {
         const id = req.params.id;
@@ -1171,7 +1282,6 @@ app.put('/api/qbank/sets/:id', async (req, res, next) => {
     }
 });
 
-// ─── POST /api/qbank/sets/:id/rebuild — Auto-link questions by subject/source ─
 app.post('/api/qbank/sets/:id/rebuild', async (req, res, next) => {
     try {
         const id = req.params.id;
@@ -1226,14 +1336,20 @@ app.post('/api/qbank/sets/:id/rebuild', async (req, res, next) => {
 
 app.delete('/api/qbank/sets', async (req, res, next) => {
     try {
-        const { ids } = req.body ?? {};
-        if (!Array.isArray(ids) || ids.length === 0) {
-            res.status(400).json({ success: false, message: 'ids array is required' });
+        const ids = Array.isArray(req.body?.ids)
+            ? [...new Set(req.body.ids.map((value: unknown) => String(value).trim()).filter(Boolean))]
+            : [];
+
+        if (ids.length === 0) {
+            res.status(400).json({ success: false, message: 'ids is required' });
             return;
         }
-        const idList = ids.map(sqlQuote).join(', ');
-        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id IN (${idList}) OR set_id IN (${idList})`);
-        res.json({ success: true, message: `${ids.length} sets deleted successfully` });
+
+        const quotedIds = ids.map((value) => sqlQuote(String(value))).join(', ');
+        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id IN (${quotedIds})`);
+        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id IN (${quotedIds})`);
+
+        res.json({ success: true, message: 'Sets deleted successfully' });
     } catch (error) {
         next(error);
     }
@@ -1241,8 +1357,24 @@ app.delete('/api/qbank/sets', async (req, res, next) => {
 
 app.delete('/api/qbank/sets/:id', async (req, res, next) => {
     try {
-        const id = req.params.id;
-        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id = ${sqlQuote(id)} OR set_id = ${sqlQuote(id)}`);
+        const id = String(req.params.id || '').trim();
+        if (!id) {
+            res.status(400).json({ success: false, message: 'Set id is required' });
+            return;
+        }
+
+        const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
+            SELECT id FROM question_sets WHERE id = ${sqlQuote(id)} OR set_id = ${sqlQuote(id)} LIMIT 1
+        `);
+        const set = rows[0];
+
+        if (!set) {
+            res.status(404).json({ success: false, message: 'Set not found' });
+            return;
+        }
+
+        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(set.id)}`);
+        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id = ${sqlQuote(set.id)}`);
         res.json({ success: true, message: 'Set deleted successfully' });
     } catch (error) {
         next(error);
@@ -1418,6 +1550,7 @@ app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/whiteboard', whiteboardRoutes);
 app.use('/api/whiteboard-accounts', whiteboardAccountRoutes);
 app.use('/api/upload', uploadRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── Error Handling ──────────────────────────────────────────
 app.use(notFound);
@@ -1440,9 +1573,15 @@ async function startServer() {
         // Verify DB
         await prisma.$connect();
         logger.info('✅ PostgreSQL connected');
-        await ensureQuestionBankCompatibilityData();
-        await ensureCompatibilitySetsFromQuestions();
-        logger.info('✅ Question-bank compatibility tables ready');
+        // Run compatibility scripts as non-blocking to prevent startup crashes
+        try {
+            await ensureQuestionBankCompatibilityData();
+            await ensureCompatibilitySetsFromQuestions();
+            logger.info('✅ Question-bank compatibility checks complete');
+        } catch (compatErr) {
+            logger.error('⚠️  Non-critical compatibility check failed:', compatErr);
+            // We continue starting the server as the DB connection itself is healthy
+        }
 
         const port = env.PORT;
         app.listen(port, () => {

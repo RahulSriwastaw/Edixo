@@ -23,7 +23,6 @@ import {
   CheckCircle2,
   FileQuestion,
   MoreHorizontal,
-  Wand2,
   X,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -435,12 +434,38 @@ export default function QuestionGenerationPage() {
               <CardContent className="p-6">
                 <div className="flex items-center gap-3 mb-6">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                    <Wand2 className="w-6 h-6 text-white" />
+                    <Sparkles className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h2 className="text-lg font-semibold">Create Questions</h2>
                     <p className="text-sm text-gray-500">Describe what you need</p>
                   </div>
+                </div>
+
+                {/* AI Smart Tools Section */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                  <Link href="/tools/document-extraction">
+                    <div className="group p-4 bg-primary/5 border border-primary/10 rounded-2xl hover:bg-primary/10 transition-all cursor-pointer flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                        <FileQuestion className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-slate-800">AI MCQ Extractor</h3>
+                        <p className="text-[10px] text-slate-500">Extract questions from PDF & Images</p>
+                      </div>
+                    </div>
+                  </Link>
+                  <Link href="/tools/pdf-to-word">
+                    <div className="group p-4 bg-blue-50/50 border border-blue-100 rounded-2xl hover:bg-blue-100/50 transition-all cursor-pointer flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
+                        <FileText className="w-5 h-5" />
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-sm font-bold text-slate-800">PDF to Editable Word</h3>
+                        <p className="text-[10px] text-slate-500">Reconstruct PDF into professional DOCX</p>
+                      </div>
+                    </div>
+                  </Link>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
