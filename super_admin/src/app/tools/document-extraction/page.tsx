@@ -69,16 +69,17 @@ export default function DocumentExtractionPage() {
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
-            {/* Header */}
+            {/* Tool Header - Native look */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Link href="/question-bank" className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/question-bank" className="p-2 hover:bg-gray-100 rounded-lg transition-colors group">
+                  <ArrowLeft className="w-5 h-5 text-gray-500 group-hover:text-brand-primary" />
                 </Link>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">AI Document MCQ Extractor</h1>
-                  <p className="text-gray-500 text-sm">Transform any PDF or document into a structured question bank in seconds.</p>
-                </div>
+                <nav className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                  <span>Question Bank</span>
+                  <span className="text-slate-300">/</span>
+                  <span className="text-slate-900 font-bold">AI MCQ Extractor</span>
+                </nav>
               </div>
             </div>
 
@@ -126,6 +127,18 @@ export default function DocumentExtractionPage() {
 
                     <Questions 
                       questions={currentQuestions}
+                      onEdit={(q) => {
+                        setCurrentQuestions(prev => prev.map(item => item.id === q.id ? q : item));
+                      }}
+                      onQuestionsChange={(updated) => {
+                        setCurrentQuestions(updated);
+                        // Persist updated questions back to history
+                        const updatedDocs = documents.map(d => 
+                          d.name === currentDocName ? { ...d, questions: updated, totalQuestions: updated.length } : d
+                        );
+                        setDocuments(updatedDocs);
+                        localStorage.setItem('eduhub_doc_extractions', JSON.stringify(updatedDocs));
+                      }}
                     />
                   </motion.div>
                 )}

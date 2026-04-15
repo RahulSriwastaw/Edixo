@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState, forwardRef, useEffect } from 'react';
-import { Button } from '@/components/ui/card'; // Button is often in ui/button, checking original imports...
-// Actually super_admin usually has button in @/components/ui/button
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button as UIButton } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Question } from '../../../lib/tools/doc-extract/types';
@@ -13,12 +12,14 @@ import { getAISettings, AISettings } from '../../../services/aiSettingsService';
 import { Sparkles, Brain, Clock, ChevronRight, FileText, CheckCircle2, AlertCircle, Cpu, Zap, Beaker, ShieldCheck } from 'lucide-react';
 
 const ALL_MODELS = [
-  { id: 'GEMINI_1_5_FLASH', name: 'Gemini 1.5 Flash', desc: 'Fastest & Reliable', icon: Zap, color: 'text-amber-500' },
-  { id: 'GEMINI_1_5_PRO', name: 'Gemini 1.5 Pro', desc: 'Complex Task Master', icon: Sparkles, color: 'text-indigo-500' },
-  { id: 'GEMINI_2_0_FLASH', name: 'Gemini 2.0 Flash', desc: 'Next-Gen Speed', icon: Brain, color: 'text-rose-500' },
-  { id: 'OPENROUTER_GEMMA_4_26B', name: 'Google Gemma 2', desc: 'High Performance / Free', icon: Cpu, color: 'text-emerald-500' },
-  { id: 'MODAL_GLM_5_1', name: 'GLM 5.1 Elite', desc: 'Research Grade Accuracy', icon: Beaker, color: 'text-primary' },
-  { id: 'CLAUDE_3_5_SONNET', name: 'Claude 3.5 Sonnet', desc: 'Elite Code & Vision', icon: ShieldCheck, color: 'text-orange-500' },
+  { id: 'GEMINI_3_1_PRO_PREVIEW', name: 'Gemini 3.1 Pro (Preview)', desc: 'Next-Gen Flagship Reasoning', icon: Sparkles, color: 'text-indigo-600' },
+  { id: 'GEMINI_3_FLASH_PREVIEW', name: 'Gemini 2.0 Flash', desc: 'Supercharged Speed & Logic', icon: Zap, color: 'text-amber-500' },
+  { id: 'GEMINI_3_1_FLASH_LITE_PREVIEW', name: 'Gemini 3.1 Flash Lite', desc: 'Maximum Efficiency', icon: Brain, color: 'text-rose-500' },
+  { id: 'GEMINI_PRO_LATEST', name: 'Gemini Pro (Latest)', desc: 'Stable High-Perf Reasoning', icon: ShieldCheck, color: 'text-primary' },
+  { id: 'GEMINI_FLASH_LATEST', name: 'Gemini Flash (Latest)', desc: 'Stable Multi-modal Fast', icon: Cpu, color: 'text-emerald-500' },
+  { id: 'GEMINI_FLASH_LITE_LATEST', name: 'Gemini Flash Lite (Latest)', desc: 'Optimized Speed & Cost', icon: Zap, color: 'text-slate-500' },
+  { id: 'GEMINI_2_0_FLASH', name: 'Gemini 2.0 Flash (Stable)', desc: 'Proven Speed', icon: Brain, color: 'text-rose-500' },
+  { id: 'GEMINI_1_5_PRO', name: 'Gemini 1.5 Pro', desc: 'Reliable Complex Task Master', icon: Sparkles, color: 'text-indigo-400' },
 ];
 
 interface UploadProps {
@@ -116,84 +117,80 @@ export const Upload = forwardRef<HTMLDivElement, UploadProps>(({ onExtractionCom
   };
 
   return (
-    <div className="space-y-8" ref={ref}>
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 bg-white/50 p-6 rounded-[2rem] border border-slate-200/50 backdrop-blur-sm shadow-xl shadow-slate-200/20">
-        <div className="flex items-center gap-4">
-           <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
-             <Brain className="w-6 h-6 text-white" />
-           </div>
-           <div className="space-y-0.5">
-             <h3 className="font-black text-slate-900 leading-tight">AI Settings</h3>
-             <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Configure Extraction Engine</p>
-           </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
-          <div className="flex bg-slate-100 p-1 rounded-xl border border-slate-200 shadow-inner">
-            <button 
-              className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${uploadMode === 'file' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+    <div className="space-y-5" ref={ref}>
+      {/* Controls Bar */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+            <Brain className="w-4 h-4 text-primary" />
+          </div>
+          <div className="flex bg-white border border-slate-200 p-0.5 rounded-lg shadow-sm">
+            <button
+              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+                uploadMode === 'file' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
               onClick={() => setUploadMode('file')}
             >
               FILE
             </button>
-            <button 
-              className={`px-4 py-1.5 rounded-lg text-xs font-black transition-all ${uploadMode === 'text' ? 'bg-white text-primary shadow-sm' : 'text-slate-500 hover:text-slate-800'}`}
+            <button
+              className={`px-4 py-1.5 rounded-md text-xs font-bold transition-all ${
+                uploadMode === 'text' ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-500 hover:text-slate-800'
+              }`}
               onClick={() => setUploadMode('text')}
             >
               TEXT
             </button>
           </div>
-
-          <div className="h-6 w-px bg-slate-200 hidden md:block" />
-
-          <Select value={selectedModel} onValueChange={setSelectedModel}>
-            <SelectTrigger className="w-full md:w-[240px] h-11 rounded-xl bg-white border-slate-200 font-bold text-slate-700 shadow-sm focus:ring-primary/10">
-              <div className="flex items-center gap-2">
-                {selectedModel === 'smart' ? (
-                   <div className="text-primary flex items-center gap-2">
-                     <Brain className="w-4 h-4" />
-                     <span>Auto-Detect AI</span>
-                   </div>
-                ) : (
-                  <>
-                    {availableModels.find(m => m.id === selectedModel)?.icon && (
-                      <div className={availableModels.find(m => m.id === selectedModel)?.color}>
-                        {React.createElement(availableModels.find(m => m.id === selectedModel)!.icon, { className: "w-4 h-4" })}
-                      </div>
-                    )}
-                    <SelectValue />
-                  </>
-                )}
-              </div>
-            </SelectTrigger>
-            <SelectContent className="rounded-2xl border-none shadow-2xl p-2">
-              <SelectItem value="smart" className="rounded-xl py-3 focus:bg-primary/5 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-primary bg-slate-50 border border-slate-100">
-                      <Brain className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-900 text-sm">Auto-Detect AI</span>
-                      <span className="text-[10px] text-slate-400 font-medium">Global Settings Default</span>
-                    </div>
-                  </div>
-              </SelectItem>
-              {availableModels.map((model) => (
-                <SelectItem key={model.id} value={model.id} className="rounded-xl py-3 focus:bg-primary/5 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${model.color} bg-slate-50 border border-slate-100`}>
-                      <model.icon className="w-4 h-4" />
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="font-bold text-slate-900 text-sm">{model.name}</span>
-                      <span className="text-[10px] text-slate-400 font-medium">{model.desc}</span>
-                    </div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
         </div>
+
+        <Select value={selectedModel} onValueChange={setSelectedModel}>
+          <SelectTrigger className="w-full md:w-[220px] h-9 rounded-lg bg-white border-slate-200 font-bold text-slate-700 text-xs shadow-sm focus:ring-primary/10">
+            <div className="flex items-center gap-2">
+              {selectedModel === 'smart' ? (
+                <div className="text-primary flex items-center gap-2">
+                  <Brain className="w-3.5 h-3.5" />
+                  <span>Auto-Detect AI</span>
+                </div>
+              ) : (
+                <>
+                  {availableModels.find(m => m.id === selectedModel)?.icon && (
+                    <div className={availableModels.find(m => m.id === selectedModel)?.color}>
+                      {React.createElement(availableModels.find(m => m.id === selectedModel)!.icon, { className: "w-3.5 h-3.5" })}
+                    </div>
+                  )}
+                  <SelectValue />
+                </>
+              )}
+            </div>
+          </SelectTrigger>
+          <SelectContent className="rounded-xl border-none shadow-2xl p-1.5">
+            <SelectItem value="smart" className="rounded-lg py-2.5 focus:bg-primary/5 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className="w-7 h-7 rounded-lg flex items-center justify-center text-primary bg-slate-50 border border-slate-100">
+                    <Brain className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-900 text-xs">Auto-Detect AI</span>
+                    <span className="text-[10px] text-slate-400 font-medium">Global Settings Default</span>
+                  </div>
+                </div>
+            </SelectItem>
+            {availableModels.map((model) => (
+              <SelectItem key={model.id} value={model.id} className="rounded-lg py-2.5 focus:bg-primary/5 cursor-pointer">
+                <div className="flex items-center gap-3">
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${model.color} bg-slate-50 border border-slate-100`}>
+                    <model.icon className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-bold text-slate-900 text-xs">{model.name}</span>
+                    <span className="text-[10px] text-slate-400 font-medium">{model.desc}</span>
+                  </div>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {uploadMode === 'file' ? (
@@ -217,39 +214,35 @@ export const Upload = forwardRef<HTMLDivElement, UploadProps>(({ onExtractionCom
       )}
 
       {loading && (
-        <div className="space-y-6 bg-white p-8 rounded-[2rem] border border-slate-100 shadow-2xl shadow-primary/10">
+        <div className="space-y-4 bg-white p-6 rounded-xl border border-slate-100 shadow-sm">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Brain className="w-6 h-6 text-primary animate-pulse" />
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Brain className="w-4 h-4 text-primary animate-pulse" />
               </div>
-              <span className="font-bold text-slate-900 truncate max-w-[200px]">{stage}</span>
+              <span className="font-bold text-sm text-slate-800 truncate max-w-[220px]">{stage}</span>
             </div>
-            <div className="text-right">
-              <span className="text-2xl font-black text-primary">{progress}%</span>
-            </div>
+            <span className="text-xl font-black text-primary">{progress}%</span>
           </div>
           
-          <Progress value={progress} className="h-4 rounded-full bg-slate-100" />
+          <Progress value={progress} className="h-2 rounded-full bg-slate-100" />
           
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
-              <div className="flex items-center gap-2 mb-1">
-                <Clock className="w-4 h-4 text-slate-400" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Clock className="w-3.5 h-3.5 text-slate-400" />
                 <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Est. Time</span>
               </div>
-              <p className="text-lg font-black text-slate-900">
+              <p className="text-sm font-black text-slate-900">
                 {timeLeft ? `${timeLeft}s` : 'Calculating...'}
               </p>
             </div>
-            <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
-              <div className="flex items-center gap-2 mb-1">
-                <Sparkles className="w-4 h-4 text-primary" />
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Processing</span>
+            <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+              <div className="flex items-center gap-1.5 mb-1">
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Engine</span>
               </div>
-              <p className="text-lg font-black text-slate-900">
-                AI Engine Active
-              </p>
+              <p className="text-sm font-black text-slate-900">AI Active</p>
             </div>
           </div>
         </div>
@@ -264,15 +257,15 @@ export const Upload = forwardRef<HTMLDivElement, UploadProps>(({ onExtractionCom
         </div>
       )}
 
-      <div className="flex justify-center pt-4">
+      <div className="flex justify-end pt-2">
         <UIButton 
           size="lg"
           onClick={handleExtraction}
           disabled={loading || (uploadMode === 'file' && !file) || (uploadMode === 'text' && !inputText)}
-          className="px-10 py-7 rounded-2xl bg-primary hover:bg-primary/90 text-white font-black text-lg shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 transition-all hover:-translate-y-1 active:translate-y-0 disabled:bg-slate-200 disabled:shadow-none"
+          className="px-8 h-11 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold shadow-lg shadow-primary/20 transition-all disabled:bg-slate-200 disabled:shadow-none"
         >
           {loading ? 'Processing...' : 'Start Smart Extraction'}
-          <ChevronRight className="ml-2 w-5 h-5" />
+          <ChevronRight className="ml-2 w-4 h-4" />
         </UIButton>
       </div>
     </div>

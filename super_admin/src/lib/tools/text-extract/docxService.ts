@@ -737,11 +737,23 @@ export const generateDocx = async (
       flushTable();
       
       // Convert base64 to Uint8Array for docx
-      const base64Data = element.imageB64.split(',')[1] || element.imageB64;
-      const binaryData = atob(base64Data);
-      const bytes = new Uint8Array(binaryData.length);
-      for (let i = 0; i < binaryData.length; i++) {
-        bytes[i] = binaryData.charCodeAt(i);
+      // Guard against corrupted/truncated base64 (e.g. from localStorage overflow)
+      let bytes: Uint8Array;
+      try {
+        const base64Data = element.imageB64.split(',')[1] || element.imageB64;
+        // Validate that the string is pure base64 before calling atob
+        const cleanBase64 = base64Data.replace(/\s/g, '');
+        if (!/^[A-Za-z0-9+/]*={0,2}$/.test(cleanBase64)) {
+          throw new Error('Invalid base64 characters detected');
+        }
+        const binaryData = atob(cleanBase64);
+        bytes = new Uint8Array(binaryData.length);
+        for (let i = 0; i < binaryData.length; i++) {
+          bytes[i] = binaryData.charCodeAt(i);
+        }
+      } catch (b64Err) {
+        console.warn('Skipping image element: base64 decode failed (possibly corrupted/truncated data).', b64Err);
+        continue;
       }
 
       // Calculate dimensions based on bbox aspect ratio if available
@@ -941,9 +953,9 @@ export const generateDocx = async (
         flushOptions();
     }
 
-    let indent = undefined;
+    let indent: { left: number; hanging?: number } | undefined = undefined;
     let spacing = { before: 80, after: 80, line: 276 }; // Slightly more spacing
-    let borders = undefined;
+    let borders: Record<string, any> | undefined = undefined;
 
     if (isSubQuestion) {
         // Sub-questions indented further
@@ -965,7 +977,7 @@ export const generateDocx = async (
                 color: "CCCCCC",
                 space: 10
             }
-        };
+        } as any;
     }
 
     docChildren.push(new Paragraph({

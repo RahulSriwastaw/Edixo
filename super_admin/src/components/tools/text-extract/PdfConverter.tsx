@@ -62,15 +62,23 @@ const PdfConverter: React.FC = () => {
         .flatMap(p => p.elements || []);
       
       if (completedElements.length > 0) {
+        // Strip imageB64 blobs before persisting — they can be several MB each and
+        // easily overflow localStorage's ~5MB limit, which silently truncates the
+        // data and causes `atob` to fail (InvalidCharacterError) on next load.
+        const elementsForHistory = completedElements.map(el => {
+          const { imageB64: _, ...rest } = el as any;
+          return rest;
+        });
         const newItem: HistoryItem = {
           id: generateId(),
           fileName: fileName,
           timestamp: Date.now(),
           pagesCount: pages.length,
-          elements: completedElements
+          elements: elementsForHistory
         };
         setHistory(prev => [newItem, ...prev].slice(0, 20)); // Keep last 20
       }
+
 
       if (autoDownload) {
         const timer = setTimeout(() => {
@@ -483,41 +491,8 @@ const PdfConverter: React.FC = () => {
   const selectedPendingCount = pages.filter(p => p.isSelected && p.status !== 'done').length;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-orange-100 selection:text-orange-900">
-      <div className="max-w-7xl mx-auto px-4 py-8 md:px-8 md:py-12">
-        
-        {/* Header - More Compact */}
-        <header className="mb-6 flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-3 text-left">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="flex-shrink-0 w-8 h-8 rounded-lg bg-slate-900 text-white shadow-md flex items-center justify-center"
-            >
-              <Wand2 className="w-4 h-4" />
-            </motion.div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight">
-                PDF to Word
-              </h1>
-              <p className="text-slate-500 text-[10px] md:text-xs">
-                Professional document conversion
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {pages.length > 0 && (
-              <button 
-                onClick={reset}
-                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors"
-                title="Reset All"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-        </header>
+    <div className="font-sans selection:bg-orange-100 selection:text-orange-900">
+      <div className="p-6 space-y-4">
 
         {/* Main Content */}
         <main className="relative">
