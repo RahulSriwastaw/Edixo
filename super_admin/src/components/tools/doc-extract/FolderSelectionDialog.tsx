@@ -291,8 +291,9 @@ export function FolderSelectionDialog({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md rounded-2xl">
+    <>
+      <Dialog open={open} onOpenChange={handleClose}>
+        <DialogContent className="max-w-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">Select Folder for Questions</DialogTitle>
           <DialogDescription className="text-sm text-slate-600">
@@ -461,5 +462,6 @@ export function FolderSelectionDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    </>
   );
 }
