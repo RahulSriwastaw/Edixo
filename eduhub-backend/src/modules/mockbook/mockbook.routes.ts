@@ -790,7 +790,7 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
                 test: true,
                 answers: {
                     include: {
-                        question: true
+                        questions: true
                     }
                 }
             }
@@ -803,7 +803,7 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
         const chapterStats: Record<string, any> = {};
 
         (attempt as any).answers.forEach((ans: any) => {
-            const q = ans.question as any;
+            const q = ans.questions as any;
             const chapterName = q.chapter_name || q.chapterName || 'Uncategorized';
             
             if (!chapterStats[chapterName]) {
@@ -1444,7 +1444,7 @@ router.get('/attempts/:attemptId/report', authenticate, async (req, res, next) =
                 student: { select: { name: true, studentId: true } },
                 answers: {
                     include: {
-                        question: {
+                        questions: {
                             include: {
                                 question_options: true
                             }
