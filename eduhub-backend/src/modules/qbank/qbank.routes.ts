@@ -1123,58 +1123,123 @@ router.get('/questions', async (req, res, next) => {
             }
         }
 
-        // Use raw SQL against local questions table (question bank)
-        const limitNum = Number(limit);
-        const skipNum = Number(skip);
-        let rawWhere = '1=1';
-        const rawParams: any[] = [];
+        // Use standard Prisma findMany to support all filters instead of raw SQL
+        const total = await prisma.question.count({ where });
+        const questionsRaw = await prisma.question.findMany({
+             where,
+             orderBy: { createdAt: 'desc' },
+             skip: Number(skip),
+             take: Number(limit),
+             include: {
+                 options: {
+                     orderBy: { sortOrder: 'asc' },
+                     select: {
+                         id: true, questionId: true, textEn: true, textHi: true,
+                         isCorrect: true, sortOrder: true
+                     }
+                 },
+                 folder: {
+                     select: { id: true, name: true }
+                 }
+             }
+        });
 
-        if (search) {
-            rawParams.push(`%${search}%`);
-            rawWhere += ` AND (text_en ILIKE $${rawParams.length} OR text_hi ILIKE $${rawParams.length})`;
+        res.json({ success: true, data: { questions: questionsRaw, total } });
+    } catch (err) { next(err); }
+});
+
+// ─── POST /api/qbank/questions/move-to-folder ──────────────────
+router.post('/questions/move-to-folder', async (req, res, next) => {
+    try {
+        const { questionIds, folderId } = z.object({
+            questionIds: z.array(z.string()).min(1),
+            folderId: z.string()
+        }).parse(req.body);
+
+        // Validate folder exists
+        const folder = await prisma.qBankFolder.findUnique({ where: { id: folderId } });
+        if (!folder) throw new AppError('Folder not found', 404);
+
+        const updated = await prisma.question.updateMany({
+            where: { id: { in: questionIds } },
+            data: { folderId }
+        });
+
+        res.json({ success: true, data: { movedCount: updated.count } });
+    } catch (err) { next(err); }
+});
+
+// ─── POST /api/qbank/questions/copy-to-folder ──────────────────
+router.post('/questions/copy-to-folder', async (req, res, next) => {
+    try {
+        const { questionIds, folderId } = z.object({
+            questionIds: z.array(z.string()).min(1),
+            folderId: z.string()
+        }).parse(req.body);
+
+        const folder = await prisma.qBankFolder.findUnique({ where: { id: folderId } });
+        if (!folder) throw new AppError('Folder not found', 404);
+
+        // Fetch questions and their options
+        const questions = await prisma.question.findMany({
+            where: { id: { in: questionIds } },
+            include: { options: true }
+        });
+
+        let copiedCount = 0;
+        for (const q of questions) {
+            const { id, createdAt, updatedAt, options, ...qData } = q;
+            // Generate a fresh ID logic could go here if needed, but Prisma will auto-generate if ID is omitted and it has @default(uuid()).
+            // Since id is likely mapped, we inject a new UUID-like string. 
+            // In Prisma, we can omit id if it's default uuid/cuid.
+            const newQId = `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+            const newQuestionIdStr = `${q.questionId}-copy`;
+
+            await prisma.question.create({
+                data: {
+                    ...qData,
+                    id: newQId,
+                    questionId: newQuestionIdStr,
+                    folderId,
+                    options: {
+                        create: options.map(opt => {
+                            const { id: _, questionId: __, ...optData } = opt;
+                            return optData;
+                        })
+                    }
+                }
+            });
+            copiedCount++;
         }
-        if (difficulty && difficulty !== 'all') {
-            rawParams.push(String(difficulty).toUpperCase());
-            rawWhere += ` AND difficulty = $${rawParams.length}`;
-        }
-        if (type && type !== 'all') {
-            const typeMap: any = { 'mcq': 'MCQ_SINGLE', 'multi_select': 'MCQ_MULTIPLE', 'integer': 'FILL_IN_BLANK', 'true_false': 'TRUE_FALSE' };
-            rawParams.push(typeMap[type as string] || type);
-            rawWhere += ` AND type = $${rawParams.length}`;
-        }
 
-        const questionsRaw = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT id, question_id AS "questionId", text_en AS "textEn", text_hi AS "textHi",
-                   type, difficulty, subject_name AS "subjectName", chapter_name AS "chapterName",
-                   exam, year, point_cost AS "pointCost", usage_count AS "usageCount",
-                   is_global AS "isGlobal", is_approved AS "isApproved", created_at AS "createdAt"
-            FROM questions
-            WHERE ${rawWhere}
-            ORDER BY created_at DESC
-            LIMIT ${limitNum} OFFSET ${skipNum}
-        `, ...rawParams);
+        res.json({ success: true, data: { copiedCount } });
+    } catch (err) { next(err); }
+});
 
-        const totalRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>(`
-            SELECT COUNT(*) AS cnt FROM questions WHERE ${rawWhere}
-        `, ...rawParams);
+// ─── POST /api/qbank/folders/ensure-drafts ─────────────────────
+router.post('/folders/ensure-drafts', async (req, res, next) => {
+    try {
+        const orgId = req.user?.orgId;
+        const org = (orgId && orgId !== 'undefined') ? await prisma.organization.findFirst({ where: { orgId } }) : null;
+        const scope = 'GLOBAL';
 
-        // Fetch options for loaded questions
-        const qIds = questionsRaw.map((q: any) => q.id);
-        let optsByQ: Record<string, any[]> = {};
-        if (qIds.length > 0) {
-            const idsList = qIds.map((id: string) => `'${id.replace(/'/g, "''")}'`).join(',');
-            const opts = await prisma.$queryRawUnsafe<Array<any>>(`
-                SELECT id, question_id AS "question_id", text_en AS "textEn", text_hi AS "textHi",
-                       is_correct AS "isCorrect", sort_order AS "sortOrder"
-                FROM question_options WHERE question_id IN (${idsList}) ORDER BY sort_order ASC
-            `);
-            opts.forEach((o: any) => { optsByQ[o.question_id] = optsByQ[o.question_id] || []; optsByQ[o.question_id].push(o); });
+        let draftsFolder = await prisma.qBankFolder.findFirst({
+            where: { name: { equals: 'Drafts', mode: 'insensitive' }, parentId: null, scope: 'GLOBAL' }
+        });
+
+        if (!draftsFolder) {
+            draftsFolder = await prisma.qBankFolder.create({
+                data: {
+                    name: 'Drafts',
+                    slug: 'drafts',
+                    scope: 'GLOBAL',
+                    depth: 0,
+                    path: '/'
+                }
+            });
         }
 
-        const questions = questionsRaw.map((q: any) => ({ ...q, options: optsByQ[q.id] || [], folder: null }));
-        const total = Number(totalRow[0]?.cnt ?? 0);
-
-        res.json({ success: true, data: { questions, total } });
+        res.json({ success: true, data: draftsFolder });
     } catch (err) { next(err); }
 });
 

@@ -34,13 +34,15 @@ import { cn } from "@/lib/utils";
 
 // Available Models List (Sync with backend ai.config.ts)
 const ALL_MODELS = [
-  { id: 'GEMINI_1_5_FLASH', name: 'Gemini 1.5 Flash', provider: 'Google', capabilities: ['Vision', 'Fast'] },
+  { id: 'GEMINI_3_1_PRO_PREVIEW', name: 'Gemini 3.1 Pro (Preview)', provider: 'Google', capabilities: ['Vision', 'Complex'] },
+  { id: 'GEMINI_3_FLASH_PREVIEW', name: 'Gemini 2.0 Flash', provider: 'Google', capabilities: ['Vision', 'Fast'] },
+  { id: 'GEMINI_3_1_FLASH_LITE_PREVIEW', name: 'Gemini 3.1 Flash Lite (Preview)', provider: 'Google', capabilities: ['Vision', 'Lite'] },
+  { id: 'GEMINI_PRO_LATEST', name: 'Gemini Pro (Latest)', provider: 'Google', capabilities: ['Vision', 'Complex'] },
+  { id: 'GEMINI_FLASH_LATEST', name: 'Gemini Flash (Latest)', provider: 'Google', capabilities: ['Vision', 'Fast'] },
+  { id: 'GEMINI_FLASH_LITE_LATEST', name: 'Gemini Flash Lite (Latest)', provider: 'Google', capabilities: ['Vision', 'Lite'] },
+  { id: 'GEMINI_2_0_FLASH', name: 'Gemini 2.0 Flash (Stable)', provider: 'Google', capabilities: ['Vision', 'Next-Gen'] },
   { id: 'GEMINI_1_5_PRO', name: 'Gemini 1.5 Pro', provider: 'Google', capabilities: ['Vision', 'Complex'] },
-  { id: 'GEMINI_2_0_FLASH', name: 'Gemini 2.0 Flash', provider: 'Google', capabilities: ['Vision', 'Next-Gen'] },
-  { id: 'OPENROUTER_GEMMA_4_26B', name: 'Google Gemma 2', provider: 'OpenRouter', capabilities: ['Text', 'Free'] },
-  { id: 'OPENROUTER_LLAMA_3_70B', name: 'Llama 3 (70B)', provider: 'OpenRouter', capabilities: ['Text', 'Reasoning'] },
-  { id: 'MODAL_GLM_5_1', name: 'GLM 5.1 Elite', provider: 'Modal', capabilities: ['Research', 'Elite'] },
-  { id: 'CLAUDE_3_5_SONNET', name: 'Claude 3.5 Sonnet', provider: 'Anthropic', capabilities: ['Code', 'Vision'] },
+  { id: 'GEMINI_1_5_FLASH', name: 'Gemini 1.5 Flash', provider: 'Google', capabilities: ['Vision', 'Fast'] },
 ];
 
 export default function AISettingsPage() {

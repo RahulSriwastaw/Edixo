@@ -70,6 +70,8 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
         const { sourceName, questions } = schema.parse(req.body);
         
         let savedCount = 0;
+
+        // Save questions directly without folder reference
         for (const q of questions) {
              const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random()*10000)}`;
              const difficulty = (q.difficulty || 'medium').toLowerCase();
@@ -80,7 +82,7 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
                  await prisma.$executeRaw`
                      INSERT INTO questions (id, question_id, text_en, text_hi, is_approved, type, difficulty, subject_name, chapter_name)
                      VALUES (
-                         ${questionId}, ${questionId}, ${q.textEn}, ${q.textHi || null}, FALSE, 'mcq', ${difficulty}, ${sourceName}, 'Drafts'
+                         ${questionId}, ${questionId}, ${q.textEn}, ${q.textHi || null}, FALSE, 'mcq', ${difficulty}, ${sourceName}, 'AI Drafts'
                      )
                  `;
 

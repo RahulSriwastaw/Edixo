@@ -444,7 +444,7 @@ export default function QuestionGenerationPage() {
 
                 {/* AI Smart Tools Section */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                  <Link href="/tools/document-extraction">
+                  <Link href="/tools/ai-mcq-extractor">
                     <div className="group p-4 bg-primary/5 border border-primary/10 rounded-2xl hover:bg-primary/10 transition-all cursor-pointer flex items-center gap-4">
                       <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                         <FileQuestion className="w-5 h-5" />

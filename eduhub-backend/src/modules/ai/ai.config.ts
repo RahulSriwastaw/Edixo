@@ -13,7 +13,13 @@ export const AI_MODELS = {
     // Gemini (Native Google API for high-res OCR / Visuals)
     GEMINI_1_5_FLASH: { provider: 'gemini', id: 'gemini-1.5-flash' },
     GEMINI_1_5_PRO: { provider: 'gemini', id: 'gemini-1.5-pro' },
-    GEMINI_2_0_FLASH: { provider: 'gemini', id: 'gemini-2.0-flash' }
+    GEMINI_2_0_FLASH: { provider: 'gemini', id: 'gemini-2.0-flash' },
+    GEMINI_3_FLASH_PREVIEW: { provider: 'gemini', id: 'gemini-3-flash-preview' },
+    GEMINI_3_1_PRO_PREVIEW: { provider: 'gemini', id: 'gemini-3.1-pro-preview' },
+    GEMINI_3_1_FLASH_LITE_PREVIEW: { provider: 'gemini', id: 'gemini-3.1-flash-lite-preview' },
+    GEMINI_PRO_LATEST: { provider: 'gemini', id: 'gemini-pro-latest' },
+    GEMINI_FLASH_LATEST: { provider: 'gemini', id: 'gemini-flash-latest' },
+    GEMINI_FLASH_LITE_LATEST: { provider: 'gemini', id: 'gemini-flash-lite-latest' }
 };
 
 export const AI_ENDPOINTS = {

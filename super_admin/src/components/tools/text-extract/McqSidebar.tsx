@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ScannedPage, OptionArrangement } from '../../../lib/tools/text-extract/types';
 import { generateDocx } from '../../../lib/tools/text-extract/docxService';
 import { proofreadMcqs } from '../../../lib/tools/text-extract/geminiService';
+import { FolderSelectionDialog } from '../doc-extract/FolderSelectionDialog';
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
@@ -34,6 +35,7 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
   const [isProofreading, setIsProofreading] = useState(false);
   const [manualMcqs, setManualMcqs] = useState<McqItem[] | null>(null);
   const [lastProcessedPageCount, setLastProcessedPageCount] = useState(0);
+  const [showFolderDialog, setShowFolderDialog] = useState(false);
   
   const autoMcqs = useMemo(() => {
     if (!mcqMode) return [];
@@ -177,6 +179,11 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
 
   const saveToDrafts = async () => {
     if (mcqs.length === 0) return;
+    setShowFolderDialog(true);
+  };
+
+  const handleFolderSelected = async (folderId: string, folderName: string) => {
+    if (mcqs.length === 0) return;
     try {
         const payload = mcqs.map(q => ({
             text_en: q.questionText,
@@ -184,13 +191,15 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
         }));
         await axios.post(`${API_URL}/ai/save-draft`, {
             sourceName: 'AI PDF to Word Extractor',
-            questions: payload
+            questions: payload,
+            folderId: folderId
         });
-        alert(`Successfully saved ${mcqs.length} questions as drafts to the Question Bank!`);
+        alert(`✓ Successfully saved ${mcqs.length} questions to folder "${folderName}" in the Question Bank!`);
     } catch (e) {
         console.error("Save drafts error:", e);
         alert("Failed to save drafts to the backend.");
     }
+    setShowFolderDialog(false);
   };
 
   const exportToPdf = () => {
@@ -425,6 +434,14 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
           </motion.div>
         </>
       )}
+
+      {/* Folder Selection Dialog */}
+      <FolderSelectionDialog
+        open={showFolderDialog}
+        onClose={() => setShowFolderDialog(false)}
+        onSelect={handleFolderSelected}
+        questionCount={mcqs.length}
+      />
     </AnimatePresence>
   );
 };

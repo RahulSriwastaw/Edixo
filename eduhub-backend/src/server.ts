@@ -1570,17 +1570,24 @@ async function startServer() {
             logger.warn('⚠️  Redis not available — running without cache/queues (dev mode only)');
         }
 
-        // Verify DB
-        await prisma.$connect();
-        logger.info('✅ PostgreSQL connected');
-        // Run compatibility scripts as non-blocking to prevent startup crashes
+        // Verify DB (with graceful fallback for dev)
         try {
-            await ensureQuestionBankCompatibilityData();
-            await ensureCompatibilitySetsFromQuestions();
-            logger.info('✅ Question-bank compatibility checks complete');
-        } catch (compatErr) {
-            logger.error('⚠️  Non-critical compatibility check failed:', compatErr);
-            // We continue starting the server as the DB connection itself is healthy
+            await prisma.$connect();
+            logger.info('✅ PostgreSQL connected');
+            // Run compatibility scripts as non-blocking to prevent startup crashes
+            try {
+                await ensureQuestionBankCompatibilityData();
+                await ensureCompatibilitySetsFromQuestions();
+                logger.info('✅ Question-bank compatibility checks complete');
+            } catch (compatErr) {
+                logger.error('⚠️  Non-critical compatibility check failed:', compatErr);
+                // We continue starting the server as the DB connection itself is healthy
+            }
+        } catch (dbErr) {
+            if (env.NODE_ENV === 'production') {
+                throw dbErr; // fatal in production
+            }
+            logger.warn('⚠️  Database connection failed — server will start without initial compatibility checks (dev mode). Some routes may return errors.');
         }
 
         const port = env.PORT;

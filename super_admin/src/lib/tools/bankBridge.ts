@@ -16,34 +16,38 @@ export interface BankQuestion {
 /**
  * Sends a list of questions to the EduHub Question Bank.
  * Maps tool-specific types to the main bank schema.
+ * @param questions - Array of questions to save
+ * @param folderId - Optional folder ID to organize questions in the bank
+ * @param folderName - Optional folder name for display message
  */
-export async function sendQuestionsToBank(questions: BankQuestion[]) {
+export async function sendQuestionsToBank(
+  questions: BankQuestion[],
+  folderId?: string,
+  folderName?: string
+) {
   try {
     const payload = {
       questions: questions.map(q => ({
-        questionId: `Q-EXT-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
         textEn: q.questionText,
         textHi: q.questionText,
-        explanationEn: q.explanation,
-        explanationHi: q.explanation,
+        explanationEn: q.explanationEn || '',
         difficulty: q.difficulty.toLowerCase(),
-        type: q.type === 'MCQ' ? 'mcq_single' : 
-              q.type === 'Multi-select' ? 'multi_select' :
-              q.type === 'True-False' ? 'true_false' : 'integer',
-        isApproved: false, // Ensure it goes to drafts
         options: q.options?.map((opt, idx) => ({
-          textEn: opt.text,
-          textHi: opt.text,
+          textEn: opt.textEn,
+          textHi: opt.textHi || opt.textEn,
           isCorrect: opt.isCorrect,
           sortOrder: idx
-        })) || []
-      }))
+        })) || [],
+        ...(folderId && { folderId })
+      })),
+      ...(folderId && { folderId })
     };
 
     const response = await api.post('/ai/save-draft', payload);
     
     if (response.data.success) {
-      toast.success(`${questions.length} questions successfully saved to Question Bank Drafts!`);
+      const folderMsg = folderName ? ` in folder "${folderName}"` : ' to Question Bank Drafts';
+      toast.success(`✓ ${questions.length} questions successfully saved${folderMsg}!`);
       return true;
     }
     throw new Error(response.data.message || "Failed to save drafts");

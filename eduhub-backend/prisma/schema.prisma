@@ -138,3 +138,21 @@ model ai_settings {
   updatedAt         DateTime @updatedAt
 }
 
+model qBankFolder {
+  id          String      @id @default(uuid())
+  name        String      @db.VarChar(255)
+  slug        String      @db.VarChar(255)
+  path        String      @default("/")
+  depth       Int         @default(0)
+  scope       String      @default("GLOBAL")
+  orgId       String?
+  parentId    String?
+  isActive    Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([orgId])
+  @@index([parentId])
+  @@map("qbank_folders")
+}
+

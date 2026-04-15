@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { sendQuestionsToBank } from '@/lib/tools/bankBridge';
+import { FolderSelectionDialog } from './FolderSelectionDialog';
 
 interface QuestionsProps {
   questions: Question[];
@@ -28,6 +29,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [localQuestions, setLocalQuestions] = useState<Question[]>(questions);
   const [isSending, setIsSending] = useState(false);
+  const [showFolderDialog, setShowFolderDialog] = useState(false);
 
   React.useEffect(() => {
     setLocalQuestions(questions);
@@ -70,21 +72,36 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
   };
 
   const handleSendToBank = async () => {
-    if (selectedIds.length === 0) { toast.error("Select at least one question"); return; }
+    if (selectedIds.length === 0) {
+      toast.error("Select at least one question");
+      return;
+    }
+    setShowFolderDialog(true);
+  };
+
+  const handleFolderSelected = async (folderId: string, folderName: string) => {
     setIsSending(true);
     const selectedList = localQuestions.filter(q => selectedIds.includes(q.id));
-    const success = await sendQuestionsToBank(selectedList.map(q => ({
-      questionText: q.text,
-      options: q.options.map((opt, i) => ({
-        textEn: opt, textHi: opt,
-        isCorrect: String.fromCharCode(65 + i) === q.correctOption,
-        sortOrder: i
+    const success = await sendQuestionsToBank(
+      selectedList.map(q => ({
+        questionText: q.text,
+        options: q.options.map((opt, i) => ({
+          textEn: opt,
+          textHi: opt,
+          isCorrect: String.fromCharCode(65 + i) === q.correctOption,
+          sortOrder: i,
+        })),
+        explanationEn: q.solution_eng || '',
+        type: 'MCQ' as const,
+        difficulty: q.difficulty as any,
       })),
-      explanationEn: q.solution_eng || '',
-      type: 'MCQ',
-      difficulty: q.difficulty as any
-    })));
-    if (success) { setSelectedIds([]); toast.success("Questions sent to bank!"); }
+      folderId,
+      folderName
+    );
+    if (success) {
+      setSelectedIds([]);
+    }
+    setShowFolderDialog(false);
     setIsSending(false);
   };
 
@@ -381,6 +398,14 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
           </Button>
         </div>
       )}
+
+      {/* Folder Selection Dialog */}
+      <FolderSelectionDialog
+        open={showFolderDialog}
+        onClose={() => setShowFolderDialog(false)}
+        onSelect={handleFolderSelected}
+        questionCount={selectedIds.length}
+      />
     </div>
   );
 }

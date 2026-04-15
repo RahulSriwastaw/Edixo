@@ -2,12 +2,14 @@ import axios from 'axios';
 import { logger } from '../../config/logger';
 import { AI_MODELS, AI_ENDPOINTS } from './ai.config';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { prisma } from '../../config/database';
+import { AppError } from '../../middleware/errorHandler';
 
 export class AIService {
     private static CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
     private static MODEL = 'claude-sonnet-4-5';
 
-    // Existing Canvas method
+    // Existing Canvas method - Now Using Gemini
     static async getCanvasQueryResponse(params: {
         query: string;
         context?: string;
@@ -15,15 +17,16 @@ export class AIService {
         language?: string;
         gradeLevel?: number;
     }) {
-        const apiKey = process.env.CLAUDE_API_KEY || '';
+        const settings = await this.getSettings();
+        const apiKey = settings.apiKeyGemini || process.env.GEMINI_API_KEY;
 
         if (!apiKey) {
-            logger.warn('AI Service: CLAUDE_API_KEY missing — returning mock response.');
+            logger.warn('AI Service: GEMINI_API_KEY missing — returning mock response.');
             return this.getMockResponse(params.query);
         }
 
         try {
-            const systemPrompt = `You are EduHub AI — an expert teaching assistant embedded in a digital whiteboard.
+            const systemPrompt = `You are EduHub AI — an expert teaching assistant powered by Google Gemini.
 Your audience: teachers and students preparing for JEE, NEET, UPSC, SSC, and GATE.
 
 CANVAS CONTEXT: ${params.context || 'No text context available.'}
@@ -32,40 +35,23 @@ PREFERRED LANGUAGE: ${params.language || 'English'}
 
 RESPONSE RULES:
 1. Be precise, structured, and educational.
-2. Use LaTeX for ALL math/science formulas: $E=mc^2$, $\\int_a^b f(x)dx$.
+2. Use LaTeX for ALL math/science formulas: $E=mc^2$, $\int_a^b f(x)dx$.
 3. For problems: solve step-by-step with clear headings.
 4. For concepts: give definition → intuition → example.
-5. Hindi mode: use Hinglish (simple Hindi + English terms) like Indian coaching teachers.
-6. Keep responses focused — no fluff.
-7. If image is provided, analyze the canvas content deeply.`;
+5. Hindi mode: use Hinglish (simple Hindi + English terms).
+6. Keep responses focused — no fluff.`;
 
-            const messageContent: any[] = [];
-            if (params.imageBase64) {
-                messageContent.push({
-                    type: 'image',
-                    source: { type: 'base64', media_type: 'image/png', data: params.imageBase64 },
-                });
-            }
-            messageContent.push({ type: 'text', text: params.query });
-
-            const response = await axios.post(
-                this.CLAUDE_API_URL,
-                {
-                    model: this.MODEL,
-                    max_tokens: 1500,
-                    system: systemPrompt,
-                    messages: [{ role: 'user', content: messageContent }],
-                },
-                {
-                    headers: { 'x-api-key': apiKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
-                    timeout: 30000,
-                }
-            );
-
-            return response.data.content[0].text as string;
+            // Use the unified logic for consistency
+            return await this.processToolRequest({
+                modelId: settings.defaultImageModel || 'GEMINI_2_0_FLASH',
+                systemPrompt,
+                userPrompt: params.query,
+                imageBase64: params.imageBase64,
+                mimeType: 'image/png'
+            });
         } catch (error: any) {
-            logger.error('Claude API Error:', error.response?.data || error.message);
-            throw new Error('AI Assistant is temporarily unavailable. Please try again.');
+            logger.error('Canvas Gemini Error:', error.message);
+            throw new Error('AI Assistant is temporarily unavailable. Please try again later.');
         }
     }
 
@@ -113,16 +99,22 @@ RESPONSE RULES:
 
         // Evaluate manual override or smart selection
         if (params.modelId && params.modelId !== 'smart') {
-            // Find in AI_MODELS
-            const directModel = Object.values(AI_MODELS).find(m => m.id === params.modelId);
-            if (directModel) {
-                modelConfig = directModel;
-            } else if (params.modelId === 'openrouter') {
-                modelConfig = (AI_MODELS as any)[settings.defaultTextModel] || AI_MODELS.OPENROUTER_GEMMA_4_26B;
-            } else if (params.modelId === 'modal') {
-                modelConfig = AI_MODELS.MODAL_GLM_5_1;
-            } else if (params.modelId === 'gemini-1.5-pro') {
-                modelConfig = AI_MODELS.GEMINI_1_5_PRO;
+            // 1. Check if modelId is a KEY in AI_MODELS (e.g. GEMINI_3_1_PRO_PREVIEW)
+            if ((AI_MODELS as any)[params.modelId]) {
+                modelConfig = (AI_MODELS as any)[params.modelId];
+            } 
+            // 2. Check if modelId matches the 'id' field of any model in AI_MODELS (fallback)
+            else {
+                const directModel = Object.values(AI_MODELS).find(m => m.id === params.modelId);
+                if (directModel) {
+                    modelConfig = directModel;
+                } else if (params.modelId === 'openrouter') {
+                    modelConfig = (AI_MODELS as any)[settings.defaultTextModel] || AI_MODELS.OPENROUTER_GEMMA_4_26B;
+                } else if (params.modelId === 'modal') {
+                    modelConfig = AI_MODELS.MODAL_GLM_5_1;
+                } else if (params.modelId === 'gemini-1.5-pro') {
+                    modelConfig = AI_MODELS.GEMINI_1_5_PRO;
+                }
             }
         } else {
              // Smart Selection from Global Settings
@@ -147,7 +139,13 @@ RESPONSE RULES:
         } catch (error: any) {
             const errorDetails = error?.response?.data || error.message || String(error);
             logger.error(`AI Tool Error [${modelConfig.provider}]:`, errorDetails);
-            throw new Error(`Failed to process document using AI Engine (${modelConfig.provider}). Details: ${typeof errorDetails === 'string' ? errorDetails : JSON.stringify(errorDetails)}`);
+            
+            // Map 429 Quota errors to 429 AppError instead of 500
+            if (String(errorDetails).includes('429') || String(errorDetails).includes('Quota') || String(errorDetails).includes('Too Many Requests')) {
+                throw new AppError(`AI Engine Rate Limit: Your current Gemini API quota is exceeded. Please check your Google AI Studio plan or try again later.`, 429);
+            }
+            
+            throw new AppError(`Failed to process document using AI Engine (${modelConfig.provider}). Details: ${typeof errorDetails === 'string' ? errorDetails : JSON.stringify(errorDetails)}`, 500);
         }
     }
 
@@ -171,8 +169,8 @@ RESPONSE RULES:
         return result.response.text();
     }
 
-    private static async callOpenRouter(modelId: string, systemPrompt: string, userPrompt: string, imageBase64?: string) {
-        const apiKey = process.env.OPENROUTER_API_KEY;
+    private static async callOpenRouter(modelId: string, systemPrompt: string, userPrompt: string, settings: any, imageBase64?: string) {
+        const apiKey = settings.apiKeyOpenRouter || process.env.OPENROUTER_API_KEY;
         if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
 
         const messages: any[] = [{ role: 'system', content: systemPrompt }];
@@ -202,8 +200,8 @@ RESPONSE RULES:
         return response.data.choices[0].message.content;
     }
 
-    private static async callModal(modelId: string, systemPrompt: string, userPrompt: string, imageBase64?: string) {
-        const apiKey = process.env.MODAL_API_KEY;
+    private static async callModal(modelId: string, systemPrompt: string, userPrompt: string, settings: any, imageBase64?: string) {
+        const apiKey = settings.apiKeyModal || process.env.MODAL_API_KEY;
         if (!apiKey) throw new Error("MODAL_API_KEY missing");
 
         const messages: any[] = [

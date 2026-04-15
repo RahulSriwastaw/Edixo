@@ -30,6 +30,10 @@ import {
   Check,
   ListFilter,
   Network,
+  FolderInput,
+  FolderSymlink,
+  Folder,
+  ChevronDown,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -159,10 +163,15 @@ function stripHtml(html?: string, truncate = false): string {
 
 
 
-export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] }) {
+export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: { defaultFilters?: any[], selectedFolderId?: string | null }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const folderId = searchParams.get("folderId");
+  const folderId = selectedFolderId || searchParams.get("folderId");
+  const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
+  const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [showCopyDialog, setShowCopyDialog] = useState(false);
+  const [allFolders, setAllFolders] = useState<any[]>([]);
+  const [movingToFolderId, setMovingToFolderId] = useState<string>("");
   const isImportMode = searchParams.get("import") === "true";
 
   useEffect(() => {
@@ -207,6 +216,27 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
   const [pageSize, setPageSize] = useState(10);
   const [totalQuestions, setTotalQuestions] = useState(0);
 
+  // Fetch folders for move/copy dialog + current folder name
+  useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const res = await fetch(`${API_URL}/qbank/folders?tree=false`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          const data = await res.json();
+          const flat: any[] = data.data || [];
+          setAllFolders(flat);
+          if (folderId) {
+            const found = flat.find((f: any) => f.id === folderId);
+            setCurrentFolderName(found?.name || null);
+          } else {
+            setCurrentFolderName(null);
+          }
+        }
+      } catch {}
+    };
+    fetchFolders();
+  }, [folderId]);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -217,6 +247,7 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
         if (searchQuery) url.searchParams.append("search", searchQuery);
         if (difficultyFilter !== "all") url.searchParams.append("difficulty", difficultyFilter);
         if (typeFilter !== "all") url.searchParams.append("type", typeFilter);
+        if (folderId) url.searchParams.append("folderId", folderId);
 
         // Add advanced filters and grouping
         if (filters.length > 0) {
@@ -248,7 +279,7 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
       }
     };
     fetchData();
-  }, [searchQuery, scopeFilter, difficultyFilter, typeFilter, page, pageSize, filters, groupBy]);
+  }, [searchQuery, scopeFilter, difficultyFilter, typeFilter, page, pageSize, filters, groupBy, folderId]);
   const [showImportDialog, setShowImportDialog] = useState(false);
   const [importRows, setImportRows] = useState<any[]>([]);
   const [importPreview, setImportPreview] = useState<any[] | null>(null);
@@ -412,10 +443,63 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
     toast.success('Template downloaded');
   };
 
+  // Move/Copy to folder
+  const handleMoveToFolder = async () => {
+    if (!movingToFolderId || selectedQuestions.length === 0) return;
+    try {
+      const res = await fetch(`${API_URL}/qbank/questions/move-to-folder`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionIds: selectedQuestions, folderId: movingToFolderId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${selectedQuestions.length} question(s) moved`);
+        setShowMoveDialog(false);
+        setSelectedQuestions([]);
+        setMovingToFolderId("");
+        window.location.reload();
+      } else {
+        toast.error(data.message || "Failed to move questions");
+      }
+    } catch { toast.error("Failed to move questions"); }
+  };
+
+  const handleCopyToFolder = async () => {
+    if (!movingToFolderId || selectedQuestions.length === 0) return;
+    try {
+      const res = await fetch(`${API_URL}/qbank/questions/copy-to-folder`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionIds: selectedQuestions, folderId: movingToFolderId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${selectedQuestions.length} question(s) copied`);
+        setShowCopyDialog(false);
+        setSelectedQuestions([]);
+        setMovingToFolderId("");
+        window.location.reload();
+      } else {
+        toast.error(data.message || "Failed to copy questions");
+      }
+    } catch { toast.error("Failed to copy questions"); }
+  };
+
   return (
     <div className="flex-1 w-full relative">
 
       <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
+        {/* Folder Breadcrumb / Header */}
+        {folderId && (
+          <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+            <Folder className="w-4 h-4 text-primary/60" />
+            <span className="font-medium text-slate-900">{currentFolderName || "Loading folder..."}</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-xs text-slate-400">Viewing {totalQuestions} questions</span>
+          </div>
+        )}
+
         {/* Page Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -572,6 +656,14 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
                 <Layers className="w-4 h-4 mr-1" />
                 Add to Set
               </Button>
+              <Button variant="outline" size="sm" className="bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100" onClick={() => setShowMoveDialog(true)}>
+                <FolderInput className="w-4 h-4 mr-1" />
+                Move to Folder
+              </Button>
+              <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100" onClick={() => setShowCopyDialog(true)}>
+                <FolderSymlink className="w-4 h-4 mr-1" />
+                Copy to Folder
+              </Button>
               <Button variant="outline" size="sm">
                 <Coins className="w-4 h-4 mr-1" />
                 Set Point Cost
@@ -687,6 +779,9 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => router.push(`/question-bank/questions/${question.id}/edit`)}>
                                 <Pencil className="w-4 h-4 mr-2" /> Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => { setSelectedQuestions([question.id]); setShowMoveDialog(true); }}>
+                                <FolderInput className="w-4 h-4 mr-2" /> Move to Folder
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <Copy className="w-4 h-4 mr-2" /> Duplicate
@@ -1220,6 +1315,61 @@ export function QuestionsList({ defaultFilters = [] }: { defaultFilters?: any[] 
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+      {/* Move to Folder Dialog */}
+      <Dialog open={showMoveDialog} onOpenChange={setShowMoveDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Move {selectedQuestions.length} Questions</DialogTitle>
+            <DialogDescription>Select the target folder to move the selected questions.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={movingToFolderId} onValueChange={setMovingToFolderId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select target folder..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allFolders.map(f => (
+                  <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMoveDialog(false)}>Cancel</Button>
+            <Button className="bg-primary text-white" onClick={handleMoveToFolder} disabled={!movingToFolderId}>
+              Move Questions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy to Folder Dialog */}
+      <Dialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Copy {selectedQuestions.length} Questions</DialogTitle>
+            <DialogDescription>Select the target folder to copy the selected questions.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={movingToFolderId} onValueChange={setMovingToFolderId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select target folder..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allFolders.map(f => (
+                  <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCopyDialog(false)}>Cancel</Button>
+            <Button className="bg-primary text-white" onClick={handleCopyToFolder} disabled={!movingToFolderId}>
+              Copy Questions
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
