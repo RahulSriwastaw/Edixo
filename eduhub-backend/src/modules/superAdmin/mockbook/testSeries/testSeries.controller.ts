@@ -38,7 +38,15 @@ export const getTestSeriesDetail = async (req: Request, res: Response, next: Nex
     try {
         const id = req.params.id as string;
         const series = await prisma.examCategory.findUnique({
-            where: { id }
+            where: { id },
+            include: {
+                subCategories: {
+                    orderBy: { sortOrder: 'asc' },
+                    include: {
+                        mockTests: true
+                    }
+                }
+            }
         });
         if (!series) {
             return res.status(404).json({ success: false, message: 'Test Series not found' });
@@ -67,8 +75,7 @@ export const createTestSeries = async (req: Request, res: Response, next: NextFu
                 isFeatured: isFeatured || false,
                 isFree: isFree !== undefined ? isFree : true,
                 price: price ? Number(price) : null,
-                discountPrice: discountPrice ? Number(discountPrice) : null,
-                isActive: isActive !== undefined ? isActive : true,
+                discountPrice: discountPrice ? Number(discountPrice) : null
             }
         });
 
@@ -94,7 +101,7 @@ export const updateTestSeries = async (req: Request, res: Response, next: NextFu
                 isFree: data.isFree,
                 price: data.price ? Number(data.price) : null,
                 discountPrice: data.discountPrice ? Number(data.discountPrice) : null,
-                isActive: data.isActive,
+                
             }
         });
 

@@ -97,7 +97,10 @@ model question_sets {
   updated_at         DateTime             @default(now()) @db.Timestamptz(6)
   pdf_notes          Json?
   visual_settings    Json?
+  folderId           String?
+  folder             qBankFolder?         @relation(fields: [folderId], references: [id])
   question_set_items question_set_items[]
+  mockTestSections   MockTestSection[]
 }
 
 model questions {
@@ -122,8 +125,11 @@ model questions {
   year                Int?
   airtable_table_name String?
   record_id           String?
+  folderId            String?
+  folder              qBankFolder?         @relation(fields: [folderId], references: [id])
   question_options    question_options[]
   question_set_items  question_set_items[]
+  attemptAnswers      AttemptAnswer[]
 }
 
 model ai_settings {
@@ -147,12 +153,202 @@ model qBankFolder {
   scope       String      @default("GLOBAL")
   orgId       String?
   parentId    String?
+  description String?
+  icon        String?
+  color       String?
+  sortOrder   Int         @default(0)
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
+
+  questions   questions[]
+  sets        question_sets[]
+  parent      qBankFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children    qBankFolder[] @relation("FolderHierarchy")
 
   @@index([orgId])
   @@index([parentId])
   @@map("qbank_folders")
 }
 
+
+
+// ============================================================
+// MOCKBOOK & EXAMS (Single Owner Mode)
+// ============================================================
+
+model ExamFolder {
+  id          String   @id @default(uuid())
+  orgId       String?
+  name        String
+  description String?
+  icon        String?
+  color       String?
+  isFeatured  Boolean  @default(false)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categories  ExamCategory[]
+
+  @@map("exam_folders")
+}
+
+model ExamCategory {
+  id            String   @id @default(uuid())
+  orgId         String?
+  folderId      String
+  name          String
+  description   String?
+  icon          String?
+  isFeatured    Boolean  @default(false)
+  isFree        Boolean  @default(true)
+  price         Float?
+  discountPrice Float?
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  folder        ExamFolder        @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  subCategories ExamSubCategory[]
+
+  @@map("exam_categories")
+}
+
+model ExamSubCategory {
+  id          String   @id @default(uuid())
+  orgId       String?
+  categoryId  String
+  parentId    String?
+  name        String
+  description String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category    ExamCategory      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  mockTests   MockTest[]
+
+  @@map("exam_subcategories")
+}
+
+model MockTest {
+  id               String     @id @default(uuid())
+  testId           String     @unique 
+  pin              String     
+  name             String
+  orgId            String?    // Kept optional for backward compatibility in backend routes
+  description      String?
+  status           String     @default("DRAFT")
+  durationMins     Int
+  totalMarks       Float      @default(0)
+  passingMarks     Float?
+  shuffleQuestions Boolean    @default(false)
+  showResult       Boolean    @default(true)
+  maxAttempts      Int        @default(1)
+  isPublic         Boolean    @default(false) 
+  scheduledAt      DateTime?
+  endsAt           DateTime?
+  subCategoryId    String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  subCategory ExamSubCategory?  @relation(fields: [subCategoryId], references: [id], onDelete: SetNull)
+  sections    MockTestSection[]
+  batches     MockTestBatch[]
+  attempts    TestAttempt[]
+
+  @@map("mock_tests")
+}
+
+model MockTestSection {
+  id           String      @id @default(uuid())
+  testId       String
+  setId        String
+  name         String
+  sortOrder    Int         @default(0)
+  durationMins Int?
+
+  test         MockTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  set          question_sets @relation(fields: [setId], references: [id], map: "fk_mockTestSection_set")
+
+  @@map("mock_test_sections")
+}
+
+model MockTestBatch {
+  id      String   @id @default(uuid())
+  testId  String
+  batchId String
+  
+  test    MockTest @relation(fields: [testId], references: [id], onDelete: Cascade)
+
+  @@unique([testId, batchId])
+  @@map("mock_test_batches")
+}
+
+model Student {
+  id        String   @id @default(uuid())
+  studentId String   @unique @default(uuid())
+  userId    String   @unique
+  orgId     String?  // Keep optional just in case backend expects it
+  name      String
+  email     String?
+  mobile    String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  attempts  TestAttempt[]
+
+  @@map("students")
+}
+
+model TestAttempt {
+  id            String        @id @default(uuid())
+  testId        String
+  studentId     String
+  status        String        @default("IN_PROGRESS")
+  startedAt     DateTime      @default(now())
+  submittedAt   DateTime?
+  score         Float?
+  totalMarks    Float?
+  rank          Int?
+  percentile    Float?
+  timeTakenSecs Int?
+  createdAt     DateTime      @default(now())
+
+  test    MockTest   @relation(fields: [testId], references: [id])
+  student Student    @relation(fields: [studentId], references: [id])
+  answers AttemptAnswer[]
+
+  @@map("test_attempts")
+}
+
+model AttemptAnswer {
+  id              String   @id @default(uuid())
+  attemptId       String
+  questionId      String
+  selectedOptions String[] @default([])
+  isCorrect       Boolean?
+  marksAwarded    Float?
+  timeTakenSecs   Int?
+
+  attempt  TestAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question questions   @relation(fields: [questionId], references: [id])
+
+  @@map("attempt_answers")
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String?   @unique
+  mobile       String?   @unique
+  passwordHash String
+  role         String    @default("STUDENT")
+  isActive     Boolean   @default(true)
+  lastLoginAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@map("users")
+}

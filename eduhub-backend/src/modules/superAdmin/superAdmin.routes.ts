@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import superAdminMockbookRoutes from './mockbook/superAdminMockbook.routes';
 import { authenticate, requireSuperAdmin } from '../../middleware/auth';
 import { prisma } from '../../config/database';
 
@@ -85,5 +86,7 @@ router.get('/dashboard', async (_req, res, next) => {
     next(err);
   }
 });
+
+router.use('/mockbook', superAdminMockbookRoutes);
 
 export default router;

@@ -24,8 +24,7 @@ export const getStudentsList = async (req: Request, res: Response, next: NextFun
                 take: Number(limit),
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    user: { select: { email: true } },
-                    _count: { select: { testAttempts: true } }
+                    _count: { select: { attempts: true } }
                 }
             }),
             prisma.student.count({ where: whereClause })
@@ -34,10 +33,10 @@ export const getStudentsList = async (req: Request, res: Response, next: NextFun
         const mappedStudents = students.map((s: any) => ({
             id: s.id,
             name: s.name,
-            email: s.user?.email,
-            phone: s.user?.phone,
+            email: s.email,
+            phone: s.mobile,
             orgId: s.orgId,
-            testAttemptsCount: s._count.testAttempts,
+            testAttemptsCount: s._count?.attempts || 0,
             createdAt: s.createdAt
         }));
 
@@ -58,8 +57,7 @@ export const getStudentDrilldown = async (req: Request, res: Response, next: Nex
         const student = await prisma.student.findUnique({
             where: { id },
             include: {
-                user: { select: { email: true } },
-                testAttempts: {
+                attempts: {
                     orderBy: { startedAt: 'desc' },
                     include: { test: { select: { name: true, testId: true } } }
                 }

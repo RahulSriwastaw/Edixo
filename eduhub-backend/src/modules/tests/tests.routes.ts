@@ -1,20 +1,21 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../config/database';
-import { authenticate, requireOrgAccess } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 
 const router = Router();
-router.use(authenticate, requireOrgAccess);
+router.use(authenticate);
 
 // ─── GET /api/tests ──────────────────────────────────────────
 router.get('/', async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, status } = req.query;
-        const org = await prisma.organization.findFirst({ where: { orgId: req.user!.orgId } });
+        const { page = 1, limit = 20, status, orgId: queryOrgId } = req.query;
+        const orgId = queryOrgId || req.user?.orgId;
         const skip = (Number(page) - 1) * Number(limit);
 
-        const where: any = { orgId: org!.id };
+        const where: any = {};
+        if (orgId) where.orgId = String(orgId);
         if (status) where.status = status;
 
         const [tests, total] = await Promise.all([
@@ -25,7 +26,7 @@ router.get('/', async (req, res, next) => {
                 orderBy: { createdAt: 'desc' },
                 include: {
                     _count: { select: { attempts: true, sections: true } },
-                    batches: { include: { batch: { select: { id: true, name: true } } } },
+                    batches: true,
                 },
             }),
             prisma.mockTest.count({ where }),
@@ -50,10 +51,11 @@ router.post('/', async (req, res, next) => {
             endsAt: z.string().optional(),
             sectionIds: z.array(z.string()).default([]),
             batchIds: z.array(z.string()).default([]),
+            orgId: z.string().min(1)
         });
 
         const body = schema.parse(req.body);
-        const org = await prisma.organization.findFirstOrThrow({ where: { orgId: req.user!.orgId } });
+        const orgId = body.orgId;
 
         // Generate 6-digit Test ID + PIN
         const testId = String(Math.floor(100000 + Math.random() * 900000));
@@ -63,7 +65,7 @@ router.post('/', async (req, res, next) => {
             data: {
                 testId,
                 pin,
-                orgId: org.id,
+                orgId,
                 name: body.name,
                 description: body.description,
                 durationMins: body.durationMins,
@@ -115,7 +117,7 @@ router.post('/:id/attempt', async (req, res, next) => {
         if (test.status !== 'LIVE') throw new AppError('Test is not live', 400);
 
         const student = await prisma.student.findFirstOrThrow({
-            where: { studentId: req.user.studentId },
+            where: { studentId: (req.user as any).studentId },
         });
 
         // Check max attempts (Disabled for unlimited attempts feature)

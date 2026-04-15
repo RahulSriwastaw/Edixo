@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 import { prisma } from '../../config/database';
-import { authenticate, requireOrgAccess } from '../../middleware/auth';
+import { authenticate } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 
 const router = Router();
@@ -10,15 +10,14 @@ const router = Router();
 router.use(authenticate);
 
 // ─── GET /api/students?orgId=:orgId ─────────────────────────
-router.get('/', requireOrgAccess, async (req, res, next) => {
+router.get('/', async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, search, batchId, isActive } = req.query;
-        const orgId = (req.user as any)?.orgDbId || (req.params as any).orgId;
-        const org = await prisma.organization.findFirst({ where: { orgId: (req.user as any)?.orgId } });
-        if (!org) throw new AppError('Organization not found', 404);
+        const { page = 1, limit = 20, search, batchId, isActive, orgId: queryOrgId } = req.query;
+        const orgId = queryOrgId || (req.user as any)?.orgId || (req.params as any).orgId;
 
         const skip = (Number(page) - 1) * Number(limit);
-        const where: any = { orgId: org.id };
+        const where: any = {};
+        if (orgId) where.orgId = String(orgId);
         if (isActive !== undefined) where.isActive = isActive === 'true';
         if (search) {
             where.OR = [
@@ -52,7 +51,7 @@ router.get('/', requireOrgAccess, async (req, res, next) => {
 });
 
 // ─── POST /api/students ──────────────────────────────────────
-router.post('/', requireOrgAccess, async (req, res, next) => {
+router.post('/', async (req, res, next) => {
     try {
         const schema = z.object({
             name: z.string().min(2),
@@ -63,20 +62,11 @@ router.post('/', requireOrgAccess, async (req, res, next) => {
             dateOfBirth: z.string().optional(),
             address: z.string().optional(),
             batchIds: z.array(z.string()).default([]),
+            orgId: z.string().min(1)
         });
         const body = schema.parse(req.body);
 
-        const org = await prisma.organization.findFirstOrThrow({
-            where: { orgId: (req.user as any)!.orgId },
-        });
-
-        // Check plan limits
-        const planLimits: Record<string, number> = {
-            SMALL: 200, MEDIUM: 1000, LARGE: 5000, ENTERPRISE: 999999
-        };
-        if (org.studentCount >= planLimits[org.plan]) {
-            throw new AppError(`Plan limit reached: ${planLimits[org.plan]} students max for ${org.plan} plan`, 403);
-        }
+        const orgId = body.orgId;
 
         // Generate Student ID: GK-STU-XXXXX (Global unique)
         const globalCount = await prisma.student.count();
@@ -99,7 +89,7 @@ router.post('/', requireOrgAccess, async (req, res, next) => {
                 data: {
                     studentId,
                     userId: user.id,
-                    orgId: org.id,
+                    orgId,
                     name: body.name,
                     email: body.email,
                     mobile: body.mobile,
@@ -117,11 +107,7 @@ router.post('/', requireOrgAccess, async (req, res, next) => {
                 });
             }
 
-            // Update org student count
-            await tx.organization.update({
-                where: { id: org.id },
-                data: { studentCount: { increment: 1 } },
-            });
+
 
             return newStudent;
         });
@@ -190,7 +176,7 @@ router.patch('/me', async (req, res, next) => {
 });
 
 // ─── GET /api/students/:id ───────────────────────────────────
-router.get('/:id', requireOrgAccess, async (req, res, next) => {
+router.get('/:id', async (req, res, next) => {
     try {
         const student = await prisma.student.findUnique({
             where: { id: req.params.id as string },
@@ -206,7 +192,7 @@ router.get('/:id', requireOrgAccess, async (req, res, next) => {
 });
 
 // ─── PATCH /api/students/:id ─────────────────────────────────
-router.patch('/:id', requireOrgAccess, async (req, res, next) => {
+router.patch('/:id', async (req, res, next) => {
     try {
         const schema = z.object({
             name: z.string().min(2).optional(),

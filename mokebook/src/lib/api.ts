@@ -2,7 +2,6 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'development'
     ? "http://localhost:4000/api"
     : "https://eduhub-backend.onrender.com/api");
-export const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || "GK-ORG-00001";
 
 // Helper to get cookies in browser
 export const getCookie = (name: string) => {
@@ -25,7 +24,6 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
-  headers.set('X-Org-Id', ORG_ID);
 
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);

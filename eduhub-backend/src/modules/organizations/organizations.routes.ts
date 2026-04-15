@@ -9,26 +9,18 @@ const router = Router();
 // Public route for organization branding (name, logo, theme, frontendConfig)
 router.get('/public/:orgId', async (req, res, next) => {
     try {
-        const org = await prisma.organization.findFirst({
-            where: { 
-                OR: [
-                    { orgId: req.params.orgId },
-                    { subdomain: req.params.orgId }
-                ],
-                deletedAt: null 
-            },
-            select: {
-                orgId: true,
-                name: true,
-                logoUrl: true,
-                primaryColor: true,
-                subdomain: true,
-                customDomain: true,
-                frontendConfig: true,
-            }
+        res.json({ 
+            success: true, 
+            data: {
+                orgId: req.params.orgId,
+                name: "EduHub Institute",
+                logoUrl: "",
+                primaryColor: "#6366f1",
+                subdomain: req.params.orgId,
+                customDomain: null,
+                frontendConfig: {},
+            } 
         });
-        if (!org) throw new AppError('Organization not found', 404);
-        res.json({ success: true, data: org });
     } catch (err) { next(err); }
 });
 

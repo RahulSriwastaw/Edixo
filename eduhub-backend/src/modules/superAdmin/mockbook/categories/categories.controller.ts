@@ -45,7 +45,6 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
                 color,
                 orgId: orgId || null,
                 isFeatured: isFeatured || false,
-                isActive: isActive !== undefined ? isActive : true,
                 sortOrder: sortOrder || 0
             }
         });
@@ -59,19 +58,21 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.params.id as string;
-        const data = req.body;
+        const { orgId } = req.body;
+
+        const data = {
+            name: req.body.name,
+            description: req.body.description,
+            icon: req.body.icon,
+            color: req.body.color,
+            isFeatured: req.body.isFeatured,
+            sortOrder: req.body.sortOrder,
+            orgId: orgId
+        };
 
         const updatedCategory = await prisma.examFolder.update({
             where: { id },
-            data: {
-                name: data.name,
-                description: data.description,
-                icon: data.icon,
-                color: data.color,
-                isFeatured: data.isFeatured,
-                isActive: data.isActive,
-                sortOrder: data.sortOrder,
-            }
+            data
         });
 
         res.json({ success: true, data: updatedCategory });

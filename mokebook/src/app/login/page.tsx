@@ -97,7 +97,6 @@ export default function LoginPage() {
         email: email.includes('@') ? email : undefined,
         studentId: !email.includes('@') ? email : undefined,
         password,
-        orgId: org?.orgId || process.env.NEXT_PUBLIC_ORG_ID,
         role: "STUDENT"
       };
       if (!isLogin) body.name = name;

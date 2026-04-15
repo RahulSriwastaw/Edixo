@@ -2,6 +2,7 @@ import { Router } from 'express';
 import testSeriesRoutes from './testSeries/testSeries.routes';
 import testsRoutes from './tests/tests.routes';
 import categoriesRoutes from './categories/categories.routes';
+import subCategoriesRoutes from './subCategories/subCategories.routes';
 import questionsRoutes from './questions/questions.routes';
 import studentsRoutes from './students/students.routes';
 import liveTestsRoutes from './liveTests/liveTests.routes';
@@ -21,7 +22,7 @@ router.use('/tests', testsRoutes);
 router.use('/categories', categoriesRoutes);
 router.use('/folders', categoriesRoutes); // Alias to not break frontend
 router.use('/questions', questionsRoutes);
-
+router.use('/sub-categories', subCategoriesRoutes);
 // Phase 3
 router.use('/students', studentsRoutes);
 router.use('/live-tests', liveTestsRoutes);

@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { mockbookService, MockTest } from "@/services/mockbookService";
@@ -437,7 +437,10 @@ export default function SeriesDetailPage() {
             {/* Edit Series Dialog */}
             <Dialog open={showEditSeries} onOpenChange={setShowEditSeries}>
                 <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle>Edit Series</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>Edit Series</DialogTitle>
+                        <DialogDescription className="hidden">Edit the details of this test series.</DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-1.5"><Label>Name</Label><Input value={editForm.name} onChange={e => setEditForm(f => ({ ...f, name: e.target.value }))} /></div>
                         <div className="space-y-1.5"><Label>Description</Label><Textarea value={editForm.description} onChange={e => setEditForm(f => ({ ...f, description: e.target.value }))} rows={2} /></div>
@@ -458,7 +461,10 @@ export default function SeriesDetailPage() {
             {/* Add/Edit SubCategory Dialog */}
             <Dialog open={showSubCatModal} onOpenChange={() => { setShowSubCatModal(false); setEditSubCat(null); }}>
                 <DialogContent className="max-w-md">
-                    <DialogHeader><DialogTitle>{editSubCat ? "Edit Folder" : "Add Folder"}</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle>{editSubCat ? "Edit Folder" : "Add Folder"}</DialogTitle>
+                        <DialogDescription className="hidden">Create or edit a folder for categorizing tests.</DialogDescription>
+                    </DialogHeader>
                     <div className="space-y-4 py-2">
                         <div className="space-y-1.5"><Label>Folder Name *</Label><Input placeholder="e.g. Tier 1, PYQ, Sectional..." value={subCatForm.name} onChange={e => setSubCatForm(f => ({ ...f, name: e.target.value }))} /></div>
                         <div className="space-y-1.5"><Label>Description</Label><Input placeholder="Optional" value={subCatForm.description} onChange={e => setSubCatForm(f => ({ ...f, description: e.target.value }))} /></div>
@@ -477,7 +483,10 @@ export default function SeriesDetailPage() {
             {/* Delete SubCat Confirm */}
             <Dialog open={!!deleteSubCat} onOpenChange={() => setDeleteSubCat(null)}>
                 <DialogContent className="max-w-sm">
-                    <DialogHeader><DialogTitle className="flex items-center gap-2 text-red-600"><AlertCircle className="w-5 h-5" />Delete Folder</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600"><AlertCircle className="w-5 h-5" />Delete Folder</DialogTitle>
+                        <DialogDescription className="hidden">Confirm deletion of this folder.</DialogDescription>
+                    </DialogHeader>
                     <p className="text-sm text-gray-600">Delete <strong>{deleteSubCat?.name}</strong>? Tests inside will be unlinked.</p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteSubCat(null)}>Cancel</Button>
@@ -489,7 +498,10 @@ export default function SeriesDetailPage() {
             {/* Delete Test Confirm */}
             <Dialog open={!!deleteTest} onOpenChange={() => setDeleteTest(null)}>
                 <DialogContent className="max-w-sm">
-                    <DialogHeader><DialogTitle className="flex items-center gap-2 text-red-600"><AlertCircle className="w-5 h-5" />Delete Test</DialogTitle></DialogHeader>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2 text-red-600"><AlertCircle className="w-5 h-5" />Delete Test</DialogTitle>
+                        <DialogDescription className="hidden">Confirm deletion of this test.</DialogDescription>
+                    </DialogHeader>
                     <p className="text-sm text-gray-600">Permanently delete <strong>{deleteTest?.name}</strong>? All attempts will also be deleted.</p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteTest(null)}>Cancel</Button>

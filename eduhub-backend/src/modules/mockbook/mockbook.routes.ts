@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { prisma } from '../../config/database';
 import { authenticate, optionalAuthenticate } from '../../middleware/auth';
+import { randomBytes } from 'crypto';
 
 const router = Router();
 router.use(optionalAuthenticate);
@@ -13,19 +14,10 @@ router.use(optionalAuthenticate);
 router.get('/folders', async (req, res, next) => {
     try {
         const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
-        let org = null;
-        if (orgId) {
-            org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
-        }
+        const where: any = {};
         
-        const where: any = {
-            OR: [
-                { orgId: null } // Global folders
-            ]
-        };
-
-        if (org) {
-            where.OR.push({ orgId: org.id });
+        if (orgId) {
+            where.orgId = String(orgId);
         }
 
         const folders = await prisma.examFolder.findMany({
@@ -51,17 +43,15 @@ router.post('/folders', async (req, res, next) => {
             sortOrder: z.number().default(0),
         });
         const body = schema.parse(rest);
-        
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
 
         const folder = await prisma.examFolder.create({ 
             data: { 
                 ...body, 
-                orgId: org?.id || null 
+                orgId: orgId || null 
             } 
         });
         res.status(201).json({ success: true, data: folder });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.patch('/folders/:id', async (req, res, next) => {
@@ -77,7 +67,7 @@ router.patch('/folders/:id', async (req, res, next) => {
             }
         });
         res.json({ success: true, data: folder });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.delete('/folders/:id', async (req, res, next) => {
@@ -151,30 +141,25 @@ router.delete('/folders/:id', async (req, res, next) => {
         await prisma.examFolder.delete({ where: { id: folderId } });
 
         res.json({ success: true, message: 'Category deleted successfully' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Exam Categories (Test Series: SSC CGL 2026, etc.) ────────
 router.get('/categories', async (req, res, next) => {
     try {
         const { folderId } = req.query;
-        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
+        const orgId = req.query.orgId || req.headers['x-org-id'] || (req.user as any)?.orgId;
 
         const where: any = {};
         if (folderId) where.folderId = folderId as string;
-        
-        where.OR = [{ orgId: null }];
-        if (org) {
-            where.OR.push({ orgId: org.id });
-        }
+        if (orgId) where.orgId = String(orgId);
 
         const categories = await prisma.examCategory.findMany({
             where,
             orderBy: { sortOrder: 'asc' },
         });
         res.json({ success: true, data: categories });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.get('/categories/:id', async (req, res, next) => {
@@ -211,12 +196,12 @@ router.get('/categories/:id', async (req, res, next) => {
             }
         }
 
-        const attemptMap = submittedAttempts.reduce((acc: Record<string, number>, curr) => {
+        const attemptMap = submittedAttempts.reduce<Record<string, number>>((acc, curr) => {
             acc[curr.testId] = (acc[curr.testId] || 0) + 1;
             return acc;
         }, {});
 
-        const inProgressMap = inProgressAttempts.reduce((acc: Record<string, number>, curr) => {
+        const inProgressMap = inProgressAttempts.reduce<Record<string, number>>((acc, curr) => {
             acc[curr.testId] = (acc[curr.testId] || 0) + 1;
             return acc;
         }, {});
@@ -234,7 +219,7 @@ router.get('/categories/:id', async (req, res, next) => {
         };
 
         res.json({ success: true, data: formattedCategory });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.post('/categories', async (req, res, next) => {
@@ -252,17 +237,15 @@ router.post('/categories', async (req, res, next) => {
             sortOrder: z.number().default(0),
         });
         const body = schema.parse(rest);
-        
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
 
         const category = await prisma.examCategory.create({ 
             data: { 
                 ...body, 
-                orgId: org?.id || null 
+                orgId: orgId || null 
             } 
         });
         res.status(201).json({ success: true, data: category });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.patch('/categories/:id', async (req, res, next) => {
@@ -272,36 +255,33 @@ router.patch('/categories/:id', async (req, res, next) => {
             data: req.body,
         });
         res.json({ success: true, data: category });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.delete('/categories/:id', async (req, res, next) => {
     try {
         await prisma.examCategory.delete({ where: { id: req.params.id } });
         res.json({ success: true, message: 'Series deleted' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Exam SubCategories (Test Folders: Tier 1, Sectional, etc.)
 router.get('/subcategories', async (req, res, next) => {
     try {
         const { categoryId, parentId } = req.query;
-        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
+        const orgId = req.query.orgId || req.headers['x-org-id'] || (req.user as any)?.orgId;
+        const whereClause: any = {
+            categoryId: categoryId ? (categoryId as string) : undefined,
+            parentId: parentId ? (parentId as string) : (parentId === null ? null : undefined),
+        };
+        if (orgId) whereClause.orgId = String(orgId);
 
         const subCategories = await prisma.examSubCategory.findMany({
-            where: {
-                categoryId: categoryId ? (categoryId as string) : undefined,
-                parentId: parentId ? (parentId as string) : (parentId === null ? null : undefined),
-                OR: [
-                    { orgId: null },
-                    { orgId: org?.id || undefined }
-                ]
-            },
+            where: whereClause,
             orderBy: { sortOrder: 'asc' },
         });
         res.json({ success: true, data: subCategories });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.post('/subcategories', async (req, res, next) => {
@@ -315,17 +295,15 @@ router.post('/subcategories', async (req, res, next) => {
             sortOrder: z.number().default(0),
         });
         const body = schema.parse(rest);
-        
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
 
         const subCategory = await prisma.examSubCategory.create({ 
             data: { 
                 ...body, 
-                orgId: org?.id || null 
+                orgId: orgId || null 
             } 
         });
         res.status(201).json({ success: true, data: subCategory });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.patch('/subcategories/:id', async (req, res, next) => {
@@ -335,14 +313,14 @@ router.patch('/subcategories/:id', async (req, res, next) => {
             data: req.body,
         });
         res.json({ success: true, data: subCategory });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.delete('/subcategories/:id', async (req, res, next) => {
     try {
         await prisma.examSubCategory.delete({ where: { id: req.params.id } });
         res.json({ success: true, message: 'Folder deleted' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Exam Folders (PATCH/DELETE) ───────────────────────────
@@ -353,25 +331,24 @@ router.patch('/folders/:id', async (req, res, next) => {
             data: req.body,
         });
         res.json({ success: true, data: folder });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.delete('/folders/:id', async (req, res, next) => {
     try {
         await prisma.examFolder.delete({ where: { id: req.params.id } });
         res.json({ success: true, message: 'Category deleted' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Public mock tests (MockVeda) ─────────────────────────────
 router.get('/public', async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
+        const orgId = req.query.orgId || req.headers['x-org-id'] || (req.user as any)?.orgId;
 
         const where: any = { isPublic: true, status: 'LIVE' };
-        if (org) {
-            where.orgId = org.id;
+        if (orgId) {
+            where.orgId = String(orgId);
         }
 
         const tests = await prisma.mockTest.findMany({
@@ -397,7 +374,7 @@ router.get('/:testId/leaderboard', async (req, res, next) => {
             include: { student: { select: { name: true, studentId: true } } },
         });
         res.json({ success: true, data: top100 });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Analytics ────────────────────────────────────────────────
@@ -419,7 +396,7 @@ router.get('/tests/:testId', async (req, res, next) => {
         });
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
         res.json({ success: true, data: test });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/tests/:testId/questions — get shuffled/ordered questions for the test
@@ -433,12 +410,12 @@ router.get('/tests/:testId/questions', async (req, res, next) => {
                     include: {
                         set: {
                             include: {
-                                items: {
-                                    orderBy: { sortOrder: 'asc' },
+                                question_set_items: {
+                                    orderBy: { sort_order: 'asc' },
                                     include: {
-                                        question: {
+                                        questions: {
                                             include: {
-                                                options: { orderBy: { sortOrder: 'asc' } }
+                                                question_options: { orderBy: { sort_order: 'asc' } }
                                             }
                                         }
                                     }
@@ -451,21 +428,22 @@ router.get('/tests/:testId/questions', async (req, res, next) => {
         });
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
 
-        // Build flat list of questions with section name
-        const questions: any[] = [];
+        const questionsList: any[] = [];
         let qNumber = 1;
-        for (const section of test.sections) {
-            for (const item of section.set.items) {
-                const q = item.question;
-                questions.push({
+        for (const section of (test as any).sections) {
+            const items = (section.set as any)?.question_set_items || [];
+            for (const item of items) {
+                const q = item.questions;
+                if (!q) continue;
+                questionsList.push({
                     id: q.id,
                     questionId: q.questionId,
                     number: qNumber++,
-                    section: section.set.name || section.name,
+                    section: (section.set as any)?.name || section.name,
                     text: q.textEn || q.textHi || '',
                     textHi: q.textHi,
                     type: q.type,
-                    options: q.options.map((o: any) => ({
+                    options: (q.question_options || []).map((o: any) => ({
                         id: o.id,
                         text: o.textEn || o.textHi || '',
                         textHi: o.textHi,
@@ -480,9 +458,9 @@ router.get('/tests/:testId/questions', async (req, res, next) => {
 
         // Shuffle if test.shuffleQuestions
         if (test.shuffleQuestions) {
-            for (let i = questions.length - 1; i > 0; i--) {
+            for (let i = questionsList.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
-                [questions[i], questions[j]] = [questions[j], questions[i]];
+                [questionsList[i], questionsList[j]] = [questionsList[j], questionsList[i]];
             }
         }
 
@@ -493,10 +471,10 @@ router.get('/tests/:testId/questions', async (req, res, next) => {
                 name: test.name,
                 durationMins: test.durationMins,
                 totalMarks: test.totalMarks,
-                questions,
+                questions: questionsList,
             }
         });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/tests/:testId/my-attempts — list all attempts by this student for a test
@@ -519,7 +497,7 @@ router.get('/tests/:testId/my-attempts', authenticate, async (req, res, next) =>
 
         const result = attempts.map((a: any, idx: number) => ({ ...a, attemptNumber: idx + 1 }));
         return res.json({ success: true, data: result });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // POST /mockbook/tests/:testId/attempts — start or submit an attempt
@@ -543,22 +521,6 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
             });
             if (existing) return res.json({ success: true, data: existing });
 
-            // Check maxAttempts limit (Disabled for unlimited attempts feature)
-            /*
-            const completedCount = await prisma.testAttempt.count({
-                where: { testId: test.id, studentId: student.id, status: 'SUBMITTED' }
-            });
-            const maxAllowed = test.maxAttempts || 0; // 0 means unlimited
-            if (maxAllowed > 0 && completedCount >= maxAllowed) {
-                return res.status(403).json({
-                    success: false,
-                    message: `Maximum attempts (${maxAllowed}) reached for this test.`,
-                    attemptsUsed: completedCount,
-                    maxAttempts: maxAllowed,
-                });
-            }
-            */
-
             const attempt = await prisma.testAttempt.create({
                 data: {
                     testId: test.id,
@@ -580,9 +542,9 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
             const savedAnswers: any[] = [];
 
             if (answers && Array.isArray(answers)) {
-                for (const ans of answers) {
-                    const correctOptions = await prisma.questionOption.findMany({
-                        where: { questionId: ans.questionId, isCorrect: true },
+                for (const ans of answers as any[]) {
+                    const correctOptions = await prisma.question_options.findMany({
+                        where: { question_id: ans.questionId, is_correct: true },
                         select: { id: true }
                     });
                     const correctIds = correctOptions.map((o: any) => o.id);
@@ -650,7 +612,7 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
         }
 
         return res.status(400).json({ success: false, message: 'Invalid action. Use "start" or "submit".' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/attempts/:attemptId — get attempt result/analysis (enriched)
@@ -679,7 +641,7 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
                 test: { 
                     include: {
                         sections: {
-                            include: { set: { include: { items: { select: { questionId: true } } } } }
+                            include: { set: { include: { question_set_items: { select: { question_id: true } } } } }
                         }
                     }
                 },
@@ -698,9 +660,9 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
         for (const section of testSections) {
             const secName = section.name || section.set?.name || 'Default';
             if (!secTotalQs[secName]) secTotalQs[secName] = 0;
-            if (section.set?.items) {
-                for (const item of section.set.items) {
-                    qSectionMap[item.questionId] = secName;
+            if (section.set?.question_set_items) {
+                for (const item of section.set.question_set_items) {
+                    qSectionMap[item.question_id] = secName;
                     secTotalQs[secName]++;
                 }
             }
@@ -812,7 +774,7 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
                 sectionStats
             }
         });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/attempts/:attemptId/analytics/chapters — chapter-wise performance
@@ -825,17 +787,10 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: req.params.attemptId as any },
             include: {
+                test: true,
                 answers: {
                     include: {
-                        question: {
-                            include: {
-                                topic: {
-                                    include: {
-                                        chapter: true
-                                    }
-                                }
-                            }
-                        }
+                        question: true
                     }
                 }
             }
@@ -847,9 +802,9 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
 
         const chapterStats: Record<string, any> = {};
 
-        attempt.answers.forEach(ans => {
+        (attempt as any).answers.forEach((ans: any) => {
             const q = ans.question as any;
-            const chapterName = q.topic?.chapter?.name || q.chapterName || 'Uncategorized';
+            const chapterName = q.chapter_name || q.chapterName || 'Uncategorized';
             
             if (!chapterStats[chapterName]) {
                 chapterStats[chapterName] = { name: chapterName, total: 0, correct: 0, incorrect: 0, timeSpentSecs: 0 };
@@ -876,7 +831,7 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
         });
 
         res.json({ success: true, data: chapterData });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Admin: Analytics ──────────────────────────────────────────
@@ -885,7 +840,6 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
 router.get('/analytics/stats', async (req, res, next) => {
     try {
         const { orgId, days } = req.query;
-        let orgDbId: string | undefined;
         let orgFilter: any = {};
         
         let dateFilter: any = {};
@@ -896,11 +850,7 @@ router.get('/analytics/stats', async (req, res, next) => {
         }
 
         if (orgId) {
-            const org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
-            if (org) {
-                orgDbId = org.id;
-                orgFilter = { orgId: org.id };
-            }
+            orgFilter = { orgId: String(orgId) };
         }
 
         const [platformTests, totalSeries, attemptsCount, studentsCount, liveNow] = await Promise.all([
@@ -908,7 +858,7 @@ router.get('/analytics/stats', async (req, res, next) => {
             prisma.examCategory.count({ where: orgFilter }),
             prisma.testAttempt.count({
                 where: {
-                    ...(orgDbId ? { test: { orgId: orgDbId } } : {}),
+                    ...(orgId ? { test: { orgId: String(orgId) } } : {}),
                     ...dateFilter
                 }
             }),
@@ -920,7 +870,7 @@ router.get('/analytics/stats', async (req, res, next) => {
         const topTestsRaw = await prisma.testAttempt.groupBy({
             by: ['testId'],
             where: {
-                ...(orgDbId ? { test: { orgId: orgDbId } } : {}),
+                ...(orgId ? { test: { orgId: String(orgId) } } : {}),
                 ...dateFilter
             },
             _count: { _all: true },
@@ -944,7 +894,7 @@ router.get('/analytics/stats', async (req, res, next) => {
         // Note: 'Enrollment' here is defined as unique students who attempted at least one test in that series
         const seriesAttemptCounts = await prisma.testAttempt.findMany({
             where: {
-                ...(orgDbId ? { test: { orgId: orgDbId } } : {}),
+                ...(orgId ? { test: { orgId: String(orgId) } } : {}),
                 ...dateFilter
             },
             select: {
@@ -1010,22 +960,13 @@ router.get('/analytics/stats', async (req, res, next) => {
 router.get('/admin/tests', async (req, res, next) => {
     try {
         const { orgId, subCategoryId, categoryId, status, search } = req.query;
-        
-        let orgDbId: string | undefined;
-        if (orgId) {
-            const org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
-            orgDbId = org?.id;
-        }
 
         const where: any = {};
-        if (orgDbId) where.orgId = orgDbId;
+        if (orgId) where.orgId = String(orgId);
         if (subCategoryId) where.subCategoryId = subCategoryId as string;
         if (status) where.status = status as string;
         if (search) where.name = { contains: search as string, mode: 'insensitive' };
 
-
-
-        
         // Filter by categoryId (series) via subcategory
         if (categoryId) {
             const subCats = await prisma.examSubCategory.findMany({
@@ -1050,7 +991,7 @@ router.get('/admin/tests', async (req, res, next) => {
         });
 
         res.json({ success: true, data: tests });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 
 });
 
@@ -1064,7 +1005,7 @@ router.get('/admin/tests/:id', async (req, res, next) => {
                     include: {
                         set: {
                             include: {
-                                items: { select: { id: true, sortOrder: true } }
+                                question_set_items: { select: { question_id: true, sort_order: true } }
                             }
                         }
                     },
@@ -1078,7 +1019,7 @@ router.get('/admin/tests/:id', async (req, res, next) => {
         });
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
         res.json({ success: true, data: test });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // POST /mockbook/admin/tests/:id/sections — add a section (question set) to test
@@ -1098,24 +1039,23 @@ router.post('/admin/tests/:id/sections', async (req, res, next) => {
             data: { testId, setId, name, sortOrder, durationMins }
         });
         res.status(201).json({ success: true, data: section });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // DELETE /mockbook/admin/tests/:id/sections/:sectionId — remove section
-router.delete('/admin/tests/:id/sections/:sectionId', async (req, res, next) => {
+router.delete('/mockbook/admin/tests/:id/sections/:sectionId', async (req, res, next) => {
     try {
         await prisma.mockTestSection.delete({
             where: { id: req.params.sectionId }
         });
         res.json({ success: true, message: "Section removed" });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // POST /mockbook/admin/tests — create new mock test
 router.post('/admin/tests', async (req, res, next) => {
     try {
         const schema = z.object({
-
             orgId: z.string().min(1),
             subCategoryId: z.string().optional().nullable(),
             name: z.string().min(1),
@@ -1132,10 +1072,6 @@ router.post('/admin/tests', async (req, res, next) => {
         });
 
         const body = schema.parse(req.body);
-        
-        // Resolve orgId string to db id
-        const org = await prisma.organization.findFirst({ where: { orgId: body.orgId } });
-        if (!org) return res.status(404).json({ success: false, message: 'Organization not found' });
 
         // Generate a unique testId
         const testIdBase = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30);
@@ -1145,7 +1081,7 @@ router.post('/admin/tests', async (req, res, next) => {
             data: {
                 testId,
                 pin: Math.floor(100000 + Math.random() * 900000).toString(),
-                orgId: org.id,
+                orgId: body.orgId,
                 subCategoryId: body.subCategoryId || null,
                 name: body.name,
                 description: body.description,
@@ -1162,7 +1098,7 @@ router.post('/admin/tests', async (req, res, next) => {
             }
         });
         res.status(201).json({ success: true, data: test });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // PATCH /mockbook/admin/tests/:id — update mock test
@@ -1190,7 +1126,7 @@ router.patch('/admin/tests/:id', async (req, res, next) => {
             }
         });
         res.json({ success: true, data: test });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // PATCH /mockbook/admin/tests/:id/status — change test status
@@ -1212,7 +1148,7 @@ router.patch('/admin/tests/:id/status', async (req, res, next) => {
 
         const test = await prisma.mockTest.update({ where: { id: req.params.id }, data: update });
         res.json({ success: true, data: test });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // DELETE /mockbook/admin/tests/:id — delete mock test
@@ -1232,21 +1168,16 @@ router.delete('/admin/tests/:id', async (req, res, next) => {
         await prisma.mockTestBatch.deleteMany({ where: { testId: req.params.id } });
         await prisma.mockTest.delete({ where: { id: req.params.id } });
         res.json({ success: true, message: 'Test deleted' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/admin/students — students with attempt stats (admin view)
 router.get('/admin/students', async (req, res, next) => {
     try {
         const { orgId, search } = req.query;
-        
-        let org: any = null;
-        if (orgId) {
-            org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
-        }
 
         const where: any = {};
-        if (org) where.orgId = org.id;
+        if (orgId) where.orgId = String(orgId);
         if (search) {
             where.OR = [
                 { name: { contains: search as string, mode: 'insensitive' } },
@@ -1280,24 +1211,19 @@ router.get('/admin/students', async (req, res, next) => {
         }));
 
         res.json({ success: true, data: result });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/admin/live-tests — currently live and upcoming scheduled tests
 router.get('/admin/live-tests', async (req, res, next) => {
     try {
         const { orgId } = req.query;
-        let orgDbId: string | undefined;
-        if (orgId) {
-            const org = await prisma.organization.findFirst({ where: { orgId: orgId as string } });
-            orgDbId = org?.id;
-        }
 
         const [liveTests, scheduledTests] = await Promise.all([
             prisma.mockTest.findMany({
                 where: {
                     status: 'LIVE',
-                    ...(orgDbId && { orgId: orgDbId }),
+                    ...(orgId && { orgId: String(orgId) }),
                 },
                 include: { _count: { select: { attempts: true } } },
                 orderBy: { scheduledAt: 'asc' }
@@ -1306,7 +1232,7 @@ router.get('/admin/live-tests', async (req, res, next) => {
                 where: {
                     status: 'DRAFT',
                     scheduledAt: { gte: new Date() },
-                    ...(orgDbId && { orgId: orgDbId }),
+                    ...(orgId && { orgId: String(orgId) }),
                 },
                 include: { _count: { select: { attempts: true } } },
                 orderBy: { scheduledAt: 'asc' },
@@ -1315,7 +1241,7 @@ router.get('/admin/live-tests', async (req, res, next) => {
         ]);
 
         res.json({ success: true, data: { live: liveTests, scheduled: scheduledTests } });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/admin/tests/:testId/performance — per-test analytics for admin
@@ -1373,7 +1299,7 @@ router.get('/admin/tests/:testId/performance', async (req, res, next) => {
                 leaderboard: studentRows.slice(0, 100),
             }
         });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/admin/student-drilldown/:studentId — student detailed attempt history
@@ -1418,7 +1344,7 @@ router.get('/admin/student-drilldown/:studentId', async (req, res, next) => {
                 trend,
             }
         });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/analytics/student/:studentId/overall — student 30-day performance
@@ -1488,7 +1414,7 @@ router.get('/analytics/student/:studentId/overall', async (req, res, next) => {
                 recommendation
             }
         });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // GET /mockbook/attempts/:attemptId/report — detailed post-test single attempt report
@@ -1520,7 +1446,7 @@ router.get('/attempts/:attemptId/report', authenticate, async (req, res, next) =
                     include: {
                         question: {
                             include: {
-                                options: true
+                                question_options: true
                             }
                         }
                     }
@@ -1625,9 +1551,8 @@ router.post('/attempts/:attemptId/response', authenticate, async (req, res, next
 
         const { questionId, selectedOptions, timeTakenSecs, isMarkedForReview } = req.body;
 
-        // Determine if correct
-        const correctOptions = await prisma.questionOption.findMany({
-            where: { questionId, isCorrect: true },
+        const correctOptions = await prisma.question_options.findMany({
+            where: { question_id: questionId, is_correct: true },
             select: { id: true }
         });
         const correctIds = correctOptions.map((o: any) => o.id);
@@ -1655,7 +1580,7 @@ router.post('/attempts/:attemptId/response', authenticate, async (req, res, next
         }
 
         res.json({ success: true, data: answer });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Pause attempt ──────────────────────────────────────────────────────────────
@@ -1682,7 +1607,7 @@ router.post('/attempts/:attemptId/pause', authenticate, async (req, res, next) =
             data: { timeTakenSecs: updatedTimeTaken }
         });
         res.json({ success: true, data: { ...updated, isPaused: true } });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Resume attempt ─────────────────────────────────────────────────────────────
@@ -1713,7 +1638,7 @@ router.post('/attempts/:attemptId/resume', authenticate, async (req, res, next) 
             data: { status: 'IN_PROGRESS' }
         });
         res.json({ success: true, data: { ...updated, remainingSeconds: remainingSecs } });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Full attempt review (solutions mode) ──────────────────────────────────────
@@ -1744,12 +1669,12 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
                             include: {
                                 set: {
                                     include: {
-                                        items: {
-                                            orderBy: { sortOrder: 'asc' },
+                                question_set_items: {
+                                    orderBy: { sort_order: 'asc' },
+                                    include: {
+                                        questions: {
                                             include: {
-                                                question: {
-                                                    include: { options: { orderBy: { sortOrder: 'asc' } } }
-                                                }
+                                                question_options: { orderBy: { sort_order: 'asc' } }
                                             }
                                         }
                                     }
@@ -1757,7 +1682,9 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
                             }
                         }
                     }
-                },
+                }
+            }
+        },
                 answers: true
             }
         }) as any;
@@ -1835,7 +1762,7 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
                 questions,
             }
         });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Leaderboard (also accessible at /tests/:testId/leaderboard path) ──────────
@@ -1849,7 +1776,7 @@ router.get('/tests/:testId/leaderboard', async (req, res, next) => {
             include: { student: { select: { name: true, studentId: true } } },
         });
         res.json({ success: true, data: top100 });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Save / Bookmark a question ─────────────────────────────────────────────────
@@ -1860,7 +1787,7 @@ router.post('/questions/:questionId/save', authenticate, async (req, res, next) 
         const { attemptId } = req.body;
 
         // Check question exists
-        const q = await prisma.question.findUnique({ where: { id: questionId }, select: { id: true } });
+        const q = await prisma.questions.findUnique({ where: { id: questionId }, select: { id: true } });
         if (!q) return res.status(404).json({ success: false, message: 'Question not found' });
 
         // Upsert saved record
@@ -1875,7 +1802,7 @@ router.post('/questions/:questionId/save', authenticate, async (req, res, next) 
             data: { userId: user.userId, questionId, attemptId: attemptId || null }
         });
         res.status(201).json({ success: true, data: saved });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 router.delete('/questions/:questionId/save', authenticate, async (req, res, next) => {
@@ -1887,7 +1814,7 @@ router.delete('/questions/:questionId/save', authenticate, async (req, res, next
             where: { userId: user.userId, questionId }
         });
         res.json({ success: true, message: 'Question removed from saved list' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── My saved questions ─────────────────────────────────────────────────────────
@@ -1910,7 +1837,7 @@ router.get('/user/saved-questions', authenticate, async (req, res, next) => {
             take: limit,
         });
         res.json({ success: true, data: saved });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Report a question ──────────────────────────────────────────────────────────
@@ -1921,7 +1848,7 @@ router.post('/questions/:questionId/report', authenticate, async (req, res, next
         // Log the report (simple version — could be stored in a QuestionReport table)
         console.log(`[QUESTION REPORT] questionId=${req.params.questionId} userId=${user.userId} type=${reportType} desc=${description} attemptId=${attemptId}`);
         res.json({ success: true, message: 'Report submitted. Thank you!' });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── User's all attempts (My Tests dashboard) ──────────────────────────────────
@@ -1965,7 +1892,7 @@ router.get('/user/my-attempts', authenticate, async (req, res, next) => {
         });
 
         res.json({ success: true, data: enriched });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 // ─── Chapter/Topic-wise Analytics ──────────────────────────────────────────────
@@ -1998,8 +1925,8 @@ router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, ne
             include: {
                 set: {
                     include: {
-                        items: {
-                            include: { question: true }
+                        question_set_items: {
+                            include: { questions: true }
                         }
                     }
                 }
@@ -2009,10 +1936,11 @@ router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, ne
         // Collect all questions and map them by questionId
         const testQuestions: any[] = [];
         for (const sec of sections) {
-            for (const item of sec.set?.items || []) {
-                if (item.question) {
+            const items = (sec as any).set?.question_set_items || [];
+            for (const item of items) {
+                if (item.questions) {
                     testQuestions.push({
-                        ...item.question,
+                        ...item.questions,
                         _sectionName: sec.name // fallback topic
                     });
                 }
@@ -2048,7 +1976,7 @@ router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, ne
         }).sort((a, b) => b.total - a.total);
 
         res.json({ success: true, data: chapters });
-    } catch (err) { next(err); }
+    } catch (err: any) { next(err); }
 });
 
 export default router;

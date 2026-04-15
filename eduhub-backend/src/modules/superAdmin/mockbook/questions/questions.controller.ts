@@ -18,16 +18,16 @@ export const getQuestions = async (req: Request, res: Response, next: NextFuncti
         const skip = (Number(page) - 1) * Number(limit);
 
         const [questions, total] = await Promise.all([
-            prisma.question.findMany({
+            prisma.questions.findMany({
                 where: whereClause,
                 skip,
                 take: Number(limit),
-                orderBy: { createdAt: 'desc' },
+                orderBy: { created_at: 'desc' },
                 include: {
-                    options: true
+                    question_options: true
                 }
             }),
-            prisma.question.count({ where: whereClause })
+            prisma.questions.count({ where: whereClause })
         ]);
 
         res.json({
@@ -45,9 +45,9 @@ export const getQuestions = async (req: Request, res: Response, next: NextFuncti
 export const getQuestionDetail = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.params.id as string;
-        const question = await prisma.question.findUnique({
+        const question = await prisma.questions.findUnique({
             where: { id },
-            include: { options: true }
+            include: { question_options: true }
         });
 
         if (!question) {
@@ -71,31 +71,28 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
             return res.status(400).json({ success: false, message: 'Question text is required' });
         }
 
-        const question = await prisma.question.create({
+        const question = await prisma.questions.create({
             data: {
-                questionId: `GK-Q-${randomBytes(4).toString('hex').toUpperCase()}`,
-                orgId: orgId || null,
-                folderId: folderId || null,
-                topicId: topicId || null,
-                textEn,
-                textHi,
-                explanationEn,
-                explanationHi,
-                type: type || 'MCQ_SINGLE',
-                difficulty: difficulty || 'MEDIUM',
-                imageUrl,
-                tags: tags || [],
-                options: {
+                id: randomBytes(16).toString('hex'),
+                question_id: `GK-Q-${randomBytes(4).toString('hex').toUpperCase()}`,
+                text_en: textEn,
+                text_hi: textHi,
+                explanation_en: explanationEn,
+                explanation_hi: explanationHi,
+                type: type || 'mcq',
+                difficulty: difficulty || 'medium',
+                // imageUrl: imageUrl, // Missing in schema
+                question_options: {
                     create: options ? options.map((opt: any, idx: number) => ({
-                        textEn: opt.textEn,
-                        textHi: opt.textHi,
-                        imageUrl: opt.imageUrl,
-                        isCorrect: opt.isCorrect || false,
-                        sortOrder: opt.sortOrder !== undefined ? opt.sortOrder : idx
+                        id: randomBytes(8).toString('hex'), // Schema id is not autoincrement
+                        text_en: opt.textEn,
+                        text_hi: opt.textHi,
+                        is_correct: opt.isCorrect || false,
+                        sort_order: opt.sortOrder !== undefined ? opt.sortOrder : idx
                     })) : []
                 }
             },
-            include: { options: true }
+            include: { question_options: true }
         });
 
         res.status(201).json({ success: true, data: question });
@@ -113,35 +110,31 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
         // or update them if they map properly. For simplicity, delete and recreate.
         
         const updateData: any = {
-            textEn: data.textEn,
-            textHi: data.textHi,
-            explanationEn: data.explanationEn,
-            explanationHi: data.explanationHi,
+            text_en: data.textEn,
+            text_hi: data.textHi,
+            explanation_en: data.explanationEn,
+            explanation_hi: data.explanationHi,
             type: data.type,
             difficulty: data.difficulty,
-            imageUrl: data.imageUrl,
-            tags: data.tags,
-            folderId: data.folderId,
-            topicId: data.topicId,
         };
 
         if (data.options && Array.isArray(data.options)) {
-            await prisma.questionOption.deleteMany({ where: { questionId: id } });
-            updateData.options = {
+            await prisma.question_options.deleteMany({ where: { question_id: id } });
+            updateData.question_options = {
                 create: data.options.map((opt: any, idx: number) => ({
-                    textEn: opt.textEn,
-                    textHi: opt.textHi,
-                    imageUrl: opt.imageUrl,
-                    isCorrect: opt.isCorrect || false,
-                    sortOrder: opt.sortOrder !== undefined ? opt.sortOrder : idx
+                    id: randomBytes(8).toString('hex'),
+                    text_en: opt.textEn,
+                    text_hi: opt.textHi,
+                    is_correct: opt.isCorrect || false,
+                    sort_order: opt.sortOrder !== undefined ? opt.sortOrder : idx
                 }))
             };
         }
 
-        const updatedQuestion = await prisma.question.update({
+        const updatedQuestion = await prisma.questions.update({
             where: { id },
             data: updateData,
-            include: { options: true }
+            include: { question_options: true }
         });
 
         res.json({ success: true, data: updatedQuestion });
@@ -153,7 +146,7 @@ export const updateQuestion = async (req: Request, res: Response, next: NextFunc
 export const deleteQuestion = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.params.id as string;
-        await prisma.question.delete({
+        await prisma.questions.delete({
             where: { id }
         });
         res.json({ success: true, message: 'Question deleted successfully' });

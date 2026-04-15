@@ -88,8 +88,8 @@ router.post('/sets/:setId/visual-settings', async (req, res, next) => {
     await prisma.question_sets.updateMany({
       where: {
         OR: [
-          { set_id: setId },
-          { id: setId }
+          { set_id: setId as string },
+          { id: setId as string }
         ]
       },
       data: {
@@ -127,8 +127,8 @@ router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, re
     const setExists = await prisma.question_sets.findFirst({
       where: {
         OR: [
-          { set_id: setId },
-          { id: setId }
+          { set_id: setId as string },
+          { id: setId as string }
         ]
       },
       select: { id: true }
@@ -164,7 +164,7 @@ router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, re
           Body: fileContent,
           ContentType: 'application/pdf',
           Metadata: {
-            setId,
+            setId: setId as string,
             uploadedAt: new Date().toISOString(),
           },
         }));
@@ -188,7 +188,7 @@ router.post('/sets/:setId/whiteboard-pdf', upload.single('file'), async (req, re
         : (req.file.size / (1024 * 1024)).toFixed(2),
       totalPages: totalPages ? Number(totalPages) : 1,
       createdAt: new Date().toISOString(),
-      uploadedBy: req.user?.id || 'anonymous',
+      uploadedBy: (req.user as any)?.userId || 'anonymous',
     };
 
     // Update the set with PDF notes
@@ -248,7 +248,7 @@ router.get('/sets/:setId/notes', async (req, res, next) => {
     res.json({ 
       success: true, 
       data: {
-        ...set.pdf_notes,
+        ...(set.pdf_notes as any),
         setId: set.set_id,
       }
     });

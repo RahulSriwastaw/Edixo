@@ -74,13 +74,13 @@ export class AirtableService {
             const tables = data.tables;
             // Merge with local sync metadata
             try {
-                const metadatas = await (prisma as any).airtableSyncMetadata.findMany();
+                const metadatas = await (prisma as any).airtable_sync_metadata.findMany();
                 return tables.map((table: any) => {
-                    const meta = metadatas.find((m: any) => m.tableName === table.name);
+                    const meta = metadatas.find((m: any) => m.table_name === table.name);
                     return {
                         ...table,
-                        lastSyncAt: meta?.lastSyncAt || null,
-                        totalQuestions: meta?.totalQuestions || 0,
+                        lastSyncAt: meta?.last_sync_at || null,
+                        totalQuestions: meta?.total_questions || 0,
                         syncStatus: meta?.status || 'NOT_SYNCED'
                     };
                 });
@@ -124,18 +124,18 @@ export class AirtableService {
 
                 // 1. Prepare Question Data
                 const questionData = {
-                    textHi: fields.question_hin || '',
-                    textEn: fields.question_eng || '',
-                    subjectName: fields.subject || 'General Awareness',
-                    chapterName: fields.chapter || 'Miscellaneous',
+                    id: uuidv4(), // Provide UUID for @id field with no default
+                    text_hi: fields.question_hin || '',
+                    text_en: fields.question_eng || '',
+                    subject_name: fields.subject || 'General Awareness',
+                    chapter_name: fields.chapter || 'Miscellaneous',
                     type: this.mapQuestionType(fields.type),
-                    explanationHi: fields.solution_hin || '',
-                    explanationEn: fields.solution_eng || '',
+                    explanation_hi: fields.solution_hin || '',
+                    explanation_en: fields.solution_eng || '',
                     collection: fields.collection || null,
-                    airtableTableName: fields.airtable_table_name || tableName,
+                    airtable_table_name: fields.airtable_table_name || tableName,
                     exam: fields.exam || 'SSC CGL',
-                    section: fields.section || null,
-                    syncCode: 1, // Synced
+                    // section: fields.section || null, // Missing in schema
                 };
 
                 // 2. Options Mapping
@@ -147,46 +147,49 @@ export class AirtableService {
                 ].filter(opt => opt.hi || opt.en); // Filter out empty options
 
                 // 3. Upsert Logic
-                const existingQuestion = await prisma.question.findFirst({
-                    where: { recordId },
-                    include: { options: true }
+                const existingQuestion = await (prisma as any).questions.findFirst({
+                    where: { record_id: recordId },
+                    include: { question_options: true }
                 });
 
                 if (existingQuestion) {
                     // Update existing
                     await prisma.$transaction([
-                        prisma.question.update({
+                        (prisma as any).questions.update({
                             where: { id: existingQuestion.id },
                             data: questionData
                         }),
                         // Recreate options
-                        prisma.questionOption.deleteMany({ where: { questionId: existingQuestion.id } }),
-                        prisma.questionOption.createMany({
+                        (prisma as any).question_options.deleteMany({ where: { question_id: existingQuestion.id } }),
+                        (prisma as any).question_options.createMany({
                             data: options.map((opt, index) => ({
-                                questionId: existingQuestion.id,
-                                textHi: opt.hi || '',
-                                textEn: opt.en || '',
-                                isCorrect: String(fields.answer) === opt.key,
-                                sortOrder: index
+                                id: uuidv4(),
+                                question_id: existingQuestion.id,
+                                text_hi: opt.hi || '',
+                                text_en: opt.en || '',
+                                is_correct: String(fields.answer) === opt.key,
+                                sort_order: index
                             }))
                         })
                     ]);
                     updatedCount++;
-                } else {
+                }
+ else {
                     // Create new
                     const internalQuestionId = `Q-AIR-${Date.now()}-${fields.question_no || Math.floor(Math.random() * 1000)}`;
                     
-                    await prisma.question.create({
+                    await (prisma as any).questions.create({
                         data: {
                             ...questionData,
-                            questionId: internalQuestionId,
-                            recordId: recordId,
-                            options: {
+                            question_id: internalQuestionId,
+                            record_id: recordId,
+                            question_options: {
                                 create: options.map((opt, index) => ({
-                                    textHi: opt.hi || '',
-                                    textEn: opt.en || '',
-                                    isCorrect: String(fields.answer) === opt.key,
-                                    sortOrder: index
+                                    id: uuidv4(),
+                                    text_hi: opt.hi || '',
+                                    text_en: opt.en || '',
+                                    is_correct: String(fields.answer) === opt.key,
+                                    sort_order: index
                                 }))
                             }
                         }
@@ -201,18 +204,18 @@ export class AirtableService {
         const result = { createdCount, updatedCount, failedCount, total: records.length };
 
         // Update Sync Metadata
-        await prisma.airtableSyncMetadata.upsert({
-            where: { tableName },
+        await (prisma as any).airtable_sync_metadata.upsert({
+            where: { table_name: tableName },
             update: {
-                totalQuestions: records.length,
-                lastSyncAt: new Date(),
+                total_questions: records.length,
+                last_sync_at: new Date(),
                 status: 'SUCCESS',
                 error: null
             },
             create: {
-                tableName,
-                totalQuestions: records.length,
-                lastSyncAt: new Date(),
+                table_name: tableName,
+                total_questions: records.length,
+                last_sync_at: new Date(),
                 status: 'SUCCESS'
             }
         });

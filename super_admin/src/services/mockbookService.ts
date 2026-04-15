@@ -145,20 +145,20 @@ export const mockbookService = {
 
     // ─── Sub-Categories (Test Folders: Tier 1, Sectional, etc.) ───
     getSubCategories: async (categoryId: string): Promise<ExamSubCategory[]> => {
-        const res = await api.get(`/super-admin/mockbook/test-series?categoryId=${categoryId}`);
+        const res = await api.get(`/super-admin/mockbook/sub-categories?categoryId=${categoryId}`);
         return res.data || [];
     },
 
     createSubCategory: async (data: Partial<ExamSubCategory>) => {
-        return api.post('/super-admin/mockbook/test-series', data);
+        return api.post('/super-admin/mockbook/sub-categories', data);
     },
 
     updateSubCategory: async (id: string, data: Partial<ExamSubCategory>) => {
-        return api.patch(`/super-admin/mockbook/test-series/${id}`, data);
+        return api.patch(`/super-admin/mockbook/sub-categories/${id}`, data);
     },
 
     deleteSubCategory: async (id: string) => {
-        return api.delete(`/super-admin/mockbook/test-series/${id}`);
+        return api.delete(`/super-admin/mockbook/sub-categories/${id}`);
     },
 
     // ─── Admin Mock Tests ──────────────────────────────────────────

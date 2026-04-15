@@ -289,22 +289,25 @@ router.post('/refresh', async (req, res, next) => {
 router.post('/register', async (req, res, next) => {
   try {
     const schema = z.object({
-      email: z.string().email(),
-      password: z.string().min(8),
-      name: z.string().min(2),
+      email: z.string().optional(),
+      studentId: z.string().optional(),
+      password: z.string().min(6),
+      name: z.string().min(2).optional(),
+      role: z.string().optional()
     });
     const { email, password, name } = schema.parse(req.body);
 
-    const existingUser = await prismaAny.user.findUnique({ where: { email } });
+    const emailVal = req.body.email || req.body.studentId;
+    const existingUser = await prismaAny.user.findFirst({ where: { OR: [{ email: emailVal }, { mobile: emailVal }] } });
     if (existingUser) throw new AppError('User already exists', 400);
 
-    const passwordHash = await bcrypt.hash(password, 12);
+    const passwordHash = await bcrypt.hash(req.body.password, 12);
 
     const user = await prismaAny.user.create({
       data: {
-        email,
+        email: emailVal,
         passwordHash,
-        role: 'TEACHER',
+        role: req.body.role || 'STUDENT',
         isActive: true,
       },
     });
@@ -335,18 +338,20 @@ router.post('/register', async (req, res, next) => {
 router.post('/login', async (req, res, next) => {
   try {
     const schema = z.object({
-      email: z.string().email(),
+      email: z.string().optional(),
+      studentId: z.string().optional(),
       password: z.string().min(1),
     });
-    const { email, password } = schema.parse(req.body);
+    const parsed = schema.parse(req.body);
+    const emailVal = parsed.email || parsed.studentId;
 
-    const user = await prismaAny.user.findUnique({ where: { email } });
+    const user = await prismaAny.user.findFirst({ where: { OR: [{ email: emailVal }, { mobile: emailVal }] } });
     if (!user || !user.isActive) {
-      throw new AppError('Invalid credentials', 401);
+      throw new AppError('Invalid credentials or account disabled', 401);
     }
 
-    const valid = await bcrypt.compare(password, user.passwordHash);
-    if (!valid) throw new AppError('Invalid credentials', 401);
+    const valid = await bcrypt.compare(parsed.password, user.passwordHash);
+    if (!valid) throw new AppError('Invalid password', 401);
 
     // Update last login
     await prismaAny.user.update({

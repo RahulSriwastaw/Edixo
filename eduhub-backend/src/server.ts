@@ -18,6 +18,7 @@ import whiteboardRoutes from './modules/whiteboard/whiteboard.routes';
 import whiteboardAccountRoutes from './modules/whiteboardAccount/whiteboardAccount.routes';
 import uploadRoutes from './modules/upload/upload.routes';
 import aiRoutes from './modules/ai/ai.routes';
+import mockbookRoutes from './modules/mockbook/mockbook.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -695,6 +696,22 @@ app.get('/health', async (_req, res) => {
 });
 
 // ─── Single-Owner Compatibility Endpoints ──────────────────────
+app.get('/api/organizations/public/:id', (req, res) => {
+    res.json({
+        success: true,
+        data: {
+            id: req.params.id,
+            name: "EduHub Institute",
+            category: "coaching",
+            status: "ACTIVE",
+            plan: "ENTERPRISE",
+            logoUrl: "",
+            primaryColor: "#6366f1",
+            featureFlags: []
+        }
+    });
+});
+
 app.get('/api/organizations', (_req, res) => {
     res.json({
         success: true,
@@ -1551,6 +1568,7 @@ app.use('/api/whiteboard', whiteboardRoutes);
 app.use('/api/whiteboard-accounts', whiteboardAccountRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/mockbook', mockbookRoutes);
 
 // ─── Error Handling ──────────────────────────────────────────
 app.use(notFound);

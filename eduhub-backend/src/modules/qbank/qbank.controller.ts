@@ -45,25 +45,21 @@ export const getAirtableTables = async (req: Request, res: Response, next: NextF
 export const getAirtableSyncFolders = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const orgId = req.query.orgId || req.headers['x-org-id'] || (req as any).user?.orgId;
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
 
         const folders = await prisma.qBankFolder.findMany({
             where: {
                 description: 'AIRTABLE_SYNC',
-                OR: [
-                    { orgId: null },
-                    org ? { orgId: org.id } : {}
-                ].filter(x => Object.keys(x).length > 0)
+                ...(orgId ? { orgId: String(orgId) } : {})
             },
             orderBy: { createdAt: 'desc' }
         });
 
         // Compute total questions for each folder
         const foldersWithCounts = await Promise.all(folders.map(async (folder) => {
-            const count = await prisma.question.count({
+            const count = await (prisma as any).questions.count({
                 where: { 
-                    airtableTableName: folder.slug,
-                    deletedAt: null 
+                    airtable_table_name: folder.slug,
+                    deleted_at: null 
                 }
             });
             return {
@@ -85,8 +81,6 @@ export const createAirtableSyncFolder = async (req: Request, res: Response, next
             return res.status(400).json({ success: false, message: 'Both name and airtableTableName are required' });
         }
 
-        const org = orgId ? await prisma.organization.findFirst({ where: { orgId: orgId as string } }) : null;
-
         const folder = await prisma.qBankFolder.create({
             data: {
                 name,
@@ -94,7 +88,7 @@ export const createAirtableSyncFolder = async (req: Request, res: Response, next
                 description: 'AIRTABLE_SYNC',
                 scope: 'ORG',
                 path: `/airtable/${airtableTableName}`,
-                orgId: org?.id || null
+                orgId: orgId || null
             }
         });
 
@@ -132,17 +126,19 @@ export const deleteAirtableSyncFolder = async (req: Request, res: Response, next
         // Delete associated questions explicitly if desired, or leave them. Usually admin wants to clean up 
         // to prevent duplicate or orphaned questions.
         if (folder.slug) {
-            await prisma.questionOption.deleteMany({
-                where: { question: { airtableTableName: folder.slug } }
+            await (prisma as any).question_options.deleteMany({
+                where: { questions: { airtable_table_name: folder.slug } }
             });
             await prisma.attemptAnswer.deleteMany({
-                where: { question: { airtableTableName: folder.slug } }
+                where: { questionId: { in: (await (prisma as any).questions.findMany({ where: { airtable_table_name: folder.slug }, select: { id: true } })).map((q: any) => q.id) } }
             });
+            /* Missing model
             await prisma.studentQuestionHistory.deleteMany({
                 where: { question: { airtableTableName: folder.slug } }
             });
-            await prisma.question.deleteMany({
-                where: { airtableTableName: folder.slug }
+            */
+            await (prisma as any).questions.deleteMany({
+                where: { airtable_table_name: folder.slug }
             });
         }
 

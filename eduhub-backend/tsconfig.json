@@ -29,7 +29,11 @@
         "src/config/**/*",
         "src/middleware/**/*",
         "src/modules/auth/**/*",
-        "src/modules/superAdmin/superAdmin.routes.ts",
+        "src/modules/superAdmin/**/*",
+        "src/modules/mockbook/**/*",
+        "src/modules/tests/**/*",
+        "src/modules/qbank/**/*",
+        "src/modules/ai/**/*",
         "src/modules/whiteboard/**/*",
         "src/modules/whiteboardAccount/**/*"
     ],
