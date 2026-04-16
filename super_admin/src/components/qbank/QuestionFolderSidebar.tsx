@@ -220,7 +220,10 @@ export function QuestionFolderSidebar({
     setLoading(true);
     try {
       const res = await fetch(`${API_URL}/qbank/folders?tree=true`, { headers: getAuthHeaders() });
-      if (!res.ok) throw new Error("Failed to fetch folders");
+      if (!res.ok) {
+        const errorMsg = await res.text().catch(() => "Failed to fetch folders");
+        throw new Error(errorMsg);
+      }
       const data = await res.json();
       const tree: FolderNode[] = data.data || [];
 
@@ -233,7 +236,13 @@ export function QuestionFolderSidebar({
       const topIds = tree.map((f: FolderNode) => f.id);
       setExpandedIds(prev => new Set([...prev, ...topIds]));
     } catch (e) {
-      console.error(e);
+      console.error("Error fetching folders:", e);
+      toast.error("Failed to load folders. Please try again.", {
+        description: e instanceof Error ? e.message : "Unknown error occurred"
+      });
+      // Set empty state so UI doesn't hang
+      setFolders([]);
+      setDraftsFolder(null);
     } finally {
       setLoading(false);
     }

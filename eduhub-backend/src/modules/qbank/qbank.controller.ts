@@ -44,12 +44,9 @@ export const getAirtableTables = async (req: Request, res: Response, next: NextF
 
 export const getAirtableSyncFolders = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || (req as any).user?.orgId;
-
         const folders = await prisma.qBankFolder.findMany({
             where: {
                 description: 'AIRTABLE_SYNC',
-                ...(orgId ? { orgId: String(orgId) } : {})
             },
             orderBy: { createdAt: 'desc' }
         });
@@ -59,7 +56,6 @@ export const getAirtableSyncFolders = async (req: Request, res: Response, next: 
             const count = await (prisma as any).questions.count({
                 where: { 
                     airtable_table_name: folder.slug,
-                    deleted_at: null 
                 }
             });
             return {
@@ -76,7 +72,7 @@ export const getAirtableSyncFolders = async (req: Request, res: Response, next: 
 
 export const createAirtableSyncFolder = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, airtableTableName, orgId } = req.body;
+        const { name, airtableTableName } = req.body;
         if (!name || !airtableTableName) {
             return res.status(400).json({ success: false, message: 'Both name and airtableTableName are required' });
         }
@@ -86,9 +82,8 @@ export const createAirtableSyncFolder = async (req: Request, res: Response, next
                 name,
                 slug: airtableTableName,
                 description: 'AIRTABLE_SYNC',
-                scope: 'ORG',
+                scope: 'GLOBAL',
                 path: `/airtable/${airtableTableName}`,
-                orgId: orgId || null
             }
         });
 

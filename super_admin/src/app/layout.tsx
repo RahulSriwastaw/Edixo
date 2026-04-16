@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { OrgProvider } from "@/providers/OrgProvider";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -37,10 +36,8 @@ export default function RootLayout({
         className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased`}
         suppressHydrationWarning
       >
-        <OrgProvider>
-          {children}
-          <Toaster position="bottom-right" />
-        </OrgProvider>
+        {children}
+        <Toaster position="bottom-right" />
       </body>
     </html>
   );

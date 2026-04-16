@@ -4,15 +4,14 @@ import { randomBytes } from 'crypto';
 
 export const getQuestions = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { orgId, folderId, difficulty, type, search, page = 1, limit = 50 } = req.query;
+        const { folderId, difficulty, type, search, page = 1, limit = 50 } = req.query;
 
         const whereClause: any = {};
-        if (orgId) whereClause.orgId = String(orgId);
         if (folderId) whereClause.folderId = String(folderId);
         if (difficulty) whereClause.difficulty = String(difficulty);
         if (type) whereClause.type = String(type);
         if (search) {
-            whereClause.textEn = { contains: String(search), mode: 'insensitive' };
+            whereClause.text_en = { contains: String(search), mode: 'insensitive' };
         }
 
         const skip = (Number(page) - 1) * Number(limit);
@@ -63,7 +62,7 @@ export const getQuestionDetail = async (req: Request, res: Response, next: NextF
 export const createQuestion = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {
-            orgId, textEn, textHi, explanationEn, explanationHi,
+            textEn, textHi, explanationEn, explanationHi,
             type, difficulty, folderId, topicId, imageUrl, tags, options
         } = req.body;
 

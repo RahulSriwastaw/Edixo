@@ -3,12 +3,9 @@ import { prisma } from '../../../../config/database';
 
 export const getLiveTests = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { orgId } = req.query;
-
         const liveTests = await prisma.mockTest.findMany({
             where: {
-                status: 'LIVE',
-                ...(orgId ? { orgId: String(orgId) } : {})
+                status: 'LIVE'
             },
             include: {
                 _count: { select: { attempts: true } } // active participants

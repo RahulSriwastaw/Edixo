@@ -54,7 +54,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
-import { useOrg } from "@/providers/OrgProvider";
 import { studentAppService, PersonalizationSettings } from "@/services/studentAppService";
 import { toast } from "sonner";
 
@@ -196,8 +195,6 @@ const availableBadges = [
 
 export default function StudentAppPage() {
   const { isOpen } = useSidebarStore();
-  const { selectedOrgId, organizations } = useOrg();
-  
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
@@ -205,7 +202,8 @@ export default function StudentAppPage() {
   const [studentList, setStudentList] = useState<any[]>([]);
   const [gamificationConfig, setGamificationConfig] = useState<PersonalizationSettings>({});
 
-  const selectedOrg = organizations.find(o => o.orgId === selectedOrgId);
+  const selectedOrgId = null;
+  const selectedOrg = null;
 
   useEffect(() => {
     const fetchOrgData = async () => {
@@ -347,11 +345,6 @@ export default function StudentAppPage() {
                         </Button>
                       )}
                       
-                      <div className="ml-auto flex items-center gap-2">
-                        <Badge variant="outline" className="text-brand-primary border-brand-primary/20 bg-brand-primary/5">
-                          {selectedOrg?.name || "Global"}
-                        </Badge>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

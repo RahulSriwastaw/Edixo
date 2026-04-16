@@ -123,14 +123,14 @@ function getAncestorIds(path: string): string[] {
 }
 
 // ─── Helper: Get or Create Hierarchical Folders ────────────────
-async function getOrCreateExamFolder(orgId: string | null, examName: string, year: number | null): Promise<string> {
+async function getOrCreateExamFolder(examName: string, year: number | null): Promise<string> {
     // 1. Check parent folder "Exams"
     let examsFolder = await prisma.qBankFolder.findFirst({
-        where: { name: 'Exams', parentId: null, orgId, isActive: true }
+        where: { name: 'Exams', parentId: null, isActive: true }
     });
     if (!examsFolder) {
         examsFolder = await (prisma as any).qBankFolder.create({
-            data: { name: 'Exams', orgId, path: '/', depth: 0, scope: orgId ? 'ORG' : 'GLOBAL', slug: 'exams' }
+            data: { name: 'Exams', path: '/', depth: 0, scope: 'GLOBAL', slug: 'exams' }
         });
     }
 
@@ -138,17 +138,16 @@ async function getOrCreateExamFolder(orgId: string | null, examName: string, yea
 
     // 2. Check Exam Name folder
     let examFolder = await (prisma as any).qBankFolder.findFirst({
-        where: { name: examName, parentId: examsFolder.id, orgId, isActive: true }
+        where: { name: examName, parentId: examsFolder.id, isActive: true }
     });
     if (!examFolder) {
         examFolder = await (prisma as any).qBankFolder.create({
             data: { 
                 name: examName, 
                 parentId: examsFolder.id, 
-                orgId, 
                 path: `/${examsFolder.id}`, 
                 depth: 1, 
-                scope: orgId ? 'ORG' : 'GLOBAL',
+                scope: 'GLOBAL',
                 slug: examName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
             }
         });
@@ -158,17 +157,16 @@ async function getOrCreateExamFolder(orgId: string | null, examName: string, yea
 
     // 3. Check Year folder
     let yearFolder = await (prisma as any).qBankFolder.findFirst({
-        where: { name: String(year), parentId: examFolder.id, orgId, isActive: true }
+        where: { name: String(year), parentId: examFolder.id, isActive: true }
     });
     if (!yearFolder) {
         yearFolder = await prisma.qBankFolder.create({
             data: { 
                 name: String(year), 
                 parentId: examFolder.id, 
-                orgId, 
                 path: `${examFolder.path}/${examFolder.id}`, 
                 depth: 2, 
-                scope: orgId ? 'ORG' : 'GLOBAL',
+                scope: 'GLOBAL',
                 slug: String(year) 
             }
         });
@@ -180,47 +178,16 @@ async function getOrCreateExamFolder(orgId: string | null, examName: string, yea
 // ─── GET /api/qbank/folders ──────────────────────────────────
 router.get('/folders', async (req, res, next) => {
     try {
-        const { includeGlobal = 'true', tree = 'true', orgId: queryOrgId } = req.query;
-        const orgId = queryOrgId || req.user?.orgId;
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
-        const orConditions: any[] = [];
-
-        if (includeGlobal === 'true') {
-            orConditions.push({ scope: 'GLOBAL' });
-        }
-
-        if (isSuperAdmin && queryOrgId) {
-            orConditions.push({ orgId: String(queryOrgId), scope: 'ORG' });
-        } else if (orgId) {
-            orConditions.push({ orgId: String(orgId), scope: 'ORG' });
-        }
-
-        if (isSuperAdmin && !queryOrgId && includeGlobal !== 'true') {
-            orConditions.push({ scope: 'GLOBAL' });
-        }
-
-        // Super Admin with no specific org: show everything
-        const where: any = orConditions.length > 0
-            ? { OR: orConditions, isActive: true }
-            : { isActive: true };
-
-        if (isSuperAdmin && !queryOrgId) {
-            delete where.OR;
-        }
+        const { tree = 'true' } = req.query;
 
         const folders = await prisma.qBankFolder.findMany({
-            where: isSuperAdmin && !queryOrgId ? { isActive: true } : where,
-            orderBy: [{ depth: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
-            include: { _count: { select: { sets: true } } }
+            where: { isActive: true },
+            orderBy: [{ depth: 'asc' }, { name: 'asc' }]
         });
 
-        // Map _count.sets to setCount for compatibility if needed, 
-        // but frontend SetFoldersManager expects totalSetCount for now.
-        // We'll calculate totalSetCount in the tree-building process or just return it.
         const foldersWithCounts = folders.map(f => ({
             ...f,
-            setCount: f._count.sets,
+            setCount: 0,
             totalSetCount: 0
         }));
 
@@ -251,8 +218,7 @@ router.get('/folders/:id', async (req, res, next) => {
         const folder = await prisma.qBankFolder.findUnique({
             where: { id: req.params.id },
             include: {
-                children: { orderBy: [{ name: 'asc' }] },
-                _count: { select: { sets: true } }
+                children: { orderBy: [{ name: 'asc' }] }
             }
         });
         if (!folder) throw new AppError('Folder not found', 404);
@@ -260,7 +226,7 @@ router.get('/folders/:id', async (req, res, next) => {
         // Build breadcrumb
         const breadcrumb = await getBreadcrumb(req.params.id);
 
-        res.json({ success: true, data: { ...folder, breadcrumb } });
+        res.json({ success: true, data: { ...folder, setCount: 0, breadcrumb } });
     } catch (err) { next(err); }
 });
 
@@ -308,28 +274,28 @@ router.get('/folders/:id/stats', async (req, res, next) => {
 
         // Direct questions
         const directCount = await (prisma as any).questions.count({
-            where: { folderId: folder.id, deletedAt: null }
+            where: { folderId: folder.id }
         });
 
         // Total questions (all subtree)
         const totalCount = await (prisma as any).questions.count({
-            where: { folderId: { in: allFolderIds }, deletedAt: null }
+            where: { folderId: { in: allFolderIds } }
         });
 
         // By difficulty
         const [easyQ, mediumQ, hardQ] = await Promise.all([
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, difficulty: 'EASY', deletedAt: null } }),
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, difficulty: 'MEDIUM', deletedAt: null } }),
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, difficulty: 'HARD', deletedAt: null } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, difficulty: 'EASY' } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, difficulty: 'MEDIUM' } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, difficulty: 'HARD' } }),
         ]);
 
         // By type
         const [mcqSingle, mcqMulti, trueFalse, fillBlank, descriptive] = await Promise.all([
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'MCQ_SINGLE', deletedAt: null } }),
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'MCQ_MULTIPLE', deletedAt: null } }),
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'TRUE_FALSE', deletedAt: null } }),
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'FILL_IN_BLANK', deletedAt: null } }),
-            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'DESCRIPTIVE', deletedAt: null } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'MCQ_SINGLE' } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'MCQ_MULTIPLE' } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'TRUE_FALSE' } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'FILL_IN_BLANK' } }),
+            (prisma as any).questions.count({ where: { folderId: { in: allFolderIds }, type: 'DESCRIPTIVE' } }),
         ]);
 
         res.json({
@@ -350,7 +316,6 @@ router.get('/folders/:id/stats', async (req, res, next) => {
 router.post('/folders', async (req, res, next) => {
     try {
         const schema = z.object({
-            orgId: z.string().optional(),
             name: z.string().min(1),
             slug: z.string().optional(),
             description: z.string().optional(),
@@ -358,15 +323,8 @@ router.post('/folders', async (req, res, next) => {
             color: z.string().optional(),
             parentId: z.string().optional().nullable(),
             sortOrder: z.number().default(0).optional(),
-            scope: z.enum(['GLOBAL', 'ORG']).default('ORG').optional(),
         });
         const body = schema.parse(req.body);
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-        let orgId = (req.user as any)?.orgId || body.orgId;
-
-        if (!orgId && body.scope !== 'GLOBAL') {
-            throw new AppError('Organization context required.', 400);
-        }
 
         let depth = 0;
         let path = '/';
@@ -379,21 +337,18 @@ router.post('/folders', async (req, res, next) => {
             path = parent.path === '/' ? `/${parent.id}` : `${parent.path}/${parent.id}`;
         }
 
-        const finalScope = (isSuperAdmin && body.scope === 'GLOBAL') ? 'GLOBAL' : 'ORG';
         const slug = body.slug || body.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 
         const folder = await (prisma as any).qBankFolder.create({
             data: {
-                orgId: finalScope === 'GLOBAL' ? null : orgId,
                 name: body.name,
                 slug,
-                description: body.description,
                 icon: body.icon,
                 color: body.color,
                 parentId: body.parentId,
                 path,
                 depth,
-                scope: finalScope,
+                scope: 'GLOBAL',
                 sortOrder: body.sortOrder ?? 0,
             },
         });
@@ -420,17 +375,11 @@ router.patch('/folders/:id', async (req, res, next) => {
         const folder = await prisma.qBankFolder.findUnique({ where: { id: req.params.id } });
         if (!folder) throw new AppError('Folder not found', 404);
 
-        const orgId = req.user?.orgId;
         const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
-        if (!isSuperAdmin && folder.orgId !== orgId) {
-            throw new AppError('Unauthorized: You can only edit your own folders', 403);
-        }
 
         const data: any = {};
         if (body.name !== undefined) data.name = body.name;
         if (body.slug !== undefined) data.slug = body.slug;
-        if (body.description !== undefined) data.description = body.description;
         if (body.icon !== undefined) data.icon = body.icon;
         if (body.color !== undefined) data.color = body.color;
         if (body.sortOrder !== undefined) data.sortOrder = body.sortOrder;
@@ -454,13 +403,6 @@ router.post('/folders/:id/move', async (req, res, next) => {
 
         const folder = await prisma.qBankFolder.findUnique({ where: { id: req.params.id } });
         if (!folder) throw new AppError('Folder not found', 404);
-
-        const orgId = req.user?.orgId;
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
-        if (!isSuperAdmin && folder.orgId !== orgId) {
-            throw new AppError('Unauthorized', 403);
-        }
 
         // Validate not moving into own subtree
         if (newParentId) {
@@ -539,18 +481,8 @@ router.delete('/folders/:id', async (req, res, next) => {
     try {
         const { deleteContent = 'false', confirm: confirmDelete } = req.query;
 
-        const folder = await prisma.qBankFolder.findUnique({
-            where: { id: req.params.id },
-            include: { _count: { select: { children: true, questions: true, sets: true } } }
-        });
+        const folder = await prisma.qBankFolder.findUnique({ where: { id: req.params.id } });
         if (!folder) throw new AppError('Folder not found', 404);
-
-        const orgId = req.user?.orgId;
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
-        if (!isSuperAdmin && folder.orgId !== orgId) {
-            throw new AppError('Unauthorized: You can only delete your own folders', 403);
-        }
 
         // Get all subtree folders
         const pathPrefix = folder.path === '/' ? `/${folder.id}` : `${folder.path}/${folder.id}`;
@@ -577,10 +509,9 @@ router.delete('/folders/:id', async (req, res, next) => {
                 });
             }
 
-            // Soft delete all questions in subtree
-            await (prisma as any).questions.updateMany({
-                where: { folderId: { in: allFolderIds } },
-                data: { deletedAt: new Date(), folderId: null }
+            // Permanent delete all questions in subtree
+            await (prisma as any).questions.deleteMany({
+                where: { folderId: { in: allFolderIds } }
             });
 
             // Delete all sets in subtree (Hard delete)
@@ -634,16 +565,13 @@ router.delete('/folders/:id', async (req, res, next) => {
 // ─── GET /api/qbank/dashboard ────────────────────────────────
 router.get('/dashboard', async (req, res, next) => {
     try {
-        const orgId = req.user?.orgId;
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
         // 1. Basic Stats
-        const totalQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>('SELECT COUNT(*) AS cnt FROM questions');
-        const publicQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>('SELECT COUNT(*) AS cnt FROM questions WHERE is_global = true');
-        const setCountRow = await prisma.$queryRawUnsafe<Array<{cnt: bigint}>>('SELECT COUNT(*) AS cnt FROM question_sets');
-        const totalQuestions = Number(totalQuestionsRow[0]?.cnt ?? 0);
-        const publicQuestions = Number(publicQuestionsRow[0]?.cnt ?? 0);
-        const setMapCount = Number(setCountRow[0]?.cnt ?? 0);
+        const totalQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: number}>>('SELECT COUNT(*)::INT AS cnt FROM questions');
+        const publicQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: number}>>('SELECT COUNT(*)::INT AS cnt FROM questions WHERE is_global = true');
+        const setCountRow = await prisma.$queryRawUnsafe<Array<{cnt: number}>>('SELECT COUNT(*)::INT AS cnt FROM question_sets');
+        const totalQuestions = totalQuestionsRow[0]?.cnt ?? 0;
+        const publicQuestions = publicQuestionsRow[0]?.cnt ?? 0;
+        const setMapCount = setCountRow[0]?.cnt ?? 0;
 
         // 2. Questions by Subject (Root folders)
         const rootFolders = await prisma.qBankFolder.findMany({
@@ -655,10 +583,8 @@ router.get('/dashboard', async (req, res, next) => {
             const count = await prisma.questions.count({
                 where: {
                     OR: [
-                        { airtable_table_name: folder.name }, // Simplified mapping for single owner
-                        // { folderId: folder.id },
+                        { airtable_table_name: folder.name },
                     ],
-                    // ...(isSuperAdmin ? {} : { orgId: orgId })
                 }
             });
             return { subject: folder.name, questions: count };
@@ -702,9 +628,6 @@ router.get('/dashboard', async (req, res, next) => {
 // ─── GET /api/qbank/usage-logs ───────────────────────────────
 router.get('/usage-logs', async (req, res, next) => {
     try {
-        const orgId = req.user?.orgId;
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
-
         const logs: any[] = [];
         res.json({ success: true, data: logs });
     } catch (err: any) { next(err); }
@@ -715,10 +638,10 @@ router.get('/filter-options', async (req, res, next) => {
     try {
         console.log('[QBank] Fetching filter-options for user:', req.user?.userId);
         const [exams, subjects, years, sources] = await Promise.all([
-            (prisma as any).questions.groupBy({ where: { deletedAt: null } as any, by: ['exam'] }),
-            (prisma as any).questions.groupBy({ where: { deletedAt: null } as any, by: ['subject_name'] }),
-            (prisma as any).questions.groupBy({ where: { deletedAt: null } as any, by: ['year'] }),
-            (prisma as any).questions.groupBy({ where: { deletedAt: null, airtable_table_name: { not: null } } as any, by: ['airtable_table_name'] }),
+            (prisma as any).questions.groupBy({ by: ['exam'] }),
+            (prisma as any).questions.groupBy({ by: ['subject_name'] }),
+            (prisma as any).questions.groupBy({ by: ['year'] }),
+            (prisma as any).questions.groupBy({ where: { airtable_table_name: { not: null } }, by: ['airtable_table_name'] }),
         ]);
 
         const data = {
@@ -754,7 +677,7 @@ router.get('/chapters', async (req, res, next) => {
         if (!subject) return res.json({ success: true, data: [] });
 
         const chapters = await prisma.questions.findMany({
-            where: { subject_name: subject as string, deletedAt: null } as any,
+            where: { subject_name: subject as string },
             select: { chapter_name: true },
             distinct: ['chapter_name'],
         });
@@ -780,17 +703,17 @@ router.get('/sets', async (req, res, next) => {
             SELECT qs.id, qs.set_id AS "setId", qs.pin, qs.name, qs.description,
                    qs.total_questions AS "totalQuestions", qs.subject, qs.chapter,
                    qs.is_global AS "isGlobal", qs.pdf_notes, qs.created_at AS "createdAt",
-                   (SELECT COUNT(*) FROM question_set_items qsi WHERE qsi.set_id = qs.id) AS "itemCount"
+                   (SELECT COUNT(*)::INT FROM question_set_items qsi WHERE qsi.set_id = qs.id) AS "itemCount"
             FROM question_sets qs
             WHERE ${whereClause}
             ORDER BY qs.created_at DESC
             LIMIT ${Number(limit)} OFFSET ${offset}
         `;
-        const countQuery = `SELECT COUNT(*) AS cnt FROM question_sets WHERE ${whereClause}`;
+        const countQuery = `SELECT COUNT(*)::INT AS cnt FROM question_sets WHERE ${whereClause}`;
 
         const [rawSets, countRows] = await Promise.all([
             prisma.$queryRawUnsafe<Array<any>>(setsQuery, ...params),
-            prisma.$queryRawUnsafe<Array<{cnt: bigint}>>(countQuery, ...params),
+            prisma.$queryRawUnsafe<Array<{cnt: number}>>(countQuery, ...params),
         ]);
 
         const sets = rawSets.map((s: any) => {
@@ -947,27 +870,16 @@ router.delete('/sets/:id', async (req, res, next) => {
 // ─── GET /api/qbank/questions ────────────────────────────────
 router.get('/questions', async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, folderId, includeSubfolders = 'false', difficulty, type, search, scope = 'all', filters, groupBy, exam, subject, chapter, year, shift, source, orgId: queryOrgId } = req.query;
-        const orgId = queryOrgId || req.user?.orgId;
-        const isSuperAdmin = req.user?.role === 'SUPER_ADMIN';
+        const { page = 1, limit = 20, folderId, includeSubfolders = 'false', difficulty, type, search, scope = 'all', filters, groupBy, exam, subject, chapter, year, shift, source } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
-        const where: any = { deletedAt: null };
+        const where: any = {};
 
         if (scope === 'global') {
             where.isGlobal = true;
         } else if (scope === 'public') {
             where.isApproved = true;
             where.isGlobal = false;
-            where.orgId = { not: orgId };
-        } else if (scope === 'mine') {
-            where.orgId = orgId;
-        } else if (!isSuperAdmin) {
-            where.OR = [
-                { isGlobal: true },
-                { orgId: orgId },
-                { isApproved: true, isGlobal: false }
-            ];
         }
 
         // Folder filtering with subtree support
@@ -1093,7 +1005,30 @@ router.get('/questions', async (req, res, next) => {
              }
         });
 
-        res.json({ success: true, data: { questions: questionsRaw, total } });
+        const formattedQuestions = questionsRaw.map((q: any) => ({
+            ...q,
+            textEn: q.text_en,
+            textHi: q.text_hi,
+            subjectName: q.subject_name,
+            chapterName: q.chapter_name,
+            pointCost: q.point_cost,
+            usageCount: q.usage_count,
+            isApproved: q.is_approved,
+            isGlobal: q.is_global,
+            questionId: q.question_id,
+            explanationEn: q.explanation_en,
+            explanationHi: q.explanation_hi,
+            createdAt: q.created_at,
+            options: q.question_options?.map((opt: any) => ({
+                ...opt,
+                textEn: opt.text_en,
+                textHi: opt.text_hi,
+                isCorrect: opt.is_correct,
+                sortOrder: opt.sort_order
+            }))
+        }));
+
+        res.json({ success: true, data: { questions: formattedQuestions, total } });
     } catch (err) { next(err); }
 });
 
@@ -1170,9 +1105,6 @@ router.post('/questions/copy-to-folder', async (req, res, next) => {
 // ─── POST /api/qbank/folders/ensure-drafts ─────────────────────
 router.post('/folders/ensure-drafts', async (req, res, next) => {
     try {
-        const orgId = req.user?.orgId;
-        const scope = 'GLOBAL';
-
         let draftsFolder = await prisma.qBankFolder.findFirst({
             where: { name: { equals: 'Drafts', mode: 'insensitive' }, parentId: null, scope: 'GLOBAL' }
         });

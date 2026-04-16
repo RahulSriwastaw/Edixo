@@ -4,10 +4,9 @@ import { randomBytes } from 'crypto';
 
 export const getTests = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { orgId, subCategoryId, status, search } = req.query;
+        const { subCategoryId, status, search } = req.query;
 
         const whereClause: any = {};
-        if (orgId) whereClause.orgId = String(orgId);
         if (subCategoryId) whereClause.subCategoryId = String(subCategoryId);
         if (status) whereClause.status = String(status);
         if (search) {
@@ -65,7 +64,7 @@ export const getTestDetail = async (req: Request, res: Response, next: NextFunct
 export const createTest = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {
-            orgId, name, durationMins, totalMarks, subCategoryId,
+            name, durationMins, totalMarks, subCategoryId,
             description, isPublic, shuffleQuestions, scheduledAt, endsAt, maxAttempts
         } = req.body;
 
@@ -77,7 +76,6 @@ export const createTest = async (req: Request, res: Response, next: NextFunction
             data: {
                 testId: `GK-T-${randomBytes(4).toString('hex').toUpperCase()}`,
                 pin: randomBytes(3).toString('hex').toUpperCase(),
-                orgId: orgId,
                 name,
                 durationMins: Number(durationMins),
                 totalMarks: Number(totalMarks || 0),

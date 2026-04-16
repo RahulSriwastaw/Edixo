@@ -42,7 +42,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
-import { useOrg } from "@/providers/OrgProvider";
 import { digitalBoardService, WhiteboardSettings } from "@/services/digitalBoardService";
 import { toast } from "sonner";
 import { useEffect } from "react";
@@ -201,17 +200,16 @@ function PlatformBadge({ platform }: { platform: string }) {
 
 export default function DigitalBoardPage() {
   const { isOpen } = useSidebarStore();
-  const { selectedOrgId, organizations } = useOrg();
   const [searchQuery, setSearchQuery] = useState("");
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [wbSettings, setWbSettings] = useState<WhiteboardSettings | null>(null);
 
-  const selectedOrg = organizations.find(o => o.orgId === selectedOrgId);
+  const selectedOrgId = null;
+  const selectedOrg = null;
 
   useEffect(() => {
     const fetchOrgData = async () => {
-      if (!selectedOrgId) return;
       try {
         setIsLoading(true);
         const settingsRes = await digitalBoardService.getSettings(selectedOrgId);
@@ -376,7 +374,6 @@ export default function DigitalBoardPage() {
                       </TableHeader>
                       <TableBody>
                         {liveSessions
-                          .filter(s => !selectedOrgId || s.organization === selectedOrg?.name || s.organization === "Public Access")
                           .map((session) => (
                           <TableRow key={session.id} className="hover:bg-brand-primary-tint">
                             <TableCell>
@@ -595,13 +592,10 @@ export default function DigitalBoardPage() {
 
               {/* Settings Tab */}
               <TabsContent value="settings" className="mt-6 space-y-6">
-                {!selectedOrgId ? (
-                  <Card>
-                    <CardContent className="p-12 text-center text-gray-500">
-                      Please select an organization to manage whiteboard settings
-                    </CardContent>
-                  </Card>
-                ) : isLoading ? (
+                    <div className="p-12 text-center text-gray-500">
+                      Whiteboard settings are managed globally
+                    </div>
+                {isLoading ? (
                   <div className="flex items-center justify-center p-12">
                     <RefreshCw className="w-8 h-8 text-brand-primary animate-spin" />
                   </div>

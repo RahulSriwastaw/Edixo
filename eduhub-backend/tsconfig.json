@@ -35,7 +35,10 @@
         "src/modules/qbank/**/*",
         "src/modules/ai/**/*",
         "src/modules/whiteboard/**/*",
-        "src/modules/whiteboardAccount/**/*"
+        "src/modules/whiteboardAccount/**/*",
+        "src/modules/students/**/*",
+        "src/modules/organizations/**/*",
+        "src/modules/upload/**/*"
     ],
     "exclude": [
         "node_modules",

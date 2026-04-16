@@ -71,7 +71,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
-import { useOrg } from "@/providers/OrgProvider";
 import { toast } from "sonner";
 
 // ─────────────────────────────────────────────
@@ -228,8 +227,6 @@ const examCategories = [
 export default function MockBookPage() {
   const { isOpen } = useSidebarStore();
   const router = useRouter();
-  const { selectedOrgId, organizations, isLoading: orgsLoading } = useOrg();
-
   const [searchQuery, setSearchQuery] = useState("");
   const [seriesSearch, setSeriesSearch] = useState("");
   const [seriesCategoryFilter, setSeriesCategoryFilter] = useState("all");
@@ -241,7 +238,9 @@ export default function MockBookPage() {
   const [realSeries, setRealSeries] = useState<DashboardSeries[]>([]);
   const [liveTests, setLiveTests] = useState<DashboardLiveTest[]>([]);
 
-  const selectedOrg = organizations.find(o => o.orgId === selectedOrgId);
+  // const selectedOrg = organizations.find(o => o.orgId === selectedOrgId);
+  const selectedOrg = null;
+  const selectedOrgId = null;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -371,39 +370,6 @@ export default function MockBookPage() {
               </div>
             </div>
 
-            {/* Org Management Card */}
-            <Card className="border-brand-primary/20 bg-gradient-to-r from-brand-primary/5 to-white shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary">
-                      {selectedOrg?.logoUrl ? (
-                        <img src={selectedOrg.logoUrl} alt={selectedOrg.name} className="w-8 h-8 object-contain" />
-                      ) : (
-                        <Building2 className="w-6 h-6" />
-                      )}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-gray-900 flex items-center gap-2">
-                        Managing: {selectedOrg?.name || "Global Platform"}
-                        <Badge variant="outline" className="text-[10px] bg-white">ID: {selectedOrgId || "Global"}</Badge>
-                      </div>
-                      <div className="text-sm text-gray-500">
-                        {selectedOrgId ? "Full control over organization mock-tests, series, and analytics" : "Select an organization from the sidebar to manage specific data"}
-                      </div>
-                    </div>
-                  </div>
-                  {selectedOrgId && (
-                    <Button variant="outline" size="sm" asChild>
-                      <Link href={`/organizations/${selectedOrgId}`}>
-                         Settings
-                        <ArrowRight className="w-4 h-4 ml-2" />
-                      </Link>
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
 
             {/* KPI Stats */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">

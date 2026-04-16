@@ -10,12 +10,10 @@ router.use(authenticate);
 // ─── GET /api/tests ──────────────────────────────────────────
 router.get('/', async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, status, orgId: queryOrgId } = req.query;
-        const orgId = queryOrgId || req.user?.orgId;
+        const { page = 1, limit = 20, status } = req.query;
         const skip = (Number(page) - 1) * Number(limit);
 
         const where: any = {};
-        if (orgId) where.orgId = String(orgId);
         if (status) where.status = status;
 
         const [tests, total] = await Promise.all([
@@ -51,11 +49,9 @@ router.post('/', async (req, res, next) => {
             endsAt: z.string().optional(),
             sectionIds: z.array(z.string()).default([]),
             batchIds: z.array(z.string()).default([]),
-            orgId: z.string().min(1)
         });
 
         const body = schema.parse(req.body);
-        const orgId = body.orgId;
 
         // Generate 6-digit Test ID + PIN
         const testId = String(Math.floor(100000 + Math.random() * 900000));
@@ -65,7 +61,6 @@ router.post('/', async (req, res, next) => {
             data: {
                 testId,
                 pin,
-                orgId,
                 name: body.name,
                 description: body.description,
                 durationMins: body.durationMins,

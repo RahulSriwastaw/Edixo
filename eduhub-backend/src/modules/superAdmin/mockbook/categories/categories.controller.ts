@@ -3,13 +3,7 @@ import { prisma } from '../../../../config/database';
 
 export const getCategories = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { orgId } = req.query;
-        
-        const whereClause: any = {};
-        if (orgId) whereClause.orgId = String(orgId);
-
         const categories = await prisma.examFolder.findMany({
-            where: whereClause,
             orderBy: { sortOrder: 'asc' },
             include: {
                 _count: {
@@ -31,7 +25,7 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, description, icon, color, orgId, isFeatured, isActive, sortOrder } = req.body;
+        const { name, description, icon, color, isFeatured, isActive, sortOrder } = req.body;
         
         if (!name) {
             return res.status(400).json({ success: false, message: 'Name is required' });
@@ -43,7 +37,6 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
                 description,
                 icon,
                 color,
-                orgId: orgId || null,
                 isFeatured: isFeatured || false,
                 sortOrder: sortOrder || 0
             }
@@ -58,8 +51,6 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.params.id as string;
-        const { orgId } = req.body;
-
         const data = {
             name: req.body.name,
             description: req.body.description,
@@ -67,7 +58,6 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
             color: req.body.color,
             isFeatured: req.body.isFeatured,
             sortOrder: req.body.sortOrder,
-            orgId: orgId
         };
 
         const updatedCategory = await prisma.examFolder.update({

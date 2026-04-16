@@ -12,12 +12,10 @@ router.use(authenticate);
 // ─── GET /api/students?orgId=:orgId ─────────────────────────
 router.get('/', async (req, res, next) => {
     try {
-        const { page = 1, limit = 20, search, batchId, isActive, orgId: queryOrgId } = req.query;
-        const orgId = queryOrgId || (req.user as any)?.orgId || (req.params as any).orgId;
+        const { page = 1, limit = 20, search, isActive } = req.query;
 
         const skip = (Number(page) - 1) * Number(limit);
         const where: any = {};
-        if (orgId) where.orgId = String(orgId);
         if (isActive !== undefined) where.isActive = isActive === 'true';
         if (search) {
             where.OR = [
@@ -26,21 +24,17 @@ router.get('/', async (req, res, next) => {
                 { mobile: { contains: search as string } },
             ];
         }
-        if (batchId) {
-            where.batchEnrollments = { some: { batchId: batchId as string } };
-        }
 
         const [students, total] = await Promise.all([
             prisma.student.findMany({
                 where,
                 skip,
                 take: Number(limit),
-                orderBy: { enrolledAt: 'desc' },
+                orderBy: { createdAt: 'desc' },
                 select: {
                     id: true, studentId: true, name: true, email: true, mobile: true,
-                    isActive: true, enrolledAt: true, testsCompleted: true,
-                    personalizationUnlocked: true, photoUrl: true,
-                    batchEnrollments: { select: { batch: { select: { id: true, name: true } } } },
+                    isActive: true, createdAt: true,
+                    _count: { select: { attempts: true } }
                 },
             }),
             prisma.student.count({ where }),
@@ -62,11 +56,8 @@ router.post('/', async (req, res, next) => {
             dateOfBirth: z.string().optional(),
             address: z.string().optional(),
             batchIds: z.array(z.string()).default([]),
-            orgId: z.string().min(1)
         });
         const body = schema.parse(req.body);
-
-        const orgId = body.orgId;
 
         // Generate Student ID: GK-STU-XXXXX (Global unique)
         const globalCount = await prisma.student.count();
@@ -89,25 +80,11 @@ router.post('/', async (req, res, next) => {
                 data: {
                     studentId,
                     userId: user.id,
-                    orgId,
                     name: body.name,
                     email: body.email,
                     mobile: body.mobile,
-                    parentMobile: body.parentMobile,
-                    address: body.address,
-                    dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
                 },
             });
-
-            // Enroll in batches
-            if (body.batchIds.length > 0) {
-                await tx.batchStudent.createMany({
-                    data: body.batchIds.map(batchId => ({ batchId, studentId: newStudent.id })),
-                    skipDuplicates: true,
-                });
-            }
-
-
 
             return newStudent;
         });
@@ -123,18 +100,11 @@ router.get('/me', async (req, res, next) => {
         
         const student = await prisma.student.findFirst({
             where: { userId: (req.user as any).userId },
-            include: {
-                batchEnrollments: { include: { batch: true } },
-            },
         });
         
         if (!student) throw new AppError('Student profile not found', 404);
         
-        // Find enrolled categories (this logic might need refinement based on actual enrollments model)
-        // Currently assuming test purchases or enrollments are tracked somehow, 
-        // passing empty for now until full store logic is built, or fetching user details.
-        
-        res.json({ success: true, data: { ...student, email: (req.user as any).email, mobile: (req.user as any).mobile } });
+        res.json({ success: true, data: student });
     } catch (err) { next(err); }
 });
 
@@ -159,7 +129,6 @@ router.patch('/me', async (req, res, next) => {
             data: {
                 name: body.name !== undefined ? body.name : undefined,
                 mobile: body.phone !== undefined ? body.phone : undefined,
-                // Add primaryExam and targetYear if they exist in schema, else ignore or store in JSON
             },
         });
         
@@ -181,9 +150,7 @@ router.get('/:id', async (req, res, next) => {
         const student = await prisma.student.findUnique({
             where: { id: req.params.id as string },
             include: {
-                batchEnrollments: { include: { batch: true } },
-                feeTransactions: { orderBy: { createdAt: 'desc' }, take: 5 },
-                attendance: { orderBy: { date: 'desc' }, take: 30 },
+                attempts: { orderBy: { createdAt: 'desc' }, take: 10 }
             },
         });
         if (!student) throw new AppError('Student not found', 404);
@@ -198,9 +165,7 @@ router.patch('/:id', async (req, res, next) => {
             name: z.string().min(2).optional(),
             email: z.string().email().optional(),
             mobile: z.string().optional(),
-            parentMobile: z.string().optional(),
             isActive: z.boolean().optional(),
-            address: z.string().optional(),
         });
         const body = schema.parse(req.body);
 

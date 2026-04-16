@@ -20,9 +20,7 @@ function isMissingSessionTableError(err: unknown): boolean {
 export interface JwtPayload {
     userId: string;
     role: string;
-    orgId?: string;
     studentId?: string;
-    id?: string;
     jti?: string;
     loginId?: string;
     username?: string;

@@ -34,7 +34,6 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { mockbookService, MockTest, ExamSeries, ExamSubCategory } from "@/services/mockbookService";
 import { toast } from "sonner";
-import { useOrg } from "@/providers/OrgProvider";
 
 function StatusBadge({ status }: { status: string }) {
     const cfg: Record<string, { label: string; cls: string; icon: any }> = {
@@ -53,7 +52,7 @@ function StatusBadge({ status }: { status: string }) {
 export default function MockTestsPage() {
     const { isOpen } = useSidebarStore();
     const router = useRouter();
-    const { selectedOrgId } = useOrg();
+    const selectedOrgId = null;
     const [tests, setTests] = useState<MockTest[]>([]);
     const [series, setSeries] = useState<ExamSeries[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -76,7 +75,6 @@ export default function MockTestsPage() {
     const [deleteConfirm, setDeleteConfirm] = useState<MockTest | null>(null);
 
     const loadData = async () => {
-        if (!selectedOrgId) return;
         try {
             setIsLoading(true);
             const [testsData, seriesData] = await Promise.all([

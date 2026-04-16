@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { mockbookService, ExamFolder } from "@/services/mockbookService";
 import { toast } from "sonner";
-import { useOrg } from "@/providers/OrgProvider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,7 +39,7 @@ const EMPTY_FORM = { name: "", description: "", icon: "📚", color: COLOR_OPTIO
 
 export default function CategoriesPage() {
   const { isOpen } = useSidebarStore();
-  const { selectedOrgId } = useOrg();
+  const selectedOrgId = null;
   const [categories, setCategories] = useState<ExamFolder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);

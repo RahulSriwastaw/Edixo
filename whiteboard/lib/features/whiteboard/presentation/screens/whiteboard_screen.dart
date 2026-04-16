@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/canvas/whiteboard_canvas.dart';
-import '../widgets/toolbar/bottom_main_toolbar.dart';
+import '../widgets/toolbar/movable_bottom_toolbar.dart';
 import '../widgets/toolbar/floating_style_panel.dart';
 import '../widgets/toolbar/top_toolbar.dart';
 import '../widgets/overlays/slide_panel_drawer.dart';
@@ -71,8 +71,8 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
             ),
           ),
 
-          // 3. Main Tool Controls (Bottom)
-          const BottomMainToolbar(),
+          // 3. Main Tool Controls (Bottom) - Movable and Collapsible
+          const MovableBottomToolbar(),
 
           // 4. Style Panel (Right side, conditional)
           const FloatingStylePanel(),

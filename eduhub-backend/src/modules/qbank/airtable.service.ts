@@ -117,6 +117,11 @@ export class AirtableService {
         let updatedCount = 0;
         let failedCount = 0;
 
+        const folder = await prisma.qBankFolder.findFirst({
+            where: { slug: tableName, description: 'AIRTABLE_SYNC' }
+        });
+        const folderId = folder ? folder.id : null;
+
         for (const record of records) {
             try {
                 const fields = record.fields as unknown as AirtableQuestionRow;
@@ -135,7 +140,7 @@ export class AirtableService {
                     collection: fields.collection || null,
                     airtable_table_name: fields.airtable_table_name || tableName,
                     exam: fields.exam || 'SSC CGL',
-                    // section: fields.section || null, // Missing in schema
+                    folderId: folderId,
                 };
 
                 // 2. Options Mapping

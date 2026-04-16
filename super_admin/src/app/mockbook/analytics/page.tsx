@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
     ChevronRight, Users, TrendingUp, FileText,
     IndianRupee, BarChart3, Radio, ArrowUpRight, ArrowDownRight, Search, Target,
-    Trophy, Building2,
+    Trophy,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -49,8 +49,6 @@ export default function AnalyticsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     // Filter State
-    const [organizations, setOrganizations] = useState<any[]>([]);
-    const [selectedOrgId, setSelectedOrgId] = useState<string>("all");
     const [categories, setCategories] = useState<any[]>([]);
     const [selectedCategoryId, setSelectedCategoryId] = useState<string>("all");
 
@@ -66,37 +64,26 @@ export default function AnalyticsPage() {
     const [testPerformance, setTestPerformance] = useState<any>(null);
     const [isTestLoading, setIsTestLoading] = useState(false);
 
-    // Fetch filters on mount
-    useEffect(() => {
-        const loadFilters = async () => {
-            const orgs = await mockbookService.getOrganizations();
-            setOrganizations(orgs);
-        };
-        loadFilters();
-    }, []);
-
-    // Fetch categories when org changes
+    // Load exam folders as categories on mount
     useEffect(() => {
         const loadCategories = async () => {
-            if (selectedOrgId !== "all") {
-                const folders = await mockbookService.getFolders(selectedOrgId);
+            try {
+                const folders = await mockbookService.getFolders();
                 setCategories(folders);
-            } else {
-                setCategories([]);
+            } catch (error) {
+                console.error("Failed to load categories", error);
             }
-            setSelectedCategoryId("all");
         };
         loadCategories();
-    }, [selectedOrgId]);
+    }, []);
 
     useEffect(() => {
         const fetchAnalytics = async () => {
             setIsLoading(true);
             try {
-                const orgId = selectedOrgId === "all" ? undefined : selectedOrgId;
                 const [statsData, studentsData] = await Promise.all([
-                    mockbookService.getAnalytics(orgId),
-                    mockbookService.getAdminStudents() // Add orgId filtering to this too if needed later
+                    mockbookService.getAnalytics(),
+                    mockbookService.getAdminStudents()
                 ]);
                 setStats(statsData);
                 setStudents(studentsData);
@@ -107,7 +94,7 @@ export default function AnalyticsPage() {
             }
         };
         fetchAnalytics();
-    }, [selectedOrgId, range]); // Re-fetch on org or time range change
+    }, [range]);
 
     // Search for tests as user types
     const handleTestSearch = async (val: string) => {
@@ -174,28 +161,16 @@ export default function AnalyticsPage() {
                                 <p className="text-gray-500 text-sm mt-1">Platform-wide performance metrics</p>
                             </div>
                                 <div className="flex items-center gap-3">
-                                    <Select value={selectedOrgId} onValueChange={setSelectedOrgId}>
-                                        <SelectTrigger className="w-[180px] bg-white border-slate-200 h-10">
-                                            <div className="flex items-center gap-2">
-                                                <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                                                <SelectValue placeholder="All Organizations" />
-                                            </div>
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="all">All Organizations</SelectItem>
-                                            {organizations.map(o => (
-                                                <SelectItem key={o.id} value={o.id}>{o.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-
-                                    {selectedOrgId !== "all" && categories.length > 0 && (
+                                    {categories.length > 0 && (
                                         <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
                                             <SelectTrigger className="w-[180px] bg-white border-slate-200 h-10">
-                                                <SelectValue placeholder="All Series" />
+                                                <div className="flex items-center gap-2">
+                                                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                                                    <SelectValue placeholder="All Categories" />
+                                                </div>
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="all">All Series</SelectItem>
+                                                <SelectItem value="all">All Categories</SelectItem>
                                                 {categories.map(c => (
                                                     <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                                                 ))}

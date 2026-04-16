@@ -3,14 +3,10 @@ import { prisma } from '../../../../config/database';
 
 export const getTestSeries = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { folderId, orgId } = req.query;
-        // In super-admin, we can filter by orgId from query if provided.
-        // Otherwise, fetch all or specific to the user's scope.
-        // The frontend passes folderId and orgId.
+        const { folderId } = req.query;
         
         const whereClause: any = {};
         if (folderId) whereClause.folderId = String(folderId);
-        if (orgId) whereClause.orgId = String(orgId);
 
         const series = await prisma.examCategory.findMany({
             where: whereClause,
@@ -59,7 +55,7 @@ export const getTestSeriesDetail = async (req: Request, res: Response, next: Nex
 
 export const createTestSeries = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, description, icon, orgId, folderId, isFeatured, isFree, price, isActive, discountPrice } = req.body;
+        const { name, description, icon, folderId, isFeatured, isFree, price, isActive, discountPrice } = req.body;
         
         if (!name || !folderId) {
             return res.status(400).json({ success: false, message: 'Name and Folder ID are required' });
@@ -70,7 +66,6 @@ export const createTestSeries = async (req: Request, res: Response, next: NextFu
                 name,
                 description,
                 icon,
-                orgId: orgId || null,
                 folderId,
                 isFeatured: isFeatured || false,
                 isFree: isFree !== undefined ? isFree : true,

@@ -13,15 +13,7 @@ router.use(optionalAuthenticate);
 
 router.get('/folders', async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || req.user?.orgId;
-        const where: any = {};
-        
-        if (orgId) {
-            where.orgId = String(orgId);
-        }
-
         const folders = await prisma.examFolder.findMany({
-            where,
             orderBy: { sortOrder: 'asc' },
         });
         res.json({ success: true, data: folders });
@@ -33,7 +25,6 @@ router.get('/folders', async (req, res, next) => {
 
 router.post('/folders', async (req, res, next) => {
     try {
-        const { orgId, ...rest } = req.body;
         const schema = z.object({
             name: z.string().min(1),
             description: z.string().optional(),
@@ -42,12 +33,11 @@ router.post('/folders', async (req, res, next) => {
             isFeatured: z.boolean().default(false),
             sortOrder: z.number().default(0),
         });
-        const body = schema.parse(rest);
+        const body = schema.parse(req.body);
 
         const folder = await prisma.examFolder.create({ 
             data: { 
                 ...body, 
-                orgId: orgId || null 
             } 
         });
         res.status(201).json({ success: true, data: folder });
@@ -148,11 +138,9 @@ router.delete('/folders/:id', async (req, res, next) => {
 router.get('/categories', async (req, res, next) => {
     try {
         const { folderId } = req.query;
-        const orgId = req.query.orgId || req.headers['x-org-id'] || (req.user as any)?.orgId;
 
         const where: any = {};
         if (folderId) where.folderId = folderId as string;
-        if (orgId) where.orgId = String(orgId);
 
         const categories = await prisma.examCategory.findMany({
             where,
@@ -224,7 +212,6 @@ router.get('/categories/:id', async (req, res, next) => {
 
 router.post('/categories', async (req, res, next) => {
     try {
-        const { orgId, ...rest } = req.body;
         const schema = z.object({
             folderId: z.string().min(1),
             name: z.string().min(1),
@@ -236,12 +223,11 @@ router.post('/categories', async (req, res, next) => {
             discountPrice: z.number().optional().nullable(),
             sortOrder: z.number().default(0),
         });
-        const body = schema.parse(rest);
+        const body = schema.parse(req.body);
 
         const category = await prisma.examCategory.create({ 
             data: { 
                 ...body, 
-                orgId: orgId || null 
             } 
         });
         res.status(201).json({ success: true, data: category });
@@ -269,12 +255,10 @@ router.delete('/categories/:id', async (req, res, next) => {
 router.get('/subcategories', async (req, res, next) => {
     try {
         const { categoryId, parentId } = req.query;
-        const orgId = req.query.orgId || req.headers['x-org-id'] || (req.user as any)?.orgId;
         const whereClause: any = {
             categoryId: categoryId ? (categoryId as string) : undefined,
             parentId: parentId ? (parentId as string) : (parentId === null ? null : undefined),
         };
-        if (orgId) whereClause.orgId = String(orgId);
 
         const subCategories = await prisma.examSubCategory.findMany({
             where: whereClause,
@@ -286,7 +270,6 @@ router.get('/subcategories', async (req, res, next) => {
 
 router.post('/subcategories', async (req, res, next) => {
     try {
-        const { orgId, ...rest } = req.body;
         const schema = z.object({
             categoryId: z.string().min(1),
             parentId: z.string().optional().nullable(),
@@ -294,12 +277,11 @@ router.post('/subcategories', async (req, res, next) => {
             description: z.string().optional(),
             sortOrder: z.number().default(0),
         });
-        const body = schema.parse(rest);
+        const body = schema.parse(req.body);
 
         const subCategory = await prisma.examSubCategory.create({ 
             data: { 
                 ...body, 
-                orgId: orgId || null 
             } 
         });
         res.status(201).json({ success: true, data: subCategory });
@@ -344,12 +326,7 @@ router.delete('/folders/:id', async (req, res, next) => {
 // ─── Public mock tests (MockVeda) ─────────────────────────────
 router.get('/public', async (req, res, next) => {
     try {
-        const orgId = req.query.orgId || req.headers['x-org-id'] || (req.user as any)?.orgId;
-
         const where: any = { isPublic: true, status: 'LIVE' };
-        if (orgId) {
-            where.orgId = String(orgId);
-        }
 
         const tests = await prisma.mockTest.findMany({
             where,
@@ -437,21 +414,21 @@ router.get('/tests/:testId/questions', async (req, res, next) => {
                 if (!q) continue;
                 questionsList.push({
                     id: q.id,
-                    questionId: q.questionId,
+                    questionId: q.question_id,
                     number: qNumber++,
                     section: (section.set as any)?.name || section.name,
-                    text: q.textEn || q.textHi || '',
-                    textHi: q.textHi,
+                    text: q.text_en || q.text_hi || '',
+                    textHi: q.text_hi,
                     type: q.type,
                     options: (q.question_options || []).map((o: any) => ({
                         id: o.id,
-                        text: o.textEn || o.textHi || '',
-                        textHi: o.textHi,
+                        text: o.text_en || o.text_hi || '',
+                        textHi: o.text_hi,
                         isCorrect: false, // Never send correct answer to client
                     })),
                     marks: 1, // Default; TODO: per-section marks
                     negative: -0.33,
-                    imageUrl: q.imageUrl,
+                    imageUrl: q.image_url,
                 });
             }
         }
@@ -839,9 +816,7 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
 // GET /mockbook/analytics/stats — platform-wide metrics
 router.get('/analytics/stats', async (req, res, next) => {
     try {
-        const { orgId, days } = req.query;
-        let orgFilter: any = {};
-        
+        const { days } = req.query;
         let dateFilter: any = {};
         if (days) {
             const date = new Date();
@@ -849,28 +824,22 @@ router.get('/analytics/stats', async (req, res, next) => {
             dateFilter = { createdAt: { gte: date } };
         }
 
-        if (orgId) {
-            orgFilter = { orgId: String(orgId) };
-        }
-
         const [platformTests, totalSeries, attemptsCount, studentsCount, liveNow] = await Promise.all([
-            prisma.mockTest.count({ where: orgFilter }),
-            prisma.examCategory.count({ where: orgFilter }),
+            prisma.mockTest.count({ }),
+            prisma.examCategory.count({ }),
             prisma.testAttempt.count({
                 where: {
-                    ...(orgId ? { test: { orgId: String(orgId) } } : {}),
                     ...dateFilter
                 }
             }),
             prisma.user.count({ where: { role: 'STUDENT', ...dateFilter } }),
-            prisma.mockTest.count({ where: { ...orgFilter, status: 'LIVE' } })
+            prisma.mockTest.count({ where: { status: 'LIVE' } })
         ]);
 
         // Calculate Top Tests by attempts
         const topTestsRaw = await prisma.testAttempt.groupBy({
             by: ['testId'],
             where: {
-                ...(orgId ? { test: { orgId: String(orgId) } } : {}),
                 ...dateFilter
             },
             _count: { _all: true },
@@ -894,7 +863,6 @@ router.get('/analytics/stats', async (req, res, next) => {
         // Note: 'Enrollment' here is defined as unique students who attempted at least one test in that series
         const seriesAttemptCounts = await prisma.testAttempt.findMany({
             where: {
-                ...(orgId ? { test: { orgId: String(orgId) } } : {}),
                 ...dateFilter
             },
             select: {
@@ -959,10 +927,9 @@ router.get('/analytics/stats', async (req, res, next) => {
 // GET /mockbook/admin/tests — list all tests (admin view, all orgs or filtered)
 router.get('/admin/tests', async (req, res, next) => {
     try {
-        const { orgId, subCategoryId, categoryId, status, search } = req.query;
+        const { subCategoryId, categoryId, status, search } = req.query;
 
         const where: any = {};
-        if (orgId) where.orgId = String(orgId);
         if (subCategoryId) where.subCategoryId = subCategoryId as string;
         if (status) where.status = status as string;
         if (search) where.name = { contains: search as string, mode: 'insensitive' };
@@ -1056,7 +1023,6 @@ router.delete('/mockbook/admin/tests/:id/sections/:sectionId', async (req, res, 
 router.post('/admin/tests', async (req, res, next) => {
     try {
         const schema = z.object({
-            orgId: z.string().min(1),
             subCategoryId: z.string().optional().nullable(),
             name: z.string().min(1),
             description: z.string().optional(),
@@ -1081,7 +1047,6 @@ router.post('/admin/tests', async (req, res, next) => {
             data: {
                 testId,
                 pin: Math.floor(100000 + Math.random() * 900000).toString(),
-                orgId: body.orgId,
                 subCategoryId: body.subCategoryId || null,
                 name: body.name,
                 description: body.description,
@@ -1174,10 +1139,9 @@ router.delete('/admin/tests/:id', async (req, res, next) => {
 // GET /mockbook/admin/students — students with attempt stats (admin view)
 router.get('/admin/students', async (req, res, next) => {
     try {
-        const { orgId, search } = req.query;
+        const { search } = req.query;
 
         const where: any = {};
-        if (orgId) where.orgId = String(orgId);
         if (search) {
             where.OR = [
                 { name: { contains: search as string, mode: 'insensitive' } },
@@ -1217,13 +1181,10 @@ router.get('/admin/students', async (req, res, next) => {
 // GET /mockbook/admin/live-tests — currently live and upcoming scheduled tests
 router.get('/admin/live-tests', async (req, res, next) => {
     try {
-        const { orgId } = req.query;
-
         const [liveTests, scheduledTests] = await Promise.all([
             prisma.mockTest.findMany({
                 where: {
                     status: 'LIVE',
-                    ...(orgId && { orgId: String(orgId) }),
                 },
                 include: { _count: { select: { attempts: true } } },
                 orderBy: { scheduledAt: 'asc' }
@@ -1232,7 +1193,6 @@ router.get('/admin/live-tests', async (req, res, next) => {
                 where: {
                     status: 'DRAFT',
                     scheduledAt: { gte: new Date() },
-                    ...(orgId && { orgId: String(orgId) }),
                 },
                 include: { _count: { select: { attempts: true } } },
                 orderBy: { scheduledAt: 'asc' },
@@ -1703,9 +1663,11 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
         const questions: any[] = [];
         let qNum = 1;
         for (const section of attempt.test.sections) {
-            for (const item of section.set.items) {
-                const q = item.question;
-                const correctOptionIds = q.options.filter((o: any) => o.isCorrect).map((o: any) => o.id);
+            const items = section.set.question_set_items || [];
+            for (const item of items) {
+                const q = item.questions;
+                if (!q) continue;
+                const correctOptionIds = q.question_options.filter((o: any) => o.is_correct).map((o: any) => o.id);
                 const userAnswer = answerMap[q.id];
                 const selectedOptionIds = userAnswer?.selectedOptions || [];
 
@@ -1718,23 +1680,23 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
                     id: q.id,
                     number: qNum++,
                     section: section.set.name || section.name,
-                    textEn: q.textEn,
-                    textHi: q.textHi,
+                    textEn: q.text_en,
+                    textHi: q.text_hi,
                     type: q.type,
-                    options: q.options.map((o: any) => ({
+                    options: q.question_options.map((o: any) => ({
                         id: o.id,
-                        textEn: o.textEn,
-                        textHi: o.textHi,
-                        isCorrect: o.isCorrect,
+                        textEn: o.text_en,
+                        textHi: o.text_hi,
+                        isCorrect: o.is_correct,
                     })),
                     correctOptionIds,
-                    explanation: q.explanation,
-                    imageUrl: q.imageUrl,
-                    topic: q.topic,
-                    chapter: q.chapter,
-                    subjectArea: q.subjectArea,
-                    avgTimeSecs: q.avgTimeSecs || 60,
-                    correctPercentage: q.correctPercentage || 0,
+                    explanation: q.explanation_en,
+                    imageUrl: null,
+                    topic: q.subject_name,
+                    chapter: q.chapter_name,
+                    subjectArea: q.subject_name,
+                    avgTimeSecs: 60,
+                    correctPercentage: 0,
                     // User's response
                     selectedOptionIds,
                     timeTakenSecs: userAnswer?.timeTakenSecs || 0,
@@ -1779,6 +1741,7 @@ router.get('/tests/:testId/leaderboard', async (req, res, next) => {
     } catch (err: any) { next(err); }
 });
 
+/*
 // ─── Save / Bookmark a question ─────────────────────────────────────────────────
 router.post('/questions/:questionId/save', authenticate, async (req, res, next) => {
     try {
@@ -1839,6 +1802,7 @@ router.get('/user/saved-questions', authenticate, async (req, res, next) => {
         res.json({ success: true, data: saved });
     } catch (err: any) { next(err); }
 });
+*/
 
 // ─── Report a question ──────────────────────────────────────────────────────────
 router.post('/questions/:questionId/report', authenticate, async (req, res, next) => {

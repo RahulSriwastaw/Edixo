@@ -3,15 +3,14 @@ import { prisma } from '../../../../config/database';
 
 export const getStudentsList = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { orgId, search, page = 1, limit = 50 } = req.query;
+        const { search, page = 1, limit = 50 } = req.query;
 
         const whereClause: any = { isActive: true };
-        if (orgId) whereClause.orgId = String(orgId);
         if (search) {
             whereClause.OR = [
                 { name: { contains: String(search), mode: 'insensitive' } },
                 { email: { contains: String(search), mode: 'insensitive' } },
-                { phone: { contains: String(search) } },
+                { mobile: { contains: String(search) } },
             ];
         }
 
@@ -35,7 +34,6 @@ export const getStudentsList = async (req: Request, res: Response, next: NextFun
             name: s.name,
             email: s.email,
             phone: s.mobile,
-            orgId: s.orgId,
             testAttemptsCount: s._count?.attempts || 0,
             createdAt: s.createdAt
         }));

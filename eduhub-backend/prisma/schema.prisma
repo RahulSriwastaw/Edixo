@@ -98,7 +98,7 @@ model question_sets {
   pdf_notes          Json?
   visual_settings    Json?
   folderId           String?
-  folder             qBankFolder?         @relation(fields: [folderId], references: [id])
+  folder             qBankFolder?      @relation("QuestionSetFolder", fields: [folderId], references: [id])
   question_set_items question_set_items[]
   mockTestSections   MockTestSection[]
 }
@@ -126,7 +126,7 @@ model questions {
   airtable_table_name String?
   record_id           String?
   folderId            String?
-  folder              qBankFolder?         @relation(fields: [folderId], references: [id])
+  folder              qBankFolder?         @relation("QuestionFolder", fields: [folderId], references: [id])
   question_options    question_options[]
   question_set_items  question_set_items[]
   attemptAnswers      AttemptAnswer[]
@@ -151,22 +151,17 @@ model qBankFolder {
   path        String      @default("/")
   depth       Int         @default(0)
   scope       String      @default("GLOBAL")
-  orgId       String?
-  parentId    String?
   description String?
-  icon        String?
-  color       String?
-  sortOrder   Int         @default(0)
+  parentId    String?
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
-  questions   questions[]
-  sets        question_sets[]
   parent      qBankFolder?  @relation("FolderHierarchy", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
   children    qBankFolder[] @relation("FolderHierarchy")
+  questions   questions[]   @relation("QuestionFolder")
+  sets        question_sets[] @relation("QuestionSetFolder")
 
-  @@index([orgId])
   @@index([parentId])
   @@map("qbank_folders")
 }
@@ -179,7 +174,6 @@ model qBankFolder {
 
 model ExamFolder {
   id          String   @id @default(uuid())
-  orgId       String?
   name        String
   description String?
   icon        String?
@@ -196,7 +190,6 @@ model ExamFolder {
 
 model ExamCategory {
   id            String   @id @default(uuid())
-  orgId         String?
   folderId      String
   name          String
   description   String?
@@ -217,7 +210,6 @@ model ExamCategory {
 
 model ExamSubCategory {
   id          String   @id @default(uuid())
-  orgId       String?
   categoryId  String
   parentId    String?
   name        String
@@ -237,7 +229,6 @@ model MockTest {
   testId           String     @unique 
   pin              String     
   name             String
-  orgId            String?    // Kept optional for backward compatibility in backend routes
   description      String?
   status           String     @default("DRAFT")
   durationMins     Int
@@ -290,7 +281,6 @@ model Student {
   id        String   @id @default(uuid())
   studentId String   @unique @default(uuid())
   userId    String   @unique
-  orgId     String?  // Keep optional just in case backend expects it
   name      String
   email     String?
   mobile    String?

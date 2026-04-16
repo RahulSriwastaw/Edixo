@@ -63,7 +63,6 @@ router.get('/dashboard', async (_req, res, next) => {
           testAttemptCount: 0,
           globalQuestionCount: 0,
           activeUserCount: activeWhiteboardAccounts,
-          suspendedOrgs: inactiveWhiteboardAccounts,
         },
         recentAccounts: recentWhiteboardAccounts.map((a) => ({
           ...a,

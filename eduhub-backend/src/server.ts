@@ -19,6 +19,8 @@ import whiteboardAccountRoutes from './modules/whiteboardAccount/whiteboardAccou
 import uploadRoutes from './modules/upload/upload.routes';
 import aiRoutes from './modules/ai/ai.routes';
 import mockbookRoutes from './modules/mockbook/mockbook.routes';
+import studentsRoutes from './modules/students/students.routes';
+import qbankRoutes from './modules/qbank/qbank.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -74,259 +76,6 @@ async function generateUniqueSixDigitSetId(seed: string, excludeSetPrimaryId?: s
     throw new Error('Failed to generate unique 6-digit setId');
 }
 
-type AirtableCompatRecord = {
-    id: string;
-    fields: Record<string, unknown>;
-};
-
-function getFieldValue(fields: Record<string, unknown>, candidates: string[]) {
-    const entries = Object.entries(fields);
-    for (const candidate of candidates) {
-        const normalizedCandidate = candidate.toLowerCase().replace(/[^a-z0-9]/g, '');
-        const match = entries.find(([key]) => key.toLowerCase().replace(/[^a-z0-9]/g, '') === normalizedCandidate);
-        if (match) return match[1];
-    }
-    return undefined;
-}
-
-function toText(value: unknown) {
-    if (value === null || value === undefined) return '';
-    if (Array.isArray(value)) return value.join(', ');
-    return String(value).trim();
-}
-
-function toNumber(value: unknown) {
-    if (value === null || value === undefined || value === '') return null;
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : null;
-}
-
-function normalizeQuestionType(value: string) {
-    const type = value.toLowerCase().trim();
-    if (!type) return 'mcq_single';
-    if (type.includes('multiple') || type.includes('multi')) return 'multi_select';
-    if (type.includes('true') || type.includes('false')) return 'true_false';
-    if (type.includes('integer') || type.includes('descriptive') || type.includes('blank')) return 'integer';
-    return 'mcq_single';
-}
-
-function normalizeDifficulty(value: string) {
-    const difficulty = value.toLowerCase().trim();
-    if (difficulty === 'easy' || difficulty === 'medium' || difficulty === 'hard') return difficulty;
-    return 'medium';
-}
-
-function buildQuestionPayloadFromAirtable(record: AirtableCompatRecord, tableName: string) {
-    const fields = record.fields || {};
-    const questionNo = toNumber(getFieldValue(fields, ['question_no', 'questionNo', 'question no']));
-    const questionTextEn = toText(getFieldValue(fields, ['question_eng', 'question_en', 'question', 'question text english']));
-    const questionTextHi = toText(getFieldValue(fields, ['question_hin', 'question_hi', 'question hindi', 'question text hindi']));
-    const explanationEn = toText(getFieldValue(fields, ['solution_eng', 'explanation_eng', 'solution english']));
-    const explanationHi = toText(getFieldValue(fields, ['solution_hin', 'explanation_hin', 'solution hindi']));
-    const subjectName = toText(getFieldValue(fields, ['subject', 'subject_name'])) || 'General Awareness';
-    const chapterName = toText(getFieldValue(fields, ['chapter', 'chapter_name'])) || 'Miscellaneous';
-    const exam = toText(getFieldValue(fields, ['exam', 'related_exam', 'exam category']));
-    const collection = toText(getFieldValue(fields, ['collection']));
-    const year = toNumber(getFieldValue(fields, ['year', 'exam_year']));
-    const pointCost = toNumber(getFieldValue(fields, ['point_cost', 'points', 'point cost'])) ?? 5;
-    const usageCount = toNumber(getFieldValue(fields, ['usage_count', 'usage count'])) ?? 0;
-    const answer = toText(getFieldValue(fields, ['answer', 'correct_option', 'correct answer']));
-    const questionType = normalizeQuestionType(toText(getFieldValue(fields, ['type', 'question_type'])));
-    const options = [1, 2, 3, 4, 5, 6]
-        .map((index) => ({
-            textEn: toText(getFieldValue(fields, [`option${index}_eng`, `option_${index}_eng`, `option${index}`, `option ${index} english`])),
-            textHi: toText(getFieldValue(fields, [`option${index}_hin`, `option_${index}_hin`, `option ${index} hindi`])),
-            key: String(index),
-            sortOrder: index - 1,
-        }))
-        .filter((option) => option.textEn || option.textHi);
-
-    return {
-        questionId: toText(getFieldValue(fields, ['question_id', 'question_unique_id'])) || `Q-AIR-${record.id}`,
-        recordId: record.id,
-        questionNo,
-        textEn: questionTextEn,
-        textHi: questionTextHi,
-        explanationEn,
-        explanationHi,
-        type: questionType,
-        difficulty: normalizeDifficulty(toText(getFieldValue(fields, ['difficulty']))),
-        subjectName,
-        chapterName,
-        exam,
-        collection,
-        year,
-        pointCost,
-        usageCount,
-        isApproved: true,
-        isGlobal: true,
-        airtableTableName: toText(getFieldValue(fields, ['airtable_table_name'])) || tableName,
-        options: options.map((option) => ({
-            ...option,
-            isCorrect: answer === option.key || answer.toUpperCase() === String.fromCharCode(64 + Number(option.key)),
-        })),
-    };
-}
-
-async function fetchAirtableTablesCompat() {
-    if (!env.AIRTABLE_API_KEY || !env.AIRTABLE_BASE_ID) {
-        throw new Error('Airtable credentials are not configured on the backend');
-    }
-
-    const response = await fetch(`https://api.airtable.com/v0/meta/bases/${env.AIRTABLE_BASE_ID}/tables`, {
-        headers: { Authorization: `Bearer ${env.AIRTABLE_API_KEY}` },
-    });
-    const data = await response.json() as { tables?: Array<{ id: string; name: string }>; error?: { message?: string } };
-
-    if (!response.ok) {
-        if (response.status === 403) {
-            throw new Error('Airtable token me schema.bases:read permission missing hai');
-        }
-        throw new Error(data.error?.message || 'Failed to fetch Airtable tables');
-    }
-
-    return data.tables || [];
-}
-
-async function fetchAirtableRecordsCompat(tableName: string) {
-    if (!env.AIRTABLE_API_KEY || !env.AIRTABLE_BASE_ID) {
-        throw new Error('Airtable credentials are not configured on the backend');
-    }
-
-    const records: AirtableCompatRecord[] = [];
-    let offset: string | undefined;
-
-    do {
-        const url = new URL(`https://api.airtable.com/v0/${env.AIRTABLE_BASE_ID}/${encodeURIComponent(tableName)}`);
-        url.searchParams.set('pageSize', '100');
-        if (offset) url.searchParams.set('offset', offset);
-
-        const response = await fetch(url.toString(), {
-            headers: { Authorization: `Bearer ${env.AIRTABLE_API_KEY}` },
-        });
-        const data = await response.json() as { records?: AirtableCompatRecord[]; offset?: string; error?: { message?: string } };
-
-        if (!response.ok) {
-            throw new Error(data.error?.message || `Failed to fetch records from Airtable table ${tableName}`);
-        }
-
-        records.push(...(data.records || []));
-        offset = data.offset;
-    } while (offset);
-
-    return records;
-}
-
-async function syncAirtableTableCompat(tableName: string) {
-    const records = await fetchAirtableRecordsCompat(tableName);
-    let createdCount = 0;
-    let updatedCount = 0;
-
-    for (const record of records) {
-        const payload = buildQuestionPayloadFromAirtable(record, tableName);
-        const existingRows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
-            SELECT id FROM questions
-            WHERE record_id = ${sqlQuote(payload.recordId)}
-               OR question_id = ${sqlQuote(payload.questionId)}
-            LIMIT 1
-        `);
-
-        const questionPrimaryId = existingRows[0]?.id || createCompatId('q');
-
-        await prisma.$executeRawUnsafe(`
-            INSERT INTO questions (
-                id, question_id, record_id, question_no, text_en, text_hi, explanation_en, explanation_hi,
-                type, difficulty, subject_name, chapter_name, exam, collection, year,
-                point_cost, usage_count, is_approved, is_global, airtable_table_name, created_at
-            ) VALUES (
-                ${sqlQuote(questionPrimaryId)},
-                ${sqlQuote(payload.questionId)},
-                ${sqlQuote(payload.recordId)},
-                ${nullableSqlValue(payload.questionNo)},
-                ${sqlQuote(payload.textEn || payload.textHi || 'Untitled question')},
-                ${nullableSqlValue(payload.textHi)},
-                ${nullableSqlValue(payload.explanationEn)},
-                ${nullableSqlValue(payload.explanationHi)},
-                ${sqlQuote(payload.type)},
-                ${sqlQuote(payload.difficulty)},
-                ${nullableSqlValue(payload.subjectName)},
-                ${nullableSqlValue(payload.chapterName)},
-                ${nullableSqlValue(payload.exam)},
-                ${nullableSqlValue(payload.collection)},
-                ${nullableSqlValue(payload.year)},
-                ${payload.pointCost},
-                ${payload.usageCount},
-                ${payload.isApproved ? 'TRUE' : 'FALSE'},
-                ${payload.isGlobal ? 'TRUE' : 'FALSE'},
-                ${sqlQuote(payload.airtableTableName)},
-                NOW()
-            )
-            ON CONFLICT (id) DO UPDATE SET
-                question_id = EXCLUDED.question_id,
-                record_id = EXCLUDED.record_id,
-                question_no = EXCLUDED.question_no,
-                text_en = EXCLUDED.text_en,
-                text_hi = EXCLUDED.text_hi,
-                explanation_en = EXCLUDED.explanation_en,
-                explanation_hi = EXCLUDED.explanation_hi,
-                type = EXCLUDED.type,
-                difficulty = EXCLUDED.difficulty,
-                subject_name = EXCLUDED.subject_name,
-                chapter_name = EXCLUDED.chapter_name,
-                exam = EXCLUDED.exam,
-                collection = EXCLUDED.collection,
-                year = EXCLUDED.year,
-                point_cost = EXCLUDED.point_cost,
-                usage_count = EXCLUDED.usage_count,
-                is_approved = EXCLUDED.is_approved,
-                is_global = EXCLUDED.is_global,
-                airtable_table_name = EXCLUDED.airtable_table_name
-        `);
-
-        await prisma.$executeRawUnsafe(`DELETE FROM question_options WHERE question_id = ${sqlQuote(questionPrimaryId)}`);
-
-        for (const option of payload.options) {
-            await prisma.$executeRawUnsafe(`
-                INSERT INTO question_options (id, question_id, text_en, text_hi, is_correct, sort_order)
-                VALUES (
-                    ${sqlQuote(createCompatId('opt'))},
-                    ${sqlQuote(questionPrimaryId)},
-                    ${nullableSqlValue(option.textEn)},
-                    ${nullableSqlValue(option.textHi)},
-                    ${option.isCorrect ? 'TRUE' : 'FALSE'},
-                    ${option.sortOrder}
-                )
-            `);
-        }
-
-        if (existingRows.length > 0) updatedCount += 1;
-        else createdCount += 1;
-    }
-
-    await prisma.$executeRawUnsafe(`
-        INSERT INTO airtable_sync_metadata (table_name, total_questions, last_sync_at, status, error)
-        VALUES (${sqlQuote(tableName)}, ${records.length}, NOW(), 'SUCCESS', NULL)
-        ON CONFLICT (table_name) DO UPDATE SET
-            total_questions = EXCLUDED.total_questions,
-            last_sync_at = EXCLUDED.last_sync_at,
-            status = EXCLUDED.status,
-            error = EXCLUDED.error
-    `);
-
-    await prisma.$executeRawUnsafe(`
-        UPDATE airtable_sync_folders
-        SET updated_at = NOW(), total_questions = ${records.length}
-        WHERE slug = ${sqlQuote(tableName)}
-    `);
-
-    return {
-        createdCount,
-        updatedCount,
-        failedCount: 0,
-        total: records.length,
-    };
-}
-
 async function ensureCompatibilitySetsFromQuestions() {
     const sourceRows = await prisma.$queryRawUnsafe<Array<{ source: string; total: number | string }>>(`
         SELECT
@@ -337,7 +86,6 @@ async function ensureCompatibilitySetsFromQuestions() {
         ORDER BY COUNT(*) DESC
     `);
 
-    // Helper: generate a deterministic 6-digit number from a string (stable across restarts)
     function deterministicSixDigit(str: string, offset = 0): string {
         let hash = 0;
         for (let i = 0; i < str.length; i++) {
@@ -355,14 +103,10 @@ async function ensureCompatibilitySetsFromQuestions() {
 
         const slug = slugify(source);
         const setPrimaryId = `compat-set-${slug}`;
-        // Deterministic 6-digit numeric Set ID and PIN
         const setCode = deterministicSixDigit(slug, 0);
         const setPin = deterministicSixDigit(slug, 42);
         const setName = `${source} Auto Set`;
         const setDescription = `Auto-generated compatibility set for ${source} questions.`;
-
-        // Ensure numeric set IDs and PINs. Clear old ones to avoid unique constraint issues.
-        await prisma.$executeRawUnsafe(`UPDATE question_sets SET set_id = NULL WHERE id = ${sqlQuote(setPrimaryId)}`).catch(() => {});
 
         await prisma.$executeRawUnsafe(`
             INSERT INTO question_sets (id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at)
@@ -406,83 +150,6 @@ async function ensureCompatibilitySetsFromQuestions() {
     }
 }
 
-function buildQuestionWhereClause(req: express.Request) {
-    const search = String(req.query.search || '').trim();
-    const difficulty = String(req.query.difficulty || '').trim().toLowerCase();
-    const type = String(req.query.type || '').trim().toLowerCase();
-    const exam = String(req.query.exam || '').trim();
-    const year = String(req.query.year || '').trim();
-    const source = String(req.query.source || '').trim();
-    const filtersRaw = String(req.query.filters || '').trim();
-    const conditions: string[] = [];
-
-    if (search) {
-        const safeSearch = search.replace(/'/g, "''");
-        conditions.push(`(
-            text_en ILIKE '%${safeSearch}%'
-            OR COALESCE(text_hi, '') ILIKE '%${safeSearch}%'
-            OR COALESCE(subject_name, '') ILIKE '%${safeSearch}%'
-            OR COALESCE(chapter_name, '') ILIKE '%${safeSearch}%'
-            OR COALESCE(exam, '') ILIKE '%${safeSearch}%'
-            OR COALESCE(collection, '') ILIKE '%${safeSearch}%'
-            OR COALESCE(airtable_table_name, '') ILIKE '%${safeSearch}%'
-        )`);
-    }
-
-    if (difficulty && difficulty !== 'all') conditions.push(`LOWER(difficulty) = ${sqlQuote(difficulty)}`);
-    if (type && type !== 'all') {
-        const normalized = normalizeQuestionType(type);
-        conditions.push(`LOWER(type) = ${sqlQuote(normalized)}`);
-    }
-    if (exam && exam !== 'all') conditions.push(`COALESCE(exam, '') = ${sqlQuote(exam)}`);
-    if (year && year !== 'all') conditions.push(`CAST(COALESCE(year, 0) AS TEXT) = ${sqlQuote(year)}`);
-    if (source && source !== 'all') conditions.push(`COALESCE(airtable_table_name, '') = ${sqlQuote(source)}`);
-
-    if (filtersRaw) {
-        try {
-            const filters = JSON.parse(filtersRaw) as Array<{ field?: string; operator?: string; value?: string }>;
-            const fieldMap: Record<string, string> = {
-                subjectName: 'subject_name',
-                chapterName: 'chapter_name',
-                exam: 'exam',
-                year: 'year',
-                collection: 'collection',
-                type: 'type',
-                difficulty: 'difficulty',
-                pointCost: 'point_cost',
-                usageCount: 'usage_count',
-                questionUniqueId: 'question_id',
-                isApproved: 'is_approved',
-                airtableTableName: 'airtable_table_name',
-                textEn: 'text_en',
-                textHi: 'text_hi',
-            };
-
-            for (const filter of filters) {
-                if (!filter?.field || !filter.operator) continue;
-                const column = fieldMap[filter.field];
-                if (!column) continue;
-
-                const value = String(filter.value || '');
-                const safeValue = value.replace(/'/g, "''");
-
-                if (filter.operator === 'equals') conditions.push(`CAST(COALESCE(${column}, '') AS TEXT) = ${sqlQuote(value)}`);
-                if (filter.operator === 'not_equals') conditions.push(`CAST(COALESCE(${column}, '') AS TEXT) <> ${sqlQuote(value)}`);
-                if (filter.operator === 'contains') conditions.push(`CAST(COALESCE(${column}, '') AS TEXT) ILIKE '%${safeValue}%'`);
-                if (filter.operator === 'doesNotContain') conditions.push(`CAST(COALESCE(${column}, '') AS TEXT) NOT ILIKE '%${safeValue}%'`);
-                if (filter.operator === 'startsWith') conditions.push(`CAST(COALESCE(${column}, '') AS TEXT) ILIKE '${safeValue}%'`);
-                if (filter.operator === 'endsWith') conditions.push(`CAST(COALESCE(${column}, '') AS TEXT) ILIKE '%${safeValue}'`);
-                if (filter.operator === 'isEmpty') conditions.push(`COALESCE(CAST(${column} AS TEXT), '') = ''`);
-                if (filter.operator === 'isNotEmpty') conditions.push(`COALESCE(CAST(${column} AS TEXT), '') <> ''`);
-            }
-        } catch {
-            logger.warn('Ignoring malformed qbank filters payload');
-        }
-    }
-
-    return conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-}
-
 async function ensureQuestionBankCompatibilityData() {
     await prisma.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS questions (
@@ -509,10 +176,6 @@ async function ensureQuestionBankCompatibilityData() {
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
     `);
-
-    // The following columns are verified to exist via latest schema introspection.
-    // Redundant ALTER TABLE calls are removed to prevent startup timeouts on large datasets.
-
 
     await prisma.$executeRawUnsafe(`
         CREATE TABLE IF NOT EXISTS question_options (
@@ -614,7 +277,7 @@ async function ensureQuestionBankCompatibilityData() {
     `);
 }
 
-// ─── Global Middleware ───────────────────────────────────────
+// Global Middleware
 app.use(helmet());
 app.use(compression());
 app.use(morgan('combined', {
@@ -627,17 +290,14 @@ const staticOrigins = env.ALLOWED_ORIGINS.split(',')
 
 app.use(cors({
     origin: async (origin, callback) => {
-        // 1. Allow if no origin (server-to-server / tools) or in static list
         if (!origin || staticOrigins.includes(origin) || staticOrigins.includes('*')) {
             return callback(null, true);
         }
 
-        // Extra check for subdomains of allowed base domains
         const isPlatformSubdomain = staticOrigins.some(so => {
             try {
                 const soUrl = new URL(so);
                 const originUrl = new URL(origin);
-                // Allow if it's a subdomain of an allowed base domain (e.g. superadmin.mockveda.com of mockveda.com)
                 return originUrl.hostname.endsWith(soUrl.hostname);
             } catch {
                 return false;
@@ -648,26 +308,24 @@ app.use(cors({
             return callback(null, true);
         }
 
-        // Single-owner mode: no tenant/domain DB checks.
-        logger.warn(`CORS blocked for origin: ${origin}. Add it to ALLOWED_ORIGINS to allow access.`);
-        callback(new Error(`CORS: ${origin} not allowed`));
+        logger.warn('CORS blocked for origin: ' + origin + '. Add it to ALLOWED_ORIGINS to allow access.');
+        callback(new Error('CORS: ' + origin + ' not allowed'));
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cache-Control', 'Pragma'],
 }));
 
-// Rate Limiter — general API
+// Rate Limiter
 const limiter = rateLimit({
     windowMs: env.RATE_LIMIT_WINDOW_MS,
     max: env.NODE_ENV === 'development' ? 100000 : env.RATE_LIMIT_MAX_REQUESTS,
     standardHeaders: true,
     legacyHeaders: false,
-    // Skip public/read-only endpoints — they're hit on every page load by HMR
-        skip: (req) =>
-            env.NODE_ENV === 'development' ||
-            (req.path === '/auth/me' && req.method === 'GET'),
-    message: { success: false, message: 'Too many requests — please try again later.' },
+    skip: (req) =>
+        env.NODE_ENV === 'development' ||
+        (req.path === '/auth/me' && req.method === 'GET'),
+    message: { success: false, message: 'Too many requests please try again later.' },
 });
 app.use('/api/', limiter);
 
@@ -680,10 +338,10 @@ app.use(express.json({
 }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// ─── Health Check ────────────────────────────────────────────
+// Health Check
 app.get('/health', async (_req, res) => {
     try {
-        await prisma.$queryRaw`SELECT 1`;
+        await prisma.$queryRawUnsafe('SELECT 1');
         res.json({
             status: 'ok',
             timestamp: new Date().toISOString(),
@@ -695,873 +353,7 @@ app.get('/health', async (_req, res) => {
     }
 });
 
-// ─── Single-Owner Compatibility Endpoints ──────────────────────
-app.get('/api/organizations/public/:id', (req, res) => {
-    res.json({
-        success: true,
-        data: {
-            id: req.params.id,
-            name: "EduHub Institute",
-            category: "coaching",
-            status: "ACTIVE",
-            plan: "ENTERPRISE",
-            logoUrl: "",
-            primaryColor: "#6366f1",
-            featureFlags: []
-        }
-    });
-});
-
-app.get('/api/organizations', (_req, res) => {
-    res.json({
-        success: true,
-        data: {
-            orgs: [],
-        },
-    });
-});
-
-app.get('/api/qbank/dashboard', async (_req, res, next) => {
-    try {
-        const [summaryRows, subjectRows, recentRows] = await Promise.all([
-            prisma.$queryRawUnsafe<Array<{
-                total_questions: number | string;
-                public_questions: number | string;
-                total_sets: number | string;
-                total_points: number | string;
-            }>>(`
-                SELECT
-                    COUNT(*) AS total_questions,
-                    COUNT(*) FILTER (WHERE is_approved = TRUE OR is_global = TRUE) AS public_questions,
-                    COALESCE((SELECT COUNT(*) FROM question_sets), 0) AS total_sets,
-                    COALESCE(SUM(point_cost * usage_count), 0) AS total_points
-                FROM questions
-            `),
-            prisma.$queryRawUnsafe<Array<{ subject: string | null; questions: number | string }>>(`
-                SELECT COALESCE(subject_name, 'Uncategorized') AS subject, COUNT(*) AS questions
-                FROM questions
-                GROUP BY COALESCE(subject_name, 'Uncategorized')
-                ORDER BY COUNT(*) DESC, subject ASC
-                LIMIT 8
-            `),
-            prisma.$queryRawUnsafe<Array<{
-                id: string;
-                question: string;
-                created_at: Date | string;
-                points: number | string;
-            }>>(`
-                SELECT id, LEFT(text_en, 140) AS question, created_at, point_cost AS points
-                FROM questions
-                ORDER BY created_at DESC
-                LIMIT 5
-            `),
-        ]);
-
-        const summary = summaryRows[0] ?? {
-            total_questions: 0,
-            public_questions: 0,
-            total_sets: 0,
-            total_points: 0,
-        };
-
-        res.json({
-            success: true,
-            data: {
-                totalQuestions: Number(summary.total_questions ?? 0),
-                newQuestions: 0,
-                publicQuestions: Number(summary.public_questions ?? 0),
-                newPublic: 0,
-                totalSets: Number(summary.total_sets ?? 0),
-                newSets: 0,
-                totalPoints: Number(summary.total_points ?? 0),
-                newPoints: 0,
-                bySubject: subjectRows.map((row) => ({
-                    subject: row.subject ?? 'Uncategorized',
-                    questions: Number(row.questions ?? 0),
-                })),
-                usageTrend: [],
-                recentUsage: recentRows.map((row) => ({
-                    id: row.id,
-                    question: row.question,
-                    org: 'Single Owner',
-                    teacher: 'Super Admin',
-                    date: new Date(row.created_at).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }),
-                    points: Number(row.points ?? 0),
-                })),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.get('/api/qbank/questions', async (req, res, next) => {
-    try {
-        const page = Math.max(Number(req.query.page || 1), 1);
-        const limit = Math.max(Number(req.query.limit || 10), 1);
-        const offset = (page - 1) * limit;
-        const whereClause = buildQuestionWhereClause(req);
-
-        const questions = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT id, question_id, text_en, text_hi, explanation_en, explanation_hi, type, difficulty, subject_name, chapter_name, exam, collection, year, airtable_table_name, question_no, point_cost, usage_count, is_approved, is_global, created_at
-            FROM questions
-            ${whereClause}
-            ORDER BY created_at DESC
-            LIMIT ${limit}
-            OFFSET ${offset}
-        `);
-
-        const totalRows = await prisma.$queryRawUnsafe<Array<{ count: number | string }>>(`
-            SELECT COUNT(*) AS count
-            FROM questions
-            ${whereClause}
-        `);
-
-        const questionIds = questions.map((question) => question.id);
-        const options = questionIds.length > 0
-            ? await prisma.$queryRawUnsafe<Array<any>>(`
-                SELECT id, question_id, text_en, text_hi, is_correct, sort_order
-                FROM question_options
-                WHERE question_id IN (${questionIds.map(sqlQuote).join(', ')})
-                ORDER BY question_id ASC, sort_order ASC
-            `)
-            : [];
-
-        const optionsByQuestion = options.reduce<Record<string, any[]>>((acc, option) => {
-            acc[option.question_id] ??= [];
-            acc[option.question_id].push(option);
-            return acc;
-        }, {});
-
-        res.json({
-            success: true,
-            data: {
-                questions: questions.map((question) => ({
-                    id: question.id,
-                    questionId: question.question_id,
-                    textEn: question.text_en,
-                    textHi: question.text_hi,
-                    type: question.type,
-                    difficulty: question.difficulty,
-                    subjectName: question.subject_name,
-                    chapterName: question.chapter_name,
-                    exam: question.exam,
-                    collection: question.collection,
-                    year: question.year,
-                    airtableTableName: question.airtable_table_name,
-                    questionNo: question.question_no,
-                    explanationEn: question.explanation_en,
-                    explanationHi: question.explanation_hi,
-                    pointCost: Number(question.point_cost ?? 0),
-                    usageCount: Number(question.usage_count ?? 0),
-                    isApproved: question.is_approved,
-                    isGlobal: question.is_global,
-                    folder: question.subject_name ? { name: question.subject_name } : null,
-                    options: (optionsByQuestion[question.id] || []).map((option) => ({
-                        id: option.id,
-                        textEn: option.text_en,
-                        textHi: option.text_hi,
-                        isCorrect: option.is_correct,
-                        sortOrder: Number(option.sort_order ?? 0),
-                    })),
-                })),
-                total: Number(totalRows[0]?.count ?? 0),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.get('/api/qbank/questions/:id', async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const rows = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT id, question_id, text_en, text_hi, explanation_en, explanation_hi, type, difficulty, subject_name, chapter_name, exam, collection, year, airtable_table_name, question_no, point_cost, usage_count, is_approved, is_global, created_at
-            FROM questions
-            WHERE id = ${sqlQuote(id)} OR question_id = ${sqlQuote(id)}
-            LIMIT 1
-        `);
-
-        const question = rows[0];
-        if (!question) {
-            res.status(404).json({ success: false, message: 'Question not found' });
-            return;
-        }
-
-        const options = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT id, text_en, text_hi, is_correct, sort_order
-            FROM question_options
-            WHERE question_id = ${sqlQuote(question.id)}
-            ORDER BY sort_order ASC
-        `);
-
-        res.json({
-            success: true,
-            data: {
-                id: question.id,
-                questionId: question.question_id,
-                textEn: question.text_en,
-                textHi: question.text_hi,
-                explanationEn: question.explanation_en,
-                explanationHi: question.explanation_hi,
-                type: String(question.type || '').toUpperCase(),
-                difficulty: String(question.difficulty || '').toUpperCase(),
-                chapter: question.chapter_name,
-                exam: question.exam,
-                collection: question.collection,
-                year: question.year,
-                pointCost: Number(question.point_cost ?? 0),
-                usageCount: Number(question.usage_count ?? 0),
-                isApproved: question.is_approved,
-                isGlobal: question.is_global,
-                folder: question.subject_name ? { name: question.subject_name } : null,
-                options: options.map((option) => ({
-                    id: option.id,
-                    textEn: option.text_en,
-                    textHi: option.text_hi,
-                    isCorrect: option.is_correct,
-                    sortOrder: Number(option.sort_order ?? 0),
-                })),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.get('/api/qbank/filter-options', async (_req, res, next) => {
-    try {
-        const rows = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT DISTINCT subject_name, chapter_name, exam, year, airtable_table_name
-            FROM questions
-        `);
-
-        const uniqueStrings = (values: Array<string | null | undefined>) => [...new Set(values.filter(Boolean) as string[])].sort((a, b) => a.localeCompare(b));
-        const uniqueNumbers = (values: Array<number | string | null | undefined>) => [...new Set(values.filter((value) => value !== null && value !== undefined && value !== '').map((value) => Number(value)))].sort((a, b) => a - b);
-
-        res.json({
-            success: true,
-            data: {
-                subjects: uniqueStrings(rows.map((row) => row.subject_name)),
-                chapters: uniqueStrings(rows.map((row) => row.chapter_name)),
-                exams: uniqueStrings(rows.map((row) => row.exam)),
-                years: uniqueNumbers(rows.map((row) => row.year)),
-                sources: uniqueStrings(rows.map((row) => row.airtable_table_name)),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.get('/api/qbank/sets', async (req, res, next) => {
-    try {
-        const page = Math.max(Number(req.query.page || 1), 1);
-        const limit = Math.max(Number(req.query.limit || 50), 1);
-        const offset = (page - 1) * limit;
-
-        const [sets, totalRows] = await Promise.all([
-            prisma.$queryRawUnsafe<Array<any>>(`
-                SELECT id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at
-                FROM question_sets
-                ORDER BY created_at DESC
-                LIMIT ${limit}
-                OFFSET ${offset}
-            `),
-            prisma.$queryRawUnsafe<Array<{ count: number | string }>>(`SELECT COUNT(*) AS count FROM question_sets`),
-        ]);
-
-        res.json({
-            success: true,
-            data: {
-                sets: sets.map((set) => ({
-                    id: set.id,
-                    setId: set.set_id,
-                    code: set.set_id,
-                    pin: set.pin,
-                    name: set.name,
-                    description: set.description,
-                    totalQuestions: Number(set.total_questions ?? 0),
-                    subject: set.subject,
-                    chapter: set.chapter,
-                    isGlobal: set.is_global,
-                    _count: { items: Number(set.total_questions ?? 0) },
-                })),
-                total: Number(totalRows[0]?.count ?? 0),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.post('/api/qbank/sets', async (req, res, next) => {
-    try {
-        const name = String(req.body?.name || '').trim();
-        const description = String(req.body?.description || '').trim();
-        const requestedQuestionIds = Array.isArray(req.body?.questionIds)
-            ? [...new Set(req.body.questionIds.map((value: unknown) => String(value).trim()).filter(Boolean))]
-            : [];
-
-        if (!name) {
-            res.status(400).json({ success: false, message: 'Set name is required' });
-            return;
-        }
-
-        if (requestedQuestionIds.length === 0) {
-            res.status(400).json({ success: false, message: 'At least one question is required' });
-            return;
-        }
-
-        const quotedQuestionIds = requestedQuestionIds.map((value) => sqlQuote(String(value))).join(', ');
-
-        const existingQuestions = await prisma.$queryRawUnsafe<Array<{ id: string; subject_name: string | null; chapter_name: string | null }>>(`
-            SELECT id, subject_name, chapter_name
-            FROM questions
-            WHERE id IN (${quotedQuestionIds})
-            ORDER BY created_at DESC
-        `);
-
-        if (existingQuestions.length === 0) {
-            res.status(400).json({ success: false, message: 'Selected questions were not found' });
-            return;
-        }
-
-        const setPrimaryId = createCompatId('set');
-        const setId = await generateUniqueSixDigitSetId(`${name}:${Date.now()}`);
-        const pin = sixDigitPin();
-        const subject = existingQuestions.find((question) => question.subject_name)?.subject_name || null;
-        const chapter = existingQuestions.find((question) => question.chapter_name)?.chapter_name || null;
-
-        await prisma.$executeRawUnsafe(`
-            INSERT INTO question_sets (id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at)
-            VALUES (
-                ${sqlQuote(setPrimaryId)},
-                ${sqlQuote(setId)},
-                ${sqlQuote(pin)},
-                ${sqlQuote(name)},
-                ${nullableSqlValue(description || null)},
-                ${existingQuestions.length},
-                ${nullableSqlValue(subject)},
-                ${nullableSqlValue(chapter)},
-                TRUE,
-                NOW()
-            )
-        `);
-
-        for (let index = 0; index < existingQuestions.length; index += 1) {
-            await prisma.$executeRawUnsafe(`
-                INSERT INTO question_set_items (set_id, question_id, sort_order)
-                VALUES (
-                    ${sqlQuote(setPrimaryId)},
-                    ${sqlQuote(existingQuestions[index].id)},
-                    ${index + 1}
-                )
-                ON CONFLICT (set_id, question_id) DO UPDATE SET sort_order = EXCLUDED.sort_order
-            `);
-        }
-
-        res.status(201).json({
-            success: true,
-            data: {
-                id: setPrimaryId,
-                setId,
-                pin,
-                name,
-                description,
-                totalQuestions: existingQuestions.length,
-                subject,
-                chapter,
-                isGlobal: true,
-                _count: { items: existingQuestions.length },
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.get('/api/qbank/sets/:id', async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const rows = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at
-            FROM question_sets
-            WHERE id = ${sqlQuote(id)} OR set_id = ${sqlQuote(id)}
-            LIMIT 1
-        `);
-        const set = rows[0];
-
-        if (!set) {
-            res.status(404).json({ success: false, message: 'Set not found' });
-            return;
-        }
-
-        const items = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT
-                qsi.sort_order,
-                q.id AS question_pk,
-                q.question_id,
-                q.text_en,
-                q.text_hi,
-                q.explanation_en,
-                q.explanation_hi,
-                q.type,
-                q.difficulty,
-                q.subject_name,
-                q.chapter_name,
-                q.point_cost,
-                q.is_approved,
-                q.is_global
-            FROM question_set_items qsi
-            INNER JOIN questions q ON q.id = qsi.question_id
-            WHERE qsi.set_id = ${sqlQuote(set.id)}
-            ORDER BY qsi.sort_order ASC
-        `);
-
-        const questionIds = items.map((item) => item.question_pk);
-        const options = questionIds.length > 0
-            ? await prisma.$queryRawUnsafe<Array<any>>(`
-                SELECT id, question_id, text_en, text_hi, is_correct, sort_order
-                FROM question_options
-                WHERE question_id IN (${questionIds.map(sqlQuote).join(', ')})
-                ORDER BY question_id ASC, sort_order ASC
-            `)
-            : [];
-
-        const optionsByQuestion = options.reduce<Record<string, any[]>>((acc, option) => {
-            acc[option.question_id] ??= [];
-            acc[option.question_id].push(option);
-            return acc;
-        }, {});
-
-        res.json({
-            success: true,
-            data: {
-                id: set.id,
-                setId: set.set_id,
-                code: set.set_id,
-                pin: set.pin,
-                name: set.name,
-                description: set.description,
-                totalQuestions: Number(set.total_questions ?? 0),
-                subject: set.subject,
-                chapter: set.chapter,
-                isGlobal: set.is_global,
-                items: items.map((item) => ({
-                    sortOrder: Number(item.sort_order ?? 0),
-                    question: {
-                        id: item.question_pk,
-                        questionId: item.question_id,
-                        textEn: item.text_en,
-                        textHi: item.text_hi,
-                        explanationEn: item.explanation_en,
-                        explanationHi: item.explanation_hi,
-                        type: String(item.type || '').toUpperCase(),
-                        difficulty: String(item.difficulty || '').toUpperCase(),
-                        subjectName: item.subject_name,
-                        chapterName: item.chapter_name,
-                        pointCost: Number(item.point_cost ?? 0),
-                        isApproved: item.is_approved,
-                        isGlobal: item.is_global,
-                        options: (optionsByQuestion[item.question_pk] || []).map((option) => ({
-                            id: option.id,
-                            textEn: option.text_en,
-                            textHi: option.text_hi,
-                            isCorrect: option.is_correct,
-                            sortOrder: Number(option.sort_order ?? 0),
-                        })),
-                    },
-                })),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.post('/api/qbank/sets', async (req, res, next) => {
-    try {
-        const { name, description, questionIds, folderId } = req.body ?? {};
-        if (!name || typeof name !== 'string' || !name.trim()) {
-            res.status(400).json({ success: false, message: 'Set name is required' });
-            return;
-        }
-        const ids: string[] = Array.isArray(questionIds) ? questionIds : [];
-        if (ids.length === 0) {
-            res.status(400).json({ success: false, message: 'At least one question is required' });
-            return;
-        }
-
-        // Generate unique 6-digit setId and pin
-        let setCode = '';
-        let isUnique = false;
-        while (!isUnique) {
-            setCode = String(Math.floor(100000 + Math.random() * 900000));
-            const existing = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`SELECT id FROM question_sets WHERE set_id = ${sqlQuote(setCode)} LIMIT 1`);
-            if (existing.length === 0) isUnique = true;
-        }
-        const pin = String(Math.floor(100000 + Math.random() * 900000));
-        const setPrimaryId = createCompatId('set');
-
-        // Get subject from first question for auto-fill
-        let subjectName: string | null = null;
-        if (ids.length > 0) {
-            const qRows = await prisma.$queryRawUnsafe<Array<{ subject_name: string | null }>>(`SELECT subject_name FROM questions WHERE id = ${sqlQuote(ids[0])} LIMIT 1`);
-            subjectName = qRows[0]?.subject_name ?? null;
-        }
-
-        await prisma.$executeRawUnsafe(`
-            INSERT INTO question_sets (id, set_id, pin, name, description, total_questions, subject, chapter, is_global, created_at)
-            VALUES (
-                ${sqlQuote(setPrimaryId)},
-                ${sqlQuote(setCode)},
-                ${sqlQuote(pin)},
-                ${sqlQuote(name.trim())},
-                ${nullableSqlValue(description)},
-                ${ids.length},
-                ${nullableSqlValue(subjectName)},
-                NULL,
-                FALSE,
-                NOW()
-            )
-        `);
-
-        // Link questions in order
-        for (let i = 0; i < ids.length; i++) {
-            await prisma.$executeRawUnsafe(`
-                INSERT INTO question_set_items (set_id, question_id, sort_order)
-                VALUES (${sqlQuote(setPrimaryId)}, ${sqlQuote(ids[i])}, ${i})
-                ON CONFLICT (set_id, question_id) DO NOTHING
-            `);
-        }
-
-        res.status(201).json({
-            success: true,
-            data: {
-                id: setPrimaryId,
-                setId: setCode,
-                pin,
-                name: name.trim(),
-                description: description ?? null,
-                totalQuestions: ids.length,
-                _count: { items: ids.length },
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.put('/api/qbank/sets/:id', async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const { name, description, questionIds } = req.body ?? {};
-        const ids: string[] = Array.isArray(questionIds) ? questionIds : [];
-
-        // Find the set
-        const rows = await prisma.$queryRawUnsafe<Array<{ id: string; set_id: string; pin: string }>>(`
-            SELECT id, set_id, pin FROM question_sets WHERE id = ${sqlQuote(id)} OR set_id = ${sqlQuote(id)} LIMIT 1
-        `);
-        if (rows.length === 0) {
-            res.status(404).json({ success: false, message: 'Set not found' });
-            return;
-        }
-        const setPrimaryId = rows[0].id;
-
-        // Update name/description if provided
-        if (name && typeof name === 'string' && name.trim()) {
-            await prisma.$executeRawUnsafe(`
-                UPDATE question_sets
-                SET name = ${sqlQuote(name.trim())}, description = ${nullableSqlValue(description)}, total_questions = ${ids.length}
-                WHERE id = ${sqlQuote(setPrimaryId)}
-            `);
-        } else if (ids.length > 0) {
-            await prisma.$executeRawUnsafe(`UPDATE question_sets SET total_questions = ${ids.length} WHERE id = ${sqlQuote(setPrimaryId)}`);
-        }
-
-        // Replace question links
-        if (ids.length > 0) {
-            await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(setPrimaryId)}`);
-            for (let i = 0; i < ids.length; i++) {
-                await prisma.$executeRawUnsafe(`
-                    INSERT INTO question_set_items (set_id, question_id, sort_order)
-                    VALUES (${sqlQuote(setPrimaryId)}, ${sqlQuote(ids[i])}, ${i})
-                    ON CONFLICT (set_id, question_id) DO NOTHING
-                `);
-            }
-        }
-
-        res.json({ success: true, message: `Set updated with ${ids.length} questions` });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.post('/api/qbank/sets/:id/rebuild', async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const rows = await prisma.$queryRawUnsafe<Array<{ id: string; subject: string | null; total_questions: number | string }>>(`
-            SELECT id, subject, total_questions FROM question_sets
-            WHERE id = ${sqlQuote(id)} OR set_id = ${sqlQuote(id)} LIMIT 1
-        `);
-        if (rows.length === 0) {
-            res.status(404).json({ success: false, message: 'Set not found' });
-            return;
-        }
-        const set = rows[0];
-        const limit = Number(set.total_questions) || 50;
-
-        // Find matching questions by subject (or all questions if no subject)
-        let questionRows: Array<{ id: string }>;
-        if (set.subject && set.subject.trim()) {
-            questionRows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
-                SELECT id FROM questions
-                WHERE LOWER(subject_name) = LOWER(${sqlQuote(set.subject.trim())})
-                   OR LOWER(airtable_table_name) = LOWER(${sqlQuote(set.subject.trim())})
-                ORDER BY created_at DESC
-                LIMIT ${limit}
-            `);
-        } else {
-            questionRows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
-                SELECT id FROM questions ORDER BY created_at DESC LIMIT ${limit}
-            `);
-        }
-
-        if (questionRows.length === 0) {
-            res.status(400).json({ success: false, message: 'No questions found to link. Please sync questions from Airtable first.' });
-            return;
-        }
-
-        // Replace question_set_items
-        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(set.id)}`);
-        for (let i = 0; i < questionRows.length; i++) {
-            await prisma.$executeRawUnsafe(`
-                INSERT INTO question_set_items (set_id, question_id, sort_order)
-                VALUES (${sqlQuote(set.id)}, ${sqlQuote(questionRows[i].id)}, ${i})
-                ON CONFLICT (set_id, question_id) DO NOTHING
-            `);
-        }
-        await prisma.$executeRawUnsafe(`UPDATE question_sets SET total_questions = ${questionRows.length} WHERE id = ${sqlQuote(set.id)}`);
-
-        res.json({ success: true, message: `Rebuilt set with ${questionRows.length} questions`, count: questionRows.length });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.delete('/api/qbank/sets', async (req, res, next) => {
-    try {
-        const ids = Array.isArray(req.body?.ids)
-            ? [...new Set(req.body.ids.map((value: unknown) => String(value).trim()).filter(Boolean))]
-            : [];
-
-        if (ids.length === 0) {
-            res.status(400).json({ success: false, message: 'ids is required' });
-            return;
-        }
-
-        const quotedIds = ids.map((value) => sqlQuote(String(value))).join(', ');
-        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id IN (${quotedIds})`);
-        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id IN (${quotedIds})`);
-
-        res.json({ success: true, message: 'Sets deleted successfully' });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.delete('/api/qbank/sets/:id', async (req, res, next) => {
-    try {
-        const id = String(req.params.id || '').trim();
-        if (!id) {
-            res.status(400).json({ success: false, message: 'Set id is required' });
-            return;
-        }
-
-        const rows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
-            SELECT id FROM question_sets WHERE id = ${sqlQuote(id)} OR set_id = ${sqlQuote(id)} LIMIT 1
-        `);
-        const set = rows[0];
-
-        if (!set) {
-            res.status(404).json({ success: false, message: 'Set not found' });
-            return;
-        }
-
-        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE set_id = ${sqlQuote(set.id)}`);
-        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id = ${sqlQuote(set.id)}`);
-        res.json({ success: true, message: 'Set deleted successfully' });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.get('/api/qbank/airtable/tables', async (_req, res) => {
-    try {
-        const tables = await fetchAirtableTablesCompat();
-        const metadataRows = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT table_name, total_questions, last_sync_at, status
-            FROM airtable_sync_metadata
-        `);
-        const metadataByTable = metadataRows.reduce<Record<string, any>>((acc, row) => {
-            acc[row.table_name] = row;
-            return acc;
-        }, {});
-
-        res.json({
-            success: true,
-            data: tables.map((table) => ({
-                id: table.id,
-                name: table.name,
-                lastSyncAt: metadataByTable[table.name]?.last_sync_at ?? null,
-                totalQuestions: Number(metadataByTable[table.name]?.total_questions ?? 0),
-                syncStatus: metadataByTable[table.name]?.status ?? 'NOT_SYNCED',
-            })),
-        });
-    } catch (error: any) {
-        res.status(400).json({ success: false, message: error.message || 'Failed to fetch Airtable tables' });
-    }
-});
-
-app.get('/api/qbank/airtable-folders', async (_req, res, next) => {
-    try {
-        const rows = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT id, name, slug, total_questions, created_at, updated_at
-            FROM airtable_sync_folders
-            ORDER BY updated_at DESC, created_at DESC
-        `);
-
-        const metadataRows = await prisma.$queryRawUnsafe<Array<any>>(`
-            SELECT table_name, total_questions, last_sync_at
-            FROM airtable_sync_metadata
-        `);
-        const metadataByTable = metadataRows.reduce<Record<string, any>>((acc, row) => {
-            acc[row.table_name] = row;
-            return acc;
-        }, {});
-
-        res.json({
-            success: true,
-            data: rows.map((row) => ({
-                id: row.id,
-                name: row.name,
-                slug: row.slug,
-                totalQuestions: Number(metadataByTable[row.slug]?.total_questions ?? row.total_questions ?? 0),
-                updatedAt: metadataByTable[row.slug]?.last_sync_at ?? row.updated_at,
-            })),
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.post('/api/qbank/airtable-folders', async (req, res, next) => {
-    try {
-        const name = String(req.body?.name || '').trim();
-        const airtableTableName = String(req.body?.airtableTableName || '').trim();
-        if (!name || !airtableTableName) {
-            res.status(400).json({ success: false, message: 'Both name and airtableTableName are required' });
-            return;
-        }
-
-        const existingRows = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`
-            SELECT id FROM airtable_sync_folders WHERE slug = ${sqlQuote(airtableTableName)} LIMIT 1
-        `);
-        if (existingRows[0]) {
-            res.status(409).json({ success: false, message: 'This Airtable table is already added' });
-            return;
-        }
-
-        const id = createCompatId('airtable-folder');
-        await prisma.$executeRawUnsafe(`
-            INSERT INTO airtable_sync_folders (id, name, slug, total_questions, created_at, updated_at)
-            VALUES (${sqlQuote(id)}, ${sqlQuote(name)}, ${sqlQuote(airtableTableName)}, 0, NOW(), NOW())
-        `);
-
-        res.status(201).json({
-            success: true,
-            data: {
-                id,
-                name,
-                slug: airtableTableName,
-                totalQuestions: 0,
-                updatedAt: new Date().toISOString(),
-            },
-        });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.patch('/api/qbank/airtable-folders/:id', async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const name = String(req.body?.name || '').trim();
-        if (!name) {
-            res.status(400).json({ success: false, message: 'Name is required' });
-            return;
-        }
-
-        await prisma.$executeRawUnsafe(`
-            UPDATE airtable_sync_folders
-            SET name = ${sqlQuote(name)}, updated_at = NOW()
-            WHERE id = ${sqlQuote(id)}
-        `);
-
-        res.json({ success: true, data: { id, name }, message: 'Folder renamed successfully' });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.delete('/api/qbank/airtable-folders/:id', async (req, res, next) => {
-    try {
-        const id = req.params.id;
-        const rows = await prisma.$queryRawUnsafe<Array<{ slug: string }>>(`
-            SELECT slug FROM airtable_sync_folders WHERE id = ${sqlQuote(id)} LIMIT 1
-        `);
-        const folder = rows[0];
-
-        if (!folder) {
-            res.status(404).json({ success: false, message: 'Folder not found' });
-            return;
-        }
-
-        await prisma.$executeRawUnsafe(`DELETE FROM question_options WHERE question_id IN (SELECT id FROM questions WHERE airtable_table_name = ${sqlQuote(folder.slug)})`);
-        await prisma.$executeRawUnsafe(`DELETE FROM question_set_items WHERE question_id IN (SELECT id FROM questions WHERE airtable_table_name = ${sqlQuote(folder.slug)})`);
-        await prisma.$executeRawUnsafe(`DELETE FROM questions WHERE airtable_table_name = ${sqlQuote(folder.slug)}`);
-        await prisma.$executeRawUnsafe(`DELETE FROM airtable_sync_metadata WHERE table_name = ${sqlQuote(folder.slug)}`);
-        await prisma.$executeRawUnsafe(`DELETE FROM airtable_sync_folders WHERE id = ${sqlQuote(id)}`);
-
-        res.json({ success: true, message: 'Airtable sync folder and local questions removed successfully' });
-    } catch (error) {
-        next(error);
-    }
-});
-
-app.post('/api/qbank/sync-airtable', async (req, res) => {
-    try {
-        const tableName = String(req.body?.tableName || '').trim();
-        if (!tableName) {
-            res.status(400).json({ success: false, message: 'Table name is required' });
-            return;
-        }
-
-        const result = await syncAirtableTableCompat(tableName);
-        await ensureCompatibilitySetsFromQuestions();
-        res.json({ success: true, message: 'Airtable synchronization completed', data: result });
-    } catch (error: any) {
-        logger.error('Airtable sync compatibility error:', error);
-        res.status(400).json({ success: false, message: error.message || 'Airtable synchronization failed' });
-    }
-});
-
-// Serve static files from uploads directory
-app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
-
-// ─── API Routes ──────────────────────────────────────────────
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/super-admin', superAdminRoutes);
 app.use('/api/whiteboard', whiteboardRoutes);
@@ -1569,60 +361,54 @@ app.use('/api/whiteboard-accounts', whiteboardAccountRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/mockbook', mockbookRoutes);
+app.use('/api/students', studentsRoutes);
+app.use('/api/qbank', qbankRoutes);
 
-// ─── Error Handling ──────────────────────────────────────────
+// Error Handling
 app.use(notFound);
 app.use(errorHandler);
 
-// ─── Start Server ────────────────────────────────────────────
+// Start Server
 async function startServer() {
     try {
-        // Connect to Redis (optional in development)
         try {
             await connectRedis();
-            logger.info('✅ Redis connected');
+            logger.info('Redis connected');
         } catch (redisErr) {
-            if (env.NODE_ENV === 'production') {
-                throw redisErr; // fatal in production
-            }
-            logger.warn('⚠️  Redis not available — running without cache/queues (dev mode only)');
+            if (env.NODE_ENV === 'production') throw redisErr;
+            logger.warn('Redis not available - running without cache/queues (dev mode only)');
         }
 
-        // Verify DB (with graceful fallback for dev)
         try {
             await prisma.$connect();
-            logger.info('✅ PostgreSQL connected');
-            // Run compatibility scripts as non-blocking to prevent startup crashes
+            logger.info('PostgreSQL connected');
             try {
                 await ensureQuestionBankCompatibilityData();
                 await ensureCompatibilitySetsFromQuestions();
-                logger.info('✅ Question-bank compatibility checks complete');
+                logger.info('Question-bank compatibility checks complete');
             } catch (compatErr) {
-                logger.error('⚠️  Non-critical compatibility check failed:', compatErr);
-                // We continue starting the server as the DB connection itself is healthy
+                logger.error('Non-critical compatibility check failed:', compatErr);
             }
         } catch (dbErr) {
-            if (env.NODE_ENV === 'production') {
-                throw dbErr; // fatal in production
-            }
-            logger.warn('⚠️  Database connection failed — server will start without initial compatibility checks (dev mode). Some routes may return errors.');
+            if (env.NODE_ENV === 'production') throw dbErr;
+            logger.warn('Database connection failed - server will start without initial compatibility checks (dev mode).');
         }
 
         const port = env.PORT;
         app.listen(port, () => {
-            logger.info(`🚀 EduHub Backend running on port ${port}`);
-            logger.info(`   Environment: ${env.NODE_ENV}`);
-            logger.info(`   Health: http://localhost:${port}/health`);
+            logger.info('EduHub Backend running on port ' + port);
+            logger.info('   Environment: ' + env.NODE_ENV);
+            logger.info('   Health: http://localhost:' + port + '/health');
         });
     } catch (error) {
-        logger.error('❌ Failed to start server:', error);
+        logger.error('Failed to start server:', error);
         process.exit(1);
     }
 }
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
-    logger.info('SIGTERM received — shutting down gracefully');
+    logger.info('SIGTERM received - shutting down gracefully');
     await prisma.$disconnect();
     process.exit(0);
 });
