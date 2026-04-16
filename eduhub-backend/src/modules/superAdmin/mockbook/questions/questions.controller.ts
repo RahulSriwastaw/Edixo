@@ -80,6 +80,7 @@ export const createQuestion = async (req: Request, res: Response, next: NextFunc
                 explanation_hi: explanationHi,
                 type: type || 'mcq',
                 difficulty: difficulty || 'medium',
+                ...(folderId ? { folder: { connect: { id: folderId } } } : {}),
                 // imageUrl: imageUrl, // Missing in schema
                 question_options: {
                     create: options ? options.map((opt: any, idx: number) => ({

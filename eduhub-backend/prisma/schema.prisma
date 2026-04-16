@@ -152,7 +152,10 @@ model qBankFolder {
   depth       Int         @default(0)
   scope       String      @default("GLOBAL")
   description String?
+  icon        String?
+  color       String?
   parentId    String?
+  sortOrder   Int         @default(0)
   isActive    Boolean     @default(true)
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt

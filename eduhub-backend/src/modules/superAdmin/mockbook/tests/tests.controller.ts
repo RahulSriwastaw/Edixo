@@ -79,7 +79,7 @@ export const createTest = async (req: Request, res: Response, next: NextFunction
                 name,
                 durationMins: Number(durationMins),
                 totalMarks: Number(totalMarks || 0),
-                subCategoryId: subCategoryId || null,
+                ...(subCategoryId ? { subCategory: { connect: { id: subCategoryId } } } : {}),
                 description: description || null,
                 isPublic: isPublic || false,
                 shuffleQuestions: shuffleQuestions || false,
@@ -107,7 +107,7 @@ export const updateTest = async (req: Request, res: Response, next: NextFunction
                 name: data.name,
                 durationMins: data.durationMins ? Number(data.durationMins) : undefined,
                 totalMarks: data.totalMarks ? Number(data.totalMarks) : undefined,
-                subCategoryId: data.subCategoryId,
+                ...(data.subCategoryId ? { subCategory: { connect: { id: data.subCategoryId } } } : (data.subCategoryId === null ? { subCategory: { disconnect: true } } : {})),
                 description: data.description,
                 isPublic: data.isPublic,
                 shuffleQuestions: data.shuffleQuestions,
@@ -188,8 +188,8 @@ export const addTestSection = async (req: Request, res: Response, next: NextFunc
 
         const newSection = await prisma.mockTestSection.create({
             data: {
-                testId: id,
-                setId,
+                test: { connect: { id } },
+                set: { connect: { id: setId } },
                 name,
                 durationMins: durationMins ? Number(durationMins) : null,
             }

@@ -144,7 +144,7 @@ async function getOrCreateExamFolder(examName: string, year: number | null): Pro
         examFolder = await (prisma as any).qBankFolder.create({
             data: { 
                 name: examName, 
-                parentId: examsFolder.id, 
+                parent: { connect: { id: examsFolder.id } }, 
                 path: `/${examsFolder.id}`, 
                 depth: 1, 
                 scope: 'GLOBAL',
@@ -163,7 +163,7 @@ async function getOrCreateExamFolder(examName: string, year: number | null): Pro
         yearFolder = await prisma.qBankFolder.create({
             data: { 
                 name: String(year), 
-                parentId: examFolder.id, 
+                parent: { connect: { id: examFolder.id } }, 
                 path: `${examFolder.path}/${examFolder.id}`, 
                 depth: 2, 
                 scope: 'GLOBAL',
@@ -345,7 +345,7 @@ router.post('/folders', async (req, res, next) => {
                 slug,
                 icon: body.icon,
                 color: body.color,
-                parentId: body.parentId,
+                ...(body.parentId ? { parent: { connect: { id: body.parentId } } } : {}),
                 path,
                 depth,
                 scope: 'GLOBAL',
@@ -451,7 +451,7 @@ router.post('/folders/:id/move', async (req, res, next) => {
         await prisma.qBankFolder.update({
             where: { id: folder.id },
             data: {
-                parentId: newParentId,
+                ...(newParentId ? { parent: { connect: { id: newParentId } } } : { parent: { disconnect: true } }),
                 path: newFolderPath,
                 depth: folder.depth + depthDiff,
             }
@@ -531,22 +531,46 @@ router.delete('/folders/:id', async (req, res, next) => {
             const targetParentId = folder.parentId;
 
             // Move direct questions to parent
-            await (prisma as any).questions.updateMany({
-                where: { folderId: folder.id },
-                data: { folderId: targetParentId }
-            });
+            if (targetParentId) {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE questions SET "folderId" = $1 WHERE "folderId" = $2`,
+                    targetParentId,
+                    folder.id
+                );
+            } else {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE questions SET "folderId" = NULL WHERE "folderId" = $1`,
+                    folder.id
+                );
+            }
 
             // Move direct sets to parent
-            await (prisma as any).question_sets.updateMany({
-                where: { folderId: folder.id },
-                data: { folderId: targetParentId }
-            });
+            if (targetParentId) {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE question_sets SET "folderId" = $1 WHERE "folderId" = $2`,
+                    targetParentId,
+                    folder.id
+                );
+            } else {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE question_sets SET "folderId" = NULL WHERE "folderId" = $1`,
+                    folder.id
+                );
+            }
 
             // Move direct children to parent
-            await prisma.qBankFolder.updateMany({
-                where: { parentId: folder.id },
-                data: { parentId: targetParentId }
-            });
+            if (targetParentId) {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE qbank_folders SET "parentId" = $1 WHERE "parentId" = $2`,
+                    targetParentId,
+                    folder.id
+                );
+            } else {
+                await prisma.$executeRawUnsafe(
+                    `UPDATE qbank_folders SET "parentId" = NULL WHERE "parentId" = $1`,
+                    folder.id
+                );
+            }
 
             await prisma.qBankFolder.delete({ where: { id: folder.id } });
         }
@@ -1044,12 +1068,13 @@ router.post('/questions/move-to-folder', async (req, res, next) => {
         const folder = await prisma.qBankFolder.findUnique({ where: { id: folderId } });
         if (!folder) throw new AppError('Folder not found', 404);
 
-        const updated = await (prisma as any).questions.updateMany({
-            where: { id: { in: questionIds } },
-            data: { folderId } // No, folderId is missing in schema for questions! Removing it.
-        });
+        // Bulk update questions to new folder using raw SQL to bypass Prisma relation shadowing
+        const movedCount = await prisma.$executeRawUnsafe(
+            `UPDATE questions SET "folderId" = $1 WHERE id IN (${questionIds.map((id: string) => `'${id.replace(/'/g, "''")}'`).join(',')})`,
+            folderId
+        );
 
-        res.json({ success: true, data: { movedCount: updated.count } });
+        res.json({ success: true, data: { movedCount } });
     } catch (err) { next(err); }
 });
 
@@ -1084,6 +1109,7 @@ router.post('/questions/copy-to-folder', async (req, res, next) => {
                     ...qData,
                     id: randomBytes(16).toString('hex'),
                     question_id: newQuestionIdStr,
+                    folder: { connect: { id: folderId } },
                     question_options: {
                         create: options.map((opt: any) => {
                             const { id: _, question_id: __, ...optData } = opt;

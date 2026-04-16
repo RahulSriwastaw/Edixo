@@ -500,8 +500,8 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
 
             const attempt = await prisma.testAttempt.create({
                 data: {
-                    testId: test.id,
-                    studentId: student.id,
+                    test: { connect: { id: test.id } },
+                    student: { connect: { id: student.id } },
                     status: 'IN_PROGRESS',
                     totalMarks: test.totalMarks,
                 }
@@ -542,7 +542,20 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
                         timeTakenSecs: ans.timeTakenSecs || 0,
                     });
                 }
-                await prisma.attemptAnswer.createMany({ data: savedAnswers });
+                // Since createMany might fail due to shadowing, we use individual creates wrapped in a transaction
+                // for better compatibility with relation-connect syntax.
+                await prisma.$transaction(
+                    savedAnswers.map(ans => prisma.attemptAnswer.create({
+                        data: {
+                            attempt: { connect: { id: ans.attemptId } },
+                            question: { connect: { id: ans.questionId } },
+                            selectedOptions: ans.selectedOptions,
+                            isCorrect: ans.isCorrect,
+                            marksAwarded: ans.marksAwarded,
+                            timeTakenSecs: ans.timeTakenSecs
+                        }
+                    }))
+                );
             }
 
             const finalScore = Math.max(0, score);
