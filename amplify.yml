@@ -13,6 +13,8 @@ applications:
             - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
             - export PATH="$PATH:$HOME/flutter/bin"
             - flutter pub get
+            # Satisfy Amplify Next.js SSR bundler check
+            - npm install next
         build:
           commands:
             - flutter build web
