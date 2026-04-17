@@ -1,16 +1,18 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - cd mokebook && npm install
-    build:
-      commands:
-        - cd mokebook && npm run build
-  artifacts:
-    baseDirectory: mokebook/.next
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - mokebook/node_modules/**/*
+applications:
+  - appRoot: mokebook
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm install
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
