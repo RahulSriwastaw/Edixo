@@ -711,53 +711,49 @@ router.get('/chapters', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
-// ─── GET /api/qbank/sets ─────────────────────────────────────
 router.get('/sets', async (req, res, next) => {
     try {
         const { page = 1, limit = 50, search } = req.query;
-        const offset = (Number(page) - 1) * Number(limit);
+        const take = Number(limit);
+        const skip = (Number(page) - 1) * take;
 
-        let whereClause = '1=1';
-        const params: any[] = [];
-
+        const where: any = {};
         if (search) {
-            params.push(`%${search}%`);
-            whereClause += ` AND (name ILIKE $${params.length} OR set_id ILIKE $${params.length})`;
+            where.OR = [
+                { name: { contains: search as string, mode: 'insensitive' } },
+                { set_id: { contains: search as string, mode: 'insensitive' } },
+            ];
         }
 
-        const setsQuery = `
-            SELECT qs.id, qs.set_id AS "setId", qs.pin, qs.name, qs.description,
-                   qs.total_questions AS "totalQuestions", qs.subject, qs.chapter,
-                   qs.is_global AS "isGlobal", qs.pdf_notes, qs.created_at AS "createdAt",
-                   (SELECT COUNT(*)::INT FROM question_set_items qsi WHERE qsi.set_id = qs.id) AS "itemCount"
-            FROM question_sets qs
-            WHERE ${whereClause}
-            ORDER BY qs.created_at DESC
-            LIMIT ${Number(limit)} OFFSET ${offset}
-        `;
-        const countQuery = `SELECT COUNT(*)::INT AS cnt FROM question_sets WHERE ${whereClause}`;
-
-        const [rawSets, countRows] = await Promise.all([
-            prisma.$queryRawUnsafe<Array<any>>(setsQuery, ...params),
-            prisma.$queryRawUnsafe<Array<{cnt: number}>>(countQuery, ...params),
+        const [rawSets, total] = await Promise.all([
+            prisma.question_sets.findMany({
+                where,
+                include: {
+                    _count: {
+                        select: { question_set_items: true }
+                    }
+                },
+                orderBy: { created_at: 'desc' },
+                skip,
+                take
+            }),
+            prisma.question_sets.count({ where })
         ]);
 
-        const sets = rawSets.map((s: any) => {
-            let pdfNotes = null;
-            try {
-              if (s.pdf_notes) {
-                pdfNotes = typeof s.pdf_notes === 'string' ? JSON.parse(s.pdf_notes) : s.pdf_notes;
-              }
-            } catch (parseError) {
-              console.error(`[QBank] Failed to parse pdf_notes for set ${s.id}:`, parseError, s.pdf_notes);
-            }
-            return {
-                ...s,
-                pdf_notes: pdfNotes,
-                _count: { items: Number(s.itemCount || 0) },
-            };
-        });
-        const total = Number(countRows[0]?.cnt ?? 0);
+        const sets = rawSets.map((s: any) => ({
+            id: s.id,
+            setId: s.set_id,
+            pin: s.pin,
+            name: s.name,
+            description: s.description,
+            totalQuestions: s.total_questions,
+            subject: s.subject,
+            chapter: s.chapter,
+            isGlobal: s.is_global,
+            pdf_notes: s.pdf_notes,
+            createdAt: s.created_at,
+            _count: { items: s._count.question_set_items }
+        }));
 
         res.json({ success: true, data: { sets, total } });
     } catch (err) { next(err); }
