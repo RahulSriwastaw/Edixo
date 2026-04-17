@@ -70,13 +70,13 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
 
         const { sourceName, questions, folderId } = schema.parse(req.body);
         
-        const savedCount = await prisma.$transaction(async (tx) => {
-            let count = 0;
-            for (const q of questions) {
-                const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${count}`;
+        let savedCount = 0;
+        for (const q of questions) {
+            try {
+                const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${savedCount}`;
                 const difficulty = (q.difficulty || 'medium').toLowerCase();
 
-                await tx.questions.create({
+                await prisma.questions.create({
                     data: {
                         id: questionId,
                         question_id: questionId,
@@ -91,7 +91,7 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
                         ...(folderId ? { folder: { connect: { id: folderId } } } : {}),
                         question_options: {
                             create: q.options?.map((opt, idx) => ({
-                                id: `OPT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${count}-${idx}`,
+                                id: `OPT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${savedCount}-${idx}`,
                                 text_en: opt.textEn,
                                 text_hi: opt.textHi || opt.textEn,
                                 is_correct: opt.isCorrect,
@@ -100,10 +100,11 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
                         }
                     }
                 });
-                count++;
+                savedCount++;
+            } catch (err: any) {
+                logger.error(`Failed to save draft question: ${err.message}`);
             }
-            return count;
-        }, { timeout: 30000 });
+        }
 
         res.json({ success: true, message: `Saved ${savedCount} drafts successfully with options.` });
     } catch (err) {
