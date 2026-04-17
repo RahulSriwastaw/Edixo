@@ -1,17 +1,15 @@
 version: 1
-applications:
-  - appRoot: whiteboard
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-            - export PATH="$PATH:$HOME/flutter/bin"
-            - flutter doctor
-        build:
-          commands:
-            - flutter build web
-      artifacts:
-        baseDirectory: build/web
-        files:
-          - '**/*'
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+        - export PATH="$PATH:$HOME/flutter/bin"
+        - cd whiteboard && flutter pub get
+    build:
+      commands:
+        - cd whiteboard && flutter build web
+  artifacts:
+    baseDirectory: whiteboard/build/web
+    files:
+      - '**/*'
