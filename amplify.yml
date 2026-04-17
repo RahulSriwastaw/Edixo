@@ -20,6 +20,9 @@ applications:
         build:
           commands:
             - flutter build web
+            # Secret Hack: Create dummy Next.js server files to fool Amplify's SSR bundler
+            - mkdir -p build/web/.next
+            - echo '{"version":1,"config":{},"appDir":"/","files":[],"ignore":[]}' > build/web/.next/required-server-files.json
       artifacts:
         baseDirectory: build/web
         files:
