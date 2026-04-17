@@ -1,17 +1,18 @@
 version: 1
 applications:
-  - appRoot: whiteboard
+  - appRoot: mokebook
     frontend:
       phases:
         preBuild:
           commands:
-            - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-            - export PATH="$PATH:$HOME/flutter/bin"
-            - flutter doctor
+            - npm install
         build:
           commands:
-            - flutter build web
+            - npm run build
       artifacts:
-        baseDirectory: build/web
+        baseDirectory: .next
         files:
           - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
