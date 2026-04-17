@@ -1,15 +1,17 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
-        - export PATH="$PATH:$HOME/flutter/bin"
-        - cd whiteboard && flutter pub get
-    build:
-      commands:
-        - cd whiteboard && flutter build web
-  artifacts:
-    baseDirectory: whiteboard/build/web
-    files:
-      - '**/*'
+applications:
+  - appRoot: mokebook
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+            - export PATH="$PATH:$HOME/flutter/bin"
+            - cd ../whiteboard && flutter pub get
+        build:
+          commands:
+            - cd ../whiteboard && flutter build web
+      artifacts:
+        baseDirectory: ../whiteboard/build/web
+        files:
+          - '**/*'
