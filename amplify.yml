@@ -5,13 +5,18 @@ applications:
       phases:
         preBuild:
           commands:
+            # Move whiteboard files into the folder Amplify expects (mokebook)
+            - cd ..
+            - rm -rf mokebook/*
+            - cp -R whiteboard/* mokebook/
+            - cd mokebook
             - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
             - export PATH="$PATH:$HOME/flutter/bin"
-            - cd ../whiteboard && flutter pub get
+            - flutter pub get
         build:
           commands:
-            - cd ../whiteboard && flutter build web
+            - flutter build web
       artifacts:
-        baseDirectory: ../whiteboard/build/web
+        baseDirectory: build/web
         files:
           - '**/*'

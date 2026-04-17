@@ -5,5 +5,8 @@
   "scripts": {
     "prebuild": "flutter pub get",
     "build": "flutter build web --release"
+  },
+  "dependencies": {
+    "next": "latest"
   }
 }
