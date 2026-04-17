@@ -10,6 +10,8 @@ applications:
             - rm -rf mokebook/*
             - cp -R whiteboard/* mokebook/
             - cd mokebook
+            # Replace localhost with production backend URL
+            - sed -i 's|http://localhost:4000/api|https://edixo.onrender.com/api|g' lib/core/constants/api_constants.dart
             - git clone --depth 1 https://github.com/flutter/flutter.git -b stable $HOME/flutter
             - export PATH="$PATH:$HOME/flutter/bin"
             - flutter pub get
