@@ -70,45 +70,82 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
 
         const { sourceName, questions, folderId } = schema.parse(req.body);
         
+        const CHUNK_SIZE = 10;
+        const MAX_RETRIES = 2;
         let savedCount = 0;
-        for (const q of questions) {
-            try {
-                const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${savedCount}`;
-                const difficulty = (q.difficulty || 'medium').toLowerCase();
+        let failedChunks = 0;
 
-                await prisma.questions.create({
-                    data: {
-                        id: questionId,
-                        question_id: questionId,
-                        text_en: q.textEn,
-                        text_hi: q.textHi || null,
-                        is_approved: false,
-                        type: 'mcq',
-                        difficulty: difficulty,
-                        subject_name: sourceName,
-                        chapter_name: 'AI Drafts',
-                        explanation_en: q.explanationEn || null,
-                        ...(folderId ? { folder: { connect: { id: folderId } } } : {}),
-                        question_options: {
-                            create: q.options?.map((opt, idx) => ({
-                                id: `OPT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${savedCount}-${idx}`,
-                                text_en: opt.textEn,
-                                text_hi: opt.textHi || opt.textEn,
-                                is_correct: opt.isCorrect,
-                                sort_order: opt.sortOrder || idx
-                            })) || []
+        // Process questions in small chunks to ensure atomicity and avoid timeouts
+        for (let i = 0; i < questions.length; i += CHUNK_SIZE) {
+            const chunk = questions.slice(i, i + CHUNK_SIZE);
+            const chunkNumber = Math.floor(i / CHUNK_SIZE) + 1;
+            
+            let retryCount = 0;
+            let success = false;
+
+            while (retryCount <= MAX_RETRIES && !success) {
+                try {
+                    await prisma.$transaction(async (tx) => {
+                        for (let j = 0; j < chunk.length; j++) {
+                            const q = chunk[j];
+                            // Generate a robust unique ID with sufficient entropy
+                            const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random() * 1000000)}-${i + j}`;
+                            const difficulty = (q.difficulty || 'medium').toLowerCase();
+
+                            await tx.questions.create({
+                                data: {
+                                    id: questionId,
+                                    question_id: questionId,
+                                    text_en: q.textEn,
+                                    text_hi: q.textHi || null,
+                                    is_approved: false,
+                                    type: 'mcq',
+                                    difficulty: difficulty,
+                                    subject_name: sourceName,
+                                    chapter_name: 'AI Drafts',
+                                    explanation_en: q.explanationEn || null,
+                                    ...(folderId ? { folder: { connect: { id: folderId } } } : {}),
+                                    question_options: {
+                                        create: q.options?.map((opt, optIdx) => ({
+                                            id: `OPT-${Date.now()}-${Math.floor(Math.random() * 1000000)}-${i + j}-${optIdx}`,
+                                            text_en: opt.textEn,
+                                            text_hi: opt.textHi || opt.textEn,
+                                            is_correct: opt.isCorrect,
+                                            sort_order: opt.sortOrder || optIdx
+                                        })) || []
+                                    }
+                                }
+                            });
                         }
+                    }, { timeout: 20000 }); // 20s timeout per chunk transaction
+
+                    savedCount += chunk.length;
+                    success = true;
+                } catch (err: any) {
+                    retryCount++;
+                    if (retryCount > MAX_RETRIES) {
+                        logger.error(`Chunk ${chunkNumber} failed after ${MAX_RETRIES} retries. Error: ${err.message}`);
+                        failedChunks++;
+                    } else {
+                        logger.warn(`Chunk ${chunkNumber} failed (Attempt ${retryCount}/${MAX_RETRIES+1}), retrying... Error: ${err.message}`);
+                        // Wait for a short duration before retrying (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, retryCount * 500));
                     }
-                });
-                savedCount++;
-            } catch (err: any) {
-                logger.error(`Failed to save draft question: ${err.message}`);
+                }
             }
         }
 
-        res.json({ success: true, message: `Saved ${savedCount} drafts successfully with options.` });
+        res.json({ 
+            success: true, 
+            message: `Processing complete. Saved ${savedCount}/${questions.length} questions.`,
+            stats: {
+                total: questions.length,
+                saved: savedCount,
+                failedChunks
+            }
+        });
     } catch (err) {
-        logger.error("Save Draft Error:", err);
+        logger.error("Save Draft Global Error:", err);
         next(err);
     }
 };
