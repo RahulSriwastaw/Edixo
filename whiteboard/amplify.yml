@@ -1,20 +1,15 @@
 version: 1
-applications:
-  - appRoot: whiteboard
-    frontend:
-      phases:
-        preBuild:
-          commands:
-            # Install Flutter SDK for AWS Amplify build environment
-            - if ! command -v flutter &> /dev/null; then git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter && export PATH="$PATH:$HOME/flutter/bin"; fi
-            - npm install
-        build:
-          commands:
-            - npm run build
-      artifacts:
-        baseDirectory: build/web
-        files:
-          - '**/*'
-      cache:
-        paths:
-          - node_modules/**/*
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+        - export PATH="$PATH:$HOME/flutter/bin"
+        - flutter doctor
+    build:
+      commands:
+        - flutter build web
+  artifacts:
+    baseDirectory: build/web
+    files:
+      - '**/*'
