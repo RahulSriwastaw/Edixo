@@ -872,19 +872,40 @@ router.delete('/sets', async (req, res, next) => {
     try {
         const { ids } = z.object({ ids: z.array(z.string()) }).parse(req.body);
         if (ids.length === 0) return res.json({ success: true, message: '0 sets deleted' });
-        const safeIds = ids.map(id => `'${id.replace(/'/g, "''")}'`).join(',');
-        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id IN (${safeIds})`);
-        res.json({ success: true, message: `${ids.length} sets deleted successfully` });
+        
+        const deleteResult = await prisma.question_sets.deleteMany({
+            where: { id: { in: ids } }
+        });
+        
+        res.json({ 
+            success: true, 
+            message: `${deleteResult.count} sets deleted successfully`,
+            deletedCount: deleteResult.count 
+        });
     } catch (err) { next(err); }
 });
 
 // ─── DELETE /api/qbank/sets/:id ───────────────────────────────
 router.delete('/sets/:id', async (req, res, next) => {
     try {
-        const safeId = String(req.params.id).replace(/'/g, "''");
-        const existing = await prisma.$queryRawUnsafe<Array<{id: string}>>(`SELECT id FROM question_sets WHERE id = '${safeId}' LIMIT 1`);
-        if (existing.length === 0) throw new AppError('Question set not found', 404);
-        await prisma.$executeRawUnsafe(`DELETE FROM question_sets WHERE id = '${safeId}'`);
+        const { id } = req.params;
+        
+        // Check if exists by either UUID id or 6-digit set_id
+        const existing = await prisma.question_sets.findFirst({
+            where: {
+                OR: [
+                    { id: id },
+                    { set_id: id }
+                ]
+            }
+        });
+
+        if (!existing) throw new AppError('Question set not found', 404);
+        
+        await prisma.question_sets.delete({
+            where: { id: existing.id }
+        });
+
         res.json({ success: true, message: 'Question set deleted successfully' });
     } catch (err) { next(err); }
 });

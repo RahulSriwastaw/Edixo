@@ -64,6 +64,15 @@ export const errorHandler = (
         });
     }
 
+    // Prisma foreign key constraint violation
+    if ((err as any).code === 'P2003') {
+        return res.status(400).json({
+            success: false,
+            message: 'Cannot delete or update record: it is referenced by other records',
+            field: (err as any).meta?.field_name,
+        });
+    }
+
     // Unknown errors
     logger.error('Unhandled error:', err);
     res.status(500).json({

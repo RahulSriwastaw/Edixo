@@ -145,11 +145,18 @@ export default function QuestionSetsPage() {
         headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
         body: JSON.stringify({ ids: selectedSets }),
       });
-      if (!response.ok) throw new Error("Failed to delete sets");
+      
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || "Failed to delete sets");
+      }
+      
       toast.success(`Deleted ${selectedSets.length} sets successfully`);
       setSelectedSets([]);
       fetchSets();
-    } catch (error: any) { toast.error(error.message || "Error deleting sets"); }
+    } catch (error: any) { 
+      toast.error(error.message || "Error deleting sets"); 
+    }
   };
 
   const handleDeleteSet = async (id: string) => {
@@ -160,10 +167,17 @@ export default function QuestionSetsPage() {
         method: "DELETE",
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
-      if (!response.ok) throw new Error("Failed to delete");
+      
+      const resData = await response.json();
+      if (!response.ok) {
+        throw new Error(resData.message || "Failed to delete");
+      }
+      
       toast.success("Set deleted");
       fetchSets();
-    } catch (error: any) { toast.error(error.message); }
+    } catch (error: any) { 
+      toast.error(error.message || "Error deleting set"); 
+    }
   };
 
   return (
