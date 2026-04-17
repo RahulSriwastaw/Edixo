@@ -548,7 +548,7 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
                     savedAnswers.map(ans => prisma.attemptAnswer.create({
                         data: {
                             attempt: { connect: { id: ans.attemptId } },
-                            question: { connect: { id: ans.questionId } },
+                            questions: { connect: { id: ans.questionId } },
                             selectedOptions: ans.selectedOptions,
                             isCorrect: ans.isCorrect,
                             marksAwarded: ans.marksAwarded,
