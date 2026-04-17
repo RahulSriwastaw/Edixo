@@ -1,7 +1,7 @@
 "use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -49,7 +49,7 @@ function StatusBadge({ status }: { status: string }) {
     );
 }
 
-export default function MockTestsPage() {
+function MockTestsContent() {
     const { isOpen } = useSidebarStore();
     const searchParams = useSearchParams();
     const [tests, setTests] = useState<MockTest[]>([]);
@@ -534,5 +534,13 @@ export default function MockTestsPage() {
                 </DialogContent>
             </Dialog>
         </div>
+    );
+}
+
+export default function MockTestsPage() {
+    return (
+        <Suspense fallback={<div className="p-8 text-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500 mx-auto" /></div>}>
+            <MockTestsContent />
+        </Suspense>
     );
 }

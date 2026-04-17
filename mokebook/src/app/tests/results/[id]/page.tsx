@@ -67,6 +67,7 @@ export default function TestbookAnalysisPage() {
   useEffect(() => {
     const fetchData = async () => {
       if (!isAuthenticated()) return; // don't fetch without auth
+      try {
         setLoading(true);
 
         if (attemptId === 'latest' && urlTestId) {
