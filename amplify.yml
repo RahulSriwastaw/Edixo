@@ -5,25 +5,22 @@ applications:
       phases:
         preBuild:
           commands:
-            # Move whiteboard files into the folder Amplify expects (mokebook)
             - cd ..
             - rm -rf mokebook/*
             - cp -R whiteboard/* mokebook/
             - cd mokebook
-            # Replace localhost with production backend URL
-            - sed -i 's|http://localhost:4000/api|https://edixo.onrender.com/api|g' lib/core/constants/api_constants.dart
             - git clone --depth 1 https://github.com/flutter/flutter.git -b stable $HOME/flutter
             - export PATH="$PATH:$HOME/flutter/bin"
             - flutter pub get
-            # Satisfy Amplify Next.js SSR bundler check
             - npm install next
         build:
           commands:
             - flutter build web
-            # Secret Hack: Create dummy Next.js server files to fool Amplify's SSR bundler
-            - mkdir -p build/web/.next
-            - echo '{"version":1,"config":{},"appDir":"/","files":[],"ignore":[]}' > build/web/.next/required-server-files.json
+            # Final Hack: Move everything into a fake .next folder to satisfy Amplify
+            - mkdir -p .next
+            - cp -r build/web/* .next/
+            - echo '{"version":1,"config":{"distDir":".next"},"appDir":"/","files":[],"ignore":[]}' > .next/required-server-files.json
       artifacts:
-        baseDirectory: build/web
+        baseDirectory: .next
         files:
           - '**/*'
