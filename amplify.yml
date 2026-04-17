@@ -10,7 +10,7 @@ applications:
             - rm -rf mokebook/*
             - cp -R whiteboard/* mokebook/
             - cd mokebook
-            - git clone https://github.com/flutter/flutter.git -b stable $HOME/flutter
+            - git clone --depth 1 https://github.com/flutter/flutter.git -b stable $HOME/flutter
             - export PATH="$PATH:$HOME/flutter/bin"
             - flutter pub get
             # Satisfy Amplify Next.js SSR bundler check
