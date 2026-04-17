@@ -10,6 +10,8 @@ applications:
             - rm -rf mokebook/*
             - cp -R super_admin/* mokebook/
             - cd mokebook
+            - echo "NEXT_PUBLIC_API_URL=https://edixo.onrender.com/api" > .env.production
+            - echo "NEXT_PUBLIC_APP_TYPE=super-admin" >> .env.production
             - npm install
         build:
           commands:
