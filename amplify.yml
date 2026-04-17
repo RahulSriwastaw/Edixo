@@ -5,14 +5,19 @@ applications:
       phases:
         preBuild:
           commands:
-            - cd ../super_admin && npm install
+            # The Trick: Move super_admin files into the folder Amplify expects (mokebook)
+            - cd ..
+            - rm -rf mokebook/*
+            - cp -R super_admin/* mokebook/
+            - cd mokebook
+            - npm install
         build:
           commands:
-            - cd ../super_admin && npm run build
+            - npm run build
       artifacts:
-        baseDirectory: ../super_admin/.next
+        baseDirectory: .next
         files:
           - '**/*'
       cache:
         paths:
-          - ../super_admin/node_modules/**/*
+          - node_modules/**/*
