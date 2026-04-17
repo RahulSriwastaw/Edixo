@@ -1,16 +1,18 @@
 version: 1
-frontend:
-  phases:
-    preBuild:
-      commands:
-        - cd super_admin && npm install
-    build:
-      commands:
-        - cd super_admin && npm run build
-  artifacts:
-    baseDirectory: super_admin/.next
-    files:
-      - '**/*'
-  cache:
-    paths:
-      - super_admin/node_modules/**/*
+applications:
+  - appRoot: mokebook
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - cd ../super_admin && npm install
+        build:
+          commands:
+            - cd ../super_admin && npm run build
+      artifacts:
+        baseDirectory: ../super_admin/.next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - ../super_admin/node_modules/**/*
