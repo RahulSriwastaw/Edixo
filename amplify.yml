@@ -5,6 +5,8 @@ applications:
       phases:
         preBuild:
           commands:
+            - echo "NEXT_PUBLIC_API_URL=https://edixo.onrender.com/api" > .env.production
+            - echo "NEXT_PUBLIC_APP_TYPE=student-app" >> .env.production
             - npm install
         build:
           commands:
