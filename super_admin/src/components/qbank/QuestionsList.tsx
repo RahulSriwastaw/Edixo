@@ -215,6 +215,9 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [totalQuestions, setTotalQuestions] = useState(0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Fetch folders for move/copy dialog + current folder name
   useEffect(() => {
@@ -486,6 +489,50 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
     } catch { toast.error("Failed to copy questions"); }
   };
 
+  const handleDeleteQuestion = async (id: string) => {
+    try {
+      setIsDeleting(true);
+      const res = await fetch(`${API_URL}/qbank/questions/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("Question deleted");
+        setQuestions(questions.filter(q => q.id !== id));
+        setTotalQuestions(prev => prev - 1);
+        setShowDeleteDialog(false);
+        setQuestionToDelete(null);
+      } else {
+        toast.error(data.message || "Failed to delete question");
+      }
+    } catch { toast.error("An error occurred during deletion"); }
+    finally { setIsDeleting(false); }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedQuestions.length === 0) return;
+    try {
+      setIsDeleting(true);
+      const res = await fetch(`${API_URL}/qbank/questions`, {
+        method: 'DELETE',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedQuestions })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${selectedQuestions.length} question(s) deleted`);
+        setQuestions(questions.filter(q => !selectedQuestions.includes(q.id)));
+        setTotalQuestions(prev => prev - selectedQuestions.length);
+        setSelectedQuestions([]);
+        setShowDeleteDialog(false);
+      } else {
+        toast.error(data.message || "Failed to delete questions");
+      }
+    } catch { toast.error("An error occurred during bulk deletion"); }
+    finally { setIsDeleting(false); }
+  };
+
   return (
     <div className="flex-1 w-full relative">
 
@@ -668,7 +715,15 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                 <Coins className="w-4 h-4 mr-1" />
                 Set Point Cost
               </Button>
-              <Button variant="outline" size="sm" className="text-red-600 border-red-200 hover:bg-red-50">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="text-red-600 border-red-200 hover:bg-red-50"
+                onClick={() => {
+                  setQuestionToDelete(null); // Indicates bulk delete
+                  setShowDeleteDialog(true);
+                }}
+              >
                 <Trash2 className="w-4 h-4 mr-1" />
                 Delete
               </Button>
@@ -787,7 +842,14 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                                 <Copy className="w-4 h-4 mr-2" /> Duplicate
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setQuestionToDelete(question.id);
+                                  setShowDeleteDialog(true);
+                                }}
+                              >
                                 <Trash2 className="w-4 h-4 mr-2" /> Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
@@ -829,12 +891,12 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
 
       {/* Question Preview Dialog */}
       <Dialog open={!!previewQuestion} onOpenChange={() => setPreviewQuestion(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby="preview-dialog-description">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div>
                 <DialogTitle>Question Preview</DialogTitle>
-                <DialogDescription>
+                <DialogDescription id="preview-dialog-description">
                   Question ID: {previewQuestion?.id}
                 </DialogDescription>
               </div>
@@ -927,10 +989,10 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
 
       {/* Add to Set Dialog */}
       <Dialog open={showAddToSetDialog} onOpenChange={setShowAddToSetDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby="add-to-set-description">
           <DialogHeader>
             <DialogTitle>Add to Question Set</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="add-to-set-description">
               Add {selectedQuestions.length} selected questions to an existing question set.
             </DialogDescription>
           </DialogHeader>
@@ -1010,13 +1072,13 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
 
       {/* Import CSV Dialog */}
       <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto" aria-describedby="import-dialog-description">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
               <Upload className="w-5 h-5 text-[#F4511E]" />
               Import Questions from CSV
             </DialogTitle>
-            <DialogDescription className="text-gray-500">
+            <DialogDescription id="import-dialog-description" className="text-gray-500">
               Select or drop a CSV file following our bilingual template.
               {folderId && (
                 <span className="block mt-1 font-semibold text-[#F4511E] bg-orange-50 px-2 py-1 rounded inline-block">
@@ -1178,7 +1240,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
 
       {/* Advanced Filter Dialog */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl">
+        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl" aria-describedby="filter-dialog-description">
           <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 px-6 py-5 border-b border-orange-100">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2.5 text-xl text-gray-900">
@@ -1187,7 +1249,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                 </div>
                 Advanced Filters
               </DialogTitle>
-              <DialogDescription className="text-gray-600 font-medium">
+              <DialogDescription id="filter-dialog-description" className="text-gray-600 font-medium">
                 Build precise queries to find exactly what you need.
               </DialogDescription>
             </DialogHeader>
@@ -1319,10 +1381,10 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
       </Dialog>
       {/* Move to Folder Dialog */}
       <Dialog open={showMoveDialog} onOpenChange={setShowMoveDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby="move-dialog-description">
           <DialogHeader>
             <DialogTitle>Move {selectedQuestions.length} Questions</DialogTitle>
-            <DialogDescription>Select the target folder to move the selected questions.</DialogDescription>
+            <DialogDescription id="move-dialog-description">Select the target folder to move the selected questions.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Select value={movingToFolderId} onValueChange={setMovingToFolderId}>
@@ -1347,10 +1409,10 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
 
       {/* Copy to Folder Dialog */}
       <Dialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md" aria-describedby="copy-dialog-description">
           <DialogHeader>
             <DialogTitle>Copy {selectedQuestions.length} Questions</DialogTitle>
-            <DialogDescription>Select the target folder to copy the selected questions.</DialogDescription>
+            <DialogDescription id="copy-dialog-description">Select the target folder to copy the selected questions.</DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Select value={movingToFolderId} onValueChange={setMovingToFolderId}>
@@ -1368,6 +1430,35 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
             <Button variant="outline" onClick={() => setShowCopyDialog(false)}>Cancel</Button>
             <Button className="bg-primary text-white" onClick={handleCopyToFolder} disabled={!movingToFolderId}>
               Copy Questions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md" aria-describedby="delete-dialog-description">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription id="delete-dialog-description">
+              {questionToDelete 
+                ? "Are you sure you want to permanently delete this question? This action cannot be undone."
+                : `Are you sure you want to permanently delete ${selectedQuestions.length} selected questions? This action cannot be undone.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => questionToDelete ? handleDeleteQuestion(questionToDelete) : handleBulkDelete()}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Permanently Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>

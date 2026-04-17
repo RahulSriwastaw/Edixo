@@ -46,7 +46,6 @@ type EditForm = {
 
 export default function TestSeriesPage() {
     const { isOpen } = useSidebarStore();
-    const selectedOrgId = null;
     const [isLoading, setIsLoading] = useState(true);
     const [allSeries, setAllSeries] = useState<ExamSeries[]>([]);
     const [categories, setCategories] = useState<ExamFolder[]>([]);
@@ -73,8 +72,8 @@ export default function TestSeriesPage() {
     const loadData = async () => {
         try {
             const [seriesData, foldersData] = await Promise.all([
-                mockbookService.getSeries(undefined, selectedOrgId || undefined),
-                mockbookService.getFolders(selectedOrgId || undefined)
+                mockbookService.getSeries(),
+                mockbookService.getFolders()
             ]);
             setAllSeries(seriesData);
             setCategories(foldersData);
@@ -85,7 +84,7 @@ export default function TestSeriesPage() {
         }
     };
 
-    useEffect(() => { loadData(); }, [selectedOrgId]);
+    useEffect(() => { loadData(); }, []);
 
     const filtered = allSeries.filter(s => {
         const matchSearch = s.name.toLowerCase().includes(search.toLowerCase());
@@ -161,7 +160,6 @@ export default function TestSeriesPage() {
         setCreating(true);
         try {
             await mockbookService.createSeries({
-                orgId: selectedOrgId || "demo-org",
                 name: createForm.name,
                 description: createForm.description,
                 folderId: createForm.folderId,

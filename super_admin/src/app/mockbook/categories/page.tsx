@@ -39,7 +39,6 @@ const EMPTY_FORM = { name: "", description: "", icon: "📚", color: COLOR_OPTIO
 
 export default function CategoriesPage() {
   const { isOpen } = useSidebarStore();
-  const selectedOrgId = null;
   const [categories, setCategories] = useState<ExamFolder[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,12 +54,12 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     fetchCategories();
-  }, [selectedOrgId]);
+  }, []);
 
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
-      const data = await mockbookService.getFolders(selectedOrgId || undefined);
+      const data = await mockbookService.getFolders();
       setCategories(data);
     } catch (error) {
       toast.error("Failed to load exam categories");
@@ -98,7 +97,7 @@ export default function CategoriesPage() {
         );
         toast.success("Category updated successfully");
       } else {
-        const payload = { ...form, orgId: selectedOrgId || "demo-org" };
+        const payload = { ...form };
         const res = await mockbookService.createFolder(payload);
         const newCat = (res as any).data?.data || (res as any).data;
         setCategories(prev => [...prev, newCat]);

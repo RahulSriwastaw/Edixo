@@ -18,10 +18,20 @@ export const getTestSeries = async (req: Request, res: Response, next: NextFunct
             }
         });
 
-        // Add a mock studentCount as requested by the frontend shape
-        const enrichedSeries = series.map(s => ({
-            ...s,
-            studentCount: 0 // Mock placeholder until enrollments are fully mapped
+        // Calculate real studentCount (unique students who attempted any test in the series)
+        const enrichedSeries = await Promise.all(series.map(async (s) => {
+            const attempts = await prisma.testAttempt.findMany({
+                where: {
+                    test: {
+                        subCategory: {
+                            categoryId: s.id
+                        }
+                    }
+                },
+                distinct: ['studentId'],
+                select: { studentId: true }
+            });
+            return { ...s, studentCount: attempts.length };
         }));
 
         res.json({ success: true, data: enrichedSeries });
@@ -47,7 +57,19 @@ export const getTestSeriesDetail = async (req: Request, res: Response, next: Nex
         if (!series) {
             return res.status(404).json({ success: false, message: 'Test Series not found' });
         }
-        res.json({ success: true, data: series });
+        const attempts = await prisma.testAttempt.findMany({
+            where: {
+                test: {
+                    subCategory: {
+                        categoryId: id
+                    }
+                }
+            },
+            distinct: ['studentId'],
+            select: { studentId: true }
+        });
+
+        res.json({ success: true, data: { ...series, studentCount: attempts.length } });
     } catch (error) {
         next(error);
     }

@@ -1956,6 +1956,32 @@ router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, ne
     } catch (err: any) { next(err); }
 });
 
+// ─── Public Pricing Plans (Student-facing) ─────────────────────────────────
+// Returns only active plans for students to view and subscribe
+
+router.get('/pricing/plans', async (req, res, next) => {
+    try {
+        const plans = await (prisma as any).mockbookPlan.findMany({
+            where: { isActive: true },
+            orderBy: { sortOrder: 'asc' },
+            select: {
+                id: true,
+                name: true,
+                slug: true,
+                description: true,
+                price: true,
+                discountPrice: true,
+                durationDays: true,
+                features: true,
+                accessType: true,
+                examCategoryIds: true,
+            }
+        });
+        res.json({ success: true, data: plans });
+    } catch (err: any) { next(err); }
+});
+
 export default router;
+
 
 

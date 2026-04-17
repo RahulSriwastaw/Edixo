@@ -233,12 +233,15 @@ function FolderModal({
 
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[480px]" aria-describedby={undefined}>
+            <DialogContent className="sm:max-w-[480px]" aria-describedby="folder-modal-description">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <FolderPlus className="w-5 h-5 text-orange-500" />
                         {mode === "create" ? (parentFolder ? `Add Sub-folder to "${parentFolder.name}"` : "Create Root Folder") : `Edit "${initial?.name}"`}
                     </DialogTitle>
+                    <DialogDescription id="folder-modal-description">
+                        {mode === "create" ? "Provide details for the new folder." : "Edit the current folder configuration."}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-3">
@@ -384,12 +387,12 @@ function DeleteModal({
 
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[440px]">
+            <DialogContent className="sm:max-w-[440px]" aria-describedby="delete-folder-description">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-red-600">
                         <AlertTriangle className="w-5 h-5" /> Delete Folder
                     </DialogTitle>
-                    <DialogDescription>
+                    <DialogDescription id="delete-folder-description">
                         Delete <strong>{folder.name}</strong> and choose what happens to its contents.
                     </DialogDescription>
                 </DialogHeader>
@@ -1127,9 +1130,12 @@ export function FoldersManager() {
             {/* Bulk Move Modal */}
             {bulkMoveOpen && (
                 <Dialog open onOpenChange={() => setBulkMoveOpen(false)}>
-                    <DialogContent className="sm:max-w-[400px]" aria-describedby={undefined}>
+                    <DialogContent className="sm:max-w-[400px]" aria-describedby="bulk-move-questions-description">
                         <DialogHeader>
                             <DialogTitle>Move {selectedQuestions.size} Question{selectedQuestions.size > 1 ? "s" : ""} to Folder</DialogTitle>
+                            <DialogDescription id="bulk-move-questions-description">
+                                Choose a destination folder to move the selected questions.
+                            </DialogDescription>
                         </DialogHeader>
                         <FolderPicker
                             tree={tree}
@@ -1146,9 +1152,12 @@ export function FoldersManager() {
             {/* Bulk Copy Modal */}
             {bulkCopyOpen && (
                 <Dialog open onOpenChange={() => setBulkCopyOpen(false)}>
-                    <DialogContent className="sm:max-w-[400px]" aria-describedby={undefined}>
+                    <DialogContent className="sm:max-w-[400px]" aria-describedby="bulk-copy-questions-description">
                         <DialogHeader>
                             <DialogTitle>Copy {selectedQuestions.size} Question{selectedQuestions.size > 1 ? "s" : ""} to Folder</DialogTitle>
+                            <DialogDescription id="bulk-copy-questions-description">
+                                Choose a destination folder to copy the selected questions.
+                            </DialogDescription>
                         </DialogHeader>
                         <FolderPicker
                             tree={tree}
@@ -1164,13 +1173,13 @@ export function FoldersManager() {
 
             {/* Import CSV Modal */}
             <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-                <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto" aria-describedby={undefined}>
+                <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto" aria-describedby="import-questions-description">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
                             <Upload className="w-5 h-5 text-[#F4511E]" />
                             Import Questions from CSV in "{selectedFolder?.name}"
                         </DialogTitle>
-                        <DialogDescription className="text-sm">
+                        <DialogDescription id="import-questions-description" className="text-sm">
                             Upload a CSV file with bilingual questions (Hindi & English) to the current folder.
                         </DialogDescription>
                     </DialogHeader>

@@ -35,8 +35,6 @@ function StatusBadge({ status }: { status: string }) {
     return <Badge variant="outline" className={cn("text-[10px]", cfg[status] || cfg.DRAFT)}>{status}</Badge>;
 }
 
-const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || "GK-ORG-00001";
-
 export default function SeriesDetailPage() {
     const { isOpen } = useSidebarStore();
     const params = useParams();
@@ -183,7 +181,7 @@ export default function SeriesDetailPage() {
                                 <Button variant="outline" size="sm" onClick={() => setShowEditSeries(true)}>
                                     <Edit className="w-3.5 h-3.5 mr-1" /> Edit Series
                                 </Button>
-                                <Button className="btn-primary" size="sm" onClick={() => router.push("/mockbook/mock-tests")}>
+                                <Button className="btn-primary" size="sm" onClick={() => router.push(`/mockbook/mock-tests?seriesId=${seriesId}`)}>
                                     <Plus className="w-3.5 h-3.5 mr-1" /> Create Test
                                 </Button>
                             </div>
@@ -218,7 +216,7 @@ export default function SeriesDetailPage() {
                             <TabsContent value="tests" className="mt-4 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <span className="text-sm text-gray-500">{tests.length} tests</span>
-                                    <Button size="sm" className="btn-primary" onClick={() => router.push("/mockbook/mock-tests")}>
+                                    <Button size="sm" className="btn-primary" onClick={() => router.push(`/mockbook/mock-tests?seriesId=${seriesId}`)}>
                                         <Plus className="w-3.5 h-3.5 mr-1" /> Create New Test
                                     </Button>
                                 </div>
@@ -329,6 +327,10 @@ export default function SeriesDetailPage() {
                                                             </div>
                                                         </div>
                                                         <div className="flex items-center gap-2">
+                                                            <Button variant="ghost" size="sm" className="h-7 text-[10px] text-orange-600 hover:bg-orange-50"
+                                                                onClick={() => router.push(`/mockbook/mock-tests?seriesId=${seriesId}&folderId=${sc.id}`)}>
+                                                                <Plus className="w-2.5 h-2.5 mr-1" /> Create Test
+                                                            </Button>
                                                             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => openEditSubCat(sc)}>
                                                                 <Edit className="w-3 h-3 mr-1" /> Edit
                                                             </Button>

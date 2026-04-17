@@ -17,48 +17,47 @@ import { cn } from "@/lib/utils";
 // SUB-COMPONENTS
 // ═══════════════════════════════════════════════
 
-/** 1. Recent Test Series Card (Horizontal/Compact) */
+/** 1. Recent Test Series Card (Refined & Compact) */
 function RecentSeriesCard({ series, categoryName }: { series: any; categoryName: string }) {
-  const progress = series.attemptedCount ? Math.round((series.attemptedCount / series.testsCount) * 100) : 1;
+  const progress = series.attemptedCount ? Math.round((series.attemptedCount / series.testsCount) * 100) : 0;
   
   return (
-    <Link href={`/tests/series/${series.id}`} className="block group shrink-0 w-[240px] md:w-[280px]">
-      <div className="bg-white rounded-xl border border-slate-100 p-3.5 shadow-sm hover:shadow-md transition-all h-full flex flex-col">
-        {/* Tags Row */}
-        <div className="flex gap-1.5 mb-3 overflow-x-hidden">
-          <span className="bg-blue-50 text-[#1a73e8] text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">{categoryName}</span>
-          <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Full Test</span>
-          <span className="bg-red-50 text-red-500 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">LIVE</span>
+    <Link href={`/tests/series/${series.id}`} className="block group shrink-0 w-[220px] md:w-[260px]">
+      <div className="bg-white rounded-xl border border-slate-100 p-3 shadow-sm hover:shadow-md hover:border-blue-100 transition-all h-full flex flex-col">
+        {/* Tags Row - Compact */}
+        <div className="flex gap-1 mb-2.5 overflow-x-hidden">
+          <span className="bg-blue-50/80 text-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter">{categoryName}</span>
+          <span className="bg-red-50/80 text-red-500 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter">Live</span>
         </div>
 
-        {/* Info Row */}
-        <div className="flex gap-3 mb-4">
-          <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center p-2 shrink-0 border border-slate-100 group-hover:border-blue-200 transition-colors">
+        {/* Info Row - Tighter */}
+        <div className="flex gap-2.5 mb-3">
+          <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center p-1.5 shrink-0 border border-slate-100 group-hover:border-blue-200 transition-colors">
             {series.icon ? (
-              <Image src={series.icon} alt={series.name} width={28} height={28} className="object-contain" />
+              <Image src={series.icon} alt={series.name} width={20} height={20} className="object-contain" />
             ) : (
-              <FileText className="h-5 w-5 text-blue-500" />
+              <FileText className="h-4 w-4 text-blue-500" />
             )}
           </div>
           <div className="min-w-0">
-             <h3 className="text-[13px] font-black text-[#0f1b2d] leading-tight line-clamp-2 min-h-[32px] group-hover:text-[#1a73e8] transition-colors">{series.name}</h3>
+             <h3 className="text-[12px] font-bold text-slate-800 leading-tight line-clamp-2 min-h-[30px] group-hover:text-blue-600 transition-colors">{series.name}</h3>
           </div>
         </div>
 
         {/* Stats Row */}
-        <div className="mt-auto">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-[10px] font-bold text-slate-400">1.2k+ Students</span>
-            <span className="text-[10px] font-black text-emerald-600">{series.freeTestCount || 5} Free</span>
+        <div className="mt-auto pt-2">
+          <div className="flex justify-between items-center mb-1.5">
+            <span className="text-[9px] font-semibold text-slate-400">1.2k+ Aspirants</span>
+            <span className="text-[9px] font-bold text-emerald-600">{series.freeTestCount || 5} Free</span>
           </div>
           
-          {/* Progress Bar */}
-          <div className="h-1 w-full bg-slate-50 rounded-full mb-4 overflow-hidden">
-            <div className="h-full bg-blue-500 rounded-full" style={{ width: `${progress}%` }} />
+          {/* Progress Bar - Slimmer */}
+          <div className="h-1 w-full bg-slate-50 rounded-full mb-3 overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full transition-all duration-500" style={{ width: `${Math.max(progress, 2)}%` }} />
           </div>
 
-          <button className="w-full h-9 rounded-lg border-2 border-[#1a73e8] text-[#1a73e8] text-[11px] font-black uppercase tracking-wider hover:bg-blue-50 transition-all active:scale-[0.98]">
-            Go To Test Series
+          <button className="w-full h-8 rounded-lg bg-slate-50 text-blue-600 text-[10px] font-bold uppercase tracking-wider hover:bg-blue-600 hover:text-white transition-all active:scale-[0.98]">
+            Practice Now
           </button>
         </div>
       </div>
@@ -86,24 +85,24 @@ function EnrolledSeriesItem({ series }: { series: any }) {
   );
 }
 
-/** 3. Live Quiz Card */
+/** 3. Live Quiz Card (Premium High-Density) */
 function LiveQuizCard({ quiz }: { quiz: any }) {
   return (
-    <div className="bg-white border border-slate-100 rounded-xl p-3.5 shadow-sm flex flex-col h-full min-w-[240px] md:min-w-[280px]">
-       <div className="flex gap-1.5 mb-3">
-          <span className="bg-red-50 text-red-500 text-[9px] font-black px-2 py-0.5 rounded flex items-center gap-1 uppercase tracking-tighter">
-            <div className="w-1 h-1 bg-red-500 rounded-full animate-pulse" />
-            Live Test
+    <div className="bg-white border border-slate-100 rounded-xl p-3 shadow-sm hover:shadow-md transition-all flex flex-col h-full min-w-[220px] md:min-w-[260px]">
+       <div className="flex gap-1.5 mb-2.5">
+          <span className="bg-rose-50 text-rose-500 text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 uppercase tracking-tighter">
+            <div className="w-1 h-1 bg-rose-500 rounded-full animate-pulse" />
+            Live Now
           </span>
-          <span className="bg-emerald-50 text-emerald-600 text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-tighter">Free</span>
+          <span className="bg-emerald-50 text-emerald-600 text-[8px] font-bold px-1.5 py-0.5 rounded uppercase tracking-tighter">Free</span>
        </div>
        
-       <h3 className="text-[14px] font-black text-[#0f1b2d] leading-tight mb-4 flex-1">RRB NTPC 2024 Phase 1 Special Live Mock Test</h3>
+       <h3 className="text-[12px] font-bold text-slate-800 leading-tight mb-3 flex-1 line-clamp-2">RRB NTPC 2024 Phase 1 Special Live Mock Test</h3>
        
-       <div className="flex items-center justify-between text-[11px] text-slate-500 font-bold mb-4">
+       <div className="flex items-center justify-between text-[9px] text-slate-500 font-bold mb-3">
          <div className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
-            <span>Starts in 2h</span>
+            <span>2h Left</span>
          </div>
          <div className="flex items-center gap-1 text-slate-400">
             <Users className="h-3 w-3" />
@@ -111,38 +110,32 @@ function LiveQuizCard({ quiz }: { quiz: any }) {
          </div>
        </div>
        
-       <button className="w-full h-10 bg-[#1a73e8] text-white rounded-lg text-[12px] font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all">
-         Attempt Now
+       <button className="w-full h-8 bg-blue-600 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-blue-500/10 hover:bg-blue-700 active:scale-95 transition-all">
+         Join Now
        </button>
     </div>
   );
 }
 
-/** 4. Category Grid Item */
+/** 4. Category Grid Item (Professional & Compact) */
 function CategoryGridItem({ series, categoryName }: { series: any; categoryName: string }) {
   return (
-    <Link href={`/tests/series/${series.id}`} className="bg-white border border-slate-100 rounded-xl p-3.5 flex items-center gap-4 hover:border-blue-300 hover:shadow-md transition-all group active:scale-[0.99]">
-      <div className="w-10 h-10 rounded-lg bg-slate-50 flex items-center justify-center p-2.5 shrink-0 border border-slate-50 group-hover:border-blue-100 transition-colors">
+    <Link href={`/tests/series/${series.id}`} className="bg-white border border-slate-100 rounded-xl p-3 flex items-center gap-3.5 hover:border-blue-200 hover:shadow-lg hover:shadow-blue-500/5 transition-all group active:scale-[0.99]">
+      <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center p-2 shrink-0 border border-slate-50 group-hover:border-blue-100 transition-colors">
         {series.icon ? (
-          <Image src={series.icon} alt={series.name} width={28} height={28} className="object-contain" />
+          <Image src={series.icon} alt={series.name} width={22} height={22} className="object-contain" />
         ) : (
-          <FileText className="h-5 w-5 text-blue-500" />
+          <FileText className="h-4 w-4 text-blue-500" />
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-[14px] font-black text-[#0f1b2d] leading-tight group-hover:text-[#1a73e8] transition-colors mb-1">{series.name}</h3>
-        <div className="flex items-center gap-3 text-[11px] font-bold">
-           <span className="text-slate-400">{series.testsCount} tests</span>
-           <span className="text-emerald-500">{series.freeTestCount || 0} free</span>
-        </div>
-        <div className="flex flex-wrap gap-1 mt-2">
-           <span className="text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 bg-blue-50 text-blue-500 rounded">{categoryName}</span>
-           {series.isNew && (
-             <span className="text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 bg-red-50 text-red-500 rounded">NEW</span>
-           )}
+        <h3 className="text-[13px] font-bold text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-0.5 line-clamp-1">{series.name}</h3>
+        <div className="flex items-center gap-2 text-[10px] font-semibold">
+           <span className="text-slate-400">{series.testsCount} Tests</span>
+           <span className="text-emerald-500">{series.freeTestCount || 0} Free</span>
         </div>
       </div>
-      <div className="h-9 px-4 rounded-lg border-2 border-slate-100 text-[#1a73e8] text-[11px] font-black uppercase tracking-widest flex items-center justify-center group-hover:bg-[#1a73e8] group-hover:text-white group-hover:border-[#1a73e8] transition-all">
+      <div className="h-8 px-3 rounded-lg bg-blue-50 text-blue-600 text-[10px] font-bold uppercase tracking-widest flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all">
         Start
       </div>
     </Link>
@@ -205,17 +198,17 @@ export default function TestSeriesPage() {
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
 
-        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 lg:pb-12">
-          {/* SEARCH HEADER */}
-          <div className="bg-white border-b border-slate-200 px-4 py-6 md:px-8">
-             <div className="max-w-4xl mx-auto relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-300 group-focus-within:text-[#1a73e8] transition-colors" />
+        <main className="flex-1 overflow-y-auto no-scrollbar pb-24 lg:pb-12 bg-slate-50">
+          {/* SEARCH HEADER - Compact & Refined */}
+          <div className="bg-white border-b border-slate-100 px-4 py-4 md:px-8">
+             <div className="max-w-3xl mx-auto relative group">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 group-focus-within:text-blue-600 transition-colors" />
                 <input
                   type="text"
-                  placeholder="Search for your Exam (e.g. SSC CGL, RRB NTPC...)"
+                  placeholder="Search your exam (e.g. SSC CGL, RRB NTPC...)"
                   value={testSearch}
                   onChange={e => setTestSearch(e.target.value)}
-                  className="w-full h-12 pl-12 pr-4 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-[#1a73e8] text-[15px] font-medium transition-all shadow-inner"
+                  className="w-full h-10 pl-10 pr-4 bg-slate-50/50 border border-slate-200 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 text-[13px] font-medium transition-all"
                 />
              </div>
           </div>
@@ -296,13 +289,13 @@ export default function TestSeriesPage() {
                  </h2>
               </div>
               
-              {/* Category Filter Tabs */}
-              <div className="flex gap-2 mb-8 overflow-x-auto no-scrollbar pb-2">
+              {/* Category Filter Tabs - Refined */}
+              <div className="flex gap-1.5 mb-6 overflow-x-auto no-scrollbar pb-2">
                  <button 
                   onClick={() => setActiveFolderId("all")}
                   className={cn(
-                    "px-5 h-9 flex items-center justify-center rounded-lg text-[13px] font-black transition-all whitespace-nowrap",
-                    activeFolderId === "all" ? "bg-[#1a73e8] text-white shadow-lg shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-100"
+                    "px-4 h-8 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all whitespace-nowrap",
+                    activeFolderId === "all" ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-100"
                   )}
                  >
                    All Exams
@@ -312,8 +305,8 @@ export default function TestSeriesPage() {
                     key={cat.id}
                     onClick={() => setActiveFolderId(cat.id)}
                     className={cn(
-                      "px-5 h-9 flex items-center justify-center rounded-lg text-[13px] font-black transition-all whitespace-nowrap",
-                      activeFolderId === cat.id ? "bg-[#1a73e8] text-white shadow-lg shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-100"
+                      "px-4 h-8 flex items-center justify-center rounded-lg text-[11px] font-bold transition-all whitespace-nowrap",
+                      activeFolderId === cat.id ? "bg-blue-600 text-white shadow-lg shadow-blue-500/20" : "bg-white text-slate-500 hover:bg-slate-100 border border-slate-100"
                     )}
                    >
                      {cat.name}

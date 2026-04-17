@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter, useParams, useSearchParams } from "next/navigation";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, isAuthenticated } from "@/lib/api";
 import {
   ChevronLeft, ChevronRight, Loader2, BookmarkPlus, BookmarkCheck,
   AlertTriangle, CheckCircle2, XCircle, MinusCircle,
@@ -88,8 +88,15 @@ export default function SolutionDetailPage() {
   const qParam = searchParams?.get("q");
   const initializedRef = useRef(false);
 
+  // Auth guard
   useEffect(() => {
-    if (!attemptId) return;
+    if (!isAuthenticated()) {
+      router.replace(`/login?redirect=/tests/solutions/${attemptId}`);
+    }
+  }, [router, attemptId]);
+
+  useEffect(() => {
+    if (!attemptId || !isAuthenticated()) return;
     setLoading(true);
     apiFetch(`/mockbook/attempts/${attemptId}/review`)
       .then((res) => {

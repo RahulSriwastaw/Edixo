@@ -107,6 +107,7 @@ const navigation: NavGroup[] = [
           { label: "Mock Tests", href: "/mockbook/mock-tests", icon: <FileText className="w-4 h-4" /> },
           { label: "🔴 Live Monitor", href: "/mockbook/live", icon: <TrendingUp className="w-4 h-4" /> },
           { label: "Students", href: "/mockbook/students", icon: <Users className="w-4 h-4" /> },
+          { label: "Plans & Packs", href: "/mockbook/plans", icon: <Target className="w-4 h-4" /> },
           { label: "Analytics", href: "/mockbook/analytics", icon: <BarChart3 className="w-4 h-4" /> },
         ],
       },

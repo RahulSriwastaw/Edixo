@@ -3,7 +3,7 @@ import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
     Search, Plus, MoreHorizontal, Edit, Trash2, Play, Eye,
     Clock, Users, FileText, BarChart3, ChevronRight,
@@ -51,8 +51,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function MockTestsPage() {
     const { isOpen } = useSidebarStore();
-    const router = useRouter();
-    const selectedOrgId = null;
+    const searchParams = useSearchParams();
     const [tests, setTests] = useState<MockTest[]>([]);
     const [series, setSeries] = useState<ExamSeries[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -66,9 +65,21 @@ export default function MockTestsPage() {
     const [subCategories, setSubCategories] = useState<ExamSubCategory[]>([]);
     const [form, setForm] = useState({
         name: "", description: "", durationMins: 60, totalMarks: 100,
+        seriesId: "", // Added seriesId for easier selection
         subCategoryId: "", isPublic: false, shuffleQuestions: false,
         scheduledAt: "", endsAt: "", maxAttempts: 1,
     });
+
+    // Check URL params on mount
+    useEffect(() => {
+        const sid = searchParams.get('seriesId');
+        const scid = searchParams.get('folderId');
+        if (sid) {
+            setShowCreate(true);
+            setForm(f => ({ ...f, seriesId: sid, subCategoryId: scid || "" }));
+            handleCreateSubCats(sid);
+        }
+    }, [searchParams]);
 
     // Status change
     const [statusChanging, setStatusChanging] = useState<string | null>(null);
@@ -78,13 +89,12 @@ export default function MockTestsPage() {
         try {
             setIsLoading(true);
             const [testsData, seriesData] = await Promise.all([
-                mockbookService.getAdminTests({ orgId: selectedOrgId || undefined }),
-                mockbookService.getSeries(undefined, selectedOrgId || undefined),
+                mockbookService.getAdminTests(),
+                mockbookService.getSeries(),
             ]);
-            console.log('MockTestsPage: Loaded tests:', testsData.length, 'for org:', selectedOrgId);
+            console.log('MockTestsPage: Loaded tests:', testsData.length);
             setTests(testsData);
             setSeries(seriesData);
-
         } catch (err) {
             toast.error("Failed to load tests");
         } finally {
@@ -92,6 +102,7 @@ export default function MockTestsPage() {
         }
     };
 
+    const selectedOrgId = null; 
     useEffect(() => { loadData(); }, [selectedOrgId]);
 
     // When series filter changes, load subcategories
@@ -123,21 +134,29 @@ export default function MockTestsPage() {
 
     const handleCreateSubCats = async (categoryId: string) => {
         try {
+            if (!categoryId || categoryId === "none") {
+                setSubCategories([]);
+                return;
+            }
             const subs = await mockbookService.getSubCategories(categoryId);
             setSubCategories(subs);
         } catch {}
     };
 
-    const handleCreate = async () => {
-        if (!form.name || !form.durationMins) return toast.error("Name and duration are required");
+    const handleCreate = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!form.seriesId) {
+            toast.error("Please select a Test Series for this mock test");
+            return;
+        }
         setSaving(true);
         try {
             await mockbookService.createMockTest({
-                orgId: selectedOrgId || "demo-org",
                 name: form.name,
                 description: form.description || undefined,
                 durationMins: Number(form.durationMins),
                 totalMarks: Number(form.totalMarks),
+                categoryId: form.seriesId,           // 👈 send so backend auto-creates subcategory
                 subCategoryId: form.subCategoryId || null,
                 isPublic: form.isPublic,
                 shuffleQuestions: form.shuffleQuestions,
@@ -148,10 +167,12 @@ export default function MockTestsPage() {
             toast.success("Mock test created successfully");
             setShowCreate(false);
             setForm({ name: "", description: "", durationMins: 60, totalMarks: 100,
-                subCategoryId: "", isPublic: false, shuffleQuestions: false, scheduledAt: "", endsAt: "", maxAttempts: 1 });
+                seriesId: "", subCategoryId: "", isPublic: false, shuffleQuestions: false,
+                scheduledAt: "", endsAt: "", maxAttempts: 1 });
+            setSubCategories([]);
             loadData();
         } catch (err: any) {
-            toast.error(err?.response?.data?.message || "Failed to create test");
+            toast.error(err?.message || "Failed to create test");
         } finally {
             setSaving(false);
         }
@@ -407,39 +428,60 @@ export default function MockTestsPage() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <Label>Duration (minutes) *</Label>
-                                <Input type="number" min={1} value={form.durationMins} onChange={e => setForm(f => ({ ...f, durationMins: Number(e.target.value) }))} />
+                                <Input 
+                                    type="number" 
+                                    min={1} 
+                                    value={form.durationMins || ""} 
+                                    onChange={e => setForm(f => ({ ...f, durationMins: e.target.value === "" ? 0 : Number(e.target.value) }))} 
+                                    onFocus={e => e.target.value === "0" && (e.target.value = "")}
+                                />
                             </div>
                             <div className="space-y-1.5">
                                 <Label>Total Marks</Label>
-                                <Input type="number" min={0} value={form.totalMarks} onChange={e => setForm(f => ({ ...f, totalMarks: Number(e.target.value) }))} />
+                                <Input 
+                                    type="number" 
+                                    min={0} 
+                                    value={form.totalMarks || ""} 
+                                    onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value === "" ? 0 : Number(e.target.value) }))} 
+                                    onFocus={e => e.target.value === "0" && (e.target.value = "")}
+                                />
                             </div>
                         </div>
                         <div className="space-y-1.5">
-                            <Label>Series (optional)</Label>
-                            <Select value={form.subCategoryId ? "selected" : "none"} onValueChange={val => {
+                            <Label>Series (Test Category) *</Label>
+                            <Select value={form.seriesId || "none"} onValueChange={val => {
+                                setForm(f => ({ ...f, seriesId: val === "none" ? "" : val, subCategoryId: "" }));
                                 if (val !== "none") handleCreateSubCats(val);
-                                setForm(f => ({ ...f, subCategoryId: "" }));
+                                else setSubCategories([]);
                             }}>
-                                <SelectTrigger>
+                                <SelectTrigger className={!form.seriesId ? "border-orange-300" : ""}>
                                     <SelectValue placeholder="Select a series..." />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="none">No series</SelectItem>
+                                    <SelectItem value="none">— Select series —</SelectItem>
                                     {series.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
                                 </SelectContent>
                             </Select>
+                            {!form.seriesId && <p className="text-xs text-orange-500">Required — choose which exam series this test belongs to</p>}
                         </div>
-                        {subCategories.length > 0 && (
+                        {form.seriesId && (
                             <div className="space-y-1.5">
-                                <Label>Sub-Category / Folder</Label>
-                                <Select value={form.subCategoryId} onValueChange={v => setForm(f => ({ ...f, subCategoryId: v }))}>
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Select folder..." />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {subCategories.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
-                                    </SelectContent>
-                                </Select>
+                                <Label>Sub-Category / Folder <span className="text-gray-400 font-normal">(optional)</span></Label>
+                                {subCategories.length > 0 ? (
+                                    <Select value={form.subCategoryId || "auto"} onValueChange={v => setForm(f => ({ ...f, subCategoryId: v === "auto" ? "" : v }))}>
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Auto-assign to General group" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="auto">Auto-assign to General group</SelectItem>
+                                            {subCategories.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+                                ) : (
+                                    <p className="text-xs text-gray-400 py-1.5 px-3 bg-gray-50 rounded border border-gray-100">
+                                        ✓ Will auto-create a "General" folder under this series
+                                    </p>
+                                )}
                             </div>
                         )}
                         <div className="grid grid-cols-2 gap-4">

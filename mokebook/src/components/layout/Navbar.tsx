@@ -30,7 +30,6 @@ import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { navItems } from "./Sidebar";
 import { cn } from "@/lib/utils";
-import { useOrganization } from "@/providers/OrganizationProvider";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -40,7 +39,6 @@ export function Navbar() {
   const db = useFirestore();
   const router = useRouter();
   const pathname = usePathname();
-  const { org } = useOrganization();
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
 
   const isFirebaseUser = user !== null && typeof (user as any).getIdToken === 'function';
@@ -68,20 +66,14 @@ export function Navbar() {
         {/* Left: Logo */}
         <div className="flex items-center gap-2 shrink-0">
           <Link href="/" className="flex items-center gap-2 group">
-            {org?.logoUrl ? (
-              <div className="relative w-7 h-7 rounded-lg overflow-hidden shrink-0 shadow-sm border border-slate-100">
-                <Image src={org.logoUrl} alt={org.name} fill className="object-cover" />
-              </div>
-            ) : (
-              <span
-                className="text-white p-1.5 rounded-lg text-[10px] font-black w-7 h-7 flex items-center justify-center shrink-0 shadow-sm"
-                style={{ background: "linear-gradient(135deg, #1a73e8, #0057d9)" }}
-              >
-                {org?.name?.charAt(0) || "M"}
-              </span>
-            )}
+            <span
+              className="text-white p-1.5 rounded-lg text-[10px] font-black w-7 h-7 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110"
+              style={{ background: "linear-gradient(135deg, #1a73e8, #0057d9)" }}
+            >
+              M
+            </span>
             <span className="hidden sm:inline text-[15px] font-black tracking-tight text-[#0f1b2d]">
-              {org?.name || "Mockbook"}
+              Mockbook
             </span>
           </Link>
         </div>

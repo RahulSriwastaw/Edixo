@@ -18,4 +18,8 @@ router.post('/:id/clone', controller.cloneTest);
 router.post('/:id/sections', controller.addTestSection);
 router.delete('/:id/sections/:sectionId', controller.removeTestSection);
 
+// Repair orphaned tests (no subcategoryId) - assign to their series
+router.post('/repair-orphans', controller.repairOrphanedTests);
+
 export default router;
+

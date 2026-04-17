@@ -291,7 +291,8 @@ model Student {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  attempts  TestAttempt[]
+  attempts      TestAttempt[]
+  subscriptions StudentSubscription[]
 
   @@map("students")
 }
@@ -344,4 +345,44 @@ model User {
   updatedAt    DateTime  @updatedAt
 
   @@map("users")
+}
+
+model MockbookPlan {
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  description     String?
+  price           Float
+  discountPrice   Float?
+  durationDays    Int
+  features        Json     @default("[]")
+  accessType      String   @default("GLOBAL") // GLOBAL or CATEGORY
+  examCategoryIds String[] @default([])       // If accessType is CATEGORY
+  isActive        Boolean  @default(true)
+  sortOrder       Int      @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  subscriptions   StudentSubscription[]
+
+  @@map("mockbook_plans")
+}
+
+model StudentSubscription {
+  id            String    @id @default(uuid())
+  studentId     String
+  planId        String
+  startDate     DateTime  @default(now())
+  endDate       DateTime
+  status        String    @default("ACTIVE") // ACTIVE, EXPIRED, CANCELLED
+  amountPaid    Float
+  paymentId     String?
+  paymentMethod String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  student       Student      @relation(fields: [studentId], references: [id])
+  plan          MockbookPlan @relation(fields: [planId], references: [id])
+
+  @@map("student_subscriptions")
 }

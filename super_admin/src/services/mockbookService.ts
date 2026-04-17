@@ -1,6 +1,6 @@
 import { api } from "@/lib/api";
 
-const ORG_ID = process.env.NEXT_PUBLIC_ORG_ID || "GK-ORG-00001";
+const api_base = '/super-admin/mockbook';
 
 export interface MockBookStats {
     platformTests: number;
@@ -13,7 +13,6 @@ export interface MockBookStats {
 
 export interface ExamFolder {
     id: string;
-    orgId: string | null;
     name: string;
     description: string | null;
     icon: string | null;
@@ -26,7 +25,6 @@ export interface ExamFolder {
 
 export interface ExamSeries {
     id: string;
-    orgId: string | null;
     folderId: string;
     name: string;
     description: string | null;
@@ -53,7 +51,6 @@ export interface ExamSubCategory {
 export interface MockTest {
     id: string;
     testId: string;
-    orgId: string;
     subCategoryId: string | null;
     name: string;
     description: string | null;
@@ -85,108 +82,102 @@ export interface AdminStudent {
 
 export const mockbookService = {
     // ─── Stats & Analytics ─────────────────────────────────────────
-    getStats: async (orgId?: string): Promise<MockBookStats> => {
-        const path = orgId ? `/super-admin/mockbook/analytics?orgId=${orgId}` : '/super-admin/mockbook/analytics';
-        const res = await api.get(path);
+    getStats: async (): Promise<MockBookStats> => {
+        const res = await api.get(`${api_base}/analytics`);
         return res.data;
     },
 
-    getAnalytics: async (orgId?: string): Promise<any> => {
-        const path = orgId ? `/super-admin/mockbook/analytics?orgId=${orgId}` : '/super-admin/mockbook/analytics';
-        const res = await api.get(path);
+    getAnalytics: async (): Promise<any> => {
+        const res = await api.get(`${api_base}/analytics`);
         return res.data;
     },
 
     // ─── Exam Folders (Top Category: SSC, Railway, etc.) ───────────
-    getFolders: async (orgId?: string): Promise<ExamFolder[]> => {
-        const path = orgId ? `/super-admin/mockbook/categories?orgId=${orgId}` : '/super-admin/mockbook/categories';
-        const res = await api.get(path);
+    getFolders: async (): Promise<ExamFolder[]> => {
+        const res = await api.get(`${api_base}/categories`);
         return res.data || [];
     },
 
     createFolder: async (data: Partial<ExamFolder>) => {
-        return api.post('/super-admin/mockbook/categories', data);
+        return api.post(`${api_base}/categories`, data);
     },
 
     updateFolder: async (id: string, data: Partial<ExamFolder>) => {
-        return api.patch(`/super-admin/mockbook/categories/${id}`, data);
+        return api.patch(`${api_base}/categories/${id}`, data);
     },
 
     deleteFolder: async (id: string) => {
-        return api.delete(`/super-admin/mockbook/categories/${id}`);
+        return api.delete(`${api_base}/categories/${id}`);
     },
 
     // ─── Exam Series (Test Series: SSC CGL 2026, etc.) ─────────────
     getSeriesDetail: async (id: string): Promise<any> => {
-        const res = await api.get(`/super-admin/mockbook/test-series/${id}`);
+        const res = await api.get(`${api_base}/test-series/${id}`);
         return res.data;
     },
 
-    getSeries: async (folderId?: string, orgId?: string): Promise<ExamSeries[]> => {
+    getSeries: async (folderId?: string): Promise<ExamSeries[]> => {
         const params = new URLSearchParams();
         if (folderId) params.set('folderId', folderId);
-        if (orgId) params.set('orgId', orgId);
-        const path = `/super-admin/mockbook/test-series${params.toString() ? `?${params.toString()}` : ''}`;
+        const path = `${api_base}/test-series${params.toString() ? `?${params.toString()}` : ''}`;
         const res = await api.get(path);
         return res.data || [];
     },
 
     createSeries: async (data: Partial<ExamSeries>) => {
-        return api.post('/super-admin/mockbook/test-series', data);
+        return api.post(`${api_base}/test-series`, data);
     },
 
     updateSeries: async (id: string, data: Partial<ExamSeries>) => {
-        return api.patch(`/super-admin/mockbook/test-series/${id}`, data);
+        return api.patch(`${api_base}/test-series/${id}`, data);
     },
 
     deleteSeries: async (id: string) => {
-        return api.delete(`/super-admin/mockbook/test-series/${id}`);
+        return api.delete(`${api_base}/test-series/${id}`);
     },
 
     // ─── Sub-Categories (Test Folders: Tier 1, Sectional, etc.) ───
     getSubCategories: async (categoryId: string): Promise<ExamSubCategory[]> => {
-        const res = await api.get(`/super-admin/mockbook/sub-categories?categoryId=${categoryId}`);
+        const res = await api.get(`${api_base}/sub-categories?categoryId=${categoryId}`);
         return res.data || [];
     },
 
     createSubCategory: async (data: Partial<ExamSubCategory>) => {
-        return api.post('/super-admin/mockbook/sub-categories', data);
+        return api.post(`${api_base}/sub-categories`, data);
     },
 
     updateSubCategory: async (id: string, data: Partial<ExamSubCategory>) => {
-        return api.patch(`/super-admin/mockbook/sub-categories/${id}`, data);
+        return api.patch(`${api_base}/sub-categories/${id}`, data);
     },
 
     deleteSubCategory: async (id: string) => {
-        return api.delete(`/super-admin/mockbook/sub-categories/${id}`);
+        return api.delete(`${api_base}/sub-categories/${id}`);
     },
 
     // ─── Admin Mock Tests ──────────────────────────────────────────
     getAdminTests: async (filters?: {
-        orgId?: string; categoryId?: string; subCategoryId?: string;
+        categoryId?: string; subCategoryId?: string;
         status?: string; search?: string;
     }): Promise<MockTest[]> => {
         const params = new URLSearchParams();
-        const orgId = filters?.orgId || ORG_ID;
-        if (orgId) params.set('orgId', orgId);
         if (filters?.categoryId) params.set('categoryId', filters.categoryId);
         if (filters?.subCategoryId) params.set('subCategoryId', filters.subCategoryId);
         if (filters?.status) params.set('status', filters.status);
         if (filters?.search) params.set('search', filters.search);
-        const res = await api.get(`/super-admin/mockbook/tests?${params.toString()}`);
+        const res = await api.get(`${api_base}/tests?${params.toString()}`);
         return res.data || [];
     },
 
     getAdminTestDetail: async (id: string): Promise<MockTest> => {
-        const res = await api.get(`/super-admin/mockbook/tests/${id}`);
+        const res = await api.get(`${api_base}/tests/${id}`);
         return res.data;
     },
 
     createMockTest: async (data: {
-        orgId: string;
         name: string;
         durationMins: number;
         totalMarks?: number;
+        categoryId?: string | null;
         subCategoryId?: string | null;
         description?: string;
         isPublic?: boolean;
@@ -195,57 +186,49 @@ export const mockbookService = {
         endsAt?: string | null;
         maxAttempts?: number;
     }) => {
-        const res = await api.post('/super-admin/mockbook/tests', { 
-            ...data,
-            orgId: data.orgId || ORG_ID
-        });
+        const res = await api.post(`${api_base}/tests`, data);
         return res.data;
     },
 
     updateMockTest: async (id: string, data: Partial<MockTest>) => {
-        const res = await api.patch(`/super-admin/mockbook/tests/${id}`, data);
+        const res = await api.patch(`${api_base}/tests/${id}`, data);
         return res.data;
     },
 
     changeMockTestStatus: async (id: string, status: "DRAFT" | "LIVE" | "ENDED") => {
-        const res = await api.patch(`/super-admin/mockbook/tests/${id}/status`, { status });
+        const res = await api.patch(`${api_base}/tests/${id}/status`, { status });
         return res.data;
     },
 
     deleteMockTest: async (id: string) => {
-        return api.delete(`/super-admin/mockbook/tests/${id}`);
+        return api.delete(`${api_base}/tests/${id}`);
     },
 
     addMockTestSection: async (testId: string, data: { setId: string; name: string; durationMins?: number }) => {
-        const res = await api.post(`/super-admin/mockbook/tests/${testId}/sections`, data);
+        const res = await api.post(`${api_base}/tests/${testId}/sections`, data);
         return res.data;
     },
 
     removeMockTestSection: async (testId: string, sectionId: string) => {
-        return api.delete(`/super-admin/mockbook/tests/${testId}/sections/${sectionId}`);
+        return api.delete(`${api_base}/tests/${testId}/sections/${sectionId}`);
     },
 
     // ─── Admin Students ─────────────────────────────────────────────
-    getAdminStudents: async (filters?: { orgId?: string; search?: string }): Promise<AdminStudent[]> => {
+    getAdminStudents: async (filters?: { search?: string }): Promise<AdminStudent[]> => {
         const params = new URLSearchParams();
-        const orgId = filters?.orgId || ORG_ID;
-        if (orgId) params.set('orgId', orgId);
         if (filters?.search) params.set('search', filters.search);
-        const res = await api.get(`/super-admin/mockbook/students?${params.toString()}`);
+        const res = await api.get(`${api_base}/students?${params.toString()}`);
         return res.data || [];
     },
 
     // ─── Admin Live Tests ───────────────────────────────────────────
-    getLiveAndScheduledTests: async (orgId?: string): Promise<{ live: MockTest[]; scheduled: MockTest[] }> => {
-        const params = new URLSearchParams();
-        const targetOrgId = orgId || ORG_ID;
-        if (targetOrgId) params.set('orgId', targetOrgId);
-        const res = await api.get(`/super-admin/mockbook/live-tests?${params.toString()}`);
+    getLiveAndScheduledTests: async (): Promise<{ live: MockTest[]; scheduled: MockTest[] }> => {
+        const res = await api.get(`${api_base}/live-tests`);
         return res.data || { live: [], scheduled: [] };
     },
 
     getTestPerformance: async (testId: string): Promise<any> => {
-        const res = await api.get(`/super-admin/mockbook/tests/${testId}/performance`);
+        const res = await api.get(`${api_base}/tests/${testId}/performance`);
         return res.data;
     },
 

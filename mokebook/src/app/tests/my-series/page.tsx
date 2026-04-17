@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, isAuthenticated } from "@/lib/api";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import {
@@ -128,8 +128,16 @@ export default function MySeriesPage() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<"tests" | "quizzes">("tests");
 
+  // Auth guard
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace('/login?redirect=/tests/my-series');
+    }
+  }, [router]);
+
   useEffect(() => {
     async function fetchAttempts() {
+      if (!isAuthenticated()) return;
       try {
         setLoading(true);
         const res = await apiFetch("/mockbook/user/my-attempts");

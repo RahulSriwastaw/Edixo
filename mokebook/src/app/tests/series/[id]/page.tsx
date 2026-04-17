@@ -141,38 +141,38 @@ function TestCard({
   const isLive = test.status === "LIVE";
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden hover:shadow-md hover:border-blue-200 transition-all group">
-      <div className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden hover:shadow-md hover:border-blue-100 transition-all group">
+      <div className="p-3 md:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
         
         {/* Left: Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-1.5 mb-1.5">
             {isLive && (
-              <span className="bg-red-500 text-white text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 uppercase">
+              <span className="bg-rose-500 text-white text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase">
                 <span className="w-1 h-1 bg-white rounded-full animate-pulse" />
-                Live Now
+                Live
               </span>
             )}
             {isFree ? (
-              <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[9px] font-black tracking-widest px-2 py-0.5 rounded uppercase">Free</span>
+              <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded uppercase">Free</span>
             ) : !isAccessible ? (
-              <span className="bg-slate-50 text-slate-400 text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 uppercase">
-                <Lock className="h-2.5 w-2.5" /> Locked
+              <span className="bg-slate-50 text-slate-400 text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase">
+                <Lock className="h-2 w-2" /> Locked
               </span>
             ) : null}
             {hasAttempt && isAccessible && (
-              <span className="bg-blue-50 text-[#1a73e8] text-[9px] font-black tracking-widest px-2 py-0.5 rounded flex items-center gap-1 uppercase">
-                <CheckCircle2 className="h-2.5 w-2.5" /> Completed
+              <span className="bg-blue-50 text-blue-600 text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase">
+                <CheckCircle2 className="h-2 w-2" /> Completed
               </span>
             )}
           </div>
 
-          <h3 className="font-black text-sm text-[#0f1b2d] leading-snug group-hover:text-[#1a73e8] transition-colors mb-2 line-clamp-1">{test.name}</h3>
+          <h3 className="font-bold text-[13px] text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-1.5 line-clamp-1">{test.name}</h3>
 
-          <div className="flex items-center gap-4 text-[11px] font-bold text-slate-400">
-            <span className="flex items-center gap-1.5"><Clock className="h-3.5 w-3.5" /> {test.durationMins} Mins</span>
-            <span className="flex items-center gap-1.5"><BarChart3 className="h-3.5 w-3.5" /> {test.totalMarks} Marks</span>
-            <span className="flex items-center gap-1.5"><Globe2 className="h-3.5 w-3.5" /> EN + HI</span>
+          <div className="flex items-center gap-3.5 text-[10px] font-semibold text-slate-400">
+            <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {test.durationMins}m</span>
+            <span className="flex items-center gap-1"><BarChart3 className="h-3 w-3" /> {test.totalMarks} Marks</span>
+            <span className="flex items-center gap-1"><Globe2 className="h-3 w-3" /> EN/HI</span>
           </div>
 
           {hasAttempt && isAccessible && (
@@ -190,27 +190,27 @@ function TestCard({
         </div>
 
         {/* Right: CTA */}
-        <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-3 md:pt-0">
+        <div className="flex items-center gap-2 shrink-0 border-t md:border-t-0 pt-2.5 md:pt-0">
           {isAccessible ? (
             <>
               {inProgress ? (
                 <button
                   onClick={() => router.push(`/tests/instructions/${test.testId}`)}
-                  className="flex-1 md:w-32 h-10 bg-amber-500 text-white font-black text-[11px] uppercase tracking-widest rounded-lg transition-all hover:bg-amber-600 active:scale-95 flex items-center justify-center gap-1"
+                  className="flex-1 md:w-28 h-8.5 bg-amber-500 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-amber-600 active:scale-95 flex items-center justify-center gap-1"
                 >
-                  Resume <PlayCircle className="h-3.5 w-3.5" />
+                  Resume <PlayCircle className="h-3 w-3" />
                 </button>
               ) : hasAttempt ? (
                 <div className="flex gap-2 w-full md:w-auto">
                   <button
                     onClick={() => router.push(`/tests/instructions/${test.testId}`)}
-                    className="flex-1 md:w-32 h-10 bg-[#1a73e8] text-white font-black text-[11px] uppercase tracking-widest rounded-lg transition-all hover:opacity-90 active:scale-95 shadow-md shadow-blue-500/10"
+                    className="flex-1 md:w-28 h-8.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/10"
                   >
-                    Attempt {(test.attempts || 0) + 1}
+                    Attempt
                   </button>
                   <button
                     onClick={() => router.push(`/tests/solutions/latest?testId=${test.testId}`)}
-                    className="h-10 px-4 border-2 border-slate-100 text-slate-500 font-black text-[11px] uppercase tracking-widest rounded-lg hover:border-blue-200 hover:text-[#1a73e8] transition-all"
+                    className="h-8.5 px-3 border border-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all bg-slate-50/50"
                   >
                     Solutions
                   </button>
@@ -218,18 +218,18 @@ function TestCard({
               ) : (
                 <button
                   onClick={() => router.push(`/tests/instructions/${test.testId}`)}
-                  className="flex-1 md:w-36 h-10 bg-[#1a73e8] text-white font-black text-[11px] uppercase tracking-widest rounded-lg transition-all hover:opacity-90 active:scale-95 shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5"
+                  className="flex-1 md:w-32 h-8.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5"
                 >
-                  Start Test <ArrowRight className="h-4 w-4" />
+                  Start Test <ArrowRight className="h-3 w-3" />
                 </button>
               )}
             </>
           ) : (
             <button
               onClick={onLockedClick}
-              className="flex-1 md:w-44 h-10 bg-slate-50 text-slate-400 font-black text-[11px] uppercase tracking-widest rounded-lg flex items-center justify-center gap-2 hover:bg-slate-100 transition-all border border-slate-100"
+              className="flex-1 md:w-40 h-8.5 bg-slate-50 text-slate-400 font-bold text-[10px] uppercase tracking-wider rounded-lg flex items-center justify-center gap-1.5 hover:bg-slate-100 transition-all border border-slate-200"
             >
-              <Lock className="h-3.5 w-3.5" /> Unlock to Attempt
+              <Lock className="h-3 w-3" /> Unlock Test
             </button>
           )}
         </div>
@@ -317,43 +317,43 @@ export default function SeriesDetailPage() {
             </div>
           ) : (
             <>
-              {/* Breadcrumb */}
-              <div className="bg-white border-b border-slate-100 px-6 py-2.5 flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest sticky top-0 z-20">
-                <Link href="/tests" className="hover:text-[#1a73e8] transition-colors">Test Series</Link>
-                <ChevronRight className="h-3 w-3" />
-                <span className="text-slate-600 line-clamp-1">{data.name}</span>
+              {/* Breadcrumb - Compact */}
+              <div className="bg-white border-b border-slate-100 px-6 py-2 flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest sticky top-0 z-20">
+                <Link href="/tests" className="hover:text-blue-600 transition-colors">Test Series</Link>
+                <ChevronRight className="h-2.5 w-2.5" />
+                <span className="text-slate-500 truncate">{data.name}</span>
               </div>
 
-              {/* HERO SECTION */}
-              <div className={cn("w-full bg-gradient-to-br relative overflow-hidden", catMeta.gradient)} style={{ minHeight: 240 }}>
+              {/* HERO SECTION - Compact & Premium */}
+              <div className={cn("w-full bg-gradient-to-br relative overflow-hidden", catMeta.gradient)} style={{ minHeight: 180 }}>
                 {/* Decorative circles */}
-                <div className="absolute right-0 top-0 w-[400px] h-[400px] bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-                <div className="absolute left-[30%] bottom-[-50px] w-64 h-64 bg-white/5 rounded-full blur-3xl" />
+                <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
+                <div className="absolute left-1/4 bottom-[-100px] w-48 h-48 bg-white/5 rounded-full blur-3xl" />
 
-                <div className="relative px-6 py-10 md:px-10 flex flex-col md:flex-row items-center md:items-center justify-between gap-8 max-w-6xl mx-auto">
-                  <div className="flex flex-col md:flex-row items-center gap-6 text-center md:text-left">
-                    {/* Logo */}
-                    <div className="w-24 h-24 rounded-3xl bg-white shadow-2xl flex items-center justify-center shrink-0 text-5xl">
+                <div className="relative px-6 py-8 md:px-10 flex flex-col md:flex-row items-center md:items-center justify-between gap-6 max-w-6xl mx-auto">
+                  <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
+                    {/* Logo - Refined */}
+                    <div className="w-20 h-20 rounded-2xl bg-white shadow-2xl flex items-center justify-center shrink-0 text-4xl">
                       {catMeta.icon}
                     </div>
                     <div>
-                      <div className="flex flex-wrap justify-center md:justify-start items-center gap-2 mb-3">
+                      <div className="flex flex-wrap justify-center md:justify-start items-center gap-1.5 mb-2">
                         {data.isFree ? (
-                          <span className="text-[10px] font-black tracking-widest bg-emerald-500 text-white px-2.5 py-0.5 rounded uppercase">Free Series</span>
+                          <span className="text-[8px] font-bold tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded uppercase">Free Series</span>
                         ) : (
-                          <span className="text-[10px] font-black tracking-widest bg-white/10 text-white px-2.5 py-0.5 rounded flex items-center gap-1 uppercase border border-white/10 backdrop-blur-md">
-                            <Lock className="h-2.5 w-2.5" /> Premium
+                          <span className="text-[8px] font-bold tracking-widest bg-white/10 text-white px-2 py-0.5 rounded flex items-center gap-1 uppercase border border-white/10 backdrop-blur-md">
+                            <Lock className="h-2 w-2" /> Premium
                           </span>
                         )}
-                        <span className="text-[10px] font-black tracking-widest bg-white text-[#1a73e8] px-2.5 py-0.5 rounded uppercase flex items-center gap-1.5 shadow-sm">
-                           <Shield className="h-3 w-3" /> 100% Verified
+                        <span className="text-[8px] font-bold tracking-widest bg-white text-blue-600 px-2 py-0.5 rounded uppercase flex items-center gap-1 shadow-sm">
+                           <Shield className="h-2.5 w-2.5" /> Verified
                         </span>
                       </div>
-                      <h1 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">{data.name}</h1>
-                      <div className="flex items-center justify-center md:justify-start gap-4 mt-3 text-white/80 text-xs font-bold uppercase tracking-widest">
-                        <span className="flex items-center gap-1.5"><Star className="h-3.5 w-3.5 fill-amber-300 text-amber-300" /> 4.8 Rating</span>
+                      <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight tracking-tight">{data.name}</h1>
+                      <div className="flex items-center justify-center md:justify-start gap-4 mt-2 text-white/70 text-[10px] font-bold uppercase tracking-widest">
+                        <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-300 text-amber-300" /> 4.8</span>
                         <span className="opacity-30">|</span>
-                        <span className="flex items-center gap-1.5"><Users className="h-3.5 w-3.5" /> 12.5k Enrolled</span>
+                        <span className="flex items-center gap-1"><Users className="h-3 w-3" /> 12.5k Enrolled</span>
                       </div>
                     </div>
                   </div>
@@ -361,21 +361,18 @@ export default function SeriesDetailPage() {
                   {!data.isFree && (
                     <button
                       onClick={() => setPaywallOpen(true)}
-                      className="shrink-0 h-14 px-8 bg-white text-[#1a73e8] font-black text-sm uppercase tracking-widest rounded-2xl hover:bg-slate-50 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-2"
+                      className="shrink-0 h-10 px-6 bg-white text-blue-600 font-bold text-[11px] uppercase tracking-widest rounded-xl hover:bg-slate-50 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-2"
                     >
-                      🔓 Unlock Series
+                      Unlock Full Access
                     </button>
                   )}
                 </div>
 
-                {/* Quick stats bar */}
-                <div className="relative bg-[#0f1b2d]/40 backdrop-blur-md px-6 py-3 flex items-center justify-center md:justify-start gap-10 text-white text-[11px] font-black uppercase tracking-widest border-t border-white/5 overflow-x-auto no-scrollbar">
-                  <span className="flex items-center gap-2 whitespace-nowrap"><FileText className="h-4 w-4 opacity-50" /> <span>{totalTests}</span> Tests</span>
-                  <span className="flex items-center gap-2 whitespace-nowrap text-emerald-400"><Zap className="h-4 w-4 opacity-50" /> <span>{freeCount}</span> Free</span>
-                  <span className="flex items-center gap-2 whitespace-nowrap"><Globe2 className="h-4 w-4 opacity-50" /> Hindi + English</span>
-                  {data.description && (
-                    <span className="opacity-60 font-bold normal-case text-xs truncate max-w-sm hidden lg:block">{data.description}</span>
-                  )}
+                {/* Quick stats bar - Slimmer */}
+                <div className="relative bg-[#000]/20 backdrop-blur-md px-6 py-2.5 flex items-center justify-center md:justify-start gap-8 text-white text-[9px] font-bold uppercase tracking-widest border-t border-white/5 overflow-x-auto no-scrollbar">
+                  <span className="flex items-center gap-1.5 whitespace-nowrap opacity-90"><FileText className="h-3.5 w-3.5 opacity-50" /> <span>{totalTests}</span> Tests</span>
+                  <span className="flex items-center gap-1.5 whitespace-nowrap text-emerald-300"><Zap className="h-3.5 w-3.5 opacity-50" /> <span>{freeCount}</span> Free</span>
+                  <span className="flex items-center gap-1.5 whitespace-nowrap opacity-90"><Globe2 className="h-3.5 w-3.5 opacity-50" /> EN/HI Mixed</span>
                 </div>
               </div>
 
@@ -383,9 +380,9 @@ export default function SeriesDetailPage() {
               <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-8 items-start max-w-7xl mx-auto">
                 <div className="w-full lg:flex-1 min-w-0 space-y-6">
 
-                  {/* TAB NAV */}
+                  {/* TAB NAV - Slimmer */}
                   <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto no-scrollbar shadow-sm sticky top-14 z-10">
-                    <div className="flex items-center px-4">
+                    <div className="flex items-center px-2">
                       {TABS.map(tab => {
                         const count = tab === "All Tests" ? totalTests
                           : tab === "Free" ? freeCount
@@ -395,25 +392,25 @@ export default function SeriesDetailPage() {
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={cn(
-                              "px-6 py-4 text-[12px] font-black uppercase tracking-widest transition-all relative whitespace-nowrap",
+                              "px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider transition-all relative whitespace-nowrap",
                               activeTab === tab
-                                ? "text-[#1a73e8]"
-                                : "text-slate-400 hover:text-slate-700"
+                                ? "text-blue-600"
+                                : "text-slate-400 hover:text-slate-600"
                             )}
                           >
-                            <span className="flex items-center gap-2">
+                            <span className="flex items-center gap-1.5">
                               {tab}
                               {count > 0 && (
                                 <span className={cn(
-                                  "text-[10px] px-1.5 py-0.5 rounded-md font-black",
-                                  activeTab === tab ? "bg-blue-50 text-[#1a73e8]" : "bg-slate-50 text-slate-400"
+                                  "text-[9px] px-1 py-0.5 rounded font-bold",
+                                  activeTab === tab ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-400"
                                 )}>
                                   {count}
                                 </span>
                               )}
                             </span>
                             {activeTab === tab && (
-                               <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#1a73e8] rounded-full" />
+                               <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
                             )}
                           </button>
                         );

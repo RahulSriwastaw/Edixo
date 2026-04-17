@@ -18,7 +18,7 @@ async function request<T = any>(method: string, path: string, options: { body?: 
     const token = getToken();
     let url = `${BACKEND_URL}${path}`;
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000);
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
 
     if (options.params) {
         const query = new URLSearchParams();

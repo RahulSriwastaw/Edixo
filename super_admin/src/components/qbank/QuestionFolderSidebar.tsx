@@ -17,7 +17,7 @@ import {
   DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription
 } from "@/components/ui/dialog";
 
 interface FolderNode {
@@ -49,8 +49,13 @@ function RenameFolderDialog({
   useEffect(() => setName(folder?.name || ""), [folder]);
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm rounded-2xl">
-        <DialogHeader><DialogTitle className="text-sm font-bold">Rename Folder</DialogTitle></DialogHeader>
+      <DialogContent className="max-w-sm rounded-2xl" aria-describedby="rename-folder-description">
+        <DialogHeader>
+          <DialogTitle className="text-sm font-bold">Rename Folder</DialogTitle>
+          <DialogDescription id="rename-folder-description" className="sr-only">
+            Enter a new name for the select folder.
+          </DialogDescription>
+        </DialogHeader>
         <Input
           value={name} onChange={e => setName(e.target.value)}
           placeholder="Folder name" className="rounded-lg text-sm"
@@ -76,11 +81,14 @@ function NewFolderDialog({
   useEffect(() => { if (open) setName(""); }, [open]);
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-sm rounded-2xl">
+      <DialogContent className="max-w-sm rounded-2xl" aria-describedby="new-folder-description">
         <DialogHeader>
           <DialogTitle className="text-sm font-bold">
             {parentName ? `New Subfolder in "${parentName}"` : "New Folder"}
           </DialogTitle>
+          <DialogDescription id="new-folder-description" className="sr-only">
+            Provide a name for the new folder.
+          </DialogDescription>
         </DialogHeader>
         <Input
           value={name} onChange={e => setName(e.target.value)}
@@ -209,7 +217,10 @@ export function QuestionFolderSidebar({
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
 
   const [renameTarget, setRenameTarget] = useState<FolderNode | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<FolderNode | null>(null);
+  const [deleteContent, setDeleteContent] = useState(false);
   const [newFolderParent, setNewFolderParent] = useState<{ id: string | null; name?: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Derive total question counts per folder from the loaded tree
   const enrichFolderCounts = useCallback(async (tree: FolderNode[]): Promise<FolderNode[]> => {
@@ -303,19 +314,28 @@ export function QuestionFolderSidebar({
   };
 
   // — Delete folder —
-  const handleDelete = async (node: FolderNode) => {
-    if (!confirm(`Delete "${node.name}"? Its contents will be moved to the parent folder.`)) return;
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      const res = await fetch(`${API_URL}/qbank/folders/${node.id}`, {
+      setIsDeleting(true);
+      const params = deleteContent ? "?deleteContent=true&confirm=true" : "";
+      const res = await fetch(`${API_URL}/qbank/folders/${deleteTarget.id}${params}`, {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
-      if (!res.ok) throw new Error("Failed to delete folder");
-      toast.success(`"${node.name}" deleted`);
-      if (selectedFolderId === node.id) onFolderSelect(null);
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || "Failed to delete folder");
+      }
+      toast.success(`"${deleteTarget.name}" deleted`);
+      if (selectedFolderId === deleteTarget.id) onFolderSelect(null);
+      setDeleteTarget(null);
+      setDeleteContent(false);
       fetchFolders();
     } catch (e: any) {
       toast.error(e.message || "Failed to delete");
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -407,7 +427,7 @@ export function QuestionFolderSidebar({
                 onSelect={onFolderSelect}
                 onToggleExpand={toggleExpand}
                 onRename={n => setRenameTarget(n)}
-                onDelete={handleDelete}
+                onDelete={n => setDeleteTarget(n)}
                 onNewSubfolder={n => setNewFolderParent({ id: n.id, name: n.name })}
               />
             ))
@@ -437,6 +457,55 @@ export function QuestionFolderSidebar({
         onClose={() => setNewFolderParent(null)}
         onCreate={handleCreate}
       />
+
+      <Dialog open={!!deleteTarget} onOpenChange={() => !isDeleting && setDeleteTarget(null)}>
+        <DialogContent className="max-w-md rounded-2xl" aria-describedby="delete-folder-description">
+          <DialogHeader>
+            <DialogTitle className="text-rose-600 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Delete Folder
+            </DialogTitle>
+          </DialogHeader>
+          <DialogDescription id="delete-folder-description" className="text-sm text-slate-600 pb-2">
+            Are you sure you want to delete <span className="font-bold text-slate-900">"{deleteTarget?.name}"</span>?
+          </DialogDescription>
+          
+          <div className="py-2 space-y-4">
+            
+            <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 space-y-3">
+              <div className="flex items-center gap-3">
+                <input 
+                  type="checkbox" 
+                  id="deleteContent"
+                  checked={deleteContent}
+                  onChange={e => setDeleteContent(e.target.checked)}
+                  className="w-4 h-4 rounded border-rose-300 text-rose-600 focus:ring-rose-500"
+                />
+                <label htmlFor="deleteContent" className="text-xs font-bold text-rose-700 cursor-pointer">
+                  Delete all questions and sub-folders inside
+                </label>
+              </div>
+              <p className="text-[10px] text-rose-500 pl-7 leading-relaxed">
+                If unchecked, all contents will be moved to the parent folder (Safe Delete).
+              </p>
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" size="sm" className="rounded-xl" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="rounded-xl bg-rose-600" 
+              onClick={handleDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Confirm Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

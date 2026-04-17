@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, isAuthenticated } from "@/lib/api";
 import { Navbar } from "@/components/layout/Navbar";
 import {
   LineChart,
@@ -57,9 +57,16 @@ export default function TestbookAnalysisPage() {
   const [loading, setLoading] = useState(true);
   const bestAttempt = allAttempts.reduce((prev, current) => (prev && prev.score > current.score) ? prev : current, null);
 
+  // Auth guard
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace('/login?redirect=/tests');
+    }
+  }, [router]);
+
   useEffect(() => {
     const fetchData = async () => {
-      try {
+      if (!isAuthenticated()) return; // don't fetch without auth
         setLoading(true);
 
         if (attemptId === 'latest' && urlTestId) {
@@ -132,21 +139,26 @@ export default function TestbookAnalysisPage() {
     <div className="flex flex-col min-h-screen bg-[#f5f5f5]">
       <Navbar />
       
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-6 py-2 flex items-center justify-between">
-           <div className="flex items-center gap-2">
-              <span className="text-[#1a73e8] font-bold text-[13px]">{attemptData.testName}</span>
+      <div className="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-2.5 flex items-center justify-between">
+           <div className="flex items-center gap-3">
+              <div className="bg-blue-600 text-white p-1 rounded">
+                 <Trophy className="h-3.5 w-3.5" />
+              </div>
+              <span className="text-slate-800 font-extrabold text-[13px] tracking-tight truncate max-w-xs">{attemptData.testName}</span>
            </div>
-           <div className="flex items-center gap-4 text-xs font-bold text-gray-500">
+           <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
               <button 
                 onClick={() => router.push(`/tests/instructions/${attemptData.testId}`)}
-                className="flex items-center gap-1.5 text-[#1a73e8] bg-blue-50 px-3 py-1.5 rounded transition-colors hover:bg-blue-100"
+                className="flex items-center gap-1.5 text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg transition-all hover:bg-blue-100 font-extrabold"
               >
-                  Reattempt This Test <ArrowRight className="h-3.5 w-3.5" />
+                  Reattempt <ArrowRight className="h-3 w-3" />
               </button>
-              <span className="hidden sm:inline border-r border-gray-300 pr-4">Rate this Test: <Star className="h-3 w-3 inline text-gray-300 ml-1"/><Star className="h-3 w-3 inline text-gray-300"/><Star className="h-3 w-3 inline text-gray-300"/><Star className="h-3 w-3 inline text-gray-300"/><Star className="h-3 w-3 inline text-gray-300"/></span>
-              <button onClick={() => router.push('/tests')} className="hidden sm:inline hover:text-[#1a73e8]">Go to Tests</button>
-              <button onClick={() => router.push(`/tests/solutions/${attemptId}`)} className={cn("hidden sm:inline transition-colors hover:text-[#1a73e8]", activeTab === 'solutions' && "text-[#1a73e8]")}>Solutions</button>
+              <div className="hidden sm:flex items-center gap-1 border-r border-slate-200 pr-4">
+                Rate: <div className="flex text-amber-400 gap-0.5"><Star className="h-3 w-3 fill-amber-400"/><Star className="h-3 w-3 fill-amber-400"/><Star className="h-3 w-3 fill-amber-400"/><Star className="h-3 w-3 fill-slate-200"/><Star className="h-3 w-3 fill-slate-200"/></div>
+              </div>
+              <button onClick={() => router.push('/tests')} className="hidden sm:inline hover:text-blue-600 transition-colors">Explorer</button>
+              <button onClick={() => router.push(`/tests/solutions/${attemptId}`)} className={cn("hidden sm:inline transition-all hover:text-blue-600", activeTab === 'solutions' && "text-blue-600 underline underline-offset-4")}>Solutions</button>
            </div>
         </div>
       </div>
@@ -154,7 +166,7 @@ export default function TestbookAnalysisPage() {
       <div className="flex flex-1 justify-center p-4 md:p-6 overflow-y-auto w-full">
          <div className="max-w-[1000px] w-full bg-white rounded shadow-sm border border-gray-200 min-h-[800px] flex flex-col items-center">
             
-            <div className="flex items-center justify-center w-full border-b border-gray-200 mt-4">
+            <div className="flex items-center justify-center w-full border-b border-slate-100 mt-2">
                 {allAttempts.map((att) => {
                     const isBest = bestAttempt?.id === att.id && allAttempts.length > 1;
                     const isActive = att.id === attemptId;
@@ -165,50 +177,48 @@ export default function TestbookAnalysisPage() {
                          key={att.id}
                          onClick={() => router.replace(`/tests/results/${att.id}`)}
                          className={cn(
-                            "px-6 py-3 text-xs font-bold font-sans transition-colors relative flex items-center gap-1.5",
-                            isActive ? "text-[#1a73e8]" : "text-gray-500 hover:text-gray-900 border-transparent",
+                            "px-5 py-3 text-[11px] font-bold transition-all relative flex items-center gap-1.5",
+                            isActive ? "text-blue-600" : "text-slate-400 hover:text-slate-700",
                          )}
                        >
                          Attempt {att.attemptNumber}
-                         {isBest && <span className="text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded ml-1 font-black uppercase tracking-widest flex items-center gap-0.5"><Star className="h-2 w-2 fill-emerald-600"/> Best</span>}
-                         {isLatest && !isBest && <span className="text-[10px] bg-sky-100 text-sky-700 px-1.5 py-0.5 rounded ml-1 font-black uppercase tracking-widest">Latest</span>}
+                         {isBest && <span className="text-[8px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded font-black uppercase tracking-widest flex items-center gap-0.5">Best</span>}
+                         {isLatest && !isBest && <span className="text-[8px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase tracking-widest">Latest</span>}
                          
-                         {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#1a73e8]" />}
+                         {isActive && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 rounded-full" />}
                        </button>
                     )
                 })}
             </div>
 
-            <div className="w-full max-w-4xl p-6 lg:p-10 space-y-10">
+            <div className="w-full max-w-4xl p-6 lg:p-8 space-y-8">
                
                <div className="w-full flex">
-                   <div className="inline-flex bg-gray-100 text-gray-600 text-[11px] font-bold px-3 py-1.5 rounded items-center gap-1.5 border border-gray-200/60">
-                       <Clock className="h-3.5 w-3.5" /> 
-                       Attempt {attemptData.attemptNumber} was made on {new Date(attemptData.submittedAt || new Date()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                   <div className="inline-flex bg-slate-50 text-slate-500 text-[10px] font-bold px-3 py-1.5 rounded-lg items-center gap-2 border border-slate-100">
+                       <Clock className="h-3.5 w-3.5 opacity-50" /> 
+                       Submitted on {new Date(attemptData.submittedAt || new Date()).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                    </div>
                </div>
 
                <section>
-                   <h3 className="text-sm font-bold text-gray-900 flex items-center gap-1 mb-6">
-                       Overall Performance Summary <AlertCircle className="h-3 w-3 text-gray-400" />
+                   <h3 className="text-xs font-bold text-slate-800 uppercase tracking-widest flex items-center gap-2 mb-6">
+                       <BarChart3 className="h-4 w-4 text-blue-500" /> Performance Summary
                    </h3>
-                   <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                   <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
                        {[
-                           { val: `${attemptData.rank || 0} / ${Math.max(attemptData.totalStudents || 1, attemptData.rank || 1)}`, label: "Rank", color: "bg-pink-500", icon: Trophy, wrapper: "bg-pink-50" },
-                           { val: `${attemptData.score || 0} / ${attemptData.totalMarks || 0}`, label: "Score", color: "bg-purple-500", icon: Award, wrapper: "bg-purple-50" },
-                           { val: `${attemptData.attempted || 0} / ${attemptData.totalQuestions || 0}`, label: "Attempted", color: "bg-sky-500", icon: Zap, wrapper: "bg-sky-50" },
-                           { val: `${attemptData.accuracy || 0}%`, label: "Accuracy", color: "bg-emerald-500", icon: CheckCircle2, wrapper: "bg-emerald-50" },
-                           { val: `${attemptData.percentile || 0}%`, label: "Percentile", color: "bg-indigo-500", icon: TrendingUp, wrapper: "bg-indigo-50" }
+                           { val: `${attemptData.rank || 0} / ${Math.max(attemptData.totalStudents || 1, attemptData.rank || 1)}`, label: "Rank", color: "text-rose-600", bg: "bg-rose-50", icon: Trophy },
+                           { val: `${attemptData.score || 0}/${attemptData.totalMarks || 0}`, label: "Score", color: "text-blue-600", bg: "bg-blue-50", icon: Award },
+                           { val: `${attemptData.attempted || 0}/${attemptData.totalQuestions || 0}`, label: "Attempts", color: "text-indigo-600", bg: "bg-indigo-50", icon: Zap },
+                           { val: `${attemptData.accuracy || 0}%`, label: "Accuracy", color: "text-emerald-600", bg: "bg-emerald-50", icon: CheckCircle2 },
+                           { val: `${attemptData.percentile || 0}%`, label: "Percentile", color: "text-violet-600", bg: "bg-violet-50", icon: TrendingUp }
                        ].map((m, i) => (
-                           <div key={i} className="flex flex-col items-center gap-3 text-center">
-                               <div className={cn("w-12 h-12 rounded-full flex items-center justify-center relative", m.wrapper)}>
-                                   <div className={cn("w-9 h-9 rounded-full flex items-center justify-center text-white transistion-transform hover:scale-110", m.color)}>
-                                       <m.icon className="h-4 w-4" />
-                                   </div>
+                           <div key={i} className={cn("p-4 rounded-2xl flex flex-col items-center border border-transparent hover:border-slate-100 transition-all shadow-sm", m.bg)}>
+                               <div className={cn("w-10 h-10 rounded-full flex items-center justify-center mb-3 bg-white shadow-inner", m.color)}>
+                                   <m.icon className="h-4.5 w-4.5" />
                                </div>
-                               <div>
-                                   <p className="text-xs font-black text-gray-900">{m.val}</p>
-                                   <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{m.label}</p>
+                               <div className="text-center">
+                                   <p className="text-sm font-black text-slate-800 tracking-tight">{m.val}</p>
+                                   <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{m.label}</p>
                                </div>
                            </div>
                        ))}

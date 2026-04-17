@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Loader2, ChevronLeft, ChevronRight, Clock, HelpCircle, BarChart3, BookOpen } from "lucide-react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, isAuthenticated, getCookie } from "@/lib/api";
 
 const PaletteKey = [
   { color: "#f0f0f0", border: "#ccc", textColor: "#333", label: "You have not visited the question yet" },
@@ -41,8 +41,16 @@ export default function TestInstructionsPage() {
 
   const testId = params?.id ? String(params.id) : "demo-test";
 
-  // Load student profile
+  // ── Auth guard ──────────────────────────────────────────────
   useEffect(() => {
+    if (!isAuthenticated()) {
+      router.replace(`/login?redirect=/tests/instructions/${testId}`);
+    }
+  }, [router, testId]);
+
+  // Load student profile (only when authenticated)
+  useEffect(() => {
+    if (!isAuthenticated()) return;
     apiFetch("/students/me").then(res => {
       if (res.data?.name) setDisplayName(res.data.name);
     }).catch(() => {});

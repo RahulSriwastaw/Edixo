@@ -238,19 +238,15 @@ export default function MockBookPage() {
   const [realSeries, setRealSeries] = useState<DashboardSeries[]>([]);
   const [liveTests, setLiveTests] = useState<DashboardLiveTest[]>([]);
 
-  // const selectedOrg = organizations.find(o => o.orgId === selectedOrgId);
-  const selectedOrg = null;
-  const selectedOrgId = null;
-
   useEffect(() => {
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const [statsRes, foldersRes, seriesRes, liveRes] = await Promise.all([
-          mockbookService.getStats(selectedOrgId || undefined),
-          mockbookService.getFolders(selectedOrgId || undefined),
-          mockbookService.getSeries(undefined, selectedOrgId || undefined),
-          mockbookService.getLiveAndScheduledTests(selectedOrgId || undefined)
+          mockbookService.getStats(),
+          mockbookService.getFolders(),
+          mockbookService.getSeries(),
+          mockbookService.getLiveAndScheduledTests()
         ]);
         setStats(statsRes);
         setFolders(foldersRes);
@@ -264,7 +260,7 @@ export default function MockBookPage() {
       }
     };
     fetchData();
-  }, [selectedOrgId]);
+  }, []);
 
 
   const dashboardStats = [

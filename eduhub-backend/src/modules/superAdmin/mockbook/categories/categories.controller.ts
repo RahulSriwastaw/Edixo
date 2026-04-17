@@ -12,9 +12,22 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
             }
         });
 
-        const enrichedCategories = categories.map((cat: any) => ({
-            ...cat,
-            studentCount: 0 // Mock placeholder until enrollments are mapped
+        // Calculate real studentCount (unique students who attempted any test in any series within this folder)
+        const enrichedCategories = await Promise.all(categories.map(async (cat) => {
+            const attempts = await prisma.testAttempt.findMany({
+                where: {
+                    test: {
+                        subCategory: {
+                            category: {
+                                folderId: cat.id
+                            }
+                        }
+                    }
+                },
+                distinct: ['studentId'],
+                select: { studentId: true }
+            });
+            return { ...cat, studentCount: attempts.length };
         }));
 
         res.json({ success: true, data: enrichedCategories });

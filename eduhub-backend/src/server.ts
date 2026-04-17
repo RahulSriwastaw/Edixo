@@ -382,13 +382,17 @@ async function startServer() {
         try {
             await prisma.$connect();
             logger.info('PostgreSQL connected');
-            try {
-                await ensureQuestionBankCompatibilityData();
-                await ensureCompatibilitySetsFromQuestions();
-                logger.info('Question-bank compatibility checks complete');
-            } catch (compatErr) {
-                logger.error('Non-critical compatibility check failed:', compatErr);
-            }
+            
+            // Run compatibility tasks in background to prevent blocking server start
+            (async () => {
+                try {
+                    await ensureQuestionBankCompatibilityData();
+                    await ensureCompatibilitySetsFromQuestions();
+                    logger.info('Question-bank compatibility checks complete');
+                } catch (compatErr) {
+                    logger.error('Non-critical background compatibility check failed:', compatErr);
+                }
+            })();
         } catch (dbErr) {
             if (env.NODE_ENV === 'production') throw dbErr;
             logger.warn('Database connection failed - server will start without initial compatibility checks (dev mode).');

@@ -303,13 +303,33 @@ router.post('/register', async (req, res, next) => {
 
     const passwordHash = await bcrypt.hash(req.body.password, 12);
 
-    const user = await prismaAny.user.create({
-      data: {
-        email: emailVal,
-        passwordHash,
-        role: req.body.role || 'STUDENT',
-        isActive: true,
-      },
+    const user = await prisma.$transaction(async (tx) => {
+      const newUser = await tx.user.create({
+        data: {
+          email: emailVal,
+          passwordHash,
+          role: req.body.role || 'STUDENT',
+          isActive: true,
+        },
+      });
+
+      if (newUser.role === 'STUDENT') {
+        const globalCount = await tx.student.count();
+        const timestamp = Date.now().toString().slice(-3);
+        const studentId = `GK-STU-${String(globalCount + 1).padStart(5, '0')}-${timestamp}`;
+
+        await tx.student.create({
+          data: {
+            studentId,
+            userId: newUser.id,
+            name: name || 'Student',
+            email: emailVal,
+            isActive: true,
+          },
+        });
+      }
+
+      return newUser;
     });
 
     const tokenPayload = {

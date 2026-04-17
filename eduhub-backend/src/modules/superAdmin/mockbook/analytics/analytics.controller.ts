@@ -3,7 +3,7 @@ import { prisma } from '../../../../config/database';
 
 export const getOverviewStats = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { orgId } = req.query;
+        // Removed orgId as the system is now single-owner
         // In reality, run complex aggregates. Here we return mock KPI data
         // to satisfy the frontend Dashboard view.
 

@@ -212,7 +212,8 @@ export default function DigitalBoardPage() {
     const fetchOrgData = async () => {
       try {
         setIsLoading(true);
-        const settingsRes = await digitalBoardService.getSettings(selectedOrgId);
+        // Using a default 'global' or 'system' id if needed, or update service to handle null
+        const settingsRes = await digitalBoardService.getSettings("global"); 
         setWbSettings(settingsRes);
       } catch (error) {
         console.error("Failed to fetch digital board settings:", error);
@@ -224,11 +225,11 @@ export default function DigitalBoardPage() {
   }, [selectedOrgId]);
 
   const handleUpdateSetting = async (key: keyof WhiteboardSettings, value: any) => {
-    if (!selectedOrgId || !wbSettings) return;
+    if (!wbSettings) return;
     const newSettings = { ...wbSettings, [key]: value };
     setWbSettings(newSettings);
     try {
-      await digitalBoardService.updateSettings(selectedOrgId, { [key]: value });
+      await digitalBoardService.updateSettings("global", { [key]: value });
       toast.success("Settings updated");
     } catch (error) {
       toast.error("Failed to update settings");

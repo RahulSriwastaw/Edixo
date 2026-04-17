@@ -21,7 +21,6 @@ import { TopBar } from "@/components/admin/TopBar";
 import { toast } from "sonner";
 import { mockbookService, ExamFolder } from "@/services/mockbookService";
 import { useEffect } from "react";
-import { useOrg } from "@/providers/OrgProvider";
 
 const STEPS = [
     { id: 1, label: "Series Identity", icon: BookOpen },
@@ -87,7 +86,6 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 export default function CreateTestSeriesPage() {
     const { isOpen } = useSidebarStore();
     const router = useRouter();
-    const { selectedOrgId } = useOrg();
     const [step, setStep] = useState(1);
 
     const [allFolders, setAllFolders] = useState<ExamFolder[]>([]);
@@ -96,7 +94,7 @@ export default function CreateTestSeriesPage() {
     useEffect(() => {
         const fetchFolders = async () => {
             try {
-                const folders = await mockbookService.getFolders(selectedOrgId || undefined);
+                const folders = await mockbookService.getFolders();
                 setAllFolders(folders);
             } catch (error) {
                 toast.error("Failed to load categories");
@@ -105,7 +103,7 @@ export default function CreateTestSeriesPage() {
             }
         };
         fetchFolders();
-    }, [selectedOrgId]);
+    }, []);
 
     // Form state matching backend
     const [form, setForm] = useState({
@@ -160,7 +158,6 @@ export default function CreateTestSeriesPage() {
                 isFree: pricing.type === "free",
                 price: pricing.type === "free" ? 0 : Number(pricing.price),
                 discountPrice: pricing.offerPrice ? Number(pricing.offerPrice) : (pricing.type === "free" ? 0 : Number(pricing.price)),
-                orgId: selectedOrgId || "demo-org",
             };
             
             await mockbookService.createSeries(data as any);

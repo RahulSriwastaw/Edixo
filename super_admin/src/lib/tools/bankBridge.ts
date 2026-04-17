@@ -45,12 +45,12 @@ export async function sendQuestionsToBank(
 
     const response = await api.post('/ai/save-draft', payload);
     
-    if (response.data.success) {
+    if (response.success) {
       const folderMsg = folderName ? ` in folder "${folderName}"` : ' to Question Bank Drafts';
       toast.success(`✓ ${questions.length} questions successfully saved${folderMsg}!`);
       return true;
     }
-    throw new Error(response.data.message || "Failed to save drafts");
+    throw new Error(response.message || "Failed to save drafts");
   } catch (error: any) {
     console.error("Send to Bank Error:", error);
     toast.error(error.message || "Failed to send questions to bank.");

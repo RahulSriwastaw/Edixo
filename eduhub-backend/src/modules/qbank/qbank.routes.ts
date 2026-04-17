@@ -510,14 +510,16 @@ router.delete('/folders/:id', async (req, res, next) => {
             }
 
             // Permanent delete all questions in subtree
-            await (prisma as any).questions.deleteMany({
-                where: { folderId: { in: allFolderIds } }
-            });
+            await prisma.$executeRawUnsafe(
+                `DELETE FROM questions WHERE "folderId" = ANY($1::text[])`,
+                allFolderIds
+            );
 
-            // Delete all sets in subtree (Hard delete)
-            await (prisma as any).question_sets.deleteMany({
-                where: { folderId: { in: allFolderIds } }
-            });
+            // Delete all sets in subtree
+            await prisma.$executeRawUnsafe(
+                `DELETE FROM question_sets WHERE "folderId" = ANY($1::text[])`,
+                allFolderIds
+            );
 
             // Delete all sub-folders and this folder (children first)
             const reverseOrder = [...subFolders].reverse();
@@ -917,12 +919,12 @@ router.get('/questions', async (req, res, next) => {
                         select: { id: true }
                     });
                     const allIds = [folder.id, ...subFolders.map(f => f.id)];
-                    where.folderId = { in: allIds };
+                    where.folder = { id: { in: allIds } };
                 } else {
-                    where.folderId = folderId;
+                    where.folder = { id: folderId };
                 }
             } else {
-                where.folderId = folderId;
+                where.folder = { id: folderId };
             }
         }
 
@@ -1078,6 +1080,27 @@ router.post('/questions/move-to-folder', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ─── DELETE /api/qbank/questions/:id ──────────────────────────
+router.delete('/questions/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        await prisma.questions.delete({ where: { id } });
+        res.json({ success: true, message: 'Question deleted successfully' });
+    } catch (err) { next(err); }
+});
+
+// ─── DELETE /api/qbank/questions ──────────────────────────────
+router.delete('/questions', async (req, res, next) => {
+    try {
+        const { ids } = z.object({ ids: z.array(z.string()) }).parse(req.body);
+        if (ids.length === 0) return res.json({ success: true, message: '0 questions deleted' });
+
+        await prisma.$executeRawUnsafe(`DELETE FROM questions WHERE id = ANY($1::text[])`, ids);
+        
+        res.json({ success: true, message: `${ids.length} questions deleted successfully` });
+    } catch (err) { next(err); }
+});
+
 // ─── POST /api/qbank/questions/copy-to-folder ──────────────────
 router.post('/questions/copy-to-folder', async (req, res, next) => {
     try {
@@ -1102,7 +1125,8 @@ router.post('/questions/copy-to-folder', async (req, res, next) => {
             // Since id is likely mapped, we inject a new UUID-like string. 
             // In Prisma, we can omit id if it's default uuid/cuid.
             const newQId = `q-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-            const newQuestionIdStr = `${q.questionId}-copy`;
+            const shortHash = randomBytes(3).toString('hex');
+            const newQuestionIdStr = `${q.questionId}-copy-${shortHash}`;
 
             await (prisma as any).questions.create({
                 data: {

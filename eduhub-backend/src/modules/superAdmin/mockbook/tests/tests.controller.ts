@@ -61,16 +61,52 @@ export const getTestDetail = async (req: Request, res: Response, next: NextFunct
     }
 };
 
+/**
+ * Ensures a subcategory exists for the given category.
+ * If subCategoryId given → validate and use it.
+ * If only categoryId given → find or auto-create a "General" subcategory.
+ */
+async function resolveSubCategoryId(
+    categoryId: string | null | undefined,
+    subCategoryId: string | null | undefined
+): Promise<string | null> {
+    if (subCategoryId) return subCategoryId;
+    if (!categoryId) return null;
+
+    // Find existing "General" subcategory under this category
+    let subCat = await prisma.examSubCategory.findFirst({
+        where: { categoryId, name: 'General' }
+    });
+
+    if (!subCat) {
+        // Auto-create a General subcategory
+        subCat = await prisma.examSubCategory.create({
+            data: {
+                category: { connect: { id: categoryId } },
+                name: 'General',
+                description: 'Auto-created default group',
+                sortOrder: 0,
+            }
+        });
+    }
+
+    return subCat.id;
+}
+
 export const createTest = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const {
-            name, durationMins, totalMarks, subCategoryId,
+            name, durationMins, totalMarks,
+            categoryId, subCategoryId,
             description, isPublic, shuffleQuestions, scheduledAt, endsAt, maxAttempts
         } = req.body;
 
         if (!name || !durationMins) {
             return res.status(400).json({ success: false, message: 'Name and Duration are required' });
         }
+
+        // Resolve subcategory — auto-create if only categoryId given
+        const resolvedSubCatId = await resolveSubCategoryId(categoryId, subCategoryId);
 
         const newTest = await prisma.mockTest.create({
             data: {
@@ -79,7 +115,7 @@ export const createTest = async (req: Request, res: Response, next: NextFunction
                 name,
                 durationMins: Number(durationMins),
                 totalMarks: Number(totalMarks || 0),
-                ...(subCategoryId ? { subCategory: { connect: { id: subCategoryId } } } : {}),
+                ...(resolvedSubCatId ? { subCategory: { connect: { id: resolvedSubCatId } } } : {}),
                 description: description || null,
                 isPublic: isPublic || false,
                 shuffleQuestions: shuffleQuestions || false,
@@ -101,13 +137,22 @@ export const updateTest = async (req: Request, res: Response, next: NextFunction
         const id = req.params.id as string;
         const data = req.body;
 
+        // Resolve subcategory if categoryId is given without subCategoryId
+        let resolvedSubCatId = data.subCategoryId;
+        if (!resolvedSubCatId && data.categoryId) {
+            resolvedSubCatId = await resolveSubCategoryId(data.categoryId, null);
+        }
+
         const updatedTest = await prisma.mockTest.update({
             where: { id },
             data: {
                 name: data.name,
                 durationMins: data.durationMins ? Number(data.durationMins) : undefined,
                 totalMarks: data.totalMarks ? Number(data.totalMarks) : undefined,
-                ...(data.subCategoryId ? { subCategory: { connect: { id: data.subCategoryId } } } : (data.subCategoryId === null ? { subCategory: { disconnect: true } } : {})),
+                ...(resolvedSubCatId
+                    ? { subCategory: { connect: { id: resolvedSubCatId } } }
+                    : (data.subCategoryId === null ? { subCategory: { disconnect: true } } : {})
+                ),
                 description: data.description,
                 isPublic: data.isPublic,
                 shuffleQuestions: data.shuffleQuestions,
@@ -209,6 +254,44 @@ export const removeTestSection = async (req: Request, res: Response, next: NextF
             where: { id: sectionId, testId: id } // Ensuring the section belongs to the right test
         });
         res.json({ success: true, message: 'Section removed successfully' });
+    } catch (error) {
+        next(error);
+    }
+};
+
+/**
+ * POST /tests/repair-orphans
+ * Body: { assignments: [{testId, categoryId}] }
+ * Assigns orphaned tests (subCategoryId = null) to the correct series
+ * by finding or creating a "General" subcategory.
+ */
+export const repairOrphanedTests = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { assignments } = req.body as { assignments: { testId: string; categoryId: string }[] };
+
+        if (!Array.isArray(assignments) || assignments.length === 0) {
+            return res.status(400).json({ success: false, message: 'assignments array is required' });
+        }
+
+        let repaired = 0;
+        const errors: string[] = [];
+
+        for (const { testId, categoryId } of assignments) {
+            try {
+                const subCatId = await resolveSubCategoryId(categoryId, null);
+                if (!subCatId) { errors.push(`No subCat for ${testId}`); continue; }
+
+                await prisma.mockTest.update({
+                    where: { id: testId },
+                    data: { subCategory: { connect: { id: subCatId } } }
+                });
+                repaired++;
+            } catch (e: any) {
+                errors.push(`${testId}: ${e.message}`);
+            }
+        }
+
+        res.json({ success: true, data: { repaired, errors } });
     } catch (error) {
         next(error);
     }

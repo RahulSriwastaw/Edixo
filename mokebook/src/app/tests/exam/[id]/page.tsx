@@ -12,53 +12,53 @@ import { apiFetch, isAuthenticated } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
 // TCS iON standard palette shapes
-// Professional Palette Shapes (inspired by Testbook/standard TCS)
+// Professional Palette Shapes (inspired by standard modern testing platforms)
 const PaletteShapes = {
   NotVisited: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "w-9 h-8 md:w-[38px] md:h-[34px] bg-[#f1f5f9] text-slate-600 text-[11px] font-bold flex items-center justify-center border border-slate-200 rounded shadow-sm hover:border-slate-400 transition-all",
-      active && "ring-2 ring-brand-primary ring-offset-1 border-brand-primary text-brand-primary font-extrabold"
+      "w-8 h-7 md:w-[34px] md:h-[30px] bg-slate-50 text-slate-500 text-[10px] font-bold flex items-center justify-center border border-slate-200 rounded shadow-sm hover:border-slate-400 transition-all",
+      active && "ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-600 font-extrabold"
     )}>
       {num}
     </div>
   ),
   NotAnswered: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "relative w-9 h-8 md:w-[38px] md:h-[34px] flex items-center justify-center hover:opacity-90 transition-opacity",
-      active && "ring-2 ring-brand-primary ring-offset-1"
+      "relative w-8 h-7 md:w-[34px] md:h-[30px] flex items-center justify-center hover:opacity-90 transition-opacity",
+      active && "ring-2 ring-blue-500 ring-offset-1"
     )}>
-      <svg viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full drop-shadow-sm">
-        <path d="M0 0H38V22C38 22 25 34 19 34C13 34 0 22 0 22V0Z" fill="#ef4444" />
+      <svg viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
+        <path d="M0 0H38V22C38 22 25 34 19 34C13 34 0 22 0 22V0Z" fill="#f43f5e" />
       </svg>
-      <span className="relative text-white text-[11px] font-bold -mt-0.5">{num}</span>
+      <span className="relative text-white text-[10px] font-bold -mt-0.5">{num}</span>
     </div>
   ),
   Answered: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "relative w-9 h-8 md:w-[38px] md:h-[34px] flex items-center justify-center hover:opacity-90 transition-opacity",
-      active && "ring-2 ring-brand-primary ring-offset-1"
+      "relative w-8 h-7 md:w-[34px] md:h-[30px] flex items-center justify-center hover:opacity-90 transition-opacity",
+      active && "ring-2 ring-blue-600 ring-offset-1"
     )}>
-      <svg viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full drop-shadow-sm">
-        <path d="M0 12C0 12 13 0 19 0C25 0 38 12 38 12V34H0V12Z" fill="#22c55e" />
+      <svg viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
+        <path d="M0 12C0 12 13 0 19 0C25 0 38 12 38 12V34H0V12Z" fill="#10b981" />
       </svg>
-      <span className="relative text-white text-[11px] font-bold mt-0.5">{num}</span>
+      <span className="relative text-white text-[10px] font-bold mt-0.5">{num}</span>
     </div>
   ),
   Marked: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "w-8 h-8 md:w-[34px] md:h-[34px] bg-[#8b5cf6] text-white text-[11px] font-bold flex items-center justify-center rounded-full shadow-sm hover:opacity-90 transition-opacity mx-auto",
-      active && "ring-2 ring-brand-primary ring-offset-1"
+      "w-7 h-7 md:w-[32px] md:h-[32px] bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm hover:opacity-90 transition-opacity mx-auto",
+      active && "ring-2 ring-blue-500 ring-offset-1"
     )}>
       {num}
     </div>
   ),
   MarkedAndAnswered: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "relative w-8 h-8 md:w-[34px] md:h-[34px] bg-[#8b5cf6] text-white text-[11px] font-bold flex items-center justify-center rounded-full shadow-sm hover:opacity-90 transition-opacity mx-auto",
-      active && "ring-2 ring-brand-primary ring-offset-1"
+      "relative w-7 h-7 md:w-[32px] md:h-[32px] bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm hover:opacity-90 transition-opacity mx-auto",
+      active && "ring-2 ring-blue-500 ring-offset-1"
     )}>
       {num}
-      <div className="absolute bottom-0 right-0 w-3 h-3 bg-[#22c55e] rounded-full border-2 border-white shadow-sm" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
     </div>
   ),
 };
@@ -118,13 +118,16 @@ export default function ExamPage() {
   // Auth guard — redirect to login if no token
   useEffect(() => {
     if (!isAuthenticated()) {
-      router.replace("/login");
+      router.replace(`/login?redirect=/tests/exam/${testId}`);
     }
-  }, [router]);
+  }, [router, testId]);
 
   // Fetch questions and start attempt
   useEffect(() => {
     const init = async () => {
+      // Guard: don't run if not authenticated (redirect is in flight)
+      if (!isAuthenticated()) return;
+
       try {
         setLoading(true);
 
@@ -366,9 +369,9 @@ export default function ExamPage() {
 
   if (loading || !isReady) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-[#f0f4f7]">
-        <Loader2 className="h-10 w-10 animate-spin text-orange-500 mb-4" />
-        <p className="text-slate-600 font-semibold text-sm">Loading questions...</p>
+      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
+        <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
+        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Initialising Exam...</p>
       </div>
     );
   }
@@ -395,7 +398,7 @@ export default function ExamPage() {
     marked_answered: Object.values(qState).filter(s => s.status === "marked_answered").length,
   };
 
-  const brandColor = "#ff5c28";
+  const brandColor = "#1a73e8"; // Professional Indigo-Blue
   const currentTime = qTimeSpent.current[currentIdx] || 0;
   const formatSecs = (s: number) => {
     const mins = Math.floor(s / 60);
@@ -430,39 +433,39 @@ export default function ExamPage() {
         </div>
       </header>
 
-      {/* DESKTOP HEADER */}
-      <header className="hidden md:flex bg-white border-b border-slate-200 items-center justify-between px-6 shrink-0 h-[60px] shadow-sm z-30">
-        <div className="flex items-center gap-5">
-          <div className="h-8 w-8 bg-brand-primary rounded-lg flex items-center justify-center text-white font-black italic shadow-inner">V</div>
-          <div className="h-6 w-px bg-slate-200" />
-          <h1 className="text-[15px] font-bold text-slate-800 truncate max-w-sm">{testName}</h1>
+      {/* DESKTOP HEADER - Compact */}
+      <header className="hidden md:flex bg-white border-b border-slate-200 items-center justify-between px-6 shrink-0 h-14 shadow-sm z-30">
+        <div className="flex items-center gap-4">
+          <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic shadow-inner">M</div>
+          <div className="h-5 w-px bg-slate-200" />
+          <h1 className="text-[14px] font-extrabold text-slate-800 truncate max-w-sm tracking-tight">{testName}</h1>
         </div>
 
-        <div className="flex items-center gap-8">
+        <div className="flex items-center gap-6">
            <div className="flex items-center gap-2">
-            <span className="text-[11px] font-bold text-slate-400 tracking-widest uppercase">Time Left</span>
-            <div className="flex items-center gap-1 font-mono text-lg font-black text-slate-800">
+            <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Time Left</span>
+            <div className="flex items-center gap-1 font-mono text-base font-black text-slate-800">
                {formatTime(secondsLeft).split(':').map((chunk, i) => (
                  <div key={i} className="flex items-center">
-                    <span className="bg-slate-100 rounded border border-slate-200 px-2 py-0.5 min-w-[32px] text-center shadow-sm">{chunk.trim()}</span>
+                    <span className="bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 min-w-[28px] text-center shadow-sm">{chunk.trim()}</span>
                     {i < 2 && <span className="mx-0.5 text-slate-300">:</span>}
                  </div>
                ))}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
              <button
-              className="px-4 py-2 text-[12px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-100 transition-all flex items-center gap-2"
+              className="h-8 px-3 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2"
               onClick={toggleFullscreen}
             >
-              <Maximize className="h-4 w-4" />
-              {isFullscreen ? "NORMAL" : "FULLSCREEN"}
+              <Maximize className="h-3.5 w-3.5" />
+              {isFullscreen ? "NORMAL" : "FULL"}
             </button>
              <button
-              className="px-4 py-2 text-[12px] font-bold text-brand-primary border border-brand-primary/20 bg-brand-primary/5 rounded-lg hover:bg-brand-primary/10 transition-all flex items-center gap-2"
+              className="h-8 px-3 text-[10px] font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-lg hover:bg-blue-50 transition-all flex items-center gap-2"
               onClick={handlePause}
             >
-              <PauseCircle className="h-4 w-4" />
+              <PauseCircle className="h-3.5 w-3.5" />
               PAUSE
             </button>
           </div>
@@ -472,9 +475,9 @@ export default function ExamPage() {
       {/* SUB-HEADER: Sections */}
       <div className="flex items-center justify-between border-b border-slate-200 bg-white shrink-0 z-20">
         <div className="flex items-center min-w-0">
-          <div className="px-5 py-3 text-[10px] font-black text-slate-400 tracking-tighter border-r border-slate-100 whitespace-nowrap">SECTIONS</div>
+          <div className="px-5 py-2.5 text-[9px] font-bold text-slate-400 tracking-wider border-r border-slate-100 whitespace-nowrap">SECTIONS</div>
           <div className="flex items-center overflow-x-auto no-scrollbar">
-            <div className="text-white px-6 py-3 text-[12px] font-bold flex items-center whitespace-nowrap" style={{ backgroundColor: brandColor }}>
+            <div className="text-white px-5 py-2.5 text-[11px] font-bold flex items-center whitespace-nowrap" style={{ backgroundColor: brandColor }}>
               {currentQ.section}
             </div>
           </div>
@@ -494,10 +497,10 @@ export default function ExamPage() {
       <div className="flex flex-1 overflow-hidden relative">
         {/* LEFT: QUESTION PANEL */}
         <div className="flex-1 flex flex-col min-w-0 bg-white shadow-sm ring-1 ring-slate-200">
-          <div className="flex items-center justify-between px-5 md:px-8 py-3.5 border-b border-slate-100 shrink-0 bg-slate-50/50">
-            <div className="flex items-baseline gap-2">
-               <span className="text-xs font-bold text-slate-400">QUESTION</span>
-               <span className="text-xl font-black text-slate-800">{currentQ.number}</span>
+          <div className="flex items-center justify-between px-5 md:px-8 py-2.5 border-b border-slate-100 shrink-0 bg-slate-50/50">
+            <div className="flex items-baseline gap-1.5">
+               <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Question</span>
+               <span className="text-lg font-black text-slate-800">{currentQ.number}</span>
             </div>
             
             <div className="flex items-center gap-3">
@@ -531,23 +534,23 @@ export default function ExamPage() {
                 dangerouslySetInnerHTML={{ __html: currentQ.text || "" }}
               />
 
-              <div className="grid gap-3.5">
+              <div className="grid gap-3">
                 {currentQ.options.map((opt, i) => {
                   const isSelected = currentQState.answer === i;
                   return (
                     <label key={opt.id} className={cn(
-                        "flex items-center gap-4 cursor-pointer group p-4 rounded-xl border-2 transition-all duration-200",
-                        isSelected ? "border-brand-primary bg-brand-primary/5 shadow-md" : "border-slate-100 hover:border-slate-300 hover:bg-slate-50"
+                        "flex items-center gap-3.5 cursor-pointer group p-3.5 rounded-xl border-2 transition-all duration-200",
+                        isSelected ? "border-blue-600 bg-blue-50/30 shadow-sm" : "border-slate-100 hover:border-slate-300 hover:bg-slate-50"
                       )}
                       onClick={() => handleSelectOption(i, opt.id)}
                     >
                       <div className={cn(
-                        "w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
-                        isSelected ? "border-brand-primary bg-brand-primary" : "border-slate-300 group-hover:border-slate-500"
+                        "w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all",
+                        isSelected ? "border-blue-600 bg-blue-600" : "border-slate-300 group-hover:border-slate-500"
                       )}>
-                        {isSelected && <div className="w-2.5 h-2.5 bg-white rounded-full" />}
+                        {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                       </div>
-                      <div className={cn("text-[15px] font-bold", isSelected ? "text-brand-primary" : "text-slate-700")} dangerouslySetInnerHTML={{ __html: opt.text || "" }} />
+                      <div className={cn("text-[14px] font-bold", isSelected ? "text-blue-700 font-extrabold" : "text-slate-700")} dangerouslySetInnerHTML={{ __html: opt.text || "" }} />
                     </label>
                   );
                 })}

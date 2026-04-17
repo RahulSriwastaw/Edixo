@@ -213,12 +213,15 @@ function FolderModal({
 
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[480px]" aria-describedby={undefined}>
+            <DialogContent className="sm:max-w-[480px]" aria-describedby="set-folder-modal-description">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <FolderPlus className="w-5 h-5 text-orange-500" />
                         {mode === "create" ? (parentFolder ? `Add Sub-folder to "${parentFolder.name}"` : "Create Root Folder") : `Edit "${initial?.name}"`}
                     </DialogTitle>
+                    <DialogDescription id="set-folder-modal-description">
+                        {mode === "create" ? "Provide details for the new set folder." : "Edit the current set folder configuration."}
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-3">
@@ -705,9 +708,12 @@ export function SetFoldersManager() {
             )}
             {bulkMoveOpen && (
                 <Dialog open onOpenChange={() => setBulkMoveOpen(false)}>
-                    <DialogContent className="sm:max-w-[400px]">
+                    <DialogContent className="sm:max-w-[400px]" aria-describedby="bulk-move-description">
                         <DialogHeader>
                             <DialogTitle>Move {selectedSets.size} Sets to Folder</DialogTitle>
+                            <DialogDescription id="bulk-move-description">
+                                Select a target folder to move the selected question sets.
+                            </DialogDescription>
                         </DialogHeader>
                         <FolderPicker
                             tree={tree}
@@ -740,12 +746,12 @@ function DeleteModal({ folder, onConfirm, onClose }: any) {
     const [loading, setLoading] = useState(false);
     return (
         <Dialog open onOpenChange={onClose}>
-            <DialogContent className="sm:max-w-[450px]" aria-describedby={undefined}>
+            <DialogContent className="sm:max-w-[450px]" aria-describedby="set-delete-description">
                 <DialogHeader>
                     <DialogTitle className="text-red-600 flex items-center gap-2 text-xl">
                         <AlertTriangle className="w-6 h-6" /> Delete Folder
                     </DialogTitle>
-                    <DialogDescription className="text-gray-600 text-base">
+                    <DialogDescription id="set-delete-description" className="text-gray-600 text-base">
                         Are you sure you want to delete folder <strong>{folder.name}</strong>?
                     </DialogDescription>
                 </DialogHeader>

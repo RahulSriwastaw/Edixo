@@ -52,6 +52,7 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
     try {
         const schema = z.object({
              sourceName: z.string().default("AI Extractor"),
+             folderId: z.string().optional(),
              questions: z.array(z.object({
                  textEn: z.string(),
                  textHi: z.string().optional(),
@@ -67,40 +68,42 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
              }))
         });
 
-        const { sourceName, questions } = schema.parse(req.body);
+        const { sourceName, questions, folderId } = schema.parse(req.body);
         
-        let savedCount = 0;
+        const savedCount = await prisma.$transaction(async (tx) => {
+            let count = 0;
+            for (const q of questions) {
+                const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${count}`;
+                const difficulty = (q.difficulty || 'medium').toLowerCase();
 
-        // Save questions directly without folder reference
-        for (const q of questions) {
-             const questionId = `Q-EXT-${Date.now()}-${Math.floor(Math.random()*10000)}`;
-             const difficulty = (q.difficulty || 'medium').toLowerCase();
-             
-             // Wrap in a simple transaction-like sequence
-             await tryCatchTransaction(async () => {
-                 // 1. Insert Question
-                 await prisma.$executeRaw`
-                     INSERT INTO questions (id, question_id, text_en, text_hi, is_approved, type, difficulty, subject_name, chapter_name)
-                     VALUES (
-                         ${questionId}, ${questionId}, ${q.textEn}, ${q.textHi || null}, FALSE, 'mcq', ${difficulty}, ${sourceName}, 'AI Drafts'
-                     )
-                 `;
-
-                 // 2. Insert Options
-                 if (q.options && q.options.length > 0) {
-                     for (const [idx, opt] of q.options.entries()) {
-                         const optionId = `OPT-${Date.now()}-${Math.floor(Math.random()*10000)}-${idx}`;
-                         await prisma.$executeRaw`
-                             INSERT INTO question_options (id, question_id, text_en, text_hi, is_correct, sort_order)
-                             VALUES (
-                                 ${optionId}, ${questionId}, ${opt.textEn}, ${opt.textHi || opt.textEn}, ${opt.isCorrect}, ${opt.sortOrder || idx}
-                             )
-                         `;
-                     }
-                 }
-                 savedCount++;
-             });
-        }
+                await tx.questions.create({
+                    data: {
+                        id: questionId,
+                        question_id: questionId,
+                        text_en: q.textEn,
+                        text_hi: q.textHi || null,
+                        is_approved: false,
+                        type: 'mcq',
+                        difficulty: difficulty,
+                        subject_name: sourceName,
+                        chapter_name: 'AI Drafts',
+                        explanation_en: q.explanationEn || null,
+                        ...(folderId ? { folder: { connect: { id: folderId } } } : {}),
+                        question_options: {
+                            create: q.options?.map((opt, idx) => ({
+                                id: `OPT-${Date.now()}-${Math.floor(Math.random() * 10000)}-${count}-${idx}`,
+                                text_en: opt.textEn,
+                                text_hi: opt.textHi || opt.textEn,
+                                is_correct: opt.isCorrect,
+                                sort_order: opt.sortOrder || idx
+                            })) || []
+                        }
+                    }
+                });
+                count++;
+            }
+            return count;
+        }, { timeout: 30000 });
 
         res.json({ success: true, message: `Saved ${savedCount} drafts successfully with options.` });
     } catch (err) {

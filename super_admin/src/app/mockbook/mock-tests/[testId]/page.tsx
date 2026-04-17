@@ -17,6 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import {
+    Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Sidebar } from "@/components/admin/Sidebar";
@@ -57,7 +60,10 @@ export default function MockTestDetailPage() {
         name: "", description: "", durationMins: 60, totalMarks: 100,
         isPublic: false, shuffleQuestions: false, showResult: true, maxAttempts: 1,
         scheduledAt: "", endsAt: "",
+        seriesId: "", subCategoryId: ""
     });
+    const [allSeries, setAllSeries] = useState<any[]>([]);
+    const [subCategories, setSubCategories] = useState<any[]>([]);
 
     // Sections
     const [addSectionOpen, setAddSectionOpen] = useState(false);
@@ -86,7 +92,12 @@ export default function MockTestDetailPage() {
                 maxAttempts: data.maxAttempts,
                 scheduledAt: data.scheduledAt ? new Date(data.scheduledAt).toISOString().slice(0, 16) : "",
                 endsAt: data.endsAt ? new Date(data.endsAt).toISOString().slice(0, 16) : "",
+                seriesId: data.subCategory?.category?.id || "",
+                subCategoryId: data.subCategoryId || "",
             });
+            if (data.subCategory?.category?.id) {
+                loadSubCats(data.subCategory.category.id);
+            }
         } catch { toast.error("Failed to load test"); }
         finally { setIsLoading(false); }
     };
@@ -109,7 +120,21 @@ export default function MockTestDetailPage() {
         finally { setSetsLoading(false); }
     };
 
-    useEffect(() => { loadTest(); }, [testId]);
+    const loadSeries = async () => {
+        try {
+            const data = await mockbookService.getSeries();
+            setAllSeries(data);
+        } catch {}
+    };
+
+    const loadSubCats = async (sid: string) => {
+        try {
+            const data = await mockbookService.getSubCategories(sid);
+            setSubCategories(data);
+        } catch {}
+    };
+
+    useEffect(() => { loadTest(); loadSeries(); }, [testId]);
     useEffect(() => { if (test) loadLeaderboard(); }, [test?.testId]);
     useEffect(() => { if (addSectionOpen && qbankSets.length === 0) loadQbankSets(); }, [addSectionOpen]);
 
@@ -127,6 +152,7 @@ export default function MockTestDetailPage() {
                 maxAttempts: Number(editForm.maxAttempts),
                 scheduledAt: editForm.scheduledAt || null,
                 endsAt: editForm.endsAt || null,
+                subCategoryId: editForm.subCategoryId || null,
             } as any);
             toast.success("Test updated"); loadTest();
         } catch { toast.error("Failed to update"); }
@@ -330,6 +356,36 @@ export default function MockTestDetailPage() {
                                             <div className="space-y-1.5">
                                                 <Label>Total Marks</Label>
                                                 <Input type="number" min={0} value={editForm.totalMarks} onChange={e => setEditForm(f => ({ ...f, totalMarks: Number(e.target.value) }))} />
+                                            </div>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-1.5">
+                                                <Label>Series (Exam Category)</Label>
+                                                <Select value={editForm.seriesId || "none"} onValueChange={val => {
+                                                    setEditForm(f => ({ ...f, seriesId: val === "none" ? "" : val, subCategoryId: "" }));
+                                                    if (val !== "none") loadSubCats(val);
+                                                    else setSubCategories([]);
+                                                }}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select series..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent portal={false}>
+                                                        <SelectItem value="none">No series</SelectItem>
+                                                        {allSeries.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div className="space-y-1.5">
+                                                <Label>Folder (Sub-Category)</Label>
+                                                <Select value={editForm.subCategoryId || "none"} onValueChange={val => setEditForm(f => ({ ...f, subCategoryId: val === "none" ? "" : val }))}>
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Select folder..." />
+                                                    </SelectTrigger>
+                                                    <SelectContent portal={false}>
+                                                        <SelectItem value="none">No folder</SelectItem>
+                                                        {subCategories.map(sc => <SelectItem key={sc.id} value={sc.id}>{sc.name}</SelectItem>)}
+                                                    </SelectContent>
+                                                </Select>
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">

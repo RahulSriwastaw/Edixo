@@ -741,10 +741,10 @@ export function AdvancedSetBuilder() {
 
       {/* Cart Dialog */}
       <Dialog open={showCart} onOpenChange={setShowCart}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-w-xl" aria-describedby="cart-dialog-description">
           <DialogHeader>
             <DialogTitle>Create New Question Set</DialogTitle>
-            <DialogDescription>
+            <DialogDescription id="cart-dialog-description">
               Give your selection a name to create a reusable set.
             </DialogDescription>
           </DialogHeader>
@@ -818,9 +818,12 @@ export function AdvancedSetBuilder() {
 
       {/* Preview Dialog */}
       <Dialog open={!!previewQuestion} onOpenChange={() => setPreviewQuestion(null)}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl" aria-describedby="question-preview-description">
           <DialogHeader>
             <DialogTitle>Question Preview</DialogTitle>
+            <DialogDescription id="question-preview-description">
+              Review the full details of the selected question.
+            </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-6">
              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
@@ -913,7 +916,7 @@ export function AdvancedSetBuilder() {
 
       {/* Advanced Filter Dialog */}
       <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
-        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl">
+        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl" aria-describedby="filter-dialog-description">
           <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 px-6 py-5 border-b border-orange-100">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2.5 text-xl text-gray-900">
@@ -922,7 +925,7 @@ export function AdvancedSetBuilder() {
                 </div>
                 Advanced Filters
               </DialogTitle>
-              <DialogDescription className="text-gray-600 font-medium">
+              <DialogDescription id="filter-dialog-description" className="text-gray-600 font-medium">
                 Build precise queries to find exactly what you need.
               </DialogDescription>
             </DialogHeader>

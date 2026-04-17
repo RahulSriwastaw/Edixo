@@ -207,17 +207,16 @@ export default function StudentAppPage() {
 
   useEffect(() => {
     const fetchOrgData = async () => {
-      if (!selectedOrgId) return;
       try {
         setIsLoading(true);
         const [studentsRes, personalizationRes] = await Promise.all([
-          studentAppService.getStudents(selectedOrgId, searchQuery),
-          studentAppService.getPersonalization(selectedOrgId)
+          studentAppService.getStudents(undefined, searchQuery),
+          // studentAppService.getPersonalization(selectedOrgId) // Temporarily disabled if not global
         ]);
         setStudentList(studentsRes);
-        if (personalizationRes) {
-          setGamificationConfig(personalizationRes);
-        }
+        // if (personalizationRes) {
+        //   setGamificationConfig(personalizationRes);
+        // }
       } catch (error) {
         console.error("Failed to fetch student app data:", error);
       } finally {
@@ -228,9 +227,9 @@ export default function StudentAppPage() {
   }, [selectedOrgId, searchQuery]);
 
   const handleSavePersonalization = async () => {
-    if (!selectedOrgId) return;
     try {
-      await studentAppService.updatePersonalization(selectedOrgId, gamificationConfig);
+      // await studentAppService.updatePersonalization(selectedOrgId, gamificationConfig);
+      toast.info("Global personalization update not yet implemented in backend");
       toast.success("Personalization settings updated successfully");
     } catch (error) {
       console.error("Failed to update personalization:", error);
