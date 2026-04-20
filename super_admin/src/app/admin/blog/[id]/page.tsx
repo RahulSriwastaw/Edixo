@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
 
@@ -420,7 +420,7 @@ export default function EditBlogPostPage({
     return (
       <div className="min-h-screen bg-neutral-bg">
         <Sidebar />
-        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 p-6 flex items-center justify-center">
             <div className="text-gray-500">Loading post...</div>
@@ -433,7 +433,7 @@ export default function EditBlogPostPage({
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className="md:ml-60 flex flex-col min-h-screen">
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1600px] mx-auto space-y-6 animate-fade-in">

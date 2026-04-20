@@ -77,6 +77,8 @@ import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 
 import { API_URL, getAuthHeaders } from "@/lib/api-config";
+import { Step2ExecutionModal } from "@/components/tools/bulk-ai-edit";
+import { UnifiedBulkEditModal } from "@/components/tools/bulk-edit/UnifiedBulkEditModal";
 
 const FILTER_FIELDS = [
   { value: "subjectName", label: "Subject" },
@@ -218,6 +220,12 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Bulk Edit Modals State
+  const [showUnifiedBulkEdit, setShowUnifiedBulkEdit] = useState(false);
+  const [unifiedBulkEditTab, setUnifiedBulkEditTab] = useState<"metadata" | "ai">("metadata");
+  const [showBulkAIEdit2, setShowBulkAIEdit2] = useState(false);
+  const [bulkConfig, setBulkConfig] = useState<any>(null);
 
   // Fetch folders for move/copy dialog + current folder name
   useEffect(() => {
@@ -548,330 +556,371 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
         )}
 
         {/* Page Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Questions</h1>
             <p className="text-gray-500 text-sm mt-1">
               {questions.length.toLocaleString()} questions — Bilingual content (Hindi & English)
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Link href="/question-bank/ai-generate">
-              <Button variant="outline" className="btn-secondary">
-                <Sparkles className="w-4 h-4 mr-2" />
-                AI Generate
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
+            <Link href="/question-bank/ai-generate" className="w-full">
+              <Button variant="outline" className="btn-secondary w-full">
+                <Sparkles className="w-4 h-4 mr-2 shrink-0" />
+                <span className="whitespace-nowrap">AI Generate</span>
               </Button>
             </Link>
-            <Button variant="outline" className="btn-secondary" onClick={() => setShowImportDialog(true)}>
-              <Upload className="w-4 h-4 mr-2" />
-              Import CSV
+            <Button variant="outline" className="btn-secondary w-full" onClick={() => setShowImportDialog(true)}>
+              <Upload className="w-4 h-4 mr-2 shrink-0" />
+              <span className="whitespace-nowrap">Import CSV</span>
             </Button>
-            <Link href="/question-bank/create">
-              <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                Create Question
+            <Link href="/question-bank/create" className="w-full">
+              <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white w-full">
+                <Plus className="w-4 h-4 mr-2 shrink-0" />
+                <span className="whitespace-nowrap">Create Question</span>
               </Button>
             </Link>
           </div>
         </div>
 
         {/* Filter Bar */}
-        <Card>
+        <Card className="overflow-hidden">
           <CardContent className="p-4">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+              <div className="relative w-full lg:flex-1 lg:max-w-[400px]">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
                   placeholder="Search questions..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 input-field"
+                  className="pl-9 w-full"
                 />
               </div>
-              <Select value={subjectFilter} onValueChange={setSubjectFilter}>
-                <SelectTrigger className="w-[130px] input-field">
-                  <SelectValue placeholder="Subject" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Subjects</SelectItem>
-                  {subjects.map(s => (
-                    <SelectItem key={String(s)} value={String(s)}>{String(s)}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
-                <SelectTrigger className="w-[120px] input-field">
-                  <SelectValue placeholder="Difficulty" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[130px] input-field">
-                  <SelectValue placeholder="Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="mcq">MCQ</SelectItem>
-                  <SelectItem value="integer">Integer</SelectItem>
-                  <SelectItem value="multi_select">Multi-select</SelectItem>
-                  <SelectItem value="true_false">True/False</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={scopeFilter} onValueChange={setScopeFilter}>
-                <SelectTrigger className="w-[140px] input-field">
-                  <SelectValue placeholder="Scope" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Questions</SelectItem>
-                  <SelectItem value="global">Global Bank</SelectItem>
-                  <SelectItem value="mine">Super Admin</SelectItem>
-                  <SelectItem value="public">Other Public</SelectItem>
-                </SelectContent>
-              </Select>
+              
+              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] h-9">
+                    <SelectValue placeholder="Subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Subjects</SelectItem>
+                    {subjects.map(s => (
+                      <SelectItem key={String(s)} value={String(s)}>{String(s)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {/* Language Display Toggle */}
-              <Select value={tableLang} onValueChange={(v: "eng" | "hin") => setTableLang(v)}>
-                <SelectTrigger className="w-[130px] input-field bg-purple-50/50 border-purple-200 text-purple-700 font-medium">
-                  <Languages className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Language" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="eng">English</SelectItem>
-                  <SelectItem value="hin">Hindi (हिन्दी)</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                  <SelectTrigger className="w-full sm:w-[120px] h-9">
+                    <SelectValue placeholder="Difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Group By Dropdown */}
-              <Select value={groupBy} onValueChange={setGroupBy}>
-                <SelectTrigger className="w-[150px] input-field bg-brand-primary/5 border-brand-primary/20 text-brand-primary font-medium">
-                  <Network className="w-4 h-4 mr-2" />
-                  <SelectValue placeholder="Group By" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Grouping</SelectItem>
-                  <SelectItem value="subjectName">Subject</SelectItem>
-                  <SelectItem value="chapterName">Chapter</SelectItem>
-                  <SelectItem value="exam">Exam</SelectItem>
-                  <SelectItem value="year">Year</SelectItem>
-                  <SelectItem value="collection">Collection</SelectItem>
-                  <SelectItem value="type">Question Type</SelectItem>
-                  <SelectItem value="difficulty">Difficulty</SelectItem>
-                </SelectContent>
-              </Select>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[130px] h-9">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="mcq">MCQ</SelectItem>
+                    <SelectItem value="integer">Integer</SelectItem>
+                    <SelectItem value="multi_select">Multi-select</SelectItem>
+                    <SelectItem value="true_false">True/False</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {/* Advanced Filter Button */}
-              <Button
-                variant="outline"
-                onClick={() => setShowFilterDialog(true)}
-                className={`gap-2 ${filters.length > 0 ? 'bg-orange-50 border-orange-200 text-orange-700' : ''}`}
-              >
-                <ListFilter className="w-4 h-4" />
-                Filters {filters.length > 0 && <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center bg-orange-600 rounded-full text-[10px]">{filters.length}</Badge>}
-              </Button>
+                <Select value={scopeFilter} onValueChange={setScopeFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] h-9">
+                    <SelectValue placeholder="Scope" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Questions</SelectItem>
+                    <SelectItem value="global">Global Bank</SelectItem>
+                    <SelectItem value="mine">Super Admin</SelectItem>
+                    <SelectItem value="public">Other Public</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              {hasActiveFilters && (
-                <Button variant="ghost" onClick={clearFilters} className="btn-ghost">
-                  <X className="w-4 h-4 mr-1" />
-                  Clear Filters
+                <Select value={tableLang} onValueChange={(v: "eng" | "hin") => setTableLang(v)}>
+                  <SelectTrigger className="w-full sm:w-[130px] h-9 bg-purple-50/50 border-purple-200 text-purple-700 font-medium">
+                    <Languages className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="eng">English</SelectItem>
+                    <SelectItem value="hin">Hindi (हिन्दी)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={groupBy} onValueChange={setGroupBy}>
+                  <SelectTrigger className="w-full sm:w-[150px] h-9 bg-brand-primary/5 border-brand-primary/20 text-brand-primary font-medium">
+                    <Network className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Group By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Grouping</SelectItem>
+                    <SelectItem value="subjectName">Subject</SelectItem>
+                    <SelectItem value="chapterName">Chapter</SelectItem>
+                    <SelectItem value="exam">Exam</SelectItem>
+                    <SelectItem value="year">Year</SelectItem>
+                    <SelectItem value="collection">Collection</SelectItem>
+                    <SelectItem value="type">Question Type</SelectItem>
+                    <SelectItem value="difficulty">Difficulty</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilterDialog(true)}
+                  className={`h-9 gap-2 w-full sm:w-auto ${filters.length > 0 ? 'bg-orange-50 border-orange-200 text-orange-700' : ''}`}
+                >
+                  <ListFilter className="w-4 h-4" />
+                  Filters {filters.length > 0 && <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center bg-orange-600 rounded-full text-[10px]">{filters.length}</Badge>}
                 </Button>
-              )}
+
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-gray-500 hover:text-gray-700">
+                    <X className="w-4 h-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Bulk Action Bar */}
         {selectedQuestions.length > 0 && (
-          <div className="bg-brand-primary-tint border border-brand-primary/20 rounded-lg px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-medium text-gray-700">
-                {selectedQuestions.length} selected
-              </span>
-              <Button variant="outline" size="sm" className="bg-orange-50 border-orange-200 text-orange-600 hover:bg-orange-100">
-                <Globe className="w-4 h-4 mr-1" />
-                Make Public
-              </Button>
-              <Button variant="outline" size="sm" className="bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100">
-                <Lock className="w-4 h-4 mr-1" />
-                Make Private
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowAddToSetDialog(true)}>
-                <Layers className="w-4 h-4 mr-1" />
-                Add to Set
-              </Button>
-              <Button variant="outline" size="sm" className="bg-indigo-50 border-indigo-200 text-indigo-600 hover:bg-indigo-100" onClick={() => setShowMoveDialog(true)}>
-                <FolderInput className="w-4 h-4 mr-1" />
-                Move to Folder
-              </Button>
-              <Button variant="outline" size="sm" className="bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100" onClick={() => setShowCopyDialog(true)}>
-                <FolderSymlink className="w-4 h-4 mr-1" />
-                Copy to Folder
-              </Button>
-              <Button variant="outline" size="sm">
-                <Coins className="w-4 h-4 mr-1" />
-                Set Point Cost
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="text-red-600 border-red-200 hover:bg-red-50"
-                onClick={() => {
-                  setQuestionToDelete(null); // Indicates bulk delete
-                  setShowDeleteDialog(true);
-                }}
-              >
-                <Trash2 className="w-4 h-4 mr-1" />
-                Delete
-              </Button>
+          <div className="bg-brand-primary-tint border border-brand-primary/20 rounded-lg px-4 py-3 sticky top-[72px] z-30 shadow-sm animate-in slide-in-from-top-4 duration-300">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="bg-brand-primary text-white px-2 py-0.5 rounded text-xs font-bold">
+                  {selectedQuestions.length}
+                </span>
+                <span className="text-sm font-semibold text-brand-primary">
+                   Questions Selected
+                </span>
+              </div>
+              
+              <div className="w-full overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-2 pb-1">
+                  <Button variant="outline" size="sm" className="bg-white border-orange-200 text-orange-600 hover:bg-orange-50 whitespace-nowrap shadow-sm">
+                    <Globe className="w-4 h-4 mr-1" />
+                    Make Public
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-white border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap shadow-sm">
+                    <Lock className="w-4 h-4 mr-1" />
+                    Make Private
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-white shadow-sm whitespace-nowrap" onClick={() => setShowAddToSetDialog(true)}>
+                    <Layers className="w-4 h-4 mr-1" />
+                    Add to Set
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-indigo-50/50 border-indigo-200 text-indigo-600 hover:bg-indigo-100/50 whitespace-nowrap shadow-sm" onClick={() => setShowMoveDialog(true)}>
+                    <FolderInput className="w-4 h-4 mr-1" />
+                    Move to Folder
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-blue-50/50 border-blue-200 text-blue-600 hover:bg-blue-100/50 whitespace-nowrap shadow-sm" onClick={() => setShowCopyDialog(true)}>
+                    <FolderSymlink className="w-4 h-4 mr-1" />
+                    Copy to Folder
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-purple-50/50 border-purple-200 text-purple-700 hover:bg-purple-100/50 whitespace-nowrap shadow-sm"
+                    onClick={() => {
+                        setUnifiedBulkEditTab("ai");
+                        setShowUnifiedBulkEdit(true);
+                    }}
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    Bulk AI Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-white shadow-sm whitespace-nowrap">
+                    <Coins className="w-4 h-4 mr-1" />
+                    Set Point Cost
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-brand-primary-tint border-brand-primary/20 text-brand-primary hover:bg-brand-primary/10 whitespace-nowrap shadow-sm"
+                    onClick={() => {
+                        setUnifiedBulkEditTab("metadata");
+                        setShowUnifiedBulkEdit(true);
+                    }}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Bulk Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-red-600 border-red-200 hover:bg-red-50 whitespace-nowrap shadow-sm"
+                    onClick={() => {
+                      setQuestionToDelete(null); 
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                  <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedQuestions([])} className="text-slate-500 hover:text-slate-700 whitespace-nowrap">
+                    <X className="w-4 h-4 mr-1" />
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setSelectedQuestions([])}>
-              <X className="w-4 h-4 mr-1" />
-              Clear
-            </Button>
           </div>
         )}
 
         {/* Questions Table */}
         <Card>
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-gray-50 hover:bg-gray-50">
-                  <TableHead className="w-12">
-                    <Checkbox
-                      checked={allSelected}
-                      onCheckedChange={toggleSelectAll}
-                      aria-label="Select all"
-                    />
-                  </TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase">Question</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase">Subject → Chapter</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase">Difficulty</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase">Visibility</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Points</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Usage</TableHead>
-                  <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {renderGroups.map((groupObj) => (
-                  <React.Fragment key={groupObj.group}>
-                    {groupBy !== "none" && (
-                      <TableRow className="bg-gray-100/80 hover:bg-gray-100/80">
-                        <TableCell colSpan={9} className="py-2.5">
-                          <div className="flex items-center gap-2 font-semibold text-gray-800">
-                            <span className="bg-white border rounded px-2 py-0.5 text-xs shadow-sm uppercase tracking-wide">
-                              {groupBy}
-                            </span>
-                            {groupObj.group}
-                            <span className="text-gray-400 text-xs font-normal">({groupObj.items.length})</span>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                    {groupObj.items.map((question) => (
-                      <TableRow
-                        key={question.id}
-                        className={`hover:bg-brand-primary-tint cursor-pointer ${selectedQuestions.includes(question.id) ? 'bg-brand-primary-tint' : ''}`}
-                        onClick={() => { setPreviewQuestion(question); setPreviewLang("eng"); }}
-                      >
-                        <TableCell onClick={(e) => e.stopPropagation()}>
-                          <Checkbox
-                            checked={selectedQuestions.includes(question.id)}
-                            onCheckedChange={() => toggleSelect(question.id)}
-                            aria-label={`Select question ${question.id}`}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Badge className="bg-purple-50 text-purple-600 text-[10px] shrink-0">
-                              <Languages className="w-3 h-3 mr-1" /> {tableLang === "eng" ? "A" : "अ"}
-                            </Badge>
-                            <span className="text-sm text-gray-700 line-clamp-2 max-w-[280px]">
-                              {stripHtml(tableLang === "eng" ? (question.textEn || question.textHi || "") : (question.textHi || question.textEn || ""), true)}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <TypeBadge type={question.type.toLowerCase()} />
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            <span className="text-gray-900">{question.folder?.name || question.subjectName || "Uncategorized"}</span>
-                            {(question.chapterName) && <span className="text-gray-500 block text-xs">↳ {question.chapterName}</span>}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <DifficultyBadge difficulty={question.difficulty.toLowerCase()} />
-                        </TableCell>
-                        <TableCell>
-                          <VisibilityToggle visibility={question.isGlobal ? "global" : (question.isApproved ? "public" : "private")} />
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600">
-                            <Coins className="w-3 h-3" />
-                            {question.pointCost}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-center text-sm text-gray-600">
-                          {question.usageCount}
-                        </TableCell>
-                        <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => { setPreviewQuestion(question); setPreviewLang("eng"); }}>
-                                <Eye className="w-4 h-4 mr-2" /> Preview
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => router.push(`/question-bank/questions/${question.id}/edit`)}>
-                                <Pencil className="w-4 h-4 mr-2" /> Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => { setSelectedQuestions([question.id]); setShowMoveDialog(true); }}>
-                                <FolderInput className="w-4 h-4 mr-2" /> Move to Folder
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Copy className="w-4 h-4 mr-2" /> Duplicate
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem 
-                                className="text-red-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setQuestionToDelete(question.id);
-                                  setShowDeleteDialog(true);
-                                }}
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" /> Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-                {filteredQuestions.length === 0 && !isLoading && (
-                  <TableRow>
-                    <TableCell colSpan={9} className="text-center py-12 text-gray-500">
-                      <div className="flex flex-col items-center gap-2">
-                        <Search className="w-8 h-8 text-gray-300 mb-2" />
-                        <p>No questions found matching your filters.</p>
-                        <Button variant="link" onClick={clearFilters}>Clear all filters</Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="w-12 shrink-0">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[300px]">Question</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[100px]">Type</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[150px]">Subject → Chapter</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[100px]">Difficulty</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[100px]">Visibility</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center whitespace-nowrap min-w-[80px]">Points</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center whitespace-nowrap min-w-[80px]">Usage</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right whitespace-nowrap min-w-[100px]">Actions</TableHead>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {renderGroups.map((groupObj) => (
+                    <React.Fragment key={groupObj.group}>
+                      {groupBy !== "none" && (
+                        <TableRow className="bg-gray-100/80 hover:bg-gray-100/80">
+                          <TableCell colSpan={9} className="py-2.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2 font-semibold text-gray-800">
+                              <span className="bg-white border rounded px-2 py-0.5 text-xs shadow-sm uppercase tracking-wide">
+                                {groupBy}
+                              </span>
+                              {groupObj.group}
+                              <span className="text-gray-400 text-xs font-normal">({groupObj.items.length})</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {groupObj.items.map((question) => (
+                        <TableRow
+                          key={question.id}
+                          className={`hover:bg-brand-primary-tint cursor-pointer ${selectedQuestions.includes(question.id) ? 'bg-brand-primary-tint' : ''}`}
+                          onClick={() => { setPreviewQuestion(question); setPreviewLang("eng"); }}
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedQuestions.includes(question.id)}
+                              onCheckedChange={() => toggleSelect(question.id)}
+                              aria-label={`Select question ${question.id}`}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-purple-50 text-purple-600 text-[10px] shrink-0">
+                                <Languages className="w-3 h-3 mr-1" /> {tableLang === "eng" ? "A" : "अ"}
+                              </Badge>
+                              <span className="text-sm text-gray-700 line-clamp-2 min-w-[250px] max-w-[400px]">
+                                {stripHtml(tableLang === "eng" ? (question.textEn || question.textHi || "") : (question.textHi || question.textEn || ""), true)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <TypeBadge type={question.type.toLowerCase()} />
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <div className="text-sm">
+                              <span className="text-gray-900">{question.folder?.name || question.subjectName || "Uncategorized"}</span>
+                              {(question.chapterName) && <span className="text-gray-500 block text-xs">↳ {question.chapterName}</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <DifficultyBadge difficulty={question.difficulty.toLowerCase()} />
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <VisibilityToggle visibility={question.isGlobal ? "global" : (question.isApproved ? "public" : "private")} />
+                          </TableCell>
+                          <TableCell className="text-center whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600">
+                              <Coins className="w-3 h-3" />
+                              {question.pointCost}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-gray-600 whitespace-nowrap">
+                            {question.usageCount}
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setPreviewQuestion(question); setPreviewLang("eng"); }}>
+                                  <Eye className="w-4 h-4 mr-2" /> Preview
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push(`/question-bank/questions/${question.id}/edit`)}>
+                                  <Pencil className="w-4 h-4 mr-2" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setSelectedQuestions([question.id]); setShowMoveDialog(true); }}>
+                                  <FolderInput className="w-4 h-4 mr-2" /> Move to Folder
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Copy className="w-4 h-4 mr-2" /> Duplicate
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setQuestionToDelete(question.id);
+                                    setShowDeleteDialog(true);
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                  {filteredQuestions.length === 0 && !isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-12 text-gray-500">
+                        <div className="flex flex-col items-center gap-2">
+                          <Search className="w-8 h-8 text-gray-300 mb-2" />
+                          <p>No questions found matching your filters.</p>
+                          <Button variant="link" onClick={clearFilters}>Clear all filters</Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
 
@@ -1434,6 +1483,35 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UnifiedBulkEditModal
+        isOpen={showUnifiedBulkEdit}
+        onClose={() => setShowUnifiedBulkEdit(false)}
+        selectedCount={selectedQuestions.length}
+        questionIds={selectedQuestions}
+        allFolders={allFolders}
+        defaultTab={unifiedBulkEditTab}
+        onSuccess={() => {
+          setSelectedQuestions([]);
+          router.refresh();
+        }}
+        onNextAI={(config) => {
+          setBulkConfig(config);
+          setShowUnifiedBulkEdit(false);
+          setShowBulkAIEdit2(true);
+        }}
+      />
+
+      {/* Bulk AI Edit Execution Modal */}
+      <Step2ExecutionModal
+        isOpen={showBulkAIEdit2}
+        selectedCount={selectedQuestions.length}
+        questionIds={selectedQuestions}
+        config={bulkConfig}
+        onClose={() => {
+            setShowBulkAIEdit2(false);
+        }}
+      />
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>

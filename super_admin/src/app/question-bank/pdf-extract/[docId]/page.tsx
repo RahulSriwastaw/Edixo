@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 import { useState, useEffect } from "react";
@@ -55,6 +55,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
+import { BulkAIEditManager } from "@/components/tools/bulk-ai-edit/BulkAIEditManager";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -191,10 +192,13 @@ const params = useParams();
   const [bulkTestLevel, setBulkTestLevel] = useState("");
   const [isApplyingBulkTag, setIsApplyingBulkTag] = useState(false);
 
-  // Bulk AI edit modal
-  const [showBulkAIEditModal, setShowBulkAIEditModal] = useState(false);
-  const [bulkAIInstruction, setBulkAIInstruction] = useState("");
-  const [isApplyingBulkAI, setIsApplyingBulkAI] = useState(false);
+  // Bulk AI edit manager integration
+  const handleCopyToTest = () => {
+    toast.success(`Copied ${selectedQuestions.length} to Test`);
+  };
+  const handleAddToQBank = () => {
+    toast.success(`Added ${selectedQuestions.length} to Q-Bank`);
+  };
 
   // Filter questions
   const filteredQuestions = mockQuestions.filter((q) => {
@@ -254,18 +258,10 @@ const params = useParams();
     setShowBulkTagModal(false);
   };
 
-  // Apply bulk AI edit
-  const handleApplyBulkAIEdit = async () => {
-    if (!bulkAIInstruction.trim()) {
-      toast.error("Please enter an instruction");
-      return;
-    }
-    setIsApplyingBulkAI(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    toast.success("Bulk AI edit applied successfully!");
-    setIsApplyingBulkAI(false);
-    setShowBulkAIEditModal(false);
-    setBulkAIInstruction("");
+  // Handle bulk action responses (BulkAIEditManager executes them internally, this is just for callback if needed)
+  const handleBulkEditComplete = () => {
+    toast.success("Bulk AI Edit completed successfully!");
+    // Optional: refresh data or keep selection
   };
 
   // Quick prompts
@@ -280,20 +276,10 @@ const params = useParams();
     "Fix errors",
   ];
 
-  // Bulk AI preset instructions
-  const bulkPresetInstructions = [
-    "Add a step-by-step solution to each question",
-    "Simplify the language of each question for better clarity",
-    "Add Hindi translation after each question and option",
-    "Fix any grammatical errors in the questions and options",
-    "Add context or hints to make each question clearer",
-    "Convert all numerical values to SI units",
-  ];
-
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
@@ -423,15 +409,6 @@ const params = useParams();
                       <Tag className="w-4 h-4 mr-2" />
                       Bulk Tag
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowBulkAIEditModal(true)}
-                      disabled={selectedQuestions.length === 0 && filteredQuestions.length === 0}
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Bulk AI Edit
-                    </Button>
 
                     <div className="h-6 w-px bg-gray-200 mx-1" />
 
@@ -441,33 +418,51 @@ const params = useParams();
                       onClick={() => setViewMode("grid")}
                       className={viewMode === "grid" ? "bg-orange-500 hover:bg-orange-600" : ""}
                     >
-                      <Grid className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant={viewMode === "list" ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => setViewMode("list")}
-                      className={viewMode === "list" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                    >
-                      <List className="w-4 h-4" />
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[130px] input-field">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Status</SelectItem>
+                      <SelectItem value="draft">Draft</SelectItem>
+                      <SelectItem value="published">Published</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <div className="h-6 w-px bg-gray-200 mx-1" />
+
+                  <Button
+                    variant={viewMode === "grid" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("grid")}
+                    className={viewMode === "grid" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                  >
+                    <Grid className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant={viewMode === "list" ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => setViewMode("list")}
+                    className={viewMode === "list" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                  >
+                    <List className="w-4 h-4" />
+                  </Button>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
 
-                {selectedQuestions.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-gray-100 flex items-center gap-3 text-sm">
-                    <Badge className="bg-orange-100 text-orange-700">
-                      {selectedQuestions.length} selected
-                    </Badge>
-                    <Button variant="ghost" size="sm" onClick={() => setSelectedQuestions([])}>
-                      Clear selection
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+          <BulkAIEditManager 
+            selectedQuestions={selectedQuestions} 
+            onSelectionChange={setSelectedQuestions}
+            onEditComplete={handleBulkEditComplete}
+            onBulkTag={() => setShowBulkTagModal(true)}
+            onCopyToTest={handleCopyToTest}
+            onAddToQBank={handleAddToQBank}
+          />
 
-            {/* Questions List */}
+          {/* Questions List */}
             <div className="space-y-3">
               <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                 <Checkbox checked={selectAll} onCheckedChange={toggleSelectAll} />
@@ -902,78 +897,6 @@ const params = useParams();
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Bulk AI Edit Modal */}
-      <Dialog open={showBulkAIEditModal} onOpenChange={setShowBulkAIEditModal}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>Bulk AI Edit</DialogTitle>
-            <DialogDescription>
-              Apply an AI-powered edit instruction to {selectedQuestions.length || mockQuestions.length}{" "}
-              questions in parallel
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="py-4 space-y-4">
-            <div className="space-y-2">
-              <Label>Preset Instructions</Label>
-              <div className="flex flex-wrap gap-2">
-                {bulkPresetInstructions.map((instruction, i) => (
-                  <Button
-                    key={i}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setBulkAIInstruction(instruction)}
-                    className="text-xs text-left h-auto py-2"
-                  >
-                    {instruction}
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Custom Instruction</Label>
-              <Textarea
-                placeholder="Enter your custom instruction..."
-                value={bulkAIInstruction}
-                onChange={(e) => setBulkAIInstruction(e.target.value)}
-                className="input-field min-h-[80px]"
-              />
-            </div>
-
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-              <p className="font-medium">⚠️ Warning</p>
-              <p className="text-xs mt-1">
-                This will modify {selectedQuestions.length || mockQuestions.length} questions. This action
-                uses AI credits and changes are applied immediately. Undo is available for 10 minutes.
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBulkAIEditModal(false)}>
-              Cancel
-            </Button>
-            <Button
-              className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600"
-              onClick={handleApplyBulkAIEdit}
-              disabled={isApplyingBulkAI || !bulkAIInstruction.trim()}
-            >
-              {isApplyingBulkAI ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Apply AI Edit
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
       </Dialog>
     </div>
   );

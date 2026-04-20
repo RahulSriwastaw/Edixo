@@ -125,7 +125,7 @@ export default function QuestionBankPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
@@ -273,52 +273,54 @@ export default function QuestionBankPage() {
                 </Link>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Question Preview</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Used By</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Teacher</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Date</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Points</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentData.length > 0 ? (
-                      recentData.map((usage: any) => (
-                        <TableRow key={usage.id} className="hover:bg-brand-primary-tint">
-                          <TableCell>
-                            <span className="text-sm text-gray-700 italic truncate max-w-[300px] block">
-                              {usage.question}
-                            </span>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm text-gray-900">{usage.org}</span>
-                              <Button variant="ghost" size="icon" className="h-5 w-5 text-gray-400 hover:text-brand-primary">
-                                <ExternalLink className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-sm text-gray-600">{usage.teacher}</TableCell>
-                          <TableCell className="text-sm text-gray-500">{usage.date}</TableCell>
-                          <TableCell className="text-right">
-                            <span className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600">
-                              <Coins className="w-3 h-3" />
-                              {usage.points}
-                            </span>
+                <div className="overflow-x-auto w-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[200px]">Question Preview</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Used By</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Teacher</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[100px]">Date</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Points</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentData.length > 0 ? (
+                        recentData.map((usage: any) => (
+                          <TableRow key={usage.id} className="hover:bg-brand-primary-tint">
+                            <TableCell>
+                              <span className="text-sm text-gray-700 italic truncate max-w-[300px] block">
+                                {usage.question}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm text-gray-900 whitespace-nowrap">{usage.org}</span>
+                                <Button variant="ghost" size="icon" className="h-5 w-5 text-gray-400 hover:text-brand-primary">
+                                  <ExternalLink className="w-3 h-3" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-sm text-gray-600 whitespace-nowrap">{usage.teacher}</TableCell>
+                            <TableCell className="text-sm text-gray-500 whitespace-nowrap">{usage.date}</TableCell>
+                            <TableCell className="text-right">
+                              <span className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600">
+                                <Coins className="w-3 h-3" />
+                                {usage.points}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell colSpan={5} className="text-center py-10 text-gray-400 italic">
+                            {isLoading ? "Loading recent usage..." : "No recent activity recorded"}
                           </TableCell>
                         </TableRow>
-                      ))
-                    ) : (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center py-10 text-gray-400 italic">
-                          {isLoading ? "Loading recent usage..." : "No recent activity recorded"}
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
 

@@ -407,7 +407,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
@@ -733,49 +733,51 @@ export default function DashboardPage() {
                 </Button>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Account Name</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Login ID</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Last Used</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {displayAccounts.map((account: any) => (
-                      <TableRow key={account.id} className="hover:bg-brand-primary-tint">
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <Avatar className="w-8 h-8">
-                              <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-medium">
-                                {account.name ? account.name.split(" ").map((n: string) => n[0]).join("") : "?"}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div className="font-medium text-gray-900">{account.name}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <span className="mono">{account.loginId}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <StatusBadge status={account.status} />
-                        </TableCell>
-                        <TableCell className="text-gray-500 text-sm">
-                          {account.lastUsed}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </TableCell>
+                <div className="overflow-x-auto w-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50 hover:bg-gray-50">
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[200px]">Account Name</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Login ID</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Last Used</TableHead>
+                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {displayAccounts.map((account: any) => (
+                        <TableRow key={account.id} className="hover:bg-brand-primary-tint">
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <Avatar className="w-8 h-8">
+                                <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-medium">
+                                  {account.name ? account.name.split(" ").map((n: string) => n[0]).join("") : "?"}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="font-medium text-gray-900 whitespace-nowrap">{account.name}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="mono">{account.loginId}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={account.status} />
+                          </TableCell>
+                          <TableCell className="text-gray-500 text-sm whitespace-nowrap">
+                            {account.lastUsed}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </CardContent>
             </Card>
           </div>

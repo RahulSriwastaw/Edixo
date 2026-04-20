@@ -20,6 +20,7 @@ import {
   CreditCard,
   Users,
   GraduationCap,
+  Menu,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -219,9 +220,19 @@ export function TopBar() {
     : [];
 
   return (
-    <header className="sticky top-0 z-40 h-16 bg-white border-b border-neutral-border flex items-center px-6 gap-4 shrink-0 transition-all duration-300">
+    <header className="sticky top-0 z-40 h-16 bg-white border-b border-neutral-border flex items-center px-4 md:px-6 gap-3 md:gap-4 shrink-0 transition-all duration-300">
+      {/* Mobile Hamburger Menu */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden -ml-2 shrink-0"
+        onClick={toggle}
+      >
+        <Menu className="w-5 h-5 text-gray-600" />
+      </Button>
+
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1 text-sm flex-1">
+      <nav className="hidden md:flex items-center gap-1 text-sm flex-1">
         {breadcrumbs.map((crumb, index) => (
           <div key={crumb.href} className="flex items-center gap-1">
             {index > 0 && (
@@ -243,14 +254,14 @@ export function TopBar() {
       {/* Global Search */}
       <Button
         variant="outline"
-        className="w-64 justify-between text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100"
+        className="flex-1 md:flex-none md:w-64 justify-between text-gray-500 bg-gray-50 border-gray-200 hover:bg-gray-100 px-3"
         onClick={() => setCommandOpen(true)}
       >
-        <div className="flex items-center gap-2">
-          <Search className="w-4 h-4" />
-          <span>Search...</span>
+        <div className="flex items-center gap-2 truncate">
+          <Search className="w-4 h-4 shrink-0" />
+          <span className="truncate text-xs md:text-sm">Search...</span>
         </div>
-        <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-gray-200 bg-gray-100 px-1.5 font-mono text-[10px] font-medium text-gray-500">
+        <kbd className="hidden md:inline-flex pointer-events-none h-5 select-none items-center gap-1 rounded border border-gray-200 bg-white px-1.5 font-mono text-[10px] font-medium text-gray-500 shrink-0">
           <span className="text-xs">⌘</span>K
         </kbd>
       </Button>

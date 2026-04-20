@@ -233,20 +233,28 @@ export function Sidebar() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <aside
-        className={cn(
-          "fixed left-0 top-0 h-screen bg-brand-dark flex flex-col z-50 w-60 transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+      <>
+        {/* Mobile Backdrop */}
+        {isOpen && (
+          <div 
+            className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity" 
+            onClick={toggle}
+          />
         )}
-      >
-        {/* Floating Toggle Button */}
-        <button
-          onClick={toggle}
-          className="absolute top-1/2 -translate-y-1/2 -right-5 w-5 h-16 bg-brand-dark flex items-center justify-center text-white/50 hover:text-white rounded-r-xl border border-l-0 border-white/10 shadow-md transition-colors focus:outline-none"
-          title={isOpen ? "Hide Sidebar" : "Show Sidebar"}
+        <aside
+          className={cn(
+            "fixed left-0 top-0 h-screen bg-brand-dark flex flex-col z-50 w-60 transition-transform duration-300 ease-in-out",
+            isOpen ? "translate-x-0" : "-translate-x-full"
+          )}
         >
-          <ChevronRight className={cn("w-4 h-4 transition-transform duration-300", isOpen ? "rotate-180" : "")} />
-        </button>
+          {/* Floating Toggle Button */}
+          <button
+            onClick={toggle}
+            className="hidden md:flex absolute top-1/2 -translate-y-1/2 -right-5 w-5 h-16 bg-brand-dark items-center justify-center text-white/50 hover:text-white rounded-r-xl border border-l-0 border-white/10 shadow-md transition-colors focus:outline-none"
+            title={isOpen ? "Hide Sidebar" : "Show Sidebar"}
+          >
+            <ChevronRight className={cn("w-4 h-4 transition-transform duration-300", isOpen ? "rotate-180" : "")} />
+          </button>
 
         {/* Logo Block */}
         <div className="h-[72px] flex items-center px-4 border-b border-white/10 shrink-0">
@@ -298,6 +306,7 @@ export function Sidebar() {
           </div>
         </div>
       </aside>
+      </>
     </TooltipProvider>
   );
 }

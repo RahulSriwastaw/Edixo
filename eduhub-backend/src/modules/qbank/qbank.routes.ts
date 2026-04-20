@@ -1075,6 +1075,54 @@ router.get('/questions', async (req, res, next) => {
     } catch (err) { next(err); }
 });
 
+// ─── GET /api/qbank/questions/:id ────────────────────────────
+router.get('/questions/:id', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        
+        const question = await (prisma as any).questions.findUnique({
+            where: { id },
+            include: {
+                question_options: {
+                    orderBy: { sort_order: 'asc' }
+                },
+                folder: {
+                    select: { id: true, name: true, path: true }
+                }
+            }
+        });
+
+        if (!question) {
+            throw new AppError('Question not found', 404);
+        }
+
+        const formattedQuestion = {
+            ...question,
+            textEn: question.text_en,
+            textHi: question.text_hi,
+            subjectName: question.subject_name,
+            chapterName: question.chapter_name,
+            pointCost: question.point_cost,
+            usageCount: question.usage_count,
+            isApproved: question.is_approved,
+            isGlobal: question.is_global,
+            questionId: question.question_id,
+            explanationEn: question.explanation_en,
+            explanationHi: question.explanation_hi,
+            createdAt: question.created_at,
+            options: question.question_options?.map((opt: any) => ({
+                ...opt,
+                textEn: opt.text_en,
+                textHi: opt.text_hi,
+                isCorrect: opt.is_correct,
+                sortOrder: opt.sort_order
+            }))
+        };
+
+        res.json({ success: true, data: formattedQuestion });
+    } catch (err) { next(err); }
+});
+
 // ─── POST /api/qbank/questions/move-to-folder ──────────────────
 router.post('/questions/move-to-folder', async (req, res, next) => {
     try {
@@ -1094,6 +1142,77 @@ router.post('/questions/move-to-folder', async (req, res, next) => {
         );
 
         res.json({ success: true, data: { movedCount } });
+    } catch (err) { next(err); }
+});
+
+// ─── PATCH /api/qbank/questions/bulk-update ────────────────────
+router.patch('/questions/bulk-update', async (req, res, next) => {
+    try {
+        const schema = z.object({
+            question_ids: z.array(z.string()).min(1, 'At least one question ID is required'),
+            updates: z.object({
+                subject:       z.string().optional(),
+                chapter:       z.string().optional(),
+                question_type: z.string().optional(),
+                difficulty:    z.string().optional(),
+                status:        z.string().optional(),
+                exam:          z.string().optional(),
+                year:          z.string().optional(),
+                date:          z.string().optional(),
+                shift:         z.string().optional(),
+            }).refine(data => Object.keys(data).length > 0, {
+                message: 'At least one field must be provided for update'
+            })
+        });
+
+        const { question_ids, updates } = schema.parse(req.body);
+
+        // Map frontend field names → Prisma/DB column names
+        const difficultyMap: Record<string, string> = {
+            easy: 'EASY', medium: 'MEDIUM', hard: 'HARD',
+            Easy: 'EASY', Medium: 'MEDIUM', Hard: 'HARD',
+        };
+
+        const prismaData: Record<string, any> = {};
+
+        if (updates.subject       !== undefined) prismaData.subject_name  = updates.subject;
+        if (updates.chapter       !== undefined) prismaData.chapter_name  = updates.chapter;
+        if (updates.question_type !== undefined) prismaData.type          = updates.question_type;
+        if (updates.difficulty    !== undefined) prismaData.difficulty    = difficultyMap[updates.difficulty] ?? updates.difficulty.toUpperCase();
+        if (updates.exam          !== undefined) prismaData.exam          = updates.exam;
+        if (updates.year          !== undefined) prismaData.year          = parseInt(updates.year, 10) || null;
+        if (updates.shift         !== undefined) prismaData.section       = updates.shift;
+        if (updates.date          !== undefined) prismaData.date          = updates.date;
+
+        // Handle status → is_approved / is_global flags
+        if (updates.status !== undefined) {
+            const s = updates.status.toLowerCase();
+            if (s === 'published') {
+                prismaData.is_approved = true;
+                prismaData.is_global   = false;
+            } else if (s === 'archived') {
+                prismaData.is_approved = false;
+                prismaData.is_global   = false;
+            } else if (s === 'draft' || s === 'under review') {
+                prismaData.is_approved = false;
+                prismaData.is_global   = false;
+            }
+        }
+
+        if (Object.keys(prismaData).length === 0) {
+            throw new AppError('No valid update fields provided', 400);
+        }
+
+        const result = await (prisma as any).questions.updateMany({
+            where: { id: { in: question_ids } },
+            data: prismaData,
+        });
+
+        res.json({
+            success: true,
+            updated_count: result.count,
+            failed_ids: [],
+        });
     } catch (err) { next(err); }
 });
 

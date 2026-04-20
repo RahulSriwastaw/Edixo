@@ -106,7 +106,7 @@ export default function AISettingsPage() {
     return (
       <div className="flex bg-neutral-bg min-h-screen">
         <Sidebar />
-        <div className={cn("flex flex-col flex-1 transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+        <div className={cn("flex flex-col flex-1 transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
            <TopBar />
            <div className="flex h-[80vh] items-center justify-center">
              <RefreshCw className="w-10 h-10 text-primary animate-spin" />
@@ -119,7 +119,7 @@ export default function AISettingsPage() {
   return (
     <div className="flex bg-neutral-bg min-h-screen">
       <Sidebar />
-      <div className={cn("flex flex-col flex-1 transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+      <div className={cn("flex flex-col flex-1 transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-8 space-y-10 max-w-7xl">
           {/* Header */}

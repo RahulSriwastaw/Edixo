@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 import { useState, useEffect } from "react";
@@ -199,7 +199,7 @@ export default function SetDetailPage() {
     return (
       <div className="min-h-screen bg-neutral-bg">
         <Sidebar />
-        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+        <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 p-6 flex items-center justify-center">
             {error ? (
@@ -241,7 +241,7 @@ export default function SetDetailPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">

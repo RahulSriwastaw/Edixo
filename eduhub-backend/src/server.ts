@@ -21,6 +21,7 @@ import aiRoutes from './modules/ai/ai.routes';
 import mockbookRoutes from './modules/mockbook/mockbook.routes';
 import studentsRoutes from './modules/students/students.routes';
 import qbankRoutes from './modules/qbank/qbank.routes';
+import questionsRoutes from './modules/questions/bulk-ai-edit.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -170,9 +171,11 @@ async function ensureQuestionBankCompatibilityData() {
             explanation_hi TEXT,
             exam TEXT,
             collection TEXT,
-            year INTEGER,
+            date TIMESTAMPTZ,
+            section TEXT,
             airtable_table_name TEXT,
             record_id TEXT UNIQUE,
+            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
             created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
         )
     `);
@@ -363,6 +366,7 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/mockbook', mockbookRoutes);
 app.use('/api/students', studentsRoutes);
 app.use('/api/qbank', qbankRoutes);
+app.use('/api/questions', questionsRoutes);
 
 // Error Handling
 app.use(notFound);

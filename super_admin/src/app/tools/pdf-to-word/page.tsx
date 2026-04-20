@@ -15,7 +15,7 @@ export default function PdfToWordPage() {
   return (
     <div className="min-h-screen bg-slate-50">
       <Sidebar />
-      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "ml-60" : "ml-0")}>
+      <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">

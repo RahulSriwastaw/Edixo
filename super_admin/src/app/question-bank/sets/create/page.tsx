@@ -242,7 +242,7 @@ export default function CreateSetPage() {
   return (
     <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
-      <div className="ml-60 flex flex-col min-h-screen">
+      <div className="md:ml-60 flex flex-col min-h-screen">
         <TopBar />
         <main className="flex-1 p-6">
           <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
