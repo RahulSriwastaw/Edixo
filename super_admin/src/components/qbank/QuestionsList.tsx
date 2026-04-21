@@ -70,8 +70,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { QuestionFullDetailView } from "@/components/qbank/QuestionFullDetailView";
 import { SuperPagination } from "@/components/ui/super-pagination";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
@@ -208,6 +214,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
   };
 
   const [previewQuestion, setPreviewQuestion] = useState<any | null>(null);
+  const [previewQuestionId, setPreviewQuestionId] = useState<string | null>(null);
   const [previewLang, setPreviewLang] = useState<"hin" | "eng">("eng");
   const [tableLang, setTableLang] = useState<"eng" | "hin">("eng");
   const [showAddToSetDialog, setShowAddToSetDialog] = useState(false);
@@ -826,7 +833,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                         <TableRow
                           key={question.id}
                           className={`hover:bg-brand-primary-tint cursor-pointer ${selectedQuestions.includes(question.id) ? 'bg-brand-primary-tint' : ''}`}
-                          onClick={() => { setPreviewQuestion(question); setPreviewLang("eng"); }}
+                          onClick={() => { setPreviewQuestion(question); setPreviewQuestionId(question.id); setPreviewLang("eng"); }}
                         >
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Checkbox
@@ -877,7 +884,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => { setPreviewQuestion(question); setPreviewLang("eng"); }}>
+                                <DropdownMenuItem onClick={() => { setPreviewQuestion(question); setPreviewQuestionId(question.id); setPreviewLang("eng"); }}>
                                   <Eye className="w-4 h-4 mr-2" /> Preview
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => router.push(`/question-bank/questions/${question.id}/edit`)}>
@@ -938,103 +945,36 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
       </div>
 
 
-      {/* Question Preview Dialog */}
-      <Dialog open={!!previewQuestion} onOpenChange={() => setPreviewQuestion(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto" aria-describedby="preview-dialog-description">
-          <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle>Question Preview</DialogTitle>
-                <DialogDescription id="preview-dialog-description">
-                  Question ID: {previewQuestion?.id}
-                </DialogDescription>
-              </div>
-              <Tabs value={previewLang} onValueChange={(v) => setPreviewLang(v as "hin" | "eng")}>
-                <TabsList className="h-8">
-                  <TabsTrigger value="hin" className="h-7 text-xs px-3">🇮🇳 Hindi</TabsTrigger>
-                  <TabsTrigger value="eng" className="h-7 text-xs px-3">🇬🇧 English</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-          </DialogHeader>
-          <div className="space-y-4 mt-4">
-            <div className="flex flex-wrap gap-2">
-              <TypeBadge type={previewQuestion?.type?.toLowerCase() || ""} />
-              <DifficultyBadge difficulty={previewQuestion?.difficulty?.toLowerCase() || ""} />
-              <VisibilityToggle visibility={previewQuestion?.isGlobal ? "global" : (previewQuestion?.isApproved ? "public" : "private")} />
-            </div>
-            <div className="text-sm text-gray-500">
-              {previewQuestion?.folder?.name || "Uncategorized"}
-            </div>
-
-            {/* Question Text */}
-            <div className="bg-gray-50 rounded-lg p-4">
-              <div className="text-gray-900 font-medium whitespace-pre-wrap">
-                {stripHtml(previewLang === "hin" ? previewQuestion?.textHi : previewQuestion?.textEn)}
-              </div>
-            </div>
-
-            {/* Options */}
-            {previewQuestion?.type?.toLowerCase() === "mcq_single" && previewQuestion.options && (
-              <div className="space-y-2">
-                {previewQuestion.options.map((option: any, i: number) => {
-                  const letter = String.fromCharCode(65 + i);
-                  const optText = previewLang === "hin" ? (option.textHi || "") : (option.textEn || "");
-                  const isCorrect = option.isCorrect;
-                  return (
-                    <div
-                      key={option.id || i}
-                      className={`flex items-center gap-3 p-3 rounded-lg border ${isCorrect ? "border-green-500 bg-green-50" : "border-gray-200"}`}
-                    >
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${isCorrect ? "bg-green-500 text-white" : "border border-gray-300"}`}>
-                        {isCorrect ? <CheckCircle className="w-4 h-4" /> : letter}
-                      </div>
-                      <span className={isCorrect ? "text-green-700 font-medium" : "text-gray-700"}>
-                        {stripHtml(optText)}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Integer Answer */}
-            {previewQuestion?.type?.toLowerCase() === "integer" && (
-              <div className="p-3 bg-green-50 border border-green-500 rounded-lg">
-                <span className="text-green-700 font-medium">Answer: {previewQuestion.answer || "N/A"}</span>
-              </div>
-            )}
-
-            {/* Solution */}
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-xs text-blue-700 font-medium mb-1">💡 Solution</p>
-              <div
-                className="text-sm prose prose-sm max-w-none"
-              >
-                {stripHtml(previewLang === "hin" ? previewQuestion?.solution_hin : previewQuestion?.solution_eng)}
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-4 border-t">
-              <div className="flex items-center gap-4 text-sm text-gray-500">
-                <span className="flex items-center gap-1">
-                  <Coins className="w-4 h-4 text-orange-500" />
-                  {previewQuestion?.pointCost} points per use
-                </span>
-                <span>Used {previewQuestion?.usageCount} times</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => router.push(`/question-bank/questions/${previewQuestion?.id}/edit`)}>
-                  <Pencil className="w-4 h-4 mr-1" /> Edit
-                </Button>
-                <Button variant="outline" size="sm">
-                  <Copy className="w-4 h-4 mr-1" /> Duplicate
-                </Button>
-              </div>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Question Full-Detail Sheet */}
+      <Sheet
+        open={!!previewQuestionId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewQuestion(null);
+            setPreviewQuestionId(null);
+          }
+        }}
+      >
+        <SheetContent side="right" size="full" className="p-0 gap-0">
+          {/* Hidden title required by Radix UI for screen-reader accessibility */}
+          <SheetTitle className="sr-only">Question Detail Preview</SheetTitle>
+          {previewQuestionId && (
+            <QuestionFullDetailView
+              questionId={previewQuestionId}
+              questionIds={filteredQuestions.map((q) => q.id)}
+              currentIndex={filteredQuestions.findIndex((q) => q.id === previewQuestionId)}
+              onNavigate={(id) => setPreviewQuestionId(id)}
+              onClose={() => {
+                setPreviewQuestion(null);
+                setPreviewQuestionId(null);
+              }}
+              onUpdate={() => {
+                router.refresh();
+              }}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
 
       {/* Add to Set Dialog */}
       <Dialog open={showAddToSetDialog} onOpenChange={setShowAddToSetDialog}>

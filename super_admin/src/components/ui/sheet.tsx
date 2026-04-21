@@ -48,9 +48,11 @@ function SheetContent({
   className,
   children,
   side = "right",
+  size = "default",
   ...props
 }: React.ComponentProps<typeof SheetPrimitive.Content> & {
-  side?: "top" | "right" | "bottom" | "left"
+  side?: "top" | "right" | "bottom" | "left";
+  size?: "default" | "xl" | "full";
 }) {
   return (
     <SheetPortal>
@@ -60,9 +62,15 @@ function SheetContent({
         className={cn(
           "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out fixed z-50 flex flex-col gap-4 shadow-lg transition ease-in-out data-[state=closed]:duration-300 data-[state=open]:duration-500",
           side === "right" &&
-            "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full w-3/4 border-l sm:max-w-sm",
+            "data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right inset-y-0 right-0 h-full border-l",
+          side === "right" && size === "default" && "w-3/4 sm:max-w-sm",
+          side === "right" && size === "xl" && "w-full max-w-5xl",
+          side === "right" && size === "full" && "w-full",
           side === "left" &&
-            "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full w-3/4 border-r sm:max-w-sm",
+            "data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left inset-y-0 left-0 h-full border-r",
+          side === "left" && size === "default" && "w-3/4 sm:max-w-sm",
+          side === "left" && size === "xl" && "w-full max-w-5xl",
+          side === "left" && size === "full" && "w-full",
           side === "top" &&
             "data-[state=closed]:slide-out-to-top data-[state=open]:slide-in-from-top inset-x-0 top-0 h-auto border-b",
           side === "bottom" &&

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { queryCanvas, processTool, saveDraftQuestions, getAISettings, updateAISettings } from './ai.controller';
+import { queryCanvas, processTool, saveDraftQuestions, getAISettings, updateAISettings, editQuestion } from './ai.controller';
 import { authenticate } from '../../middleware/auth';
 
 const router = Router();
@@ -14,5 +14,8 @@ router.post('/settings', updateAISettings);
 // AI Tools Endpoints (PDF to Word / Extractors) 
 router.post('/tool-process', processTool);
 router.post('/save-draft', saveDraftQuestions);
+
+// Question Editing AI
+router.post('/edit-question', authenticate, editQuestion);
 
 export default router;

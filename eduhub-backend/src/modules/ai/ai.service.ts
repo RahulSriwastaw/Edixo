@@ -221,4 +221,81 @@ RESPONSE RULES:
 
         return response.data.choices[0].message.content;
     }
+    static async editQuestion(params: {
+        editType: string;
+        currentData: any;
+        targetLanguage?: string;
+    }) {
+        const { editType, currentData } = params;
+        
+        let systemPrompt = `You are an expert academic editor and subject matter expert. 
+Your goal is to modify a question based on a specific instruction. 
+CRITICAL: You MUST return ONLY a valid JSON object containing the updated fields. No markdown formatting, no explanations, just raw JSON.
+
+Current Question Context:
+- Subject: ${currentData.subject || 'General'}
+- Type: ${currentData.questionType || 'MCQ'}
+
+JSON Output Structure:
+{
+  "question_eng": "...",
+  "question_hin": "...",
+  "solution_eng": "...",
+  "solution_hin": "...",
+  "options": [
+    { "id": "A", "label": "A", "text_eng": "...", "text_hin": "..." }
+  ]
+}
+
+ONLY include the fields that you have modified. For options, provide the full array if you generate them.`;
+
+        let userPrompt = "";
+
+        switch (editType) {
+            case 'fix_grammar':
+                userPrompt = `Please fix the grammar, flow, and professional tone of the following question and explanation. Preserve all LaTeX math formatting accurately.
+Current Question (EN): ${currentData.question_eng}
+Current Explanation (EN): ${currentData.solution_eng}`;
+                break;
+            case 'translate':
+                const target = params.targetLanguage || 'hin';
+                userPrompt = `Please translate the following question and explanation into ${target === 'hin' ? 'Hindi' : 'English'}.
+Question to Translate: ${target === 'hin' ? currentData.question_eng : currentData.question_hin}
+Explanation to Translate: ${target === 'hin' ? currentData.solution_eng : currentData.solution_hin}
+Ensure technical terms are kept in standard Hinglish if translating to Hindi. Preserve LaTeX math notation.`;
+                break;
+            case 'simplify':
+                userPrompt = `Please simplify the language of this question to make it easier for students to understand. Do not change the academic rigor or the correct answer.
+Question: ${currentData.question_eng || currentData.question_hin}`;
+                break;
+            case 'generate_explanation':
+                userPrompt = `Please generate a detailed, step-by-step educational explanation for this question.
+Question: ${currentData.question_eng || currentData.question_hin}
+Correct Answer: ${currentData.answer}
+Use LaTeX for all math. Provide explanation in ${currentData.question_eng ? 'English' : 'Hindi'}.`;
+                break;
+            case 'generate_options':
+                userPrompt = `Given this question, please generate 4 high-quality MCQ options (A, B, C, D) including 3 common misconceptions as distractors and 1 correct answer.
+Question: ${currentData.question_eng || currentData.question_hin}
+Identify which is correct.`;
+                break;
+            default:
+                throw new Error("Invalid edit type");
+        }
+
+        const aiResponse = await this.processToolRequest({
+            systemPrompt,
+            userPrompt,
+            modelId: 'smart'
+        });
+
+        try {
+            // Clean AI response in case it wraps it in markdown code blocks
+            const cleaned = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
+            return JSON.parse(cleaned);
+        } catch (err) {
+            logger.error("AI JSON Parse Error:", aiResponse);
+            throw new Error("AI failed to return valid JSON format. Raw: " + aiResponse.substring(0, 100));
+        }
+    }
 }

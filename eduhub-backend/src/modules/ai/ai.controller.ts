@@ -150,6 +150,36 @@ export const saveDraftQuestions = async (req: Request, res: Response, next: Next
     }
 };
 
+export const editQuestion = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const schema = z.object({
+            questionId: z.string().optional(),
+            editType: z.enum(['fix_grammar', 'translate', 'simplify', 'generate_options', 'generate_explanation']),
+            currentData: z.object({
+                question_eng: z.string().optional(),
+                question_hin: z.string().optional(),
+                solution_eng: z.string().optional(),
+                solution_hin: z.string().optional(),
+                answer: z.string().optional(),
+                questionType: z.string().optional(),
+                subject: z.string().optional(),
+            }),
+            targetLanguage: z.enum(['hin', 'eng']).optional(),
+        });
+
+        const body = schema.parse(req.body);
+        const result = await AIService.editQuestion(body);
+
+        res.json({ success: true, data: result });
+    } catch (err: any) {
+        if (err instanceof z.ZodError) {
+            return res.status(400).json({ success: false, message: err.errors[0]?.message || 'Invalid Request' });
+        }
+        logger.error("AI Edit Question Error:", err);
+        next(err);
+    }
+};
+
 // AI Settings Management
 export const getAISettings = async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -52,15 +52,51 @@ async function callAIWithRetry(
             }
         } catch (error: any) {
             lastError = error;
-            const status = error.response?.status || (error.message?.includes('429') ? 429 : 0);
             
-            if (status === 429 && attempt < maxRetries) {
-                const waitTime = attempt * 5000; // Exponential-ish backoff: 5s, 10s...
-                logger.warn(`AI Rate Limit (429) hit on attempt ${attempt}. Waiting ${waitTime/1000}s before retry...`);
+            // Determine if the error is retryable
+            // 429: Rate Limit
+            // 500, 502, 503, 504: Transient Server Errors
+            const status = error.response?.status || 
+                          (error.message?.includes('429') ? 429 : 
+                           error.message?.includes('503') ? 503 : 
+                           error.message?.includes('500') ? 500 : 0);
+            
+            const isRetryable = status === 429 || status === 503 || status === 500 || status === 502 || status === 504;
+            
+            if (isRetryable && attempt < maxRetries) {
+                const waitTime = attempt * 5000 + Math.random() * 2000; // Exponential backoff with jitter
+                logger.warn(`AI ${provider} reported error ${status} on attempt ${attempt}. Waiting ${Math.round(waitTime/1000)}s before retry...`);
                 await sleep(waitTime);
                 continue;
             }
-            throw error; // Throw if not a 429 or if last attempt
+            throw error; 
+        }
+    }
+    throw lastError;
+}
+
+// Utility for Prisma updates with retry (specifically for connection timeouts)
+async function prismaUpdateWithRetry(questionId: string, updateData: any, maxRetries = 3) {
+    let lastError: any;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            return await prisma.questions.update({
+                where: { id: questionId },
+                data: {
+                    ...updateData,
+                    updated_at: new Date()
+                }
+            });
+        } catch (error: any) {
+            lastError = error;
+            // P2024: Prisma connection pool timeout
+            if (error.code === 'P2024' && attempt < maxRetries) {
+                const waitTime = attempt * 3000;
+                logger.warn(`Prisma connection pool timeout on attempt ${attempt} for question ${questionId}. Waiting ${waitTime/1000}s...`);
+                await sleep(waitTime);
+                continue;
+            }
+            throw error;
         }
     }
     throw lastError;
@@ -329,14 +365,8 @@ export const bulkAIEditController = async (req: Request, res: Response, next: Ne
                     };
                 }
 
-                // Save to database
-                await prisma.questions.update({
-                    where: { id: question.id },
-                    data: {
-                        ...updateData,
-                        updated_at: new Date()
-                    }
-                });
+                // Save to database with retry
+                await prismaUpdateWithRetry(question.id, updateData);
 
                 successCount++;
                 sendLog({
