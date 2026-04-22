@@ -253,20 +253,15 @@ class _PenPickerDialogState extends ConsumerState<PenPickerDialog> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            // Apply settings
-                            ref
-                                .read(activePenTypeProvider.notifier)
-                                .state = _selectedType;
-                            final handler =
-                                ref.read(penSettingsProvider.notifier);
-                            ref.read(penSettingsProvider.notifier).state =
-                                ref
-                                    .read(penSettingsProvider)
-                                    .copyWith(
-                                      color: _selectedColor,
-                                      strokeWidth: _selectedWidth,
-                                      opacity: _selectedOpacity,
-                                    );
+                            // Apply settings using the dedicated notifier method
+                            ref.read(penSettingsProvider.notifier).applySettings(
+                                  ref.read(penSettingsProvider).copyWith(
+                                        type: _selectedType,
+                                        color: _selectedColor,
+                                        strokeWidth: _selectedWidth,
+                                        opacity: _selectedOpacity,
+                                      ),
+                                );
 
                             Navigator.pop(context);
                           },

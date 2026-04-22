@@ -2,10 +2,36 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../../core/theme/app_theme.dart';
 import '../../providers/tool_provider.dart';
 import '../../providers/tool_registry.dart';
 import 'tool_settings_sheet.dart';
+// ✅ BUG FIX: import new pen dialog
+import '../../dialogs/pen_picker_dialog.dart';
+
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+class _C {
+  static const body          = Color(0xFF0F0F0F);
+  static const sidebar       = Color(0xFF141414);
+  static const card          = Color(0xFF1A1A1A);
+  static const cardHov       = Color(0xFF202020);
+  static const border        = Color(0xFF252525);
+  static const divider       = Color(0xFF1E1E1E);
+  static const accent        = Color(0xFFFF6B2B);
+  static const accentHover   = Color(0xFFE55A1A);
+  static const txtPri        = Color(0xFFEFEFEF);
+  static const txtSec        = Color(0xFF888888);
+  static const txtMut        = Color(0xFF555555);
+  static const inputBg       = Color(0xFF1A1A1A);
+  static const inputBor      = Color(0xFF2A2A2A);
+
+  static const fontFamily    = 'Inter';
+}
+
+// Pen tools set — shared with bottom_main_toolbar
+const _kPenTools = {
+  Tool.softPen, Tool.hardPen, Tool.highlighter,
+  Tool.chalk, Tool.calligraphy, Tool.spray,
+};
 
 class ToolPickerPanel extends ConsumerStatefulWidget {
   const ToolPickerPanel({super.key});
@@ -42,84 +68,149 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
 
   @override
   Widget build(BuildContext context) {
-    final notifier = ref.read(toolNotifierProvider.notifier);
+    final notifier  = ref.read(toolNotifierProvider.notifier);
     final toolState = ref.watch(toolNotifierProvider);
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.72,
+      // 30% compact: was 0.72 height
+      height: MediaQuery.of(context).size.height * 0.68,
       decoration: BoxDecoration(
-        color: const Color(0xFF151528),
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24.r)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+        color: _C.sidebar,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+        border: Border.all(color: _C.border),
       ),
       child: Column(
         children: [
+          // ── Drag handle ────────────────────────────────────────────────
           Container(
-            width: 42.w,
-            height: 4.h,
-            margin: EdgeInsets.only(top: 12.h),
+            width: 36,
+            height: 3,
+            margin: const EdgeInsets.only(top: 10, bottom: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.22),
-              borderRadius: BorderRadius.circular(2.r),
+              color: _C.inputBor,
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
+
+          // ── Header ─────────────────────────────────────────────────────
           Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 10.h, 10.w, 0),
+            // compact: was 16/10/0 → 12/8/0
+            padding: const EdgeInsets.fromLTRB(14, 6, 10, 0),
             child: Row(
               children: [
-                Text(
+                const Text(
                   'Choose New Tool',
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18.sp,
+                    fontFamily: _C.fontFamily,
+                    color: _C.txtPri,
+                    fontSize: 16,      // was 18sp
                     fontWeight: FontWeight.w700,
+                    height: 1.5,
                   ),
                 ),
                 const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white54),
-                  onPressed: () => Navigator.pop(context),
+                GestureDetector(
+                  onTap: () => Navigator.pop(context),
+                  child: Container(
+                    width: 28,
+                    height: 28,
+                    decoration: BoxDecoration(
+                      color: _C.card,
+                      borderRadius: BorderRadius.circular(6),
+                      border: Border.all(color: _C.border),
+                    ),
+                    child: const Icon(Icons.close, color: _C.txtSec, size: 15),
+                  ),
                 ),
               ],
             ),
           ),
+
+          // ── Search ────────────────────────────────────────────────────
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+            padding: const EdgeInsets.fromLTRB(14, 8, 14, 6),
             child: TextField(
               onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
-              style: TextStyle(color: Colors.white, fontSize: 14.sp),
+              style: const TextStyle(
+                fontFamily: _C.fontFamily,
+                color: _C.txtPri,
+                fontSize: 12,
+                height: 1.5,
+              ),
               decoration: InputDecoration(
                 hintText: 'Search by name or category',
-                hintStyle: TextStyle(color: Colors.white38, fontSize: 14.sp),
-                prefixIcon: const Icon(Icons.search, color: Colors.white38),
+                hintStyle: const TextStyle(
+                  fontFamily: _C.fontFamily,
+                  color: _C.txtMut,
+                  fontSize: 12,
+                  height: 1.5,
+                ),
+                prefixIcon: const Icon(Icons.search, color: _C.txtMut, size: 16),
                 filled: true,
-                fillColor: Colors.white.withValues(alpha: 0.08),
+                fillColor: _C.inputBg,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12.r),
-                  borderSide: BorderSide.none,
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: _C.inputBor),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: _C.inputBor),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: const BorderSide(color: _C.accent),
                 ),
               ),
             ),
           ),
+
+          // ── Tabs ──────────────────────────────────────────────────────
           TabBar(
             controller: _tabController,
             isScrollable: true,
-            indicatorColor: AppTheme.primaryOrange,
-            labelColor: AppTheme.primaryOrange,
-            unselectedLabelColor: Colors.white38,
-            labelStyle: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
+            indicatorColor: _C.accent,
+            indicatorWeight: 2,
+            labelColor: _C.accent,
+            unselectedLabelColor: _C.txtMut,
+            labelStyle: const TextStyle(
+              fontFamily: _C.fontFamily,
+              fontSize: 11,             // was 12sp
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+              letterSpacing: 0.4,
+            ),
+            unselectedLabelStyle: const TextStyle(
+              fontFamily: _C.fontFamily,
+              fontSize: 11,
+              fontWeight: FontWeight.w400,
+              height: 1.5,
+            ),
             tabs: [
               for (final category in _tabOrder)
                 Tab(text: categoryTitleMap[category] ?? category.name),
             ],
           ),
-          Padding(
-            padding: EdgeInsets.only(top: 6.h, bottom: 2.h),
-            child: Text(
-              'Tap to activate  -  Double-tap settings  -  + to pin to toolbar',
-              style: TextStyle(color: Colors.white38, fontSize: 11.sp),
+
+          // ── Hint row ──────────────────────────────────────────────────
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 14),
+            decoration: const BoxDecoration(
+              border: Border(bottom: BorderSide(color: _C.divider)),
+            ),
+            child: const Text(
+              'Tap · activate   Double-tap · settings   + · pin to toolbar',
+              style: TextStyle(
+                fontFamily: _C.fontFamily,
+                color: _C.txtMut,
+                fontSize: 10,
+                height: 1.5,
+              ),
             ),
           ),
+
+          // ── Tool grid tabs ────────────────────────────────────────────
           Expanded(
             child: TabBarView(
               controller: _tabController,
@@ -143,9 +234,19 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
                         SnackBar(
                           content: Text(
                             '${toolRegistryByTool[tool]?.name ?? tool.name} added to toolbar',
+                            style: const TextStyle(
+                              fontFamily: _C.fontFamily,
+                              fontSize: 12,
+                              color: _C.txtPri,
+                            ),
                           ),
                           duration: const Duration(seconds: 1),
-                          backgroundColor: const Color(0xFF2A2A44),
+                          backgroundColor: _C.card,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: const BorderSide(color: _C.border),
+                          ),
                         ),
                       );
                     },
@@ -176,10 +277,22 @@ class _ToolPickerPanelState extends ConsumerState<ToolPickerPanel>
     }).toList();
   }
 
+  /// ✅ BUG FIX: pen tools → PenPickerDialog, others → old sheet
   void _openQuickSettings(BuildContext context, WidgetRef ref, Tool tool) {
-    showToolSettingsSheet(context, ref, tool);
+    if (_kPenTools.contains(tool)) {
+      showDialog(
+        context: context,
+        barrierColor: Colors.transparent,
+        barrierDismissible: true,
+        builder: (_) => const PenPickerDialog(),
+      );
+    } else {
+      showToolSettingsSheet(context, ref, tool);
+    }
   }
 }
+
+// ── Tool Grid ─────────────────────────────────────────────────────────────────
 
 class _ToolGrid extends StatelessWidget {
   final List<ToolDefinition> entries;
@@ -203,25 +316,31 @@ class _ToolGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (entries.isEmpty) {
-      return Center(
+      return const Center(
         child: Text(
           'No tools found',
-          style: TextStyle(color: Colors.white38, fontSize: 14.sp),
+          style: TextStyle(
+            fontFamily: _C.fontFamily,
+            color: _C.txtMut,
+            fontSize: 13,
+            height: 1.5,
+          ),
         ),
       );
     }
 
     return GridView.builder(
-      padding: EdgeInsets.all(16.w),
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      // compact: was 16 → 12px padding, 10 → 8 spacing
+      padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 4,
-        childAspectRatio: 0.86,
-        crossAxisSpacing: 10.w,
-        mainAxisSpacing: 10.h,
+        childAspectRatio: 0.88,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
       ),
       itemCount: entries.length,
       itemBuilder: (_, idx) {
-        final entry = entries[idx];
+        final entry    = entries[idx];
         final selected = activeTool == entry.tool;
         final isPinned = toolbarTools.contains(entry.tool);
 
@@ -262,7 +381,9 @@ class _ToolGrid extends StatelessWidget {
   }
 }
 
-class _ToolCard extends StatelessWidget {
+// ── Tool Card ─────────────────────────────────────────────────────────────────
+
+class _ToolCard extends StatefulWidget {
   final ToolDefinition entry;
   final bool selected;
   final bool compact;
@@ -278,85 +399,120 @@ class _ToolCard extends StatelessWidget {
   });
 
   @override
+  State<_ToolCard> createState() => _ToolCardState();
+}
+
+class _ToolCardState extends State<_ToolCard> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          width: compact ? 84.w : null,
-          decoration: BoxDecoration(
-            color: selected
-                ? AppTheme.primaryOrange.withValues(alpha: 0.18)
-                : Colors.white.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(14.r),
-            border: Border.all(
-              color: isPinned
-                  ? AppTheme.primaryOrange.withValues(alpha: 0.9)
-                  : selected
-                      ? AppTheme.primaryOrange.withValues(alpha: 0.7)
-                      : Colors.white.withValues(alpha: 0.06),
-              width: isPinned ? 1.5 : 1.0,
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hovered = true),
+      onExit:  (_) => setState(() => _hovered = false),
+      child: Stack(
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 130),
+            curve: Curves.easeOut,
+            width: widget.compact ? 80 : null,
+            decoration: BoxDecoration(
+              color: widget.selected
+                  ? _C.accent.withValues(alpha: 0.15)
+                  : _hovered
+                      ? _C.cardHov
+                      : _C.card,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: widget.isPinned
+                    ? _C.accent
+                    : widget.selected
+                        ? _C.accent.withValues(alpha: 0.7)
+                        : _hovered
+                            ? _C.border
+                            : const Color(0xFF1E1E1E),
+                width: widget.isPinned ? 1.5 : 1.0,
+              ),
+              // Hover shadow only
+              boxShadow: _hovered
+                  ? const [
+                      BoxShadow(
+                        color: Color(0x59000000),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ]
+                  : null,
             ),
-          ),
-          child: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 40.w,
-                  height: 40.h,
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryOrange.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(12.r),
-                  ),
-                  child: Icon(
-                    entry.icon,
-                    size: 22.sp,
-                    color: AppTheme.primaryOrange,
-                  ),
-                ),
-                SizedBox(height: 6.h),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4.w),
-                  child: Text(
-                    entry.name,
-                    style: TextStyle(
-                      color: Colors.white70,
-                      fontSize: 10.sp,
-                      fontWeight: FontWeight.w500,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // Icon circle — compact: was 40 → 34
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: _C.accent.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                    child: Icon(
+                      widget.entry.icon,
+                      size: 18,
+                      color: widget.selected ? _C.accent : _C.txtSec,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        if (!compact && onTogglePin != null)
-          Positioned(
-            top: 4.h,
-            right: 4.w,
-            child: GestureDetector(
-              onTap: onTogglePin,
-              child: Container(
-                width: 20.w,
-                height: 20.h,
-                decoration: BoxDecoration(
-                  color: isPinned
-                      ? AppTheme.primaryOrange
-                      : Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  isPinned ? Icons.push_pin : Icons.add,
-                  size: 11.sp,
-                  color: Colors.white,
-                ),
+                  const SizedBox(height: 5),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
+                    child: Text(
+                      widget.entry.name,
+                      style: TextStyle(
+                        fontFamily: _C.fontFamily,
+                        color: widget.selected ? _C.txtPri : _C.txtSec,
+                        fontSize: 10,
+                        fontWeight: widget.selected
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        height: 1.5,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
-      ],
+
+          // Pin badge
+          if (!widget.compact && widget.onTogglePin != null)
+            Positioned(
+              top: 4,
+              right: 4,
+              child: GestureDetector(
+                onTap: widget.onTogglePin,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 130),
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: widget.isPinned
+                        ? _C.accent
+                        : _C.inputBor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    widget.isPinned ? Icons.push_pin : Icons.add,
+                    size: 10,
+                    color: widget.isPinned ? Colors.white : _C.txtMut,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
