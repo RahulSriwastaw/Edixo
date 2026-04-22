@@ -42,7 +42,7 @@ class StrokeRenderer {
     final outlinePoints = pf.getStroke(
       points.map((p) => pf.PointVector(p.dx, p.dy)).toList(),
       options: pf.StrokeOptions(
-        size: 8.0,
+        size: stroke.strokeWidth,
         thinning: 0.5,
         smoothing: 0.5,
         streamline: 0.5,
@@ -63,6 +63,7 @@ class StrokeRenderer {
     final paint = Paint()
       ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
       ..style = PaintingStyle.fill
+      ..maskFilter = MaskFilter.blur(BlurStyle.normal, stroke.strokeWidth * 0.15)
       ..isAntiAlias = true;
 
     canvas.drawPath(path, paint);
@@ -98,11 +99,12 @@ class StrokeRenderer {
     if (points.length < 2) return;
 
     final paint = Paint()
-      ..color = Color(stroke.colorARGB).withValues(alpha: 0.3)
-      ..strokeWidth = stroke.strokeWidth * 2.5
+      ..color = Color(stroke.colorARGB).withValues(alpha: stroke.opacity)
+      ..strokeWidth = stroke.strokeWidth
       ..strokeCap = StrokeCap.square
       ..strokeJoin = StrokeJoin.bevel
       ..style = PaintingStyle.stroke
+      ..blendMode = BlendMode.multiply
       ..isAntiAlias = true;
 
     final path = Path()..moveTo(points[0].dx, points[0].dy);

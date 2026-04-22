@@ -1,410 +1,555 @@
 // lib/features/whiteboard/presentation/dialogs/pen_picker_dialog.dart
-// Professional Pen Picker Dialog (Like Note3)
+// v4.1 — Fixed overflow. SizedBox(fixed height) + Column.max + Expanded scroll.
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/tools/pen_tool.dart';
 import '../providers/tool_provider.dart';
 
-class PenPickerDialog extends ConsumerStatefulWidget {
+// ─── Design Tokens ─────────────────────────────────────────────────────────
+class _C {
+  static const sidebar   = Color(0xFF141414);
+  static const card      = Color(0xFF1A1A1A);
+  static const cardHov   = Color(0xFF202020);
+  static const border    = Color(0xFF252525);
+  static const divider   = Color(0xFF1E1E1E);
+  static const accent    = Color(0xFFFF6B2B);
+  static const accentHov = Color(0xFFE55A1A);
+  static const txtPri    = Color(0xFFEFEFEF);
+  static const txtSec    = Color(0xFF888888);
+  static const txtMut    = Color(0xFF555555);
+  static const inputBor  = Color(0xFF2A2A2A);
+  static const font      = 'Inter';
+}
+
+const _kColors = [
+  Color(0xFF000000), Color(0xFFFFFFFF), Color(0xFFE53935), Color(0xFFFF5722),
+  Color(0xFFFF9800), Color(0xFFFFD600), Color(0xFF43A047), Color(0xFF00BCD4),
+  Color(0xFF2196F3), Color(0xFF3F51B5), Color(0xFF9C27B0), Color(0xFF795548),
+];
+
+// ─── Entry point ──────────────────────────────────────────────────────────────
+
+class PenPickerDialog extends ConsumerWidget {
   const PenPickerDialog({super.key});
 
   @override
-  ConsumerState<PenPickerDialog> createState() => _PenPickerDialogState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      child: _PenPanel(),
+    );
+  }
 }
 
-class _PenPickerDialogState extends ConsumerState<PenPickerDialog> {
-  late PenType _selectedType;
-  late Color _selectedColor;
-  late double _selectedWidth;
-  late double _selectedOpacity;
+// ─── Panel ────────────────────────────────────────────────────────────────────
 
+class _PenPanel extends ConsumerStatefulWidget {
   @override
-  void initState() {
-    super.initState();
-    final penSettings = ref.read(penSettingsProvider);
-    _selectedType = penSettings.type;
-    _selectedColor = penSettings.color;
-    _selectedWidth = penSettings.strokeWidth;
-    _selectedOpacity = penSettings.opacity;
+  ConsumerState<_PenPanel> createState() => _PenPanelState();
+}
+
+class _PenPanelState extends ConsumerState<_PenPanel> {
+  void _syncEngine(PenSettings settings) {
+    ref.read(penSettingsProvider.notifier).applySettings(settings);
+    
+    final toolNotifier = ref.read(toolNotifierProvider.notifier);
+    Tool mappedTool = Tool.softPen;
+    switch (settings.type) {
+      case PenType.pencil:      mappedTool = Tool.hardPen; break;
+      case PenType.brush:       mappedTool = Tool.softPen; break;
+      case PenType.marker:      mappedTool = Tool.hardPen; break;
+      case PenType.calligraphy: mappedTool = Tool.calligraphy; break;
+      case PenType.highlighter: mappedTool = Tool.highlighter; break;
+      case PenType.magic:       mappedTool = Tool.laserPointer; break;
+      case PenType.chalk:       mappedTool = Tool.chalk; break;
+    }
+    
+    toolNotifier.selectTool(mappedTool);
+    toolNotifier.setColor(settings.color);
+    toolNotifier.setStrokeWidth(settings.strokeWidth);
+    toolNotifier.setOpacity(settings.opacity);
   }
+
+  void _selectType(PenType t) {
+    final current = ref.read(penSettingsProvider);
+    _syncEngine(PenSettings.withDefaults(type: t, color: current.color));
+  }
+  
+  void _setColor(Color c) => _syncEngine(ref.read(penSettingsProvider).copyWith(color: c));
+  void _setWidth(double v) => _syncEngine(ref.read(penSettingsProvider).copyWith(strokeWidth: v));
+  void _setOpacity(double v) => _syncEngine(ref.read(penSettingsProvider).copyWith(opacity: v));
+
+  void _close() => Navigator.of(context).pop();
 
   @override
   Widget build(BuildContext context) {
-    final penSettings = ref.watch(penSettingsProvider);
-
-    return Dialog(
-      backgroundColor: Colors.transparent,
-      insetPadding: const EdgeInsets.all(24),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 380),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.1),
-            width: 1,
+    final settings = ref.watch(penSettingsProvider);
+    return Container(
+      width: 240,
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.of(context).size.height * 0.85,
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          decoration: BoxDecoration(
+            color: _C.sidebar,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: _C.border),
+            boxShadow: const [
+              BoxShadow(color: Color(0x80000000), blurRadius: 20, offset: Offset(0, 6)),
+            ],
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.5),
-              blurRadius: 20,
-              spreadRadius: 5,
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ── Header with Pen Icon ────────────────────────────────
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.orange.withValues(alpha: 0.2),
-                    Colors.orange.withValues(alpha: 0.05),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildHeader(),
+              _div(),
+              Flexible(
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildPenTypes(),
+                      _div(),
+                      _buildSlider(
+                        label: 'WIDTH',
+                        value: settings.strokeWidth,
+                        min: 1.0, max: 50.0,
+                        badge: '${settings.strokeWidth.round()}',
+                        onChanged: _setWidth,
+                      ),
+                      _div(),
+                      _buildSlider(
+                        label: 'OPACITY',
+                        value: settings.opacity,
+                        min: 0.05, max: 1.0,
+                        badge: '${(settings.opacity * 100).round()}%',
+                        onChanged: _setOpacity,
+                      ),
+                      _div(),
+                      _buildColors(),
+                    ],
+                  ),
                 ),
               ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Icon(
-                        _selectedType.icon,
-                        color: Colors.orange,
-                        size: 28,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              _selectedType.displayName,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                            Text(
-                              'Pen Settings',
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.5),
-                                fontSize: 11,
-                                letterSpacing: 1,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // ── Pen Type Selection Grid ─────────────────────
-                  Text(
-                    'Pen Types',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 4,
-                      mainAxisSpacing: 8,
-                      crossAxisSpacing: 8,
-                      childAspectRatio: 1,
-                    ),
-                    itemCount: PenType.values.length,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      final pen = PenType.values[index];
-                      final isSelected = pen == _selectedType;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _selectedType = pen;
-                          });
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: isSelected
-                                  ? Colors.orange
-                                  : Colors.white.withValues(alpha: 0.2),
-                              width: isSelected ? 2 : 1,
-                            ),
-                            color: isSelected
-                                ? Colors.orange.withValues(alpha: 0.15)
-                                : Colors.white.withValues(alpha: 0.03),
-                          ),
-                          child: Center(
-                            child: Icon(
-                              pen.icon,
-                              color: isSelected ? Colors.orange : Colors.white70,
-                              size: 22,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ── Stroke Width Slider ─────────────────────────
-                  _buildSettingSection(
-                    label: 'Width',
-                    value: _selectedWidth,
-                    min: 1.0,
-                    max: 40.0,
-                    onChanged: (val) => setState(() => _selectedWidth = val),
-                    child: Slider(
-                      value: _selectedWidth,
-                      min: 1.0,
-                      max: 40.0,
-                      onChanged: (val) => setState(() => _selectedWidth = val),
-                      activeColor: Colors.orange,
-                      inactiveColor: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // ── Opacity Slider ──────────────────────────────
-                  _buildSettingSection(
-                    label: 'Opacity',
-                    value: _selectedOpacity,
-                    min: 0.1,
-                    max: 1.0,
-                    onChanged: (val) => setState(() => _selectedOpacity = val),
-                    child: Slider(
-                      value: _selectedOpacity,
-                      min: 0.1,
-                      max: 1.0,
-                      onChanged: (val) => setState(() => _selectedOpacity = val),
-                      activeColor: Colors.orange,
-                      inactiveColor: Colors.white.withValues(alpha: 0.1),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // ── Color Grid (4x3) ────────────────────────────
-                  Text(
-                    'Colors',
-                    style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.7),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildColorGrid(),
-
-                  const SizedBox(height: 20),
-
-                  // ── Action Buttons ──────────────────────────────
-                  Row(
-                    children: [
-                      Expanded(
-                        child: OutlinedButton(
-                          onPressed: () => Navigator.pop(context),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(
-                              color: Colors.white.withValues(alpha: 0.2),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            // Apply settings using the dedicated notifier method
-                            ref.read(penSettingsProvider.notifier).applySettings(
-                                  ref.read(penSettingsProvider).copyWith(
-                                        type: _selectedType,
-                                        color: _selectedColor,
-                                        strokeWidth: _selectedWidth,
-                                        opacity: _selectedOpacity,
-                                      ),
-                                );
-
-                            Navigator.pop(context);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                          ),
-                          child: const Text(
-                            'Apply',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
+              _div(),
+              _buildActions(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildSettingSection({
+  Widget _buildHeader() {
+    final settings = ref.watch(penSettingsProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 8, 8, 6),
+      child: Row(
+        children: [
+          Container(
+            width: 26, height: 26,
+            decoration: BoxDecoration(
+              color: _C.accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Icon(settings.type.icon, size: 14, color: _C.accent),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(settings.type.displayName,
+                    style: const TextStyle(
+                      fontFamily: _C.font, fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: _C.txtPri, height: 1.3,
+                    )),
+                const Text('Pen Settings',
+                    style: TextStyle(
+                      fontFamily: _C.font, fontSize: 10,
+                      color: _C.txtMut, height: 1.3,
+                    )),
+              ],
+            ),
+          ),
+          _CloseBtn(onTap: _close),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPenTypes() {
+    final settings = ref.watch(penSettingsProvider);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 2, bottom: 4),
+            child: _Label('PEN TYPE'),
+          ),
+          // Row 1: pencil, brush, marker, calligraphy
+          Row(
+            children: PenType.values.take(4).map((t) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: _PenCard(
+                  type: t,
+                  isActive: t == settings.type,
+                  onTap: () => _selectType(t),
+                ),
+              ),
+            )).toList(),
+          ),
+          const SizedBox(height: 4),
+          // Row 2: highlighter, magic, chalk + empty
+          Row(
+            children: [
+              ...PenType.values.skip(4).map((t) => Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 4),
+                  child: _PenCard(
+                    type: t,
+                    isActive: t == settings.type,
+                    onTap: () => _selectType(t),
+                  ),
+                ),
+              )),
+              const Expanded(child: SizedBox()), // filler
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSlider({
     required String label,
     required double value,
     required double min,
     required double max,
+    required String badge,
     required ValueChanged<double> onChanged,
-    required Widget child,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.7),
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Text(
-                '${value.toStringAsFixed(1)}',
-                style: const TextStyle(
-                  color: Colors.orange,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: [_Label(label), const Spacer(), _Badge(badge)]),
+          const SizedBox(height: 2),
+          _PenSlider(value: value.clamp(min, max), min: min, max: max, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildColors() {
+    final settings = ref.watch(penSettingsProvider);
+    final rows = <Widget>[];
+    for (int i = 0; i < _kColors.length; i += 6) {
+      final rowColors = _kColors.skip(i).take(6).toList();
+      rows.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 4),
+          child: Row(
+            children: rowColors.map((c) => Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 4),
+                child: AspectRatio(
+                  aspectRatio: 1,
+                  child: _ColorTile(
+                    color: c,
+                    isSelected: settings.color.value == c.value,
+                    onTap: () => _setColor(c),
+                  ),
                 ),
               ),
-            ),
-          ],
+            )).toList(),
+          ),
         ),
-        const SizedBox(height: 8),
-        child,
-      ],
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 2, bottom: 4),
+            child: Row(children: [
+              const _Label('COLOR'),
+              const Spacer(),
+              Container(
+                width: 14, height: 14,
+                decoration: BoxDecoration(
+                  color: settings.color,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: settings.color == Colors.white ? _C.border : Colors.transparent,
+                  ),
+                ),
+              ),
+            ]),
+          ),
+          ...rows,
+        ],
+      ),
     );
   }
 
-  Widget _buildColorGrid() {
-    const colors = [
-      Colors.black,
-      Colors.white,
-      Color(0xFFFF5252),
-      Color(0xFFFF7043),
-      Color(0xFFFFAB40),
-      Color(0xFFFFEB3B),
-      Color(0xFF69F0AE),
-      Color(0xFF26C6DA),
-      Color(0xFF40C4FF),
-      Color(0xFF448AFF),
-      Color(0xFFE040FB),
-      Color(0xFF8D6E63),
-    ];
+  Widget _buildActions() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
+      child: Row(children: [
+        Expanded(child: _ActionBtn(label: 'Done', primary: true, onTap: _close)),
+      ]),
+    );
+  }
 
-    return GridView.builder(
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 4,
-        mainAxisSpacing: 8,
-        crossAxisSpacing: 8,
-        childAspectRatio: 1,
-      ),
-      itemCount: colors.length,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemBuilder: (context, index) {
-        final color = colors[index];
-        final isSelected = color.value == _selectedColor.value;
+  Widget _div() => Container(height: 1, color: _C.divider);
+}
 
-        return GestureDetector(
-          onTap: () {
-            setState(() {
-              _selectedColor = color;
-            });
-          },
-          child: Container(
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(
-                color: isSelected
-                    ? Colors.orange
-                    : Colors.white.withValues(alpha: 0.2),
-                width: isSelected ? 2.5 : 1,
-              ),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: Colors.orange.withValues(alpha: 0.4),
-                        blurRadius: 8,
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : null,
+// ─── Pen Card ─────────────────────────────────────────────────────────────────
+
+class _PenCard extends StatefulWidget {
+  final PenType type;
+  final bool isActive;
+  final VoidCallback onTap;
+  const _PenCard({required this.type, required this.isActive, required this.onTap});
+  @override
+  State<_PenCard> createState() => _PenCardState();
+}
+
+class _PenCardState extends State<_PenCard> {
+  bool _hov = false;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hov = true),
+      onExit: (_) => setState(() => _hov = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: 42,
+          decoration: BoxDecoration(
+            color: widget.isActive
+                ? _C.accent.withValues(alpha: 0.14)
+                : _hov ? _C.cardHov : _C.card,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: widget.isActive ? _C.accent : _hov ? _C.border : _C.divider,
+              width: widget.isActive ? 1.5 : 1,
             ),
-            child: isSelected
-                ? const Center(
-                    child: Icon(
-                      Icons.check,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  )
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(widget.type.icon, size: 14,
+                  color: widget.isActive ? _C.accent : _C.txtSec),
+              const SizedBox(height: 2),
+              Text(
+                widget.type.displayName,
+                style: TextStyle(
+                  fontFamily: _C.font, fontSize: 8.5,
+                  fontWeight: widget.isActive ? FontWeight.w600 : FontWeight.w500,
+                  color: widget.isActive ? _C.txtPri : _C.txtMut,
+                  height: 1.1,
+                ),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Color Tile ───────────────────────────────────────────────────────────────
+
+class _ColorTile extends StatefulWidget {
+  final Color color;
+  final bool isSelected;
+  final VoidCallback onTap;
+  const _ColorTile({required this.color, required this.isSelected, required this.onTap});
+  @override
+  State<_ColorTile> createState() => _ColorTileState();
+}
+
+class _ColorTileState extends State<_ColorTile> {
+  bool _hov = false;
+  bool get _isDark =>
+      (widget.color.red * 0.299 + widget.color.green * 0.587 +
+              widget.color.blue * 0.114) < 128;
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _hov = true),
+      onExit: (_) => setState(() => _hov = false),
+      child: GestureDetector(
+        onTap: widget.onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 100),
+          decoration: BoxDecoration(
+            color: widget.color,
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: widget.isSelected
+                  ? _C.accent
+                  : _hov
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : widget.color == Colors.white
+                          ? _C.border
+                          : Colors.transparent,
+              width: widget.isSelected ? 2 : 1,
+            ),
+            boxShadow: widget.isSelected
+                ? [BoxShadow(color: _C.accent.withValues(alpha: 0.35), blurRadius: 6)]
                 : null,
           ),
-        );
-      },
+          child: widget.isSelected
+              ? Center(
+                  child: Icon(Icons.check, size: 13,
+                      color: _isDark ? Colors.white : Colors.black87))
+              : null,
+        ),
+      ),
     );
   }
+}
+
+// ─── Slider ───────────────────────────────────────────────────────────────────
+
+class _PenSlider extends StatelessWidget {
+  final double value, min, max;
+  final ValueChanged<double> onChanged;
+  const _PenSlider({required this.value, required this.min, required this.max, required this.onChanged});
+  @override
+  Widget build(BuildContext context) {
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        trackHeight: 3,
+        activeTrackColor: _C.accent,
+        inactiveTrackColor: _C.inputBor,
+        thumbColor: Colors.white,
+        thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+        overlayShape: const RoundSliderOverlayShape(overlayRadius: 13),
+        overlayColor: _C.accent.withValues(alpha: 0.15),
+      ),
+      child: Slider(value: value, min: min, max: max, onChanged: onChanged),
+    );
+  }
+}
+
+// ─── Action Button ────────────────────────────────────────────────────────────
+
+class _ActionBtn extends StatefulWidget {
+  final String label;
+  final bool primary;
+  final VoidCallback onTap;
+  const _ActionBtn({required this.label, required this.primary, required this.onTap});
+  @override
+  State<_ActionBtn> createState() => _ActionBtnState();
+}
+
+class _ActionBtnState extends State<_ActionBtn> {
+  bool _hov = false;
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+        onEnter: (_) => setState(() => _hov = true),
+        onExit: (_) => setState(() => _hov = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 120),
+            height: 32,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: widget.primary ? (_hov ? _C.accentHov : _C.accent) : Colors.transparent,
+              borderRadius: BorderRadius.circular(6),
+              border: widget.primary ? null : Border.all(color: _C.inputBor),
+            ),
+            child: Text(
+              widget.label,
+              style: TextStyle(
+                fontFamily: _C.font, fontSize: 12, fontWeight: FontWeight.w600,
+                color: widget.primary ? Colors.white : _C.txtSec, height: 1.5,
+              ),
+            ),
+          ),
+        ),
+      );
+}
+
+// ─── Micro Widgets ────────────────────────────────────────────────────────────
+
+class _Label extends StatelessWidget {
+  final String text;
+  const _Label(this.text);
+  @override
+  Widget build(BuildContext context) => Text(text,
+      style: const TextStyle(
+        fontFamily: _C.font, fontSize: 10, fontWeight: FontWeight.w600,
+        color: _C.txtMut, letterSpacing: 0.8, height: 1.5,
+      ));
+}
+
+class _Badge extends StatelessWidget {
+  final String text;
+  const _Badge(this.text);
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(color: _C.accent, borderRadius: BorderRadius.circular(20)),
+        child: Text(text,
+            style: const TextStyle(
+              fontFamily: _C.font, fontSize: 10, fontWeight: FontWeight.w600,
+              color: Colors.white, height: 1.3,
+            )),
+      );
+}
+
+class _CloseBtn extends StatefulWidget {
+  final VoidCallback onTap;
+  const _CloseBtn({required this.onTap});
+  @override
+  State<_CloseBtn> createState() => _CloseBtnState();
+}
+
+class _CloseBtnState extends State<_CloseBtn> {
+  bool _hov = false;
+  @override
+  Widget build(BuildContext context) => MouseRegion(
+        onEnter: (_) => setState(() => _hov = true),
+        onExit: (_) => setState(() => _hov = false),
+        child: GestureDetector(
+          onTap: widget.onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 100),
+            width: 26, height: 26,
+            decoration: BoxDecoration(
+              color: _hov ? _C.card : Colors.transparent,
+              borderRadius: BorderRadius.circular(5),
+              border: Border.all(color: _hov ? _C.border : Colors.transparent),
+            ),
+            child: const Icon(Icons.close, size: 14, color: _C.txtMut),
+          ),
+        ),
+      );
 }
