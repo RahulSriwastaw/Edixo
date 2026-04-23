@@ -1960,6 +1960,6 @@ class AnnotationPainter extends CustomPainter {
   bool shouldRepaint(AnnotationPainter old) =>
       !identical(strokes, old.strokes) || !identical(objects, old.objects) ||
       selectedObjectId != old.selectedObjectId || showSelectionHandles != old.showSelectionHandles ||
-      selectedStrokeId != old.selectedStrokeId || !identical(lassoPoints, old.lassoPoints) ||
+      selectedStrokeId != old.selectedStrokeId ||
       groupSelectionRect != old.groupSelectionRect;
 }
