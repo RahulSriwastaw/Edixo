@@ -49,13 +49,15 @@ class CanvasObjectModel extends HiveObject {
         extra = extra ?? {};
 
   CanvasObjectModel copyWith({
+    String? id,
+    ObjectType? type,
     double? x, double? y, double? width, double? height,
     double? rotation, int? fillColorARGB, int? borderColorARGB,
     double? borderWidth, double? opacity, bool? isLocked,
-    int? zIndex, Map<String, dynamic>? extra,
+    int? zIndex, String? slideId, Map<String, dynamic>? extra,
   }) => CanvasObjectModel(
-    id:              id,
-    type:            type,
+    id:              id             ?? this.id,
+    type:            type           ?? this.type,
     x:               x              ?? this.x,
     y:               y              ?? this.y,
     width:           width          ?? this.width,
@@ -67,7 +69,7 @@ class CanvasObjectModel extends HiveObject {
     opacity:         opacity        ?? this.opacity,
     isLocked:        isLocked       ?? this.isLocked,
     zIndex:          zIndex         ?? this.zIndex,
-    slideId:         slideId,
+    slideId:         slideId        ?? this.slideId,
     extra:           extra          ?? Map.from(this.extra),
   );
 

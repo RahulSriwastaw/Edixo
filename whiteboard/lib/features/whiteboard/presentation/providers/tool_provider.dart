@@ -6,6 +6,7 @@ import '../../../../core/storage/hive_service.dart';
 import 'tool_registry.dart';
 import 'teaching_tools_provider.dart';
 import '../../../question_widget/presentation/providers/interaction_state_provider.dart';
+import '../widgets/tools/lasso_tool.dart';
 
 part 'tool_provider.g.dart';
 
@@ -22,6 +23,8 @@ enum Tool {
   // Selection
   select,        // Selects canvas objects (shapes, textboxes)
   selectObject,  // Selects QuestionWidgets on EditableQuestionLayer
+  lassoFreeform, // Free-hand polygon select
+  lassoRect,     // Rectangle select
   navigate,      // Pan/zoom canvas
   // Special
   magicPen, eyedropper,
@@ -357,6 +360,14 @@ class ToolNotifier extends _$ToolNotifier {
     if (tool != Tool.selectObject) {
       ref.read(selectedSetWidgetIdProvider.notifier).state = null;
     }
+
+    // Auto-set lasso mode
+    if (tool == Tool.lassoFreeform) {
+      ref.read(lassoProvider.notifier).setMode(LassoMode.freeform);
+    }
+    if (tool == Tool.lassoRect) {
+      ref.read(lassoProvider.notifier).setMode(LassoMode.rect);
+    }
   }
 
   void setColor(Color color) {
@@ -652,7 +663,7 @@ class ToolNotifier extends _$ToolNotifier {
   }
 
   InteractionMode _autoInteractionMode(Tool tool) {
-    if (tool == Tool.select || tool == Tool.selectObject) {
+    if (tool == Tool.select || tool == Tool.selectObject || tool == Tool.lassoFreeform || tool == Tool.lassoRect) {
       return InteractionMode.selectMode;
     }
     if (tool.isDrawingTool || tool.isEraserTool || tool.isShapeTool

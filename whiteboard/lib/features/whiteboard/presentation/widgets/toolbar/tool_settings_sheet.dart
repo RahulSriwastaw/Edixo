@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../providers/tool_provider.dart';
 import '../../providers/tool_registry.dart';
 import '../../../../../core/constants/app_colors.dart';
+import 'package:eduboard_pro/features/whiteboard/presentation/widgets/color_picker/tool_color_picker.dart';
 
 // ── Internal kind mapping ───────────────────────────────────────────────────
 
@@ -198,7 +199,13 @@ class _ToolSettingsSheetState extends ConsumerState<_ToolSettingsSheet> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _label('Color'),
-      _ColorGrid(selected: _color, onSelect: _onColorPick),
+      ToolColorPicker(
+        selected: _color,
+        onSelect: (c) {
+          RecentColorsNotifier.add(ref, c);
+          _onColorPick(c);
+        },
+      ),
       const SizedBox(height: 14),
       _sliderTile('Stroke Width', '${_strokeWidth.toInt()}px',
           _strokeWidth, 1, 50, 49,
@@ -222,8 +229,13 @@ class _ToolSettingsSheetState extends ConsumerState<_ToolSettingsSheet> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _label('Highlight Color'),
-      _ColorGrid(selected: _color, onSelect: _onColorPick,
-          preset: _ColorPreset.highlighter),
+      ToolColorPicker(
+        selected: _color,
+        onSelect: (c) {
+          RecentColorsNotifier.add(ref, c);
+          _onColorPick(c);
+        },
+      ),
       const SizedBox(height: 14),
       _sliderTile('Width', '${_strokeWidth.clamp(5, 40).toInt()}px',
           _strokeWidth.clamp(5, 40), 5, 40, 35,
@@ -241,7 +253,13 @@ class _ToolSettingsSheetState extends ConsumerState<_ToolSettingsSheet> {
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       _label('Color'),
-      _ColorGrid(selected: _color, onSelect: _onColorPick),
+      ToolColorPicker(
+        selected: _color,
+        onSelect: (c) {
+          RecentColorsNotifier.add(ref, c);
+          _onColorPick(c);
+        },
+      ),
       const SizedBox(height: 14),
       _sliderTile('Spray Size', '${_strokeWidth.clamp(5, 60).toInt()}px',
           _strokeWidth.clamp(5, 60), 5, 60, 55,
@@ -384,7 +402,13 @@ class _ToolSettingsSheetState extends ConsumerState<_ToolSettingsSheet> {
             _label('Colors', fontSize: 11),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: _ColorGrid(selected: _color, onSelect: _onColorPick, preset: _ColorPreset.laser),
+              child: ToolColorPicker(
+                selected: _color,
+                onSelect: (c) {
+                  RecentColorsNotifier.add(ref, c);
+                  _onColorPick(c);
+                },
+              ),
             ),
             const SizedBox(height: 8),
 
@@ -699,9 +723,12 @@ class _ToolSettingsSheetState extends ConsumerState<_ToolSettingsSheet> {
               _label('Border Color', fontSize: 11),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: _ColorGrid(
+                child: ToolColorPicker(
                   selected: shapeSettings.borderColor,
-                  onSelect: (color) => notifier.setShapeBorderColor(color),
+                  onSelect: (color) {
+                    RecentColorsNotifier.add(ref, color);
+                    notifier.setShapeBorderColor(color);
+                  },
                 ),
               ),
               const SizedBox(height: 8),
@@ -712,9 +739,12 @@ class _ToolSettingsSheetState extends ConsumerState<_ToolSettingsSheet> {
               _label('Fill Color', fontSize: 11),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: _ColorGrid(
+                child: ToolColorPicker(
                   selected: shapeSettings.fillColor,
-                  onSelect: (color) => notifier.setShapeFillColor(color),
+                  onSelect: (color) {
+                    RecentColorsNotifier.add(ref, color);
+                    notifier.setShapeFillColor(color);
+                  },
                 ),
               ),
               const SizedBox(height: 8),

@@ -214,6 +214,20 @@ const List<ToolDefinition> toolRegistry = [
     icon: Icons.touch_app_outlined,
   ),
   ToolDefinition(
+    tool: Tool.lassoFreeform,
+    id: 'lasso-freeform',
+    name: 'Lasso Select',
+    icon: Icons.gesture,
+    category: ToolLibraryCategory.select,
+  ),
+  ToolDefinition(
+    tool: Tool.lassoRect,
+    id: 'lasso-rect',
+    name: 'Rect Select',
+    icon: Icons.crop_square_outlined,
+    category: ToolLibraryCategory.select,
+  ),
+  ToolDefinition(
     id: 'navigate',
     tool: Tool.navigate,
     name: 'Navigate',

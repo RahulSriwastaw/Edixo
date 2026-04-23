@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/tools/pen_tool.dart';
 import '../providers/tool_provider.dart';
+import 'package:eduboard_pro/features/whiteboard/presentation/widgets/color_picker/tool_color_picker.dart';
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────
 class _C {
@@ -21,12 +22,6 @@ class _C {
   static const inputBor  = Color(0xFF2A2A2A);
   static const font      = 'Inter';
 }
-
-const _kColors = [
-  Color(0xFF000000), Color(0xFFFFFFFF), Color(0xFFE53935), Color(0xFFFF5722),
-  Color(0xFFFF9800), Color(0xFFFFD600), Color(0xFF43A047), Color(0xFF00BCD4),
-  Color(0xFF2196F3), Color(0xFF3F51B5), Color(0xFF9C27B0), Color(0xFF795548),
-];
 
 // ─── Entry point ──────────────────────────────────────────────────────────────
 
@@ -257,54 +252,23 @@ class _PenPanelState extends ConsumerState<_PenPanel> {
 
   Widget _buildColors() {
     final settings = ref.watch(penSettingsProvider);
-    final rows = <Widget>[];
-    for (int i = 0; i < _kColors.length; i += 6) {
-      final rowColors = _kColors.skip(i).take(6).toList();
-      rows.add(
-        Padding(
-          padding: const EdgeInsets.only(bottom: 4),
-          child: Row(
-            children: rowColors.map((c) => Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 4),
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: _ColorTile(
-                    color: c,
-                    isSelected: settings.color.value == c.value,
-                    onTap: () => _setColor(c),
-                  ),
-                ),
-              ),
-            )).toList(),
-          ),
-        ),
-      );
-    }
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 6, 8, 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 2, bottom: 4),
-            child: Row(children: [
-              const _Label('COLOR'),
-              const Spacer(),
-              Container(
-                width: 14, height: 14,
-                decoration: BoxDecoration(
-                  color: settings.color,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: settings.color == Colors.white ? _C.border : Colors.transparent,
-                  ),
-                ),
-              ),
-            ]),
+          const Padding(
+            padding: EdgeInsets.only(left: 2, bottom: 8),
+            child: _Label('COLOR'),
           ),
-          ...rows,
+          ToolColorPicker(
+            selected: settings.color,
+            onSelect: (c) {
+              RecentColorsNotifier.add(ref, c);
+              _setColor(c);
+            },
+          ),
         ],
       ),
     );
@@ -375,59 +339,6 @@ class _PenCardState extends State<_PenCard> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-// ─── Color Tile ───────────────────────────────────────────────────────────────
-
-class _ColorTile extends StatefulWidget {
-  final Color color;
-  final bool isSelected;
-  final VoidCallback onTap;
-  const _ColorTile({required this.color, required this.isSelected, required this.onTap});
-  @override
-  State<_ColorTile> createState() => _ColorTileState();
-}
-
-class _ColorTileState extends State<_ColorTile> {
-  bool _hov = false;
-  bool get _isDark =>
-      (widget.color.red * 0.299 + widget.color.green * 0.587 +
-              widget.color.blue * 0.114) < 128;
-  @override
-  Widget build(BuildContext context) {
-    return MouseRegion(
-      onEnter: (_) => setState(() => _hov = true),
-      onExit: (_) => setState(() => _hov = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 100),
-          decoration: BoxDecoration(
-            color: widget.color,
-            borderRadius: BorderRadius.circular(6),
-            border: Border.all(
-              color: widget.isSelected
-                  ? _C.accent
-                  : _hov
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : widget.color == Colors.white
-                          ? _C.border
-                          : Colors.transparent,
-              width: widget.isSelected ? 2 : 1,
-            ),
-            boxShadow: widget.isSelected
-                ? [BoxShadow(color: _C.accent.withValues(alpha: 0.35), blurRadius: 6)]
-                : null,
-          ),
-          child: widget.isSelected
-              ? Center(
-                  child: Icon(Icons.check, size: 13,
-                      color: _isDark ? Colors.white : Colors.black87))
-              : null,
         ),
       ),
     );

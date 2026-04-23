@@ -9,6 +9,7 @@ import '../../providers/canvas_provider.dart';
 import '../../providers/tool_provider.dart';
 import '../drawing/stroke_renderer.dart';
 
+
 // ── Selection handle types ──────────────────────────────────────────────────
 enum _SelectionHandle { move, topLeft, topRight, bottomLeft, bottomRight, rotate }
 
@@ -213,6 +214,8 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
   // ── Pointer move ──────────────────────────────────────────────────────
   void _onPointerMove(PointerMoveEvent event) {
     if (_isStrokePinchTransform) return;
+
+
     if (_isLassoSelecting) {
       setState(() => _lassoPoints = [..._lassoPoints, event.localPosition]);
       return;
@@ -316,6 +319,8 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
   // ── Pointer up ────────────────────────────────────────────────────────
   void _onPointerUp(PointerUpEvent event) {
     if (_isStrokePinchTransform) return;
+
+
     if (_isLassoSelecting) {
       _applyLassoSelection();
       return;

@@ -1,8 +1,10 @@
 // lib/features/whiteboard/presentation/providers/canvas_provider.dart
 
 import 'dart:math' as math;
+import 'dart:math' as dart_math;
 import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../data/models/stroke_model.dart';
 import '../../data/models/canvas_object_model.dart';
@@ -12,6 +14,7 @@ import 'session_provider.dart';
 import 'current_slide_id_provider.dart';
 
 part 'canvas_provider.g.dart';
+final canvasTransformationProvider = StateProvider<Matrix4>((ref) => Matrix4.identity());
 
 // ── CanvasSnapshot & CanvasState ────────────────────────────────────────────
 
@@ -345,15 +348,41 @@ class CanvasNotifier extends _$CanvasNotifier {
     ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
-  /// Replaces stroke points directly (used for group transforms).
-  void updateStrokePoints(String id, List<Offset> points) {
+  /// Replaces stroke points directly.
+  void updateStrokePoints(String id, List<Offset> points, {bool pushUndo = true}) {
     final idx = state.strokes.indexWhere((s) => s.id == id);
     if (idx < 0) return;
     final existing = state.strokes[idx];
     final updated = List<StrokeModel>.from(state.strokes);
     updated[idx] = existing.copyWith(points: points);
-    _pushUndoAndUpdate(strokes: updated);
-    ref.read(sessionNotifierProvider.notifier).markDirty();
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(strokes: updated);
+      ref.read(sessionNotifierProvider.notifier).markDirty();
+    } else {
+      state = state.copyWith(strokes: updated);
+    }
+  }
+
+  /// Updates multiple strokes simultaneously (e.g. for lasso transform)
+  void updateMultipleStrokePoints(Map<String, List<Offset>> updates, {bool pushUndo = true}) {
+    final updated = List<StrokeModel>.from(state.strokes);
+    bool changed = false;
+    for (int i = 0; i < updated.length; i++) {
+      final s = updated[i];
+      if (updates.containsKey(s.id)) {
+        updated[i] = s.copyWith(points: updates[s.id]!);
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(strokes: updated);
+      ref.read(sessionNotifierProvider.notifier).markDirty();
+    } else {
+      state = state.copyWith(strokes: updated);
+    }
   }
 
   /// Applies scale + rotation transform around stroke center.
@@ -488,6 +517,163 @@ class CanvasNotifier extends _$CanvasNotifier {
       Tool.laserPointer => StrokeType.laserPointer,
       _ => null,
     };
+  }
+  // --- Lasso selection prompt methods ---
+  
+  /// Move an object by delta
+  void moveObject(String id, double dx, double dy) {
+    state = state.copyWith(
+      objects: state.objects.map((o) {
+        if (o.id != id) return o;
+        return o.copyWith(x: o.x + dx, y: o.y + dy);
+      }).toList(),
+    );
+  }
+
+  /// Move a stroke by delta (all points)
+  void moveStroke(int index, double dx, double dy) {
+    if (index >= state.strokes.length) return;
+    final strokes = List<StrokeModel>.from(state.strokes);
+    final s = strokes[index];
+    strokes[index] = s.copyWith(
+      points: s.points.map((p) => Offset(p.dx + dx, p.dy + dy)).toList(),
+    );
+    state = state.copyWith(strokes: strokes);
+  }
+
+  /// Resize an object by scale factors from a pivot point
+  void resizeObject(String id, {required double scaleX, required double scaleY, required Offset pivot}) {
+    state = state.copyWith(
+      objects: state.objects.map((o) {
+        if (o.id != id) return o;
+        final newX = pivot.dx + (o.x - pivot.dx) * scaleX;
+        final newY = pivot.dy + (o.y - pivot.dy) * scaleY;
+        return o.copyWith(
+          x: newX,
+          y: newY,
+          width: (o.width * scaleX).clamp(20, double.infinity),
+          height: (o.height * scaleY).clamp(20, double.infinity),
+        );
+      }).toList(),
+    );
+  }
+
+  /// Rotate an object around a center point
+  void rotateObject(String id, double angleDelta, Offset center) {
+    state = state.copyWith(
+      objects: state.objects.map((o) {
+        if (o.id != id) return o;
+        return o.copyWith(rotation: (o.rotation + angleDelta) % (2 * 3.14159265));
+      }).toList(),
+    );
+  }
+
+  /// Rotate a stroke around a center point
+  void rotateStroke(int index, double angleDelta, Offset center) {
+    if (index >= state.strokes.length) return;
+    final strokes = List<StrokeModel>.from(state.strokes);
+    final s = strokes[index];
+    strokes[index] = s.copyWith(
+      points: s.points.map((p) {
+        final dx = p.dx - center.dx;
+        final dy = p.dy - center.dy;
+        final cos = dart_math.cos(angleDelta);
+        final sin = dart_math.sin(angleDelta);
+        return Offset(
+          center.dx + dx * cos - dy * sin,
+          center.dy + dx * sin + dy * cos,
+        );
+      }).toList(),
+    );
+    state = state.copyWith(strokes: strokes);
+  }
+
+  /// Remove an object by id
+  void removeObject(String id) {
+    state = state.copyWith(objects: state.objects.where((o) => o.id != id).toList());
+  }
+
+  /// Remove a stroke by index
+  void removeStroke(int index) {
+    if (index >= state.strokes.length) return;
+    final strokes = List<StrokeModel>.from(state.strokes)..removeAt(index);
+    state = state.copyWith(strokes: strokes);
+  }
+
+  /// Bring an object to front (highest zIndex)
+  void bringToFront(String id) {
+    final objs = List<CanvasObjectModel>.from(state.objects);
+    final idx = objs.indexWhere((o) => o.id == id);
+    if (idx < 0) return;
+    final maxZ = objs.map((o) => o.zIndex).fold(0, (a, b) => a > b ? a : b);
+    objs[idx] = objs[idx].copyWith(zIndex: maxZ + 1);
+    state = state.copyWith(objects: objs);
+  }
+
+  /// Send an object to back (lowest zIndex)
+  void sendToBack(String id) {
+    final objs = List<CanvasObjectModel>.from(state.objects);
+    final idx = objs.indexWhere((o) => o.id == id);
+    if (idx < 0) return;
+    final minZ = objs.map((o) => o.zIndex).fold(0, (a, b) => a < b ? a : b);
+    objs[idx] = objs[idx].copyWith(zIndex: minZ - 1);
+    state = state.copyWith(objects: objs);
+  }
+
+  /// Update object fill color
+  void updateObjectFill(String id, int colorARGB) {
+    state = state.copyWith(
+      objects: state.objects.map((o) =>
+        o.id == id ? o.copyWith(fillColorARGB: colorARGB) : o).toList(),
+    );
+  }
+
+  /// Update object border color
+  void updateObjectBorder(String id, int colorARGB) {
+    state = state.copyWith(
+      objects: state.objects.map((o) =>
+        o.id == id ? o.copyWith(borderColorARGB: colorARGB) : o).toList(),
+    );
+  }
+
+  /// Update object opacity
+  void updateObjectOpacity(String id, double opacity) {
+    state = state.copyWith(
+      objects: state.objects.map((o) =>
+        o.id == id ? o.copyWith(opacity: opacity.clamp(0.05, 1.0)) : o).toList(),
+    );
+  }
+
+  /// Flip object horizontally (negate scaleX via extra map)
+  void flipObjectH(String id) {
+    state = state.copyWith(
+      objects: state.objects.map((o) {
+        if (o.id != id) return o;
+        final extra = Map<String, dynamic>.from(o.extra);
+        extra['flipH'] = !(extra['flipH'] as bool? ?? false);
+        return o.copyWith(extra: extra);
+      }).toList(),
+    );
+  }
+
+  /// Flip object vertically
+  void flipObjectV(String id) {
+    state = state.copyWith(
+      objects: state.objects.map((o) {
+        if (o.id != id) return o;
+        final extra = Map<String, dynamic>.from(o.extra);
+        extra['flipV'] = !(extra['flipV'] as bool? ?? false);
+        return o.copyWith(extra: extra);
+      }).toList(),
+    );
+  }
+
+  /// Toggle lock state
+  void toggleLock(String id) {
+    state = state.copyWith(
+      objects: state.objects.map((o) =>
+        o.id == id ? o.copyWith(isLocked: !o.isLocked) : o).toList(),
+    );
   }
 }
 

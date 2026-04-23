@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../widgets/canvas/whiteboard_canvas.dart';
+import '../widgets/tools/lasso_selection_overlay.dart';
 import '../widgets/toolbar/movable_bottom_toolbar.dart';
 import '../widgets/toolbar/floating_style_panel.dart';
 import '../widgets/toolbar/top_toolbar.dart';
@@ -57,6 +58,9 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
         children: [
           // 1. The 5-Layer Canvas (Layer 1-5 already inside)
           const WhiteboardCanvas(),
+
+          // 1.5 Lasso Toolbar Overlay (Floating above canvas)
+          LassoFloatingToolbar(),
 
           // 2. Top Toolbar (Session info, Import Set, End Class, AI, Timer)
           Positioned(

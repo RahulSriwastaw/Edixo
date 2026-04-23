@@ -9,6 +9,7 @@ import '../presentation/providers/slide_provider.dart';
 import '../../question_widget/presentation/providers/question_widget_provider.dart';
 import '../../question_widget/presentation/providers/selected_widget_provider.dart';
 import '../presentation/providers/app_mode_provider.dart';
+import '../presentation/widgets/tools/lasso_tool.dart';
 
 /// Global keyboard shortcut handler for whiteboard
 /// Implements all shortcuts from PRD Appendix C
@@ -74,6 +75,11 @@ class KeyboardShortcutService {
           return true;
         case LogicalKeyboardKey.keyA:
           // Select all widgets
+          final canvas = ref.read(canvasNotifierProvider);
+          ref.read(lassoToolHandlerProvider).selectAll(
+            objects: canvas.objects,
+            strokes: canvas.strokes,
+          );
           return true;
         case LogicalKeyboardKey.keyS:
           // Force save

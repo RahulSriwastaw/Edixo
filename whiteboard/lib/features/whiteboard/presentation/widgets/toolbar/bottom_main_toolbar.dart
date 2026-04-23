@@ -11,6 +11,7 @@ import 'tool_picker_panel.dart';
 import 'tool_settings_sheet.dart';
 import '../../dialogs/pen_picker_dialog.dart';
 import '../../dialogs/eraser_popup.dart';
+import '../tools/lasso_selection_overlay.dart';
 
 // ─── Design Tokens ─────────────────────────────────────────────────────────
 // Color system: matte black, no gradients, no white backgrounds
@@ -110,12 +111,8 @@ class _BottomMainToolbarState extends ConsumerState<BottomMainToolbar> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ── Mode toggle ──────────────────────────────────────────────
-            _ModeToggle(
-              activeTool: toolState.activeTool,
-              mode: toolState.interactionMode,
-              onSelectTool: (t) => toolNotifier.selectTool(t),
-            ),
+            // ── Mode dropdown (Select / Lasso / Text / Eraser) ───────────
+            LassoModeSwitcher(),
 
             _divider(),
 

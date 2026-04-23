@@ -9,6 +9,7 @@ import 'pen_tool.dart';
 import 'eraser_tool.dart';
 import 'shape_tool.dart';
 import 'text_tool.dart';
+import 'lasso_tool.dart';
 
 /// Unified controller for all drawing tools
 class ToolsController {
@@ -18,12 +19,14 @@ class ToolsController {
   late EraserToolHandler _eraserTool;
   late ShapeToolHandler _shapeTool;
   late TextToolHandler _textTool;
+  late LassoToolHandler _lassoTool;
 
   ToolsController(this.ref) {
     _penTool = PenToolHandler(ref);
     _eraserTool = EraserToolHandler(ref);
     _shapeTool = ShapeToolHandler(ref);
     _textTool = TextToolHandler(ref);
+    _lassoTool = LassoToolHandler(ref);
   }
 
   /// Handle pointer down on canvas - dispatched to appropriate tool
@@ -63,6 +66,14 @@ class ToolsController {
       case Tool.textBox:
       case Tool.stickyNote:
         _textTool.createTextBox(point);
+        break;
+
+      case Tool.lassoFreeform:
+        ref.read(lassoProvider.notifier).setMode(LassoMode.freeform);
+        // pointer handling is done by LassoSelectionOverlay
+        break;
+      case Tool.lassoRect:
+        ref.read(lassoProvider.notifier).setMode(LassoMode.rect);
         break;
 
       case Tool.select:
@@ -148,5 +159,13 @@ class ToolsController {
 
 /// Provider for tools controller
 final toolsControllerProvider = Provider<ToolsController>((ref) {
+  ref.listen(toolNotifierProvider.select((s) => s.activeTool), (prev, next) {
+    const lassoTools = {Tool.lassoFreeform, Tool.lassoRect};
+    if (prev != null &&
+        lassoTools.contains(prev) &&
+        !lassoTools.contains(next)) {
+      ref.read(lassoProvider.notifier).clearSelection();
+    }
+  });
   return ToolsController(ref);
 });
