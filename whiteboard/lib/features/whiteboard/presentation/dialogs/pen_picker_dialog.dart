@@ -58,7 +58,7 @@ class _PenPanelState extends ConsumerState<_PenPanel> {
       case PenType.marker:      mappedTool = Tool.hardPen; break;
       case PenType.calligraphy: mappedTool = Tool.calligraphy; break;
       case PenType.highlighter: mappedTool = Tool.highlighter; break;
-      case PenType.magic:       mappedTool = Tool.laserPointer; break;
+      case PenType.magic:       mappedTool = Tool.magicPen; break;
       case PenType.chalk:       mappedTool = Tool.chalk; break;
     }
     

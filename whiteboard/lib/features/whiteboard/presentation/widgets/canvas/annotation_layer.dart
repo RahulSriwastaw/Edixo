@@ -186,8 +186,16 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
       return;
     }
 
-    // 2. Delegate everything else to ToolsController
-    controller.handlePointerDown(event.localPosition);
+    // 2. Delegate to ToolsController for drawing/erasing/shapes
+    if (tool.isDrawingTool || tool.isEraserTool || tool.isShapeTool) {
+      // Clear any local selection state if we are about to draw/erase
+      setState(() {
+        _editingObjectId = null;
+        _editingStrokeId = null;
+        _clearGroupSelection();
+      });
+      controller.handlePointerDown(event.localPosition);
+    }
     
     // Some visual feedback state for the layer
     if (tool.isDrawingTool || tool.isEraserTool) {
@@ -276,7 +284,7 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
   }
 
   // ── Pointer up ────────────────────────────────────────────────────────
-  void _onPointerUp(PointerUpEvent event) {
+  void _onPointerUp(PointerEvent event) {
     if (_isStrokePinchTransform) return;
     final controller = ref.read(toolsControllerProvider);
 
@@ -840,10 +848,11 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
             onScaleUpdate: _onScaleUpdate,
             onScaleEnd: _onScaleEnd,
             child: Listener(
-              behavior: HitTestBehavior.translucent,
+              behavior: HitTestBehavior.opaque,
               onPointerDown: _onPointerDown,
               onPointerMove: _onPointerMove,
               onPointerUp: _onPointerUp,
+              onPointerCancel: _onPointerUp,
               child: RepaintBoundary(
                 child: CustomPaint(
                   painter: AnnotationPainter(
@@ -1958,8 +1967,10 @@ class AnnotationPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(AnnotationPainter old) =>
-      !identical(strokes, old.strokes) || !identical(objects, old.objects) ||
-      selectedObjectId != old.selectedObjectId || showSelectionHandles != old.showSelectionHandles ||
+      !identical(strokes, old.strokes) ||
+      !identical(objects, old.objects) ||
+      selectedObjectId != old.selectedObjectId ||
+      showSelectionHandles != old.showSelectionHandles ||
       selectedStrokeId != old.selectedStrokeId ||
       groupSelectionRect != old.groupSelectionRect;
 }

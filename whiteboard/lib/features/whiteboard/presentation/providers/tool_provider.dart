@@ -157,7 +157,7 @@ class ShapeSettings {
 extension ToolExt on Tool {
   bool get isDrawingTool => const {
     Tool.softPen, Tool.hardPen, Tool.highlighter, Tool.chalk,
-    Tool.calligraphy, Tool.spray, Tool.laserPointer,
+    Tool.calligraphy, Tool.spray, Tool.laserPointer, Tool.magicPen,
   }.contains(this);
 
   bool get isEraserTool => const {

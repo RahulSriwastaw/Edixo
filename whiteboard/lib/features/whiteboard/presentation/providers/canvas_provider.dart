@@ -535,6 +535,7 @@ class CanvasNotifier extends _$CanvasNotifier {
       Tool.calligraphy => StrokeType.calligraphy,
       Tool.spray => StrokeType.spray,
       Tool.laserPointer => StrokeType.laserPointer,
+      Tool.magicPen => StrokeType.laserPointer,
       _ => null,
     };
   }

@@ -19,14 +19,12 @@ class ToolsController {
   late EraserToolHandler _eraserTool;
   late ShapeToolHandler _shapeTool;
   late TextToolHandler _textTool;
-  late LassoToolHandler _lassoTool;
 
   ToolsController(this.ref) {
     _penTool = PenToolHandler(ref);
     _eraserTool = EraserToolHandler(ref);
     _shapeTool = ShapeToolHandler(ref);
     _textTool = TextToolHandler(ref);
-    _lassoTool = LassoToolHandler(ref);
   }
 
   /// Handle pointer down on canvas - dispatched to appropriate tool
@@ -41,6 +39,7 @@ class ToolsController {
       case Tool.chalk:
       case Tool.calligraphy:
       case Tool.spray:
+      case Tool.magicPen:
       case Tool.laserPointer:
         _penTool.startDrawing(point);
         break;
@@ -119,13 +118,11 @@ class ToolsController {
       case Tool.select:
       case Tool.selectObject:
       case Tool.navigate:
-      case Tool.magicPen:
       case Tool.eyedropper:
       case Tool.ruler:
       case Tool.protractor:
       case Tool.compass:
-      case Tool.laserPointer:
-        // These are handled separately in annotation layer
+        // These are handled separately in annotation layer or teaching tools
         break;
     }
   }
