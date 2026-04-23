@@ -448,6 +448,9 @@ class LassoToolHandler {
       // Check if hit on a handle
       final handle = LassoHandlePainter.checkHit(point, selectionBounds);
       if (handle != null) {
+        // Capture state BEFORE transform for undo
+        ref.read(canvasNotifierProvider.notifier).saveSnapshot();
+        
         ref
             .read(lassoProvider.notifier)
             .startTransform(point, handle, selectionBounds);
@@ -455,6 +458,9 @@ class LassoToolHandler {
       }
       // Hit inside body → move
       if (selectionBounds.contains(point)) {
+        // Capture state BEFORE transform for undo
+        ref.read(canvasNotifierProvider.notifier).saveSnapshot();
+
         ref.read(lassoProvider.notifier).startTransform(
             point, SelectHandle.none, selectionBounds);
         return;
@@ -535,6 +541,8 @@ class LassoToolHandler {
 
     if (state.isDragging || state.isResizing || state.isRotating) {
       ref.read(lassoProvider.notifier).endTransform();
+      // Finalize the state in undo history
+      ref.read(canvasNotifierProvider.notifier).saveSnapshot();
     }
   }
 

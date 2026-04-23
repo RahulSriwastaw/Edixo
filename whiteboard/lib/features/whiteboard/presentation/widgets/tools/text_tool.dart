@@ -94,7 +94,7 @@ class TextToolHandler {
       y: position.dy,
       width: 200.0,      // Default width
       height: 40.0,      // Default height
-      slideId: '',
+      slideId: ref.read(currentSlideIdProvider) ?? '',
       fillColorARGB: 0,  // Transparent
       borderColorARGB: Colors.grey.shade300.toARGB32(),
       borderWidth: 1.0,

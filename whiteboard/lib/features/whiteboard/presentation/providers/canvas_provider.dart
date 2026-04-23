@@ -103,7 +103,7 @@ class CanvasNotifier extends _$CanvasNotifier {
   }
 
   /// Soft eraser — removes individual points from strokes within [radius] of [point].
-  void eraseAtPoint(Offset point, double radius) {
+  void eraseAtPoint(Offset point, double radius, {bool pushUndo = true}) {
     final updated = <StrokeModel>[];
     bool changed = false;
     for (final stroke in state.strokes) {
@@ -120,31 +120,44 @@ class CanvasNotifier extends _$CanvasNotifier {
       }
     }
     if (changed) {
-      _pushUndoAndUpdate(strokes: updated);
+      if (pushUndo) {
+        _pushUndoAndUpdate(strokes: updated);
+      } else {
+        state = state.copyWith(strokes: updated);
+      }
       ref.read(sessionNotifierProvider.notifier).markDirty();
     }
   }
 
   /// Hard eraser — removes the entire stroke whose path the pointer touched.
-  void eraseStrokeAt(Offset point, double radius) {
+  void eraseStrokeAt(Offset point, double radius, {bool pushUndo = true}) {
     final toRemove = state.strokes.where((stroke) {
       return stroke.points.any((p) =>
           math.sqrt(math.pow(p.dx - point.dx, 2) + math.pow(p.dy - point.dy, 2)) <= radius);
     }).map((s) => s.id).toSet();
     if (toRemove.isEmpty) return;
     final updated = state.strokes.where((s) => !toRemove.contains(s.id)).toList();
-    _pushUndoAndUpdate(strokes: updated);
+    if (pushUndo) {
+      _pushUndoAndUpdate(strokes: updated);
+    } else {
+      state = state.copyWith(strokes: updated);
+    }
     ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   /// Object eraser — removes canvas objects whose bounds contain [point].
-  void eraseObjectAt(Offset point) {
+  void eraseObjectAt(Offset point, {bool pushUndo = true}) {
     final toRemove = state.objects
         .where((obj) => obj.bounds.inflate(4).contains(point))
         .map((o) => o.id)
         .toSet();
     if (toRemove.isEmpty) return;
-    _pushUndoAndUpdate(objects: state.objects.where((o) => !toRemove.contains(o.id)).toList());
+    final updated = state.objects.where((o) => !toRemove.contains(o.id)).toList();
+    if (pushUndo) {
+      _pushUndoAndUpdate(objects: updated);
+    } else {
+      state = state.copyWith(objects: updated);
+    }
     ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
@@ -159,6 +172,13 @@ class CanvasNotifier extends _$CanvasNotifier {
   void endStroke() {
     final completed = state.activeStroke;
     if (completed == null) return;
+    
+    // Laser pointers don't persist on canvas
+    if (completed.type == StrokeType.laserPointer) {
+      state = state.copyWith(clearActiveStroke: true);
+      return;
+    }
+
     final newStrokes = [...state.strokes, completed];
     state = state.copyWith(
       strokes:          newStrokes,
@@ -520,31 +540,50 @@ class CanvasNotifier extends _$CanvasNotifier {
   }
   // --- Lasso selection prompt methods ---
   
-  /// Move an object by delta
-  void moveObject(String id, double dx, double dy) {
+  /// Save a snapshot for undo
+  void saveSnapshot() {
     state = state.copyWith(
-      objects: state.objects.map((o) {
-        if (o.id != id) return o;
-        return o.copyWith(x: o.x + dx, y: o.y + dy);
-      }).toList(),
+      undoStack: [
+        ...state.undoStack.takeLast50(),
+        CanvasSnapshot(strokes: state.strokes, objects: state.objects),
+      ],
+      redoStack: [],
     );
   }
 
+  /// Move an object by delta
+  void moveObject(String id, double dx, double dy, {bool pushUndo = false}) {
+    final next = state.objects.map((o) {
+        if (o.id != id) return o;
+        return o.copyWith(x: o.x + dx, y: o.y + dy);
+      }).toList();
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(objects: next);
+    } else {
+      state = state.copyWith(objects: next);
+    }
+  }
+
   /// Move a stroke by delta (all points)
-  void moveStroke(int index, double dx, double dy) {
+  void moveStroke(int index, double dx, double dy, {bool pushUndo = false}) {
     if (index >= state.strokes.length) return;
     final strokes = List<StrokeModel>.from(state.strokes);
     final s = strokes[index];
     strokes[index] = s.copyWith(
       points: s.points.map((p) => Offset(p.dx + dx, p.dy + dy)).toList(),
     );
-    state = state.copyWith(strokes: strokes);
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(strokes: strokes);
+    } else {
+      state = state.copyWith(strokes: strokes);
+    }
   }
 
   /// Resize an object by scale factors from a pivot point
-  void resizeObject(String id, {required double scaleX, required double scaleY, required Offset pivot}) {
-    state = state.copyWith(
-      objects: state.objects.map((o) {
+  void resizeObject(String id, {required double scaleX, required double scaleY, required Offset pivot, bool pushUndo = false}) {
+    final next = state.objects.map((o) {
         if (o.id != id) return o;
         final newX = pivot.dx + (o.x - pivot.dx) * scaleX;
         final newY = pivot.dy + (o.y - pivot.dy) * scaleY;
@@ -554,22 +593,31 @@ class CanvasNotifier extends _$CanvasNotifier {
           width: (o.width * scaleX).clamp(20, double.infinity),
           height: (o.height * scaleY).clamp(20, double.infinity),
         );
-      }).toList(),
-    );
+      }).toList();
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(objects: next);
+    } else {
+      state = state.copyWith(objects: next);
+    }
   }
 
   /// Rotate an object around a center point
-  void rotateObject(String id, double angleDelta, Offset center) {
-    state = state.copyWith(
-      objects: state.objects.map((o) {
+  void rotateObject(String id, double angleDelta, Offset center, {bool pushUndo = false}) {
+    final next = state.objects.map((o) {
         if (o.id != id) return o;
         return o.copyWith(rotation: (o.rotation + angleDelta) % (2 * 3.14159265));
-      }).toList(),
-    );
+      }).toList();
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(objects: next);
+    } else {
+      state = state.copyWith(objects: next);
+    }
   }
 
   /// Rotate a stroke around a center point
-  void rotateStroke(int index, double angleDelta, Offset center) {
+  void rotateStroke(int index, double angleDelta, Offset center, {bool pushUndo = false}) {
     if (index >= state.strokes.length) return;
     final strokes = List<StrokeModel>.from(state.strokes);
     final s = strokes[index];
@@ -585,87 +633,60 @@ class CanvasNotifier extends _$CanvasNotifier {
         );
       }).toList(),
     );
-    state = state.copyWith(strokes: strokes);
-  }
-
-  /// Remove an object by id
-  void removeObject(String id) {
-    state = state.copyWith(objects: state.objects.where((o) => o.id != id).toList());
-  }
-
-  /// Remove a stroke by index
-  void removeStroke(int index) {
-    if (index >= state.strokes.length) return;
-    final strokes = List<StrokeModel>.from(state.strokes)..removeAt(index);
-    state = state.copyWith(strokes: strokes);
-  }
-
-  /// Bring an object to front (highest zIndex)
-  void bringToFront(String id) {
-    final objs = List<CanvasObjectModel>.from(state.objects);
-    final idx = objs.indexWhere((o) => o.id == id);
-    if (idx < 0) return;
-    final maxZ = objs.map((o) => o.zIndex).fold(0, (a, b) => a > b ? a : b);
-    objs[idx] = objs[idx].copyWith(zIndex: maxZ + 1);
-    state = state.copyWith(objects: objs);
-  }
-
-  /// Send an object to back (lowest zIndex)
-  void sendToBack(String id) {
-    final objs = List<CanvasObjectModel>.from(state.objects);
-    final idx = objs.indexWhere((o) => o.id == id);
-    if (idx < 0) return;
-    final minZ = objs.map((o) => o.zIndex).fold(0, (a, b) => a < b ? a : b);
-    objs[idx] = objs[idx].copyWith(zIndex: minZ - 1);
-    state = state.copyWith(objects: objs);
+    
+    if (pushUndo) {
+      _pushUndoAndUpdate(strokes: strokes);
+    } else {
+      state = state.copyWith(strokes: strokes);
+    }
   }
 
   /// Update object fill color
   void updateObjectFill(String id, int colorARGB) {
-    state = state.copyWith(
-      objects: state.objects.map((o) =>
-        o.id == id ? o.copyWith(fillColorARGB: colorARGB) : o).toList(),
-    );
+    final next = state.objects.map((o) =>
+        o.id == id ? o.copyWith(fillColorARGB: colorARGB) : o).toList();
+    _pushUndoAndUpdate(objects: next);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   /// Update object border color
   void updateObjectBorder(String id, int colorARGB) {
-    state = state.copyWith(
-      objects: state.objects.map((o) =>
-        o.id == id ? o.copyWith(borderColorARGB: colorARGB) : o).toList(),
-    );
+    final next = state.objects.map((o) =>
+        o.id == id ? o.copyWith(borderColorARGB: colorARGB) : o).toList();
+    _pushUndoAndUpdate(objects: next);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   /// Update object opacity
   void updateObjectOpacity(String id, double opacity) {
-    state = state.copyWith(
-      objects: state.objects.map((o) =>
-        o.id == id ? o.copyWith(opacity: opacity.clamp(0.05, 1.0)) : o).toList(),
-    );
+    final next = state.objects.map((o) =>
+        o.id == id ? o.copyWith(opacity: opacity.clamp(0.05, 1.0)) : o).toList();
+    _pushUndoAndUpdate(objects: next);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   /// Flip object horizontally (negate scaleX via extra map)
   void flipObjectH(String id) {
-    state = state.copyWith(
-      objects: state.objects.map((o) {
+    final next = state.objects.map((o) {
         if (o.id != id) return o;
         final extra = Map<String, dynamic>.from(o.extra);
         extra['flipH'] = !(extra['flipH'] as bool? ?? false);
         return o.copyWith(extra: extra);
-      }).toList(),
-    );
+      }).toList();
+    _pushUndoAndUpdate(objects: next);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   /// Flip object vertically
   void flipObjectV(String id) {
-    state = state.copyWith(
-      objects: state.objects.map((o) {
+    final next = state.objects.map((o) {
         if (o.id != id) return o;
         final extra = Map<String, dynamic>.from(o.extra);
         extra['flipV'] = !(extra['flipV'] as bool? ?? false);
         return o.copyWith(extra: extra);
-      }).toList(),
-    );
+      }).toList();
+    _pushUndoAndUpdate(objects: next);
+    ref.read(sessionNotifierProvider.notifier).markDirty();
   }
 
   /// Toggle lock state

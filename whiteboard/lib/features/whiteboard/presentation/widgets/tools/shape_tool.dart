@@ -14,27 +14,45 @@ import '../../providers/canvas_provider.dart';
 
 enum ShapeType {
   rectangle,
+  roundedRect,
   circle,
+  triangle,
+  star,
+  polygon,
   line,
   arrow,
+  doubleArrow,
+  callout,
 }
 
 extension ShapeTypeExt on ShapeType {
   String get displayName {
     switch (this) {
       case ShapeType.rectangle: return 'Rectangle';
+      case ShapeType.roundedRect: return 'Rounded Rectangle';
       case ShapeType.circle: return 'Circle';
+      case ShapeType.triangle: return 'Triangle';
+      case ShapeType.star: return 'Star';
+      case ShapeType.polygon: return 'Polygon';
       case ShapeType.line: return 'Line';
       case ShapeType.arrow: return 'Arrow';
+      case ShapeType.doubleArrow: return 'Double Arrow';
+      case ShapeType.callout: return 'Callout';
     }
   }
 
   IconData get icon {
     switch (this) {
       case ShapeType.rectangle: return Icons.crop_square;
+      case ShapeType.roundedRect: return Icons.crop_free;
       case ShapeType.circle: return Icons.circle_outlined;
+      case ShapeType.triangle: return Icons.change_history;
+      case ShapeType.star: return Icons.star_border;
+      case ShapeType.polygon: return Icons.hexagon_outlined;
       case ShapeType.line: return Icons.remove;
       case ShapeType.arrow: return Icons.arrow_forward;
+      case ShapeType.doubleArrow: return Icons.swap_horiz;
+      case ShapeType.callout: return Icons.chat_bubble_outline;
     }
   }
 }
@@ -117,7 +135,7 @@ class ShapeToolHandler {
     final shapeType = ref.read(activeShapeTypeProvider);
     final shapeSettings = ref.read(shapeSettingsProvider);
     final rect = _getShapeRect(_shapeStart!, _shapeCurrent!);
-
+    final slideId = ref.read(currentSlideIdProvider) ?? '';
     final shape = CanvasObjectModel(
       id: const Uuid().v4(),
       type: _mapShapeTypeToObjectType(shapeType),
@@ -125,7 +143,7 @@ class ShapeToolHandler {
       y: rect.top,
       width: rect.width,
       height: rect.height,
-      slideId: '',
+      slideId: slideId,
       fillColorARGB: shapeSettings.hasFill ? shapeSettings.fillColor.toARGB32() : 0,
       borderColorARGB: shapeSettings.borderColor.toARGB32(),
       borderWidth: shapeSettings.borderWidth,
@@ -168,9 +186,15 @@ class ShapeToolHandler {
   ObjectType _mapShapeTypeToObjectType(ShapeType type) {
     switch (type) {
       case ShapeType.rectangle: return ObjectType.rectangle;
+      case ShapeType.roundedRect: return ObjectType.roundedRect;
       case ShapeType.circle: return ObjectType.circle;
+      case ShapeType.triangle: return ObjectType.triangle;
+      case ShapeType.star: return ObjectType.star;
+      case ShapeType.polygon: return ObjectType.polygon;
       case ShapeType.line: return ObjectType.line;
       case ShapeType.arrow: return ObjectType.arrow;
+      case ShapeType.doubleArrow: return ObjectType.doubleArrow;
+      case ShapeType.callout: return ObjectType.callout;
     }
   }
 }

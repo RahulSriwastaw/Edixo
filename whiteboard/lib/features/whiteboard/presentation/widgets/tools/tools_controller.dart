@@ -41,25 +41,65 @@ class ToolsController {
       case Tool.chalk:
       case Tool.calligraphy:
       case Tool.spray:
+      case Tool.laserPointer:
         _penTool.startDrawing(point);
         break;
 
       case Tool.softEraser:
+        _eraserTool.setMode(EraserMode.pointErase);
+        _eraserTool.erase(point);
+        break;
       case Tool.hardEraser:
+        _eraserTool.setMode(EraserMode.strokeErase);
+        _eraserTool.erase(point);
+        break;
       case Tool.objectEraser:
+        _eraserTool.setMode(EraserMode.objectErase);
+        _eraserTool.erase(point);
+        break;
       case Tool.areaEraser:
+        _eraserTool.setMode(EraserMode.areaErase);
         _eraserTool.erase(point);
         break;
 
       case Tool.line:
+        _shapeTool.setShapeType(ShapeType.line);
+        _shapeTool.startShape(point);
+        break;
       case Tool.arrow:
+        _shapeTool.setShapeType(ShapeType.arrow);
+        _shapeTool.startShape(point);
+        break;
+      case Tool.doubleArrow:
+        _shapeTool.setShapeType(ShapeType.doubleArrow);
+        _shapeTool.startShape(point);
+        break;
       case Tool.rectangle:
+        _shapeTool.setShapeType(ShapeType.rectangle);
+        _shapeTool.startShape(point);
+        break;
       case Tool.roundedRect:
+        _shapeTool.setShapeType(ShapeType.roundedRect);
+        _shapeTool.startShape(point);
+        break;
       case Tool.circle:
+        _shapeTool.setShapeType(ShapeType.circle);
+        _shapeTool.startShape(point);
+        break;
       case Tool.triangle:
+        _shapeTool.setShapeType(ShapeType.triangle);
+        _shapeTool.startShape(point);
+        break;
       case Tool.star:
+        _shapeTool.setShapeType(ShapeType.star);
+        _shapeTool.startShape(point);
+        break;
       case Tool.polygon:
+        _shapeTool.setShapeType(ShapeType.polygon);
+        _shapeTool.startShape(point);
+        break;
       case Tool.callout:
+        _shapeTool.setShapeType(ShapeType.callout);
         _shapeTool.startShape(point);
         break;
 
@@ -113,6 +153,8 @@ class ToolsController {
       _penTool.completeStroke();
     } else if (tool.isShapeTool) {
       _shapeTool.completeShape();
+    } else if (tool.isEraserTool) {
+      _eraserTool.completeErase();
     }
   }
 

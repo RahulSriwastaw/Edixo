@@ -8,6 +8,8 @@ import '../../../data/models/canvas_object_model.dart';
 import '../../providers/canvas_provider.dart';
 import '../../providers/tool_provider.dart';
 import '../drawing/stroke_renderer.dart';
+import '../tools/tools_controller.dart';
+import '../tools/eraser_tool.dart';
 
 
 // ── Selection handle types ──────────────────────────────────────────────────
@@ -24,9 +26,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
   // ── Drawing state ─────────────────────────────────────────────────────
   bool _isDrawing = false;
   bool _isCreatingObject = false;
-  Offset? _objectStart;
-  Offset? _objectCurrent;
-  Tool? _objectTool;
 
   // ── Object selection/transform ────────────────────────────────────────
   String? _editingObjectId;
@@ -61,8 +60,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
   double _pinchBaseRotation = 0.0;
 
   // ── Lasso selection ───────────────────────────────────────────────────
-  bool _isLassoSelecting = false;
-  List<Offset> _lassoPoints = [];
 
   // ── Group (multi-element) selection ─────────────────────────────────
   final Set<String> _groupObjectIds = <String>{};
@@ -83,8 +80,10 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
   // ── Pointer down ──────────────────────────────────────────────────────
   void _onPointerDown(PointerDownEvent event) {
     final toolState = ref.read(toolNotifierProvider);
-    final canvasState = ref.read(canvasNotifierProvider);
+    final tool = toolState.activeTool;
+    final controller = ref.read(toolsControllerProvider);
 
+    // 1. If it's a selection tool, handle selection logic locally (for now)
     if (_canSelectElements(toolState)) {
       _movedDuringSelect = false;
       ref.read(selectedWidgetNotifierProvider.notifier).deselect();
@@ -93,6 +92,7 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
         final rect = _groupSelectionRect!;
         if (rect.inflate(12).contains(event.localPosition)) {
           final handle = _hitHandle(event.localPosition, rect);
+          final canvasState = ref.read(canvasNotifierProvider);
           setState(() => _beginGroupTransform(handle, event.localPosition, canvasState));
           return;
         }
@@ -101,6 +101,7 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
 
       final selectedId = toolState.selectedElementId;
       if (selectedId != null) {
+        final canvasState = ref.read(canvasNotifierProvider);
         final selectedStrokeMatches = canvasState.strokes.where((s) => s.id == selectedId);
         if (selectedStrokeMatches.isNotEmpty) {
           final selectedStroke = selectedStrokeMatches.first;
@@ -179,235 +180,184 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
       }
 
       ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
-      _editingObjectId = null;
-      _editingStrokeId = null;
-      setState(() {
-        _isLassoSelecting = true;
-        _lassoPoints = [event.localPosition];
-      });
+      // Lasso selection is now handled by LassoSelectionOverlay, 
+      // but we still clear local state
+      _clearLiveEdit();
       return;
     }
 
-    ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
-    if (toolState.interactionMode != InteractionMode.drawMode) return;
-
-    if (toolState.activeTool.isDrawingTool) {
+    // 2. Delegate everything else to ToolsController
+    controller.handlePointerDown(event.localPosition);
+    
+    // Some visual feedback state for the layer
+    if (tool.isDrawingTool || tool.isEraserTool) {
       setState(() => _isDrawing = true);
-      ref.read(canvasNotifierProvider.notifier).startStroke(event.localPosition);
-      return;
-    }
-    if (toolState.activeTool.isEraserTool) {
-      setState(() => _isDrawing = true);
-      _applyEraser(event.localPosition, toolState);
-      return;
-    }
-    if (_isObjectTool(toolState.activeTool)) {
-      setState(() {
-        _isCreatingObject = true;
-        _objectTool = toolState.activeTool;
-        _objectStart = event.localPosition;
-        _objectCurrent = event.localPosition;
-      });
+    } else if (tool.isShapeTool) {
+      setState(() => _isCreatingObject = true);
     }
   }
 
   // ── Pointer move ──────────────────────────────────────────────────────
   void _onPointerMove(PointerMoveEvent event) {
     if (_isStrokePinchTransform) return;
+    final controller = ref.read(toolsControllerProvider);
 
-
-    if (_isLassoSelecting) {
-      setState(() => _lassoPoints = [..._lassoPoints, event.localPosition]);
-      return;
-    }
-
-    if (_hasGroupSelection && _groupActiveHandle != null) {
-      _movedDuringSelect = true;
-      if (_groupActiveHandle == _SelectionHandle.move && _groupDragAnchor != null) {
-        final delta = event.localPosition - _groupDragAnchor!;
-        setState(() {
-          _groupLiveOffset = _groupLiveOffset + delta;
-          _groupDragAnchor = event.localPosition;
-        });
-      } else if (_groupActiveHandle == _SelectionHandle.rotate) {
-        final currentAngle = math.atan2(
-          event.localPosition.dy - _groupCenter.dy,
-          event.localPosition.dx - _groupCenter.dx,
-        ) * 180 / math.pi;
-        setState(() => _groupLiveRotation = currentAngle - _groupStartAngle);
-      } else {
-        final currentDistance = math.max((event.localPosition - _groupCenter).distance, 1.0);
-        setState(() => _groupLiveScale = (currentDistance / _groupStartDistance).clamp(0.35, 4.0));
-      }
-      return;
-    }
-    if (_isRotating && _editingObjectId != null) {
-      final currentAngle = math.atan2(
-        event.localPosition.dy - _rotationCenter.dy,
-        event.localPosition.dx - _rotationCenter.dx,
-      ) * 180 / math.pi;
-      _movedDuringSelect = true;
-      setState(() => _liveRotation = (_startObjRotation + (currentAngle - _rotationStartAngle)) % 360);
-      return;
-    }
-
-    if (_editingObjectId != null && _activeHandle != null &&
-        _dragAnchor != null && _editStartRect != null &&
-        _activeHandle != _SelectionHandle.rotate) {
-      final delta = event.localPosition - _dragAnchor!;
-      final next = _applyHandleDelta(start: _editStartRect!, handle: _activeHandle!, delta: delta);
-      _movedDuringSelect = true;
-      setState(() => _liveEditRect = _clampRect(next));
-      return;
-    }
-
-    if (_editingStrokeId != null && _activeStrokeHandle != null && _activeStrokeHandle != _SelectionHandle.move) {
-      _movedDuringSelect = true;
-      if (_activeStrokeHandle == _SelectionHandle.rotate) {
-        final currentAngle = math.atan2(
-          event.localPosition.dy - _strokeCenter.dy,
-          event.localPosition.dx - _strokeCenter.dx,
-        ) * 180 / math.pi;
-        setState(() => _liveStrokeRotation = currentAngle - _strokeStartAngle);
-      } else {
-        final currentDistance = math.max((event.localPosition - _strokeCenter).distance, 1.0);
-        final nextScale = (currentDistance / _strokeStartDistance).clamp(0.35, 4.0);
-        setState(() => _liveStrokeScale = nextScale);
-      }
-      return;
-    }
-
-    if (_editingStrokeId != null && _dragAnchor != null) {
-      final delta = event.localPosition - _dragAnchor!;
-      _movedDuringSelect = true;
-      setState(() {
-        _liveStrokeOffset = _liveStrokeOffset + delta;
-        _dragAnchor = event.localPosition;
-      });
-      return;
-    }
-
-    if (_isDrawing) {
-      final toolState = ref.read(toolNotifierProvider);
-      if (toolState.activeTool.isEraserTool) {
-        _applyEraser(event.localPosition, toolState);
+    // Selection tools local handling
+    if (_editingObjectId != null || _editingStrokeId != null || _hasGroupSelection) {
+      if (_hasGroupSelection && _groupActiveHandle != null) {
+        _movedDuringSelect = true;
+        if (_groupActiveHandle == _SelectionHandle.move && _groupDragAnchor != null) {
+          final delta = event.localPosition - _groupDragAnchor!;
+          setState(() {
+            _groupLiveOffset = _groupLiveOffset + delta;
+            _groupDragAnchor = event.localPosition;
+          });
+        } else if (_groupActiveHandle == _SelectionHandle.rotate) {
+          final currentAngle = math.atan2(
+            event.localPosition.dy - _groupCenter.dy,
+            event.localPosition.dx - _groupCenter.dx,
+          ) * 180 / math.pi;
+          setState(() => _groupLiveRotation = currentAngle - _groupStartAngle);
+        } else {
+          final currentDistance = math.max((event.localPosition - _groupCenter).distance, 1.0);
+          setState(() => _groupLiveScale = (currentDistance / _groupStartDistance).clamp(0.35, 4.0));
+        }
         return;
       }
-      ref.read(canvasNotifierProvider.notifier).updateStroke(event.localPosition);
-      return;
+      if (_isRotating && _editingObjectId != null) {
+        final currentAngle = math.atan2(
+          event.localPosition.dy - _rotationCenter.dy,
+          event.localPosition.dx - _rotationCenter.dx,
+        ) * 180 / math.pi;
+        _movedDuringSelect = true;
+        setState(() => _liveRotation = (_startObjRotation + (currentAngle - _rotationStartAngle)) % 360);
+        return;
+      }
+
+      if (_editingObjectId != null && _activeHandle != null &&
+          _dragAnchor != null && _editStartRect != null &&
+          _activeHandle != _SelectionHandle.rotate) {
+        final delta = event.localPosition - _dragAnchor!;
+        final next = _applyHandleDelta(start: _editStartRect!, handle: _activeHandle!, delta: delta);
+        _movedDuringSelect = true;
+        setState(() => _liveEditRect = _clampRect(next));
+        return;
+      }
+
+      if (_editingStrokeId != null && _activeStrokeHandle != null && _activeStrokeHandle != _SelectionHandle.move) {
+        _movedDuringSelect = true;
+        if (_activeStrokeHandle == _SelectionHandle.rotate) {
+          final currentAngle = math.atan2(
+            event.localPosition.dy - _strokeCenter.dy,
+            event.localPosition.dx - _strokeCenter.dx,
+          ) * 180 / math.pi;
+          setState(() => _liveStrokeRotation = currentAngle - _strokeStartAngle);
+        } else {
+          final currentDistance = math.max((event.localPosition - _strokeCenter).distance, 1.0);
+          final nextScale = (currentDistance / _strokeStartDistance).clamp(0.35, 4.0);
+          setState(() => _liveStrokeScale = nextScale);
+        }
+        return;
+      }
+
+      if (_editingStrokeId != null && _dragAnchor != null) {
+        final delta = event.localPosition - _dragAnchor!;
+        _movedDuringSelect = true;
+        setState(() {
+          _liveStrokeOffset = _liveStrokeOffset + delta;
+          _dragAnchor = event.localPosition;
+        });
+        return;
+      }
     }
 
-    if (_isCreatingObject) setState(() => _objectCurrent = event.localPosition);
-  }
-
-  void _applyEraser(Offset pos, ToolSettings toolState) {
-    final notifier = ref.read(canvasNotifierProvider.notifier);
-    final radius = toolState.currentSettings.strokeWidth * 1.5;
-    switch (toolState.activeTool) {
-      case Tool.softEraser:
-      case Tool.areaEraser:
-        notifier.eraseAtPoint(pos, radius);
-      case Tool.hardEraser:
-        notifier.eraseStrokeAt(pos, radius);
-      case Tool.objectEraser:
-        notifier.eraseObjectAt(pos);
-      default:
-        break;
-    }
+    // Delegate to ToolsController for drawing/erasing/shapes
+    controller.handlePointerMove(event.localPosition);
   }
 
   // ── Pointer up ────────────────────────────────────────────────────────
   void _onPointerUp(PointerUpEvent event) {
     if (_isStrokePinchTransform) return;
+    final controller = ref.read(toolsControllerProvider);
 
+    // Selection tools local handling
+    if (_editingObjectId != null || _editingStrokeId != null || _hasGroupSelection) {
+      if (_hasGroupSelection && _groupActiveHandle != null) {
+        _commitGroupTransform();
+        return;
+      }
+      if (_isRotating && _editingObjectId != null) {
+        ref.read(canvasNotifierProvider.notifier)
+            .updateObjectTransform(_editingObjectId!, rotation: _liveRotation % 360);
+        setState(() { _isRotating = false; _activeHandle = null; });
+        return;
+      }
 
-    if (_isLassoSelecting) {
-      _applyLassoSelection();
-      return;
-    }
-    if (_hasGroupSelection && _groupActiveHandle != null) {
-      _commitGroupTransform();
-      return;
-    }
-    if (_isRotating && _editingObjectId != null) {
-      ref.read(canvasNotifierProvider.notifier)
-          .updateObjectTransform(_editingObjectId!, rotation: _liveRotation % 360);
-      setState(() { _isRotating = false; _activeHandle = null; });
-      return;
-    }
+      if (_editingObjectId != null && _liveEditRect != null) {
+        final rect = _liveEditRect!;
+        final objectId = _editingObjectId!;
+        ref.read(canvasNotifierProvider.notifier).updateObjectTransform(
+            objectId, x: rect.left, y: rect.top, width: rect.width, height: rect.height);
 
-    if (_editingObjectId != null && _liveEditRect != null) {
-      final rect = _liveEditRect!;
-      final objectId = _editingObjectId!;
-      ref.read(canvasNotifierProvider.notifier).updateObjectTransform(
-          objectId, x: rect.left, y: rect.top, width: rect.width, height: rect.height);
+        final now = DateTime.now();
+        final isTap = !_movedDuringSelect;
+        final isDoubleTap = isTap &&
+            _lastTapTime != null &&
+            now.difference(_lastTapTime!).inMilliseconds < 300 &&
+            _lastTappedObjectId == objectId;
+        _lastTapTime = now;
+        _lastTappedObjectId = objectId;
+        _clearLiveEdit(keepSelection: true);
 
-      final now = DateTime.now();
-      final isTap = !_movedDuringSelect;
-      final isDoubleTap = isTap &&
-          _lastTapTime != null &&
-          now.difference(_lastTapTime!).inMilliseconds < 300 &&
-          _lastTappedObjectId == objectId;
-      _lastTapTime = now;
-      _lastTappedObjectId = objectId;
-      _clearLiveEdit(keepSelection: true);
-
-      if (isDoubleTap) {
-        final hits = ref.read(canvasNotifierProvider).objects.where((o) => o.id == objectId);
-        if (hits.isNotEmpty) {
-          final obj = hits.first;
-          if (obj.type == ObjectType.textBox || obj.type == ObjectType.stickyNote) {
-            _openTextEditDialog(obj);
-          } else {
-            _openObjectPropertiesSheet(obj);
+        if (isDoubleTap) {
+          final hits = ref.read(canvasNotifierProvider).objects.where((o) => o.id == objectId);
+          if (hits.isNotEmpty) {
+            final obj = hits.first;
+            if (obj.type == ObjectType.textBox || obj.type == ObjectType.stickyNote) {
+              _openTextEditDialog(obj);
+            } else {
+              _openObjectPropertiesSheet(obj);
+            }
           }
         }
+        return;
       }
-      return;
-    }
 
-    if (_editingStrokeId != null) {
-      final strokeId = _editingStrokeId!;
-      if (_activeStrokeHandle != null && _activeStrokeHandle != _SelectionHandle.move) {
-        if ((_liveStrokeScale - 1.0).abs() > 0.001 || _liveStrokeRotation.abs() > 0.001) {
-          ref.read(canvasNotifierProvider.notifier).transformStroke(
-            strokeId,
-            scale: _liveStrokeScale,
-            rotationDeg: _liveStrokeRotation,
-            center: _strokeCenter,
-          );
+      if (_editingStrokeId != null) {
+        final strokeId = _editingStrokeId!;
+        if (_activeStrokeHandle != null && _activeStrokeHandle != _SelectionHandle.move) {
+          if ((_liveStrokeScale - 1.0).abs() > 0.001 || _liveStrokeRotation.abs() > 0.001) {
+            ref.read(canvasNotifierProvider.notifier).transformStroke(
+              strokeId,
+              scale: _liveStrokeScale,
+              rotationDeg: _liveStrokeRotation,
+              center: _strokeCenter,
+            );
+          }
+        } else if (_liveStrokeOffset != Offset.zero) {
+          ref.read(canvasNotifierProvider.notifier).translateStroke(strokeId, _liveStrokeOffset);
         }
-      } else if (_liveStrokeOffset != Offset.zero) {
-        ref.read(canvasNotifierProvider.notifier).translateStroke(strokeId, _liveStrokeOffset);
+        setState(() {
+          _editingStrokeId = null;
+          _liveStrokeOffset = Offset.zero;
+          _activeStrokeHandle = null;
+          _strokeStartPoints = null;
+          _liveStrokeRotation = 0.0;
+          _liveStrokeScale = 1.0;
+          _dragAnchor = null;
+          _movedDuringSelect = false;
+        });
+        ref.read(toolNotifierProvider.notifier).setSelectedElement(strokeId);
+        return;
       }
-      setState(() {
-        _editingStrokeId = null;
-        _liveStrokeOffset = Offset.zero;
-        _activeStrokeHandle = null;
-        _strokeStartPoints = null;
-        _liveStrokeRotation = 0.0;
-        _liveStrokeScale = 1.0;
-        _dragAnchor = null;
-        _movedDuringSelect = false;
-      });
-      ref.read(toolNotifierProvider.notifier).setSelectedElement(strokeId);
-      return;
     }
 
-    if (_isDrawing) {
-      final toolState = ref.read(toolNotifierProvider);
-      if (!toolState.activeTool.isEraserTool) {
-        ref.read(canvasNotifierProvider.notifier).endStroke();
-      }
-      setState(() => _isDrawing = false);
-      return;
-    }
-
-    if (!_isCreatingObject || _objectStart == null || _objectCurrent == null || _objectTool == null) return;
-    final toolState = ref.read(toolNotifierProvider);
-    final obj = _buildObjectFromDrag(tool: _objectTool!, start: _objectStart!, end: _objectCurrent!, toolState: toolState);
-    if (obj != null) ref.read(canvasNotifierProvider.notifier).addObject(obj);
-    setState(() { _isCreatingObject = false; _objectStart = null; _objectCurrent = null; _objectTool = null; });
+    // Delegate to ToolsController
+    controller.handlePointerUp();
+    setState(() {
+      _isDrawing = false;
+      _isCreatingObject = false;
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────

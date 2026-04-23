@@ -11,8 +11,10 @@ import '../../providers/session_provider.dart';
 // ──────────────────────────────────────────────────────────────────────────
 
 enum EraserMode {
-  pointErase,   // Remove nearby points from strokes
-  strokeErase,  // Remove entire strokes
+  pointErase,   // Remove nearby points from strokes (soft eraser)
+  strokeErase,  // Remove entire strokes (hard eraser)
+  objectErase,  // Remove canvas objects (shapes, text)
+  areaErase,    // (Future) Remove everything in a rect
   clearAll,     // Clear all strokes and objects
 }
 
@@ -21,6 +23,8 @@ extension EraserModeExt on EraserMode {
     switch (this) {
       case EraserMode.pointErase: return 'Point Erase';
       case EraserMode.strokeErase: return 'Stroke Erase';
+      case EraserMode.objectErase: return 'Object Erase';
+      case EraserMode.areaErase: return 'Area Erase';
       case EraserMode.clearAll: return 'Clear All';
     }
   }
@@ -29,6 +33,8 @@ extension EraserModeExt on EraserMode {
     switch (this) {
       case EraserMode.pointErase: return Icons.edit_off;
       case EraserMode.strokeErase: return Icons.delete_sweep;
+      case EraserMode.objectErase: return Icons.select_all;
+      case EraserMode.areaErase: return Icons.crop_free;
       case EraserMode.clearAll: return Icons.delete_forever;
     }
   }
@@ -37,6 +43,8 @@ extension EraserModeExt on EraserMode {
     switch (this) {
       case EraserMode.pointErase: return 'Erase points from strokes';
       case EraserMode.strokeErase: return 'Erase entire strokes';
+      case EraserMode.objectErase: return 'Erase shapes and text';
+      case EraserMode.areaErase: return 'Erase an area';
       case EraserMode.clearAll: return 'Clear everything';
     }
   }
@@ -46,6 +54,8 @@ extension EraserModeExt on EraserMode {
     switch (this) {
       case EraserMode.pointErase: return 12.0;
       case EraserMode.strokeErase: return 16.0;
+      case EraserMode.objectErase: return 20.0;
+      case EraserMode.areaErase: return 0.0;
       case EraserMode.clearAll: return 0.0;
     }
   }
@@ -73,26 +83,36 @@ class EraserToolHandler {
   const EraserToolHandler(this.ref);
 
   /// Apply eraser at the given position
-  void erase(Offset point) {
+  void erase(Offset point, {bool pushUndo = false}) {
     final mode = ref.read(activEraserModeProvider);
     final canvas = ref.read(canvasNotifierProvider.notifier);
 
     switch (mode) {
       case EraserMode.pointErase:
-        // Remove individual points from strokes
-        canvas.eraseAtPoint(point, mode.radius);
+        canvas.eraseAtPoint(point, mode.radius, pushUndo: pushUndo);
         break;
 
       case EraserMode.strokeErase:
-        // Remove entire stroke that contains the point
-        canvas.eraseStrokeAt(point, mode.radius);
+        canvas.eraseStrokeAt(point, mode.radius, pushUndo: pushUndo);
+        break;
+
+      case EraserMode.objectErase:
+        canvas.eraseObjectAt(point, pushUndo: pushUndo);
+        break;
+
+      case EraserMode.areaErase:
+        // TODO: Implement area erase
         break;
 
       case EraserMode.clearAll:
-        // Clear all - handled via dialog confirmation
         clearAll();
         break;
     }
+  }
+
+  /// Called on pointer up to finalize erasing and push undo snapshot
+  void completeErase() {
+    ref.read(canvasNotifierProvider.notifier).saveSnapshot();
   }
 
   /// Clear all strokes and objects

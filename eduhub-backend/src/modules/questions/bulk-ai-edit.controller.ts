@@ -83,8 +83,7 @@ async function prismaUpdateWithRetry(questionId: string, updateData: any, maxRet
             return await prisma.questions.update({
                 where: { id: questionId },
                 data: {
-                    ...updateData,
-                    updated_at: new Date()
+                    ...updateData
                 }
             });
         } catch (error: any) {
@@ -234,7 +233,7 @@ async function callClaude(systemPrompt: string, userPrompt: string, model: strin
         headers: { 'X-API-Key': apiKey, 'anthropic-version': '2023-06-01' }
     });
 
-    return response.content[0].type === 'text' ? response.content[0].text : '';
+    return response.data.content[0].type === 'text' ? response.data.content[0].text : '';
 }
 
 // Main bulk edit controller with SSE streaming
@@ -360,8 +359,7 @@ export const bulkAIEditController = async (req: Request, res: Response, next: Ne
                 } else if (body.edit_type === 'custom') {
                     // For custom prompts, update based on what AI returns
                     updateData = {
-                        ...parsedResponse,
-                        updated_at: new Date()
+                        ...parsedResponse
                     };
                 }
 

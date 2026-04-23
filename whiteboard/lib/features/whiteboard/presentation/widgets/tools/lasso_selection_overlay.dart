@@ -103,12 +103,14 @@ class _LassoSelectionOverlayState
 
   void _onDown(Offset point) {
     final bounds = ref.read(lassoProvider).currentBounds;
-    ref.read(lassoToolHandlerProvider).onPointerDown(point, bounds);
-    // Capture initial rotation
     final state = ref.read(lassoProvider);
-    if (state.activeHandle == SelectHandle.rotate) {
-      // rotation handled via updateTransform callback
+    
+    // Reset rotation for new selection or if starting fresh move
+    if (state.activeHandle == SelectHandle.none) {
+      setState(() => _rotation = 0);
     }
+    
+    ref.read(lassoToolHandlerProvider).onPointerDown(point, bounds);
   }
 
   void _onMove(Offset point) {
