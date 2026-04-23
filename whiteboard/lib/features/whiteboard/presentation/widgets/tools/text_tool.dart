@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
 import '../../../data/models/canvas_object_model.dart';
 import '../../providers/canvas_provider.dart';
+import 'package:eduboard_pro/features/whiteboard/presentation/providers/current_slide_id_provider.dart';
 
 // ──────────────────────────────────────────────────────────────────────────
 // Text Settings Provider

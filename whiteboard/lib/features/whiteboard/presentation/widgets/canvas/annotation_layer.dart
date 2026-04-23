@@ -551,7 +551,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
       _activeStrokeHandle = null; _strokeStartPoints = null;
       _liveStrokeRotation = 0.0; _liveStrokeScale = 1.0;
       _isStrokePinchTransform = false; _pinchArmed = false;
-      _isLassoSelecting = false; _lassoPoints = [];
       _clearGroupSelection();
     });
     if (!keepSelection) ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
@@ -636,76 +635,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
       _pinchBaseScale = 1.0;
       _pinchBaseRotation = 0.0;
     });
-  }
-
-  void _applyLassoSelection() {
-    final points = List<Offset>.from(_lassoPoints);
-    setState(() {
-      _isLassoSelecting = false;
-      _lassoPoints = [];
-    });
-    if (points.length < 3) return;
-
-    final canvasState = ref.read(canvasNotifierProvider);
-
-    final objectHits = <String>{};
-    final strokeHits = <String>{};
-
-    for (final obj in canvasState.objects) {
-      final rect = Rect.fromLTWH(obj.x, obj.y, obj.width, obj.height);
-      if (_rectIntersectsPolygon(rect, points)) {
-        objectHits.add(obj.id);
-      }
-    }
-
-    for (final stroke in canvasState.strokes) {
-      final hit = stroke.points.any((p) => _isPointInPolygon(p, points));
-      if (hit) strokeHits.add(stroke.id);
-    }
-
-    if (objectHits.isEmpty && strokeHits.isEmpty) {
-      setState(() => _clearGroupSelection());
-      ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
-      return;
-    }
-
-    if (objectHits.length + strokeHits.length == 1) {
-      setState(() => _clearGroupSelection());
-      final id = objectHits.isNotEmpty ? objectHits.first : strokeHits.first;
-      ref.read(toolNotifierProvider.notifier).setSelectedElement(id);
-      return;
-    }
-
-    setState(() {
-      _clearGroupSelection();
-      _groupObjectIds.addAll(objectHits);
-      _groupStrokeIds.addAll(strokeHits);
-      _groupSelectionRect = _computeGroupBounds(canvasState);
-    });
-    ref.read(toolNotifierProvider.notifier).setSelectedElement(null);
-  }
-
-  bool _rectIntersectsPolygon(Rect rect, List<Offset> polygon) {
-    if (_isPointInPolygon(rect.center, polygon)) return true;
-    if (_isPointInPolygon(rect.topLeft, polygon)) return true;
-    if (_isPointInPolygon(rect.topRight, polygon)) return true;
-    if (_isPointInPolygon(rect.bottomLeft, polygon)) return true;
-    if (_isPointInPolygon(rect.bottomRight, polygon)) return true;
-    return false;
-  }
-
-  bool _isPointInPolygon(Offset point, List<Offset> polygon) {
-    var inside = false;
-    for (int i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-      final xi = polygon[i].dx;
-      final yi = polygon[i].dy;
-      final xj = polygon[j].dx;
-      final yj = polygon[j].dy;
-      final intersect = ((yi > point.dy) != (yj > point.dy)) &&
-          (point.dx < (xj - xi) * (point.dy - yi) / ((yj - yi) == 0 ? 0.00001 : (yj - yi)) + xi);
-      if (intersect) inside = !inside;
-    }
-    return inside;
   }
 
   List<Offset> _transformPoints({
@@ -824,51 +753,11 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
     _ => null,
   };
 
-  CanvasObjectModel? _buildObjectFromDrag({required Tool tool, required Offset start, required Offset end, required ToolSettings toolState}) {
-    final objectType = _mapToolToObjectType(tool);
-    if (objectType == null) return null;
-    final left = math.min(start.dx, end.dx), top = math.min(start.dy, end.dy);
-    double x = left, y = top, width = (end.dx - start.dx).abs(), height = (end.dy - start.dy).abs();
-    if (width < 8 && height < 8) {
-      switch (objectType) {
-        case ObjectType.textBox: width = 260; height = 120; x = start.dx; y = start.dy;
-        case ObjectType.stickyNote: width = 220; height = 180; x = start.dx; y = start.dy;
-        case ObjectType.line || ObjectType.arrow || ObjectType.doubleArrow: width = 140; height = 0; x = start.dx; y = start.dy;
-        default: width = 140; height = 90; x = start.dx; y = start.dy;
-      }
-    }
-    final isLineLike = objectType == ObjectType.line || objectType == ObjectType.arrow || objectType == ObjectType.doubleArrow;
-    final defaultFill = switch (objectType) {
-      ObjectType.stickyNote => const Color(0xFFFFF59D).toARGB32(),
-      ObjectType.textBox => const Color(0x33000000).toARGB32(),
-      _ when isLineLike => 0x00000000,
-      _ => const Color(0x1AFFFFFF).toARGB32(),
-    };
-    return CanvasObjectModel(
-      type: objectType, x: x, y: y, width: width, height: height,
-      fillColorARGB: defaultFill,
-      borderColorARGB: toolState.currentSettings.color.toARGB32(),
-      borderWidth: math.max(1.0, toolState.currentSettings.strokeWidth),
-      opacity: toolState.currentSettings.opacity,
-      slideId: '',
-      extra: {
-        if (objectType == ObjectType.textBox) 'text': 'Text',
-        if (objectType == ObjectType.stickyNote) 'text': 'Note',
-      },
-    );
-  }
-
-  CanvasObjectModel? _buildPreviewObject(ToolSettings toolState) {
-    if (!_isCreatingObject || _objectStart == null || _objectCurrent == null || _objectTool == null) return null;
-    return _buildObjectFromDrag(tool: _objectTool!, start: _objectStart!, end: _objectCurrent!, toolState: toolState);
-  }
-
   // ── Build ─────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     final canvasState = ref.watch(canvasNotifierProvider);
     final toolState = ref.watch(toolNotifierProvider);
-    final previewObject = _buildPreviewObject(toolState);
     final selectedId = toolState.selectedElementId;
     final canSelect = _canSelectElements(toolState);
 
@@ -894,7 +783,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
       }
       return obj;
     }).toList();
-    if (previewObject != null) objects.add(previewObject);
 
     final strokes = canvasState.strokes.map((s) {
       if (_hasGroupSelection && _groupStrokeIds.contains(s.id) && _groupStartStrokePoints.containsKey(s.id)) {
@@ -964,7 +852,6 @@ class _AnnotationLayerState extends ConsumerState<AnnotationLayer> {
                     selectedObjectId: canSelect && !isSelectedStroke ? selectedId : null,
                     showSelectionHandles: canSelect,
                     selectedStrokeId: canSelect && isSelectedStroke ? selectedId : null,
-                    lassoPoints: _isLassoSelecting ? _lassoPoints : const <Offset>[],
                     groupSelectionRect: canSelect ? groupSelectionRect : null,
                   ),
                   child: const SizedBox.expand(),
@@ -1891,7 +1778,6 @@ class AnnotationPainter extends CustomPainter {
   final String? selectedObjectId;
   final bool showSelectionHandles;
   final String? selectedStrokeId;
-  final List<Offset> lassoPoints;
   final Rect? groupSelectionRect;
 
   AnnotationPainter({
@@ -1900,7 +1786,6 @@ class AnnotationPainter extends CustomPainter {
     this.selectedObjectId,
     this.showSelectionHandles = false,
     this.selectedStrokeId,
-    this.lassoPoints = const <Offset>[],
     this.groupSelectionRect,
   });
 
@@ -1921,34 +1806,6 @@ class AnnotationPainter extends CustomPainter {
         _drawObjectSelection(canvas, groupSelectionRect!);
       }
     }
-    if (lassoPoints.length > 1) {
-      _drawLasso(canvas);
-    }
-  }
-
-  void _drawLasso(Canvas canvas) {
-    final path = Path()..moveTo(lassoPoints.first.dx, lassoPoints.first.dy);
-    for (int i = 1; i < lassoPoints.length; i++) {
-      path.lineTo(lassoPoints[i].dx, lassoPoints[i].dy);
-    }
-
-    if (lassoPoints.length > 2) {
-      final closed = Path.from(path)..close();
-      canvas.drawPath(
-        closed,
-        Paint()
-          ..color = const Color(0xFFF4511E).withValues(alpha: 0.12)
-          ..style = PaintingStyle.fill,
-      );
-    }
-
-    canvas.drawPath(
-      path,
-      Paint()
-        ..color = const Color(0xFFF4511E)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.8,
-    );
   }
 
   void _drawObject(Canvas canvas, CanvasObjectModel obj) {
