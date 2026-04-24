@@ -266,7 +266,7 @@ const getIconBgColor = (color: string) => {
     teal: "bg-teal-50",
     yellow: "bg-yellow-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -278,7 +278,7 @@ const getIconColor = (color: string) => {
     teal: "text-teal-600",
     yellow: "text-yellow-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 // Mini Sparkline Component
@@ -409,13 +409,13 @@ export default function DashboardPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Welcome back, Platform Owner 👋</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Welcome back, Platform Owner 👋</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Today: {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} — Platform Health:{" "}
                   <span className="inline-flex items-center gap-1">
                     <span className="w-2 h-2 bg-green-500 rounded-full" />
@@ -442,10 +442,10 @@ export default function DashboardPage() {
                         <MiniSparkline data={kpi.sparkline} color={kpi.color} />
                       </div>
                       <div className="mt-3">
-                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                           {kpi.label}
                         </div>
-                        <div className="text-2xl font-bold text-gray-900 mt-1">
+                        <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                           {typeof kpi.value === "number" ? kpi.value.toLocaleString() : kpi.value}
                         </div>
                         <div className="flex items-center gap-1 mt-1">
@@ -476,10 +476,10 @@ export default function DashboardPage() {
                         <MiniSparkline data={kpi.sparkline} color={kpi.color} />
                       </div>
                       <div className="mt-3">
-                        <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                           {kpi.label}
                         </div>
-                        <div className="text-2xl font-bold text-gray-900 mt-1">
+                        <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                           {typeof kpi.value === "number" ? kpi.value.toLocaleString() : kpi.value}
                         </div>
                         <div className="flex items-center gap-1 mt-1">
@@ -554,7 +554,7 @@ export default function DashboardPage() {
                 <CardContent>
                   <div className="space-y-3 max-h-[280px] overflow-y-auto custom-scrollbar">
                     {displayActivityData.map((activity: any) => (
-                      <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={activity.id} className="flex items-start gap-3 p-2 rounded-lg hover:bg-[var(--bg-main)] transition-colors">
                         <div
                           className={`w-2 h-2 rounded-full mt-2 shrink-0 ${activity.type === "org"
                             ? "bg-green-500"
@@ -568,9 +568,9 @@ export default function DashboardPage() {
                             }`}
                         />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900">{activity.title}</div>
-                          <div className="text-xs text-gray-500 truncate">{activity.message}</div>
-                          <div className="text-xs text-gray-400 mt-0.5">{activity.time}</div>
+                          <div className="text-sm font-medium text-[var(--text-primary)]">{activity.title}</div>
+                          <div className="text-xs text-[var(--text-secondary)] truncate">{activity.message}</div>
+                          <div className="text-xs text-[var(--text-muted)] mt-0.5">{activity.time}</div>
                         </div>
                       </div>
                     ))}
@@ -620,8 +620,8 @@ export default function DashboardPage() {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-xs text-gray-600">{item.name}</span>
-                        <span className="text-xs font-semibold text-gray-900">{item.value}</span>
+                        <span className="text-xs text-[var(--text-secondary)]">{item.name}</span>
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">{item.value}</span>
                       </div>
                     ))}
                   </div>
@@ -667,8 +667,8 @@ export default function DashboardPage() {
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-xs text-gray-600">{item.name}</span>
-                        <span className="text-xs font-semibold text-gray-900">{item.value}</span>
+                        <span className="text-xs text-[var(--text-secondary)]">{item.name}</span>
+                        <span className="text-xs font-semibold text-[var(--text-primary)]">{item.value}</span>
                       </div>
                     ))}
                   </div>
@@ -679,14 +679,14 @@ export default function DashboardPage() {
               <Card>
                 <CardHeader className="pb-2 flex flex-row items-center justify-between">
                   <CardTitle className="text-lg font-semibold">System Health</CardTitle>
-                  <Button variant="ghost" size="sm" className="text-xs text-gray-500">
+                  <Button variant="ghost" size="sm" className="text-xs text-[var(--text-secondary)]">
                     Auto-refresh: 30s
                   </Button>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     {systemStatus.map((service) => (
-                      <div key={service.name} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                      <div key={service.name} className="flex items-center justify-between py-2 border-b border-[var(--divider)] last:border-0">
                         <div className="flex items-center gap-3">
                           <div
                             className={`w-2 h-2 rounded-full ${service.status === "operational"
@@ -696,7 +696,7 @@ export default function DashboardPage() {
                                 : "bg-red-500"
                               }`}
                           />
-                          <span className="text-sm text-gray-700">{service.name}</span>
+                          <span className="text-sm text-[var(--text-primary)]">{service.name}</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <span
@@ -714,7 +714,7 @@ export default function DashboardPage() {
                                 : "Down"}
                           </span>
                           {service.latency && (
-                            <span className="text-xs text-gray-400">· {service.latency}</span>
+                            <span className="text-xs text-[var(--text-muted)]">· {service.latency}</span>
                           )}
                         </div>
                       </div>
@@ -736,12 +736,12 @@ export default function DashboardPage() {
                 <div className="overflow-x-auto w-full">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50 hover:bg-gray-50">
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[200px]">Account Name</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Login ID</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Last Used</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                      <TableRow className="bg-[var(--bg-main)] hover:bg-[var(--bg-main)]">
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap min-w-[200px]">Account Name</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">Login ID</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">Last Used</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -750,11 +750,11 @@ export default function DashboardPage() {
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="w-8 h-8">
-                                <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-medium">
+                                <AvatarFallback className="bg-[var(--bg-sidebar)] text-[var(--text-secondary)] text-sm font-medium">
                                   {account.name ? account.name.split(" ").map((n: string) => n[0]).join("") : "?"}
                                 </AvatarFallback>
                               </Avatar>
-                              <div className="font-medium text-gray-900 whitespace-nowrap">{account.name}</div>
+                              <div className="font-medium text-[var(--text-primary)] whitespace-nowrap">{account.name}</div>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -765,7 +765,7 @@ export default function DashboardPage() {
                           <TableCell>
                             <StatusBadge status={account.status} />
                           </TableCell>
-                          <TableCell className="text-gray-500 text-sm whitespace-nowrap">
+                          <TableCell className="text-[var(--text-secondary)] text-sm whitespace-nowrap">
                             {account.lastUsed}
                           </TableCell>
                           <TableCell className="text-right">

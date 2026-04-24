@@ -164,24 +164,24 @@ function DocumentCard({
   if (viewMode === "list") {
     return (
       <div
-        className="flex items-center gap-4 p-4 border-b border-gray-100 hover:bg-orange-50 cursor-pointer transition-colors"
+        className="flex items-center gap-4 p-4 border-b border-[var(--divider)] hover:bg-orange-50 cursor-pointer transition-colors"
         onClick={onSelect}
       >
-        <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center shrink-0">
-          <FileText className="w-5 h-5 text-gray-500" />
+        <div className="w-10 h-10 rounded-lg bg-[var(--bg-main)] flex items-center justify-center shrink-0">
+          <FileText className="w-5 h-5 text-[var(--text-secondary)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-medium text-gray-900 truncate">{doc.name}</div>
-          <div className="text-xs text-gray-500 mt-0.5">{doc.uploadedAt}</div>
+          <div className="font-medium text-[var(--text-primary)] truncate">{doc.name}</div>
+          <div className="text-xs text-[var(--text-secondary)] mt-0.5">{doc.uploadedAt}</div>
         </div>
         <StatusBadge status={doc.status} />
-        <div className="text-sm text-gray-600 w-20 text-center">
+        <div className="text-sm text-[var(--text-secondary)] w-20 text-center">
           {doc.questionCount > 0 ? `${doc.questionCount} Q` : "—"}
         </div>
-        <div className="text-sm text-gray-600 w-16 text-center">
+        <div className="text-sm text-[var(--text-secondary)] w-16 text-center">
           {doc.imageCount > 0 ? `${doc.imageCount} img` : "—"}
         </div>
-        <div className="text-sm text-gray-500 w-32 truncate">{doc.uploader}</div>
+        <div className="text-sm text-[var(--text-secondary)] w-32 truncate">{doc.uploader}</div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
@@ -204,11 +204,11 @@ function DocumentCard({
     <Card className="kpi-card hover:shadow-md transition-shadow cursor-pointer group" onClick={onSelect}>
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className="w-12 h-12 rounded-lg bg-gray-100 flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition-colors">
-            <FileText className="w-6 h-6 text-gray-500 group-hover:text-orange-600" />
+          <div className="w-12 h-12 rounded-lg bg-[var(--bg-main)] flex items-center justify-center shrink-0 group-hover:bg-orange-100 transition-colors">
+            <FileText className="w-6 h-6 text-[var(--text-secondary)] group-hover:text-orange-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-gray-900 truncate text-sm" title={doc.name}>
+            <div className="font-medium text-[var(--text-primary)] truncate text-sm" title={doc.name}>
               {doc.name}
             </div>
             <div className="flex items-center gap-2 mt-2">
@@ -237,22 +237,22 @@ function DocumentCard({
           </DropdownMenu>
         </div>
 
-        <div className="mt-4 pt-3 border-t border-gray-100 space-y-2">
+        <div className="mt-4 pt-3 border-t border-[var(--divider)] space-y-2">
           {doc.questionCount > 0 && (
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">Questions</span>
-              <span className="font-medium text-gray-900">{doc.questionCount}</span>
+              <span className="text-[var(--text-secondary)]">Questions</span>
+              <span className="font-medium text-[var(--text-primary)]">{doc.questionCount}</span>
             </div>
           )}
           {doc.imageCount > 0 && (
             <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500">Images</span>
-              <span className="font-medium text-gray-900">{doc.imageCount}</span>
+              <span className="text-[var(--text-secondary)]">Images</span>
+              <span className="font-medium text-[var(--text-primary)]">{doc.imageCount}</span>
             </div>
           )}
           <div className="flex items-center justify-between text-xs">
-            <span className="text-gray-500">Uploaded</span>
-            <span className="text-gray-600">{doc.uploadedAt.split(",")[0]}</span>
+            <span className="text-[var(--text-secondary)]">Uploaded</span>
+            <span className="text-[var(--text-secondary)]">{doc.uploadedAt.split(",")[0]}</span>
           </div>
         </div>
       </CardContent>
@@ -273,17 +273,17 @@ function FolderCard({
   if (viewMode === "list") {
     return (
       <div
-        className="flex items-center gap-4 p-4 border-b border-gray-100 hover:bg-orange-50 cursor-pointer transition-colors"
+        className="flex items-center gap-4 p-4 border-b border-[var(--divider)] hover:bg-orange-50 cursor-pointer transition-colors"
         onClick={onClick}
       >
         <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
           <Folder className="w-5 h-5 text-blue-500" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="font-medium text-gray-900 truncate">{folder.name}</div>
-          <div className="text-xs text-gray-500 mt-0.5">{folder.itemCount} items</div>
+          <div className="font-medium text-[var(--text-primary)] truncate">{folder.name}</div>
+          <div className="text-xs text-[var(--text-secondary)] mt-0.5">{folder.itemCount} items</div>
         </div>
-        <div className="text-sm text-gray-500">{folder.createdAt}</div>
+        <div className="text-sm text-[var(--text-secondary)]">{folder.createdAt}</div>
         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => e.stopPropagation()}>
           <MoreHorizontal className="w-4 h-4" />
         </Button>
@@ -299,10 +299,10 @@ function FolderCard({
             <Folder className="w-6 h-6 text-blue-500" />
           </div>
           <div className="flex-1 min-w-0">
-            <div className="font-medium text-gray-900 truncate text-sm" title={folder.name}>
+            <div className="font-medium text-[var(--text-primary)] truncate text-sm" title={folder.name}>
               {folder.name}
             </div>
-            <div className="text-xs text-gray-500 mt-1">{folder.itemCount} items</div>
+            <div className="text-xs text-[var(--text-secondary)] mt-1">{folder.itemCount} items</div>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -324,8 +324,8 @@ function FolderCard({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="mt-4 pt-3 border-t border-gray-100">
-          <div className="text-xs text-gray-500">Created {folder.createdAt}</div>
+        <div className="mt-4 pt-3 border-t border-[var(--divider)]">
+          <div className="text-xs text-[var(--text-secondary)]">Created {folder.createdAt}</div>
         </div>
       </CardContent>
     </Card>
@@ -417,22 +417,22 @@ const router = useRouter();
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/question-bank" className="hover:text-orange-600">
                 Q-Bank
               </Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">PDF Extract</span>
+              <span className="text-[var(--text-primary)] font-medium">PDF Extract</span>
             </div>
 
             {/* Page Header */}
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">PDF Extract</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">PDF Extract</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Upload PDFs and extract questions using AI
                 </p>
               </div>
@@ -454,7 +454,7 @@ const router = useRouter();
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   {/* Search */}
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search documents and folders..."
                       value={searchQuery}
@@ -470,7 +470,7 @@ const router = useRouter();
                     <Button variant="ghost" size="sm" title="Refresh">
                       <RefreshCw className="w-4 h-4" />
                     </Button>
-                    <div className="h-6 w-px bg-gray-200 mx-1" />
+                    <div className="h-6 w-px bg-[var(--bg-sidebar)] mx-1" />
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
                       size="sm"
@@ -501,8 +501,8 @@ const router = useRouter();
                       <FileText className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Total Documents</div>
-                      <div className="text-xl font-bold text-gray-900">24</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Total Documents</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">24</div>
                     </div>
                   </div>
                 </CardContent>
@@ -514,8 +514,8 @@ const router = useRouter();
                       <CheckCircle2 className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Completed</div>
-                      <div className="text-xl font-bold text-gray-900">18</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Completed</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">18</div>
                     </div>
                   </div>
                 </CardContent>
@@ -527,8 +527,8 @@ const router = useRouter();
                       <Loader2 className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Processing</div>
-                      <div className="text-xl font-bold text-gray-900">2</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Processing</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">2</div>
                     </div>
                   </div>
                 </CardContent>
@@ -540,8 +540,8 @@ const router = useRouter();
                       <FileText className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Questions</div>
-                      <div className="text-xl font-bold text-gray-900">1,247</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Questions</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">1,247</div>
                     </div>
                   </div>
                 </CardContent>
@@ -554,11 +554,11 @@ const router = useRouter();
               <Card className="kpi-card">
                 <CardContent className="p-12">
                   <div className="text-center">
-                    <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                    <div className="w-20 h-20 bg-[var(--bg-main)] rounded-2xl flex items-center justify-center mx-auto mb-4">
                       <FileText className="w-10 h-10 text-gray-300" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No documents or folders</h3>
-                    <p className="text-gray-500 text-sm mb-6">
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)] mb-2">No documents or folders</h3>
+                    <p className="text-[var(--text-secondary)] text-sm mb-6">
                       This folder is empty. Upload a PDF or create a folder to get started.
                     </p>
                     <div className="flex items-center justify-center gap-3">
@@ -579,7 +579,7 @@ const router = useRouter();
               <div className="space-y-6">
                 {filteredFolders.length > 0 && (
                   <div>
-                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    <h2 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                       Folders
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -596,7 +596,7 @@ const router = useRouter();
                 )}
                 {filteredDocuments.length > 0 && (
                   <div>
-                    <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                    <h2 className="text-sm font-semibold text-[var(--text-secondary)] uppercase tracking-wider mb-3">
                       Documents
                     </h2>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -615,8 +615,8 @@ const router = useRouter();
             ) : (
               /* List View */
               <Card className="kpi-card overflow-hidden">
-                <div className="border-b border-gray-100 bg-gray-50 px-4 py-2">
-                  <div className="flex items-center gap-4 text-xs font-semibold text-gray-500 uppercase">
+                <div className="border-b border-[var(--divider)] bg-[var(--bg-main)] px-4 py-2">
+                  <div className="flex items-center gap-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">
                     <div className="w-10" />
                     <div className="flex-1">Name</div>
                     <div className="w-20">Status</div>
@@ -676,7 +676,7 @@ const router = useRouter();
               <div
                 className={cn(
                   "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                  uploadFile ? "border-green-300 bg-green-50" : "border-gray-200 hover:border-orange-300 hover:bg-orange-50"
+                  uploadFile ? "border-green-300 bg-green-50" : "border-[var(--border-input)] hover:border-orange-300 hover:bg-orange-50"
                 )}
                 onClick={() => document.getElementById("pdf-file-input")?.click()}
               >
@@ -685,16 +685,16 @@ const router = useRouter();
                     <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                       <CheckCircle2 className="w-6 h-6 text-green-600" />
                     </div>
-                    <div className="font-medium text-gray-900">{uploadFile.name}</div>
-                    <div className="text-sm text-gray-500">
+                    <div className="font-medium text-[var(--text-primary)]">{uploadFile.name}</div>
+                    <div className="text-sm text-[var(--text-secondary)]">
                       {(uploadFile.size / 1024 / 1024).toFixed(2)} MB
                     </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Upload className="w-12 h-12 text-gray-300 mx-auto" />
-                    <div className="font-medium text-gray-900">Drop PDF here or click to browse</div>
-                    <div className="text-sm text-gray-500">Maximum file size: 50MB</div>
+                    <div className="font-medium text-[var(--text-primary)]">Drop PDF here or click to browse</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Maximum file size: 50MB</div>
                   </div>
                 )}
                 <input
@@ -719,10 +719,10 @@ const router = useRouter();
             {isUploading && (
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Uploading...</span>
+                  <span className="text-[var(--text-secondary)]">Uploading...</span>
                   <span className="font-medium">{uploadProgress}%</span>
                 </div>
-                <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2 bg-[var(--bg-main)] rounded-full overflow-hidden">
                   <div
                     className="h-full bg-orange-500 transition-all duration-300"
                     style={{ width: `${uploadProgress}%` }}

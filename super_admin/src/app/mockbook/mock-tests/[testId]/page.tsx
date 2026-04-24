@@ -31,7 +31,7 @@ import { api } from "@/lib/api";
 function StatusBadge({ status }: { status: string }) {
     const cfg: Record<string, string> = {
         LIVE: "bg-green-50 text-green-700 border-green-200",
-        DRAFT: "bg-gray-50 text-gray-600 border-gray-200",
+        DRAFT: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]",
         ENDED: "bg-red-50 text-red-600 border-red-200",
     };
     return <Badge variant="outline" className={cn("text-[10px]", cfg[status] || cfg.DRAFT)}>{status}</Badge>;
@@ -39,9 +39,9 @@ function StatusBadge({ status }: { status: string }) {
 
 function RankMedal({ rank }: { rank: number }) {
     if (rank === 1) return <span className="text-yellow-500 font-bold">🥇</span>;
-    if (rank === 2) return <span className="text-gray-400 font-bold">🥈</span>;
+    if (rank === 2) return <span className="text-[var(--text-muted)] font-bold">🥈</span>;
     if (rank === 3) return <span className="text-amber-600 font-bold">🥉</span>;
-    return <span className="text-gray-500 text-xs font-mono">#{rank}</span>;
+    return <span className="text-[var(--text-secondary)] text-xs font-mono">#{rank}</span>;
 }
 
 export default function MockTestDetailPage() {
@@ -207,27 +207,27 @@ export default function MockTestDetailPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] flex-wrap">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
                             <Link href="/mockbook/mock-tests" className="hover:text-orange-600">Mock Tests</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium truncate max-w-[300px]">{test.name}</span>
+                            <span className="text-[var(--text-primary)] font-medium truncate max-w-[300px]">{test.name}</span>
                         </div>
 
                         {/* Header */}
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                             <div>
                                 <div className="flex items-center gap-2 flex-wrap mb-1">
-                                    <h1 className="text-xl font-bold text-gray-900">{test.name}</h1>
+                                    <h1 className="text-xl font-bold text-[var(--text-primary)]">{test.name}</h1>
                                     <StatusBadge status={test.status} />
                                     {test.isPublic && <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px]">Public</Badge>}
                                 </div>
-                                <div className="flex items-center gap-4 text-xs text-gray-500 flex-wrap">
-                                    <span className="font-mono bg-gray-100 px-2 py-0.5 rounded">{test.testId}</span>
+                                <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)] flex-wrap">
+                                    <span className="font-mono bg-[var(--bg-main)] px-2 py-0.5 rounded">{test.testId}</span>
                                     {seriesName && <span>Series: <strong>{seriesName}</strong></span>}
                                     <span><Clock className="w-3 h-3 inline mr-1" />{test.durationMins} min</span>
                                     <span>Marks: {test.totalMarks}</span>
@@ -264,8 +264,8 @@ export default function MockTestDetailPage() {
                             ].map(s => (
                                 <Card key={s.label} className="kpi-card">
                                     <CardContent className="p-4">
-                                        <div className="text-[10px] text-gray-500 uppercase">{s.label}</div>
-                                        <div className="text-xl font-bold text-gray-900 mt-0.5">{s.value}</div>
+                                        <div className="text-[10px] text-[var(--text-secondary)] uppercase">{s.label}</div>
+                                        <div className="text-xl font-bold text-[var(--text-primary)] mt-0.5">{s.value}</div>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -299,13 +299,13 @@ export default function MockTestDetailPage() {
                                         {!test.sections || test.sections.length === 0 ? (
                                             <div className="p-8 text-center space-y-2">
                                                 <Hash className="w-10 h-10 text-gray-200 mx-auto" />
-                                                <p className="text-gray-400 text-sm">No sections added yet</p>
+                                                <p className="text-[var(--text-muted)] text-sm">No sections added yet</p>
                                                 <p className="text-xs text-gray-300">Add Question Bank sets via the Question Bank module to populate this test</p>
                                             </div>
                                         ) : (
                                             <Table>
                                                 <TableHeader>
-                                                    <TableRow className="bg-gray-50">
+                                                    <TableRow className="bg-[var(--bg-main)]">
                                                         <TableHead className="text-xs uppercase">#</TableHead>
                                                         <TableHead className="text-xs uppercase">Section Name</TableHead>
                                                         <TableHead className="text-xs uppercase">Source QBank Set</TableHead>
@@ -315,11 +315,11 @@ export default function MockTestDetailPage() {
                                                 <TableBody>
                                                     {test.sections.map((sec: any, i: number) => (
                                                         <TableRow key={sec.id}>
-                                                            <TableCell className="text-xs text-gray-400 font-mono">#{i + 1}</TableCell>
+                                                            <TableCell className="text-xs text-[var(--text-muted)] font-mono">#{i + 1}</TableCell>
                                                             <TableCell className="font-medium text-sm">{sec.name}</TableCell>
-                                                            <TableCell className="text-sm text-gray-600 font-mono text-xs">{sec.set?.name || "Unknown Set"}</TableCell>
+                                                            <TableCell className="text-sm text-[var(--text-secondary)] font-mono text-xs">{sec.set?.name || "Unknown Set"}</TableCell>
                                                             <TableCell className="text-right">
-                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-400 hover:text-red-600" onClick={() => handleRemoveSection(sec.id)}>
+                                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--text-muted)] hover:text-red-600" onClick={() => handleRemoveSection(sec.id)}>
                                                                     <Trash2 className="w-4 h-4" />
                                                                 </Button>
                                                             </TableCell>
@@ -398,10 +398,10 @@ export default function MockTestDetailPage() {
                                                 <Input type="datetime-local" value={editForm.endsAt} onChange={e => setEditForm(f => ({ ...f, endsAt: e.target.value }))} />
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-1 gap-3 p-4 border rounded-lg bg-gray-50">
+                                        <div className="grid grid-cols-1 gap-3 p-4 border rounded-lg bg-[var(--bg-main)]">
                                             <label className="flex items-center gap-2 text-sm cursor-pointer">
                                                 <Switch checked={editForm.isPublic} onCheckedChange={v => setEditForm(f => ({ ...f, isPublic: v }))} />
-                                                <span>Public Test <span className="text-gray-400">(visible without login)</span></span>
+                                                <span>Public Test <span className="text-[var(--text-muted)]">(visible without login)</span></span>
                                             </label>
                                             <label className="flex items-center gap-2 text-sm cursor-pointer">
                                                 <Switch checked={editForm.shuffleQuestions} onCheckedChange={v => setEditForm(f => ({ ...f, shuffleQuestions: v }))} />
@@ -440,12 +440,12 @@ export default function MockTestDetailPage() {
                                         ) : leaderboard.length === 0 ? (
                                             <div className="p-8 text-center space-y-2">
                                                 <Medal className="w-10 h-10 text-gray-200 mx-auto" />
-                                                <p className="text-gray-400 text-sm">No attempts yet on this test</p>
+                                                <p className="text-[var(--text-muted)] text-sm">No attempts yet on this test</p>
                                             </div>
                                         ) : (
                                             <Table>
                                                 <TableHeader>
-                                                    <TableRow className="bg-gray-50">
+                                                    <TableRow className="bg-[var(--bg-main)]">
                                                         <TableHead className="text-xs uppercase w-16">Rank</TableHead>
                                                         <TableHead className="text-xs uppercase">Student</TableHead>
                                                         <TableHead className="text-xs uppercase">Score</TableHead>
@@ -459,13 +459,13 @@ export default function MockTestDetailPage() {
                                                         <TableRow key={entry.rank} className={cn("hover:bg-orange-50/30", entry.rank <= 3 && "bg-yellow-50/30")}>
                                                             <TableCell><RankMedal rank={entry.rank} /></TableCell>
                                                             <TableCell>
-                                                                <div className="font-medium text-sm text-gray-900">{entry.student?.name || entry.studentName || "Anonymous"}</div>
-                                                                <div className="text-[10px] text-gray-400">{entry.student?.studentId || ""}</div>
+                                                                <div className="font-medium text-sm text-[var(--text-primary)]">{entry.student?.name || entry.studentName || "Anonymous"}</div>
+                                                                <div className="text-[10px] text-[var(--text-muted)]">{entry.student?.studentId || ""}</div>
                                                             </TableCell>
                                                             <TableCell className="font-bold text-orange-600">{entry.score?.toFixed(1) || 0}</TableCell>
                                                             <TableCell className="text-sm">{entry.totalMarks || "—"}</TableCell>
                                                             <TableCell className="text-sm text-emerald-600">{entry.accuracy ? `${entry.accuracy.toFixed(1)}%` : "—"}</TableCell>
-                                                            <TableCell className="text-xs text-gray-500">
+                                                            <TableCell className="text-xs text-[var(--text-secondary)]">
                                                                 {entry.timeTakenSecs ? `${Math.floor(entry.timeTakenSecs / 60)}m ${entry.timeTakenSecs % 60}s` : "—"}
                                                             </TableCell>
                                                         </TableRow>
@@ -489,7 +489,7 @@ export default function MockTestDetailPage() {
                             <AlertCircle className="w-5 h-5" /> End Live Test
                         </DialogTitle>
                     </DialogHeader>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[var(--text-secondary)]">
                         End <strong>{test.name}</strong>? Students who haven't submitted will be unable to continue.
                     </p>
                     <DialogFooter>
@@ -514,7 +514,7 @@ export default function MockTestDetailPage() {
                         <div className="space-y-1.5">
                             <Label>Select Question Set (QBank)</Label>
                             {setsLoading ? (
-                                <div className="p-4 text-center text-sm text-gray-500"><Loader2 className="w-4 h-4 animate-spin mx-auto" /></div>
+                                <div className="p-4 text-center text-sm text-[var(--text-secondary)]"><Loader2 className="w-4 h-4 animate-spin mx-auto" /></div>
                             ) : (
                                 <select 
                                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"

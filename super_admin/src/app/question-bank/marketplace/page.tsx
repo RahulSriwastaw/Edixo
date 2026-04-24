@@ -54,17 +54,17 @@ const [search, setSearch] = useState("");
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Marketplace</h1>
-                <p className="text-gray-500 text-sm">Public catalog for organizations</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Marketplace</h1>
+                <p className="text-[var(--text-secondary)] text-sm">Public catalog for organizations</p>
               </div>
               <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-lg">
                 <TrendingUp className="w-5 h-5 text-emerald-600" />
@@ -83,8 +83,8 @@ const [search, setSearch] = useState("");
                     <Package className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">847</div>
-                    <div className="text-sm text-gray-500">Public Items</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">847</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Public Items</div>
                   </div>
                 </CardContent>
               </Card>
@@ -94,8 +94,8 @@ const [search, setSearch] = useState("");
                     <Globe className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">52</div>
-                    <div className="text-sm text-gray-500">Orgs Using</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">52</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Orgs Using</div>
                   </div>
                 </CardContent>
               </Card>
@@ -105,8 +105,8 @@ const [search, setSearch] = useState("");
                     <Coins className="w-6 h-6 text-[#F4511E]" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">3,842</div>
-                    <div className="text-sm text-gray-500">Total Uses</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">3,842</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Total Uses</div>
                   </div>
                 </CardContent>
               </Card>
@@ -116,8 +116,8 @@ const [search, setSearch] = useState("");
                     <Star className="w-6 h-6 text-amber-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">4.7</div>
-                    <div className="text-sm text-gray-500">Avg Rating</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">4.7</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Avg Rating</div>
                   </div>
                 </CardContent>
               </Card>
@@ -129,7 +129,7 @@ const [search, setSearch] = useState("");
                 <div className="flex flex-wrap gap-4">
                   <div className="flex-1 min-w-[250px]">
                     <div className="relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <Input placeholder="Search marketplace..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
                     </div>
                   </div>
@@ -185,14 +185,14 @@ const [search, setSearch] = useState("");
                         <span className="text-sm font-medium">{item.rating}</span>
                       </div>
                     </div>
-                    <h3 className="font-semibold text-gray-900 mb-2 line-clamp-2">{item.title}</h3>
-                    <p className="text-sm text-gray-500 mb-4">{item.subject}</p>
+                    <h3 className="font-semibold text-[var(--text-primary)] mb-2 line-clamp-2">{item.title}</h3>
+                    <p className="text-sm text-[var(--text-secondary)] mb-4">{item.subject}</p>
                     <div className="flex items-center justify-between pt-3 border-t">
                       <div className="flex items-center gap-2">
                         <Coins className="w-4 h-4 text-[#F4511E]" />
                         <span className="font-semibold text-[#F4511E]">{item.points} pts</span>
                       </div>
-                      <div className="flex items-center gap-1 text-gray-500 text-sm">
+                      <div className="flex items-center gap-1 text-[var(--text-secondary)] text-sm">
                         <Users className="w-4 h-4" />
                         {item.usedBy} uses
                       </div>

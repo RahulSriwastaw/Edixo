@@ -138,7 +138,7 @@ function RichTextToolbar({
   onInsertImage: () => void;
 }) {
   return (
-    <div className="flex items-center gap-1 p-2 bg-gray-50 border-b rounded-t-lg">
+    <div className="flex items-center gap-1 p-2 bg-[var(--bg-main)] border-b rounded-t-lg">
       <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => onInsertTag("strong")}>
         <Bold className="w-4 h-4" />
       </Button>
@@ -436,7 +436,7 @@ export default function EditQuestionPage({
           <main className="flex-1 p-6 flex items-center justify-center">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#F4511E] mx-auto"></div>
-              <p className="text-gray-500 mt-4">Loading question...</p>
+              <p className="text-[var(--text-secondary)] mt-4">Loading question...</p>
             </div>
           </main>
         </div>
@@ -449,17 +449,17 @@ export default function EditQuestionPage({
       <Sidebar />
       <div className="md:ml-60 flex flex-col min-h-screen">
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1600px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Button variant="ghost" onClick={() => router.back()} className="text-gray-600 hover:text-gray-900">
+                <Button variant="ghost" onClick={() => router.back()} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                   <ArrowLeft className="w-4 h-4 mr-2" /> Back
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Edit Question</h1>
-                  <p className="text-gray-500 text-sm mt-1">
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Edit Question</h1>
+                  <p className="text-[var(--text-secondary)] text-sm mt-1">
                     Question ID: <span className="font-mono text-[#F4511E]">{resolvedParams.id}</span>
                   </p>
                 </div>
@@ -629,7 +629,7 @@ export default function EditQuestionPage({
                         />
                       </TabsContent>
                     </Tabs>
-                    <p className="text-xs text-gray-400 mt-2">HTML format. Use &lt;sub&gt; &lt;sup&gt; for chemical formulas. LaTeX: \(inline\) or \[display\]</p>
+                    <p className="text-xs text-[var(--text-muted)] mt-2">HTML format. Use &lt;sub&gt; &lt;sup&gt; for chemical formulas. LaTeX: \(inline\) or \[display\]</p>
                   </CardContent>
                 </Card>
 
@@ -669,7 +669,7 @@ export default function EditQuestionPage({
                                 setFormData({ ...formData, answer: newAnswer });
                               }
                             }}
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all ${formData.answer.includes(opt.id) ? "bg-green-500 text-white ring-2 ring-green-300" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all ${formData.answer.includes(opt.id) ? "bg-green-500 text-white ring-2 ring-green-300" : "bg-[var(--bg-main)] text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)]"
                               }`}>{opt.id}</button>
                           <div className="flex-1 grid grid-cols-2 gap-2">
                             <Input
@@ -684,12 +684,12 @@ export default function EditQuestionPage({
                               onChange={(e) => handleOptionChange(opt.id, "text_eng", e.target.value)}
                               className={activeLangTab !== "eng" ? "hidden" : ""}
                             />
-                            <div className="text-xs text-gray-400 flex items-center col-span-1">
+                            <div className="text-xs text-[var(--text-muted)] flex items-center col-span-1">
                               {activeLangTab === "hin" ? (opt.text_eng || "English text...") : (opt.text_hin || "हिंदी पाठ...")}
                             </div>
                           </div>
                           {options.length > 2 && opt.id === "E" && (
-                            <Button variant="ghost" size="icon" onClick={() => removeOption(opt.id)} className="text-gray-400 hover:text-red-500">
+                            <Button variant="ghost" size="icon" onClick={() => removeOption(opt.id)} className="text-[var(--text-muted)] hover:text-red-500">
                               <X className="w-4 h-4" />
                             </Button>
                           )}
@@ -840,7 +840,7 @@ export default function EditQuestionPage({
                     {formData.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {formData.tags.map((tag) => (
-                          <Badge key={tag} className="bg-gray-100 text-gray-700 px-3 py-1 flex items-center gap-1">
+                          <Badge key={tag} className="bg-[var(--bg-main)] text-[var(--text-primary)] px-3 py-1 flex items-center gap-1">
                             {tag}
                             <button onClick={() => removeTag(tag)} className="ml-1 hover:text-red-500"><X className="w-3 h-3" /></button>
                           </Badge>
@@ -874,21 +874,21 @@ export default function EditQuestionPage({
                           {formData.relatedExam && <Badge className="bg-purple-50 text-purple-700 text-xs">{formData.relatedExam}</Badge>}
                         </div>
                         {formData.subject && (
-                          <div className="text-xs text-gray-500">{formData.subject} {formData.chapter && `› ${formData.chapter}`} {formData.topic && `› ${formData.topic}`}</div>
+                          <div className="text-xs text-[var(--text-secondary)]">{formData.subject} {formData.chapter && `› ${formData.chapter}`} {formData.topic && `› ${formData.topic}`}</div>
                         )}
-                        <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="bg-[var(--bg-main)] rounded-lg p-3">
                           <div className="text-sm prose prose-sm max-w-none"
-                            dangerouslySetInnerHTML={{ __html: activeLangTab === "hin" ? formData.question_hin || "<p class='text-gray-400'>प्रश्न यहाँ दिखेगा...</p>" : formData.question_eng || "<p class='text-gray-400'>Question will appear here...</p>" }} />
+                            dangerouslySetInnerHTML={{ __html: activeLangTab === "hin" ? formData.question_hin || "<p class='text-[var(--text-muted)]'>प्रश्न यहाँ दिखेगा...</p>" : formData.question_eng || "<p class='text-[var(--text-muted)]'>Question will appear here...</p>" }} />
                         </div>
                         {(formData.questionType === "mcq" || formData.questionType === "multi_select") && (
                           <div className="space-y-2">
                             {options.map((opt) => (
                               <div key={opt.id}
-                                className={`flex items-center gap-2 p-2 rounded-lg border text-sm ${formData.answer.includes(opt.id) ? "border-green-500 bg-green-50" : "border-gray-200"}`}>
-                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${formData.answer.includes(opt.id) ? "bg-green-500 text-white" : "border border-gray-300"}`}>
+                                className={`flex items-center gap-2 p-2 rounded-lg border text-sm ${formData.answer.includes(opt.id) ? "border-green-500 bg-green-50" : "border-[var(--border-input)]"}`}>
+                                <div className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold ${formData.answer.includes(opt.id) ? "bg-green-500 text-white" : "border border-[var(--border-input)]"}`}>
                                   {formData.answer.includes(opt.id) ? <CheckCircle className="w-4 h-4" /> : opt.id}
                                 </div>
-                                <span className={formData.answer.includes(opt.id) ? "text-green-700" : "text-gray-600"}>
+                                <span className={formData.answer.includes(opt.id) ? "text-green-700" : "text-[var(--text-secondary)]"}>
                                   {activeLangTab === "hin" ? (opt.text_hin || "विकल्प...") : (opt.text_eng || "Option...")}
                                 </span>
                               </div>
@@ -909,7 +909,7 @@ export default function EditQuestionPage({
                         )}
                         <div className="flex items-center justify-between text-xs pt-2 border-t">
                           <span className="text-[#F4511E] font-medium">{formData.pointCost} pts</span>
-                          <span className="text-gray-400">{formData.visibility === "public" ? "🌐 Public" : "🔒 Private"}</span>
+                          <span className="text-[var(--text-muted)]">{formData.visibility === "public" ? "🌐 Public" : "🔒 Private"}</span>
                         </div>
                       </CardContent>
                     </Card>
@@ -929,7 +929,7 @@ export default function EditQuestionPage({
                           ].map((item, i) => (
                             <div key={i} className="flex items-center gap-2 text-sm">
                               {item.valid ? <CheckCircle className="w-4 h-4 text-green-500" /> : <AlertCircle className="w-4 h-4 text-gray-300" />}
-                              <span className={item.valid ? "text-gray-700" : "text-gray-400"}>{item.label}</span>
+                              <span className={item.valid ? "text-[var(--text-primary)]" : "text-[var(--text-muted)]"}>{item.label}</span>
                             </div>
                           ))}
                         </div>
@@ -952,9 +952,9 @@ export default function EditQuestionPage({
               <Label>Image URL</Label>
               <Input placeholder="https://cdn.eduhub.in/questions/..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
             </div>
-            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-              <Upload className="w-5 h-5 text-gray-400" />
-              <span className="text-sm text-gray-500">Or upload image to CDN (coming soon)</span>
+            <div className="flex items-center gap-2 p-3 bg-[var(--bg-main)] rounded-lg">
+              <Upload className="w-5 h-5 text-[var(--text-muted)]" />
+              <span className="text-sm text-[var(--text-secondary)]">Or upload image to CDN (coming soon)</span>
             </div>
           </div>
           <DialogFooter>

@@ -140,55 +140,56 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#F0F2F8] overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
         <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar pb-16 md:pb-0">
           <div className="max-w-5xl mx-auto space-y-6">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                  <Settings className="h-5 w-5" />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-slate-900">Settings</h1>
-                  <p className="text-xs text-slate-400">Manage your plan and preferences</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-xl border shadow-sm">
-                <Coins className="h-4 w-4 text-amber-500 fill-amber-500" />
-                <div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase leading-none">Balance</p>
-                  <p className="text-sm font-bold text-amber-600 leading-none">{(userData?.totalPoints || 0).toLocaleString()} Coins</p>
-                </div>
-              </div>
-            </div>
+               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+               <div className="flex items-center gap-3">
+                 <div className="p-2 rounded-xl" style={{ background: "rgba(255,107,43,0.08)", color: "#FF6B2B" }}>
+                   <Settings className="h-5 w-5" />
+                 </div>
+                 <div>
+                   <h1 className="text-[18px] font-bold" style={{ color: "var(--text-primary)" }}>Settings</h1>
+                   <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Manage your plan and preferences</p>
+                 </div>
+               </div>
+               <div className="flex items-center gap-2 px-3 py-2 rounded-xl" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                 <Coins className="h-4 w-4" style={{ color: "#FF6B2B" }} />
+                 <div>
+                   <p className="text-[9px] font-bold uppercase leading-none" style={{ color: "var(--text-muted)" }}>Balance</p>
+                   <p className="text-sm font-bold leading-none" style={{ color: "#FF6B2B" }}>{(userData?.totalPoints || 0).toLocaleString()} Coins</p>
+                 </div>
+               </div>
+             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
               {/* Sidebar Nav */}
-              <aside className="lg:col-span-3">
-                <Card className="shadow-sm border-none bg-white p-2 rounded-2xl">
-                  <div className="space-y-0.5">
-                    {navTabs.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={cn(
-                          "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all",
-                          activeTab === item.id
-                            ? "bg-primary/10 text-primary"
-                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-800"
-                        )}
-                      >
-                        <item.icon className={cn("h-4 w-4", activeTab === item.id ? "text-primary" : "text-slate-400")} />
-                        {item.label}
-                      </button>
-                    ))}
-                  </div>
-                </Card>
-              </aside>
+               <aside className="lg:col-span-3">
+                 <Card className="p-2">
+                   <div className="space-y-0.5">
+                     {navTabs.map((item) => (
+                       <button
+                         key={item.id}
+                         onClick={() => setActiveTab(item.id)}
+                         className={cn(
+                           "w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-[13px] font-semibold transition-all",
+                           activeTab === item.id
+                             ? "text-[#FF6B2B]"
+                             : "hover:opacity-80"
+                         )}
+                         style={activeTab === item.id ? { background: "rgba(255,107,43,0.08)" } : { color: "var(--text-secondary)", background: "transparent" }}
+                       >
+                         <item.icon className="h-4 w-4" style={{ color: activeTab === item.id ? "#FF6B2B" : "var(--text-muted)" }} />
+                         {item.label}
+                       </button>
+                     ))}
+                   </div>
+                 </Card>
+               </aside>
 
               {/* Content Panel */}
               <div className="lg:col-span-9 space-y-5">

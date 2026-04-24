@@ -54,17 +54,17 @@ const [search, setSearch] = useState("");
   });
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Usage Log</h1>
-                <p className="text-gray-500 text-sm">Track question and set usage across organizations</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Usage Log</h1>
+                <p className="text-[var(--text-secondary)] text-sm">Track question and set usage across organizations</p>
               </div>
               <Button variant="outline" className="gap-2">
                 <Download className="w-4 h-4" /> Export CSV
@@ -79,8 +79,8 @@ const [search, setSearch] = useState("");
                     <Coins className="w-6 h-6 text-[#F4511E]" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">48,201</div>
-                    <div className="text-sm text-gray-500">Total Points Earned</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">48,201</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Total Points Earned</div>
                   </div>
                 </CardContent>
               </Card>
@@ -90,8 +90,8 @@ const [search, setSearch] = useState("");
                     <FileText className="w-6 h-6 text-blue-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">3,842</div>
-                    <div className="text-sm text-gray-500">Total Usage Events</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">3,842</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Total Usage Events</div>
                   </div>
                 </CardContent>
               </Card>
@@ -101,8 +101,8 @@ const [search, setSearch] = useState("");
                     <Building2 className="w-6 h-6 text-purple-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">Apex Academy</div>
-                    <div className="text-sm text-gray-500">Top Org This Month</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">Apex Academy</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Top Org This Month</div>
                   </div>
                 </CardContent>
               </Card>
@@ -112,8 +112,8 @@ const [search, setSearch] = useState("");
                     <TrendingUp className="w-6 h-6 text-emerald-600" />
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-gray-900">+12.5%</div>
-                    <div className="text-sm text-gray-500">vs Last Month</div>
+                    <div className="text-2xl font-bold text-[var(--text-primary)]">+12.5%</div>
+                    <div className="text-sm text-[var(--text-secondary)]">vs Last Month</div>
                   </div>
                 </CardContent>
               </Card>
@@ -123,7 +123,7 @@ const [search, setSearch] = useState("");
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm font-medium text-gray-500">Points Earned (Last 30 Days)</CardTitle>
+                  <CardTitle className="text-sm font-medium text-[var(--text-secondary)]">Points Earned (Last 30 Days)</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="h-[200px] flex items-end gap-2">
@@ -135,7 +135,7 @@ const [search, setSearch] = useState("");
               </Card>
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-sm font-medium text-gray-500">Top Organizations</CardTitle>
+                  <CardTitle className="text-sm font-medium text-[var(--text-secondary)]">Top Organizations</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
                   {[
@@ -147,10 +147,10 @@ const [search, setSearch] = useState("");
                   ].map((org, i) => (
                     <div key={i} className="space-y-1">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-700">{org.name}</span>
+                        <span className="text-[var(--text-primary)]">{org.name}</span>
                         <span className="font-medium text-[#F4511E]">{org.points} pts</span>
                       </div>
-                      <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--bg-main)] rounded-full overflow-hidden">
                         <div className="h-full bg-[#F4511E] rounded-full" style={{ width: `${org.bar}%` }} />
                       </div>
                     </div>
@@ -165,7 +165,7 @@ const [search, setSearch] = useState("");
                 <div className="flex flex-wrap gap-4">
                   <div className="flex-1 min-w-[250px]">
                     <div className="relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <Input placeholder="Search by question or organization..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
                     </div>
                   </div>
@@ -195,28 +195,28 @@ const [search, setSearch] = useState("");
                 <div className="flex items-center gap-2">
                   <History className="w-5 h-5 text-[#F4511E]" />
                   <CardTitle>Usage History</CardTitle>
-                  <Badge className="bg-gray-100 text-gray-600">{filteredLogs.length} events</Badge>
+                  <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)]">{filteredLogs.length} events</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b bg-gray-50">
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Question / Set</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Type</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Used By (Org)</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">User</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Points Deducted</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Balance After</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Used At</th>
+                      <tr className="border-b bg-[var(--bg-main)]">
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Question / Set</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Type</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Used By (Org)</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">User</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Points Deducted</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Balance After</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Used At</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredLogs.map((log) => (
-                        <tr key={log.id} className="border-b hover:bg-gray-50 transition-colors">
+                        <tr key={log.id} className="border-b hover:bg-[var(--bg-main)] transition-colors">
                           <td className="p-4">
-                            <div className="font-medium text-gray-900 max-w-[250px] truncate">{log.question}</div>
+                            <div className="font-medium text-[var(--text-primary)] max-w-[250px] truncate">{log.question}</div>
                           </td>
                           <td className="p-4 text-center">
                             <Badge className={log.type === "set" ? "bg-purple-50 text-purple-700" : "bg-blue-50 text-blue-700"}>
@@ -225,16 +225,16 @@ const [search, setSearch] = useState("");
                           </td>
                           <td className="p-4">
                             <div className="flex items-center gap-2">
-                              <Building2 className="w-4 h-4 text-gray-400" />
-                              <span className="text-gray-700">{log.org}</span>
+                              <Building2 className="w-4 h-4 text-[var(--text-muted)]" />
+                              <span className="text-[var(--text-primary)]">{log.org}</span>
                             </div>
                           </td>
-                          <td className="p-4 text-gray-600">{log.user}</td>
+                          <td className="p-4 text-[var(--text-secondary)]">{log.user}</td>
                           <td className="p-4 text-center">
                             <span className="font-semibold text-[#F4511E]">-{log.points}</span>
                           </td>
-                          <td className="p-4 text-center text-gray-600">{log.balanceAfter.toLocaleString()}</td>
-                          <td className="p-4 text-gray-500 text-sm">{log.usedAt}</td>
+                          <td className="p-4 text-center text-[var(--text-secondary)]">{log.balanceAfter.toLocaleString()}</td>
+                          <td className="p-4 text-[var(--text-secondary)] text-sm">{log.usedAt}</td>
                         </tr>
                       ))}
                     </tbody>

@@ -179,7 +179,7 @@ function SourceBadge({ source }: { source: string }) {
     "Pricing Page": "bg-green-50 text-green-700",
     "Blog Article": "bg-orange-50 text-orange-700",
   };
-  return <span className={`badge ${styles[source] || "bg-gray-100 text-gray-600"}`}>{source}</span>;
+  return <span className={`badge ${styles[source] || "bg-[var(--bg-main)] text-[var(--text-secondary)]"}`}>{source}</span>;
 }
 
 export default function LeadsManagementPage() {
@@ -225,19 +225,19 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center gap-4">
               <Link
                 href="/website"
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--bg-main)] rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
               </Link>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">Leads Management</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Leads Management</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Track and manage leads from the public website
                 </p>
               </div>
@@ -256,8 +256,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <Users className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">New Leads</div>
-                      <div className="text-xl font-bold text-gray-900">{newLeads}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">New Leads</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{newLeads}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -269,8 +269,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <Clock className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Contacted</div>
-                      <div className="text-xl font-bold text-gray-900">{contactedLeads}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Contacted</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{contactedLeads}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -282,8 +282,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <TrendingUp className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Qualified</div>
-                      <div className="text-xl font-bold text-gray-900">{qualifiedLeads}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Qualified</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{qualifiedLeads}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -295,8 +295,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Converted</div>
-                      <div className="text-xl font-bold text-gray-900">{convertedLeads}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Converted</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{convertedLeads}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -308,7 +308,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search leads..."
                       value={searchQuery}
@@ -364,47 +364,47 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Name</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Email</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Phone</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Source</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Date</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                    <TableRow className="bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Name</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Email</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Phone</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Source</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Date</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredLeads.map((lead) => (
                       <TableRow key={lead.id} className="hover:bg-brand-primary-tint">
-                        <TableCell className="font-medium text-gray-900">{lead.name}</TableCell>
+                        <TableCell className="font-medium text-[var(--text-primary)]">{lead.name}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Mail className="w-3 h-3 text-gray-400" />
-                            <span className="text-sm text-gray-600">{lead.email}</span>
+                            <Mail className="w-3 h-3 text-[var(--text-muted)]" />
+                            <span className="text-sm text-[var(--text-secondary)]">{lead.email}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
-                            <Phone className="w-3 h-3 text-gray-400" />
-                            <span className="text-sm text-gray-600">{lead.phone}</span>
+                            <Phone className="w-3 h-3 text-[var(--text-muted)]" />
+                            <span className="text-sm text-[var(--text-secondary)]">{lead.phone}</span>
                           </div>
                         </TableCell>
                         <TableCell>
                           {lead.organization ? (
                             <div className="flex items-center gap-1">
-                              <Building className="w-3 h-3 text-gray-400" />
-                              <span className="text-sm text-gray-900">{lead.organization}</span>
+                              <Building className="w-3 h-3 text-[var(--text-muted)]" />
+                              <span className="text-sm text-[var(--text-primary)]">{lead.organization}</span>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400">—</span>
+                            <span className="text-sm text-[var(--text-muted)]">—</span>
                           )}
                         </TableCell>
                         <TableCell>
                           <SourceBadge source={lead.source} />
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">{lead.date}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-secondary)]">{lead.date}</TableCell>
                         <TableCell>
                           <StatusBadge status={lead.status} />
                         </TableCell>
@@ -457,42 +457,42 @@ const [searchQuery, setSearchQuery] = useState("");
             <div className="space-y-4 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Name</Label>
-                  <div className="text-sm font-medium text-gray-900">{selectedLead.name}</div>
+                  <Label className="text-xs text-[var(--text-secondary)]">Name</Label>
+                  <div className="text-sm font-medium text-[var(--text-primary)]">{selectedLead.name}</div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Status</Label>
+                  <Label className="text-xs text-[var(--text-secondary)]">Status</Label>
                   <StatusBadge status={selectedLead.status} />
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Email</Label>
-                  <div className="text-sm text-gray-900">{selectedLead.email}</div>
+                  <Label className="text-xs text-[var(--text-secondary)]">Email</Label>
+                  <div className="text-sm text-[var(--text-primary)]">{selectedLead.email}</div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Phone</Label>
-                  <div className="text-sm text-gray-900">{selectedLead.phone}</div>
+                  <Label className="text-xs text-[var(--text-secondary)]">Phone</Label>
+                  <div className="text-sm text-[var(--text-primary)]">{selectedLead.phone}</div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Organization</Label>
-                  <div className="text-sm text-gray-900">{selectedLead.organization || "—"}</div>
+                  <Label className="text-xs text-[var(--text-secondary)]">Organization</Label>
+                  <div className="text-sm text-[var(--text-primary)]">{selectedLead.organization || "—"}</div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">City</Label>
-                  <div className="text-sm text-gray-900">{selectedLead.city}</div>
+                  <Label className="text-xs text-[var(--text-secondary)]">City</Label>
+                  <div className="text-sm text-[var(--text-primary)]">{selectedLead.city}</div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Teachers</Label>
-                  <div className="text-sm text-gray-900">{selectedLead.teachers || "—"}</div>
+                  <Label className="text-xs text-[var(--text-secondary)]">Teachers</Label>
+                  <div className="text-sm text-[var(--text-primary)]">{selectedLead.teachers || "—"}</div>
                 </div>
                 <div className="space-y-1">
-                  <Label className="text-xs text-gray-500">Source</Label>
+                  <Label className="text-xs text-[var(--text-secondary)]">Source</Label>
                   <SourceBadge source={selectedLead.source} />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <Label className="text-xs text-gray-500">Notes</Label>
-                <div className="text-sm text-gray-700 p-3 bg-gray-50 rounded-lg">
+                <Label className="text-xs text-[var(--text-secondary)]">Notes</Label>
+                <div className="text-sm text-[var(--text-primary)] p-3 bg-[var(--bg-main)] rounded-lg">
                   {selectedLead.notes}
                 </div>
               </div>

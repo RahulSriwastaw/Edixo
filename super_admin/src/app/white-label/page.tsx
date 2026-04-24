@@ -219,7 +219,7 @@ function PlanBadge({ plan }: { plan: string }) {
 
 // DNS Status Badge
 function DNSStatusBadge({ status }: { status: string | null }) {
-  if (!status) return <span className="text-sm text-gray-400">Not configured</span>;
+  if (!status) return <span className="text-sm text-[var(--text-muted)]">Not configured</span>;
   const styles: Record<string, string> = {
     verified: "badge-active",
     pending: "bg-yellow-50 text-yellow-700",
@@ -230,7 +230,7 @@ function DNSStatusBadge({ status }: { status: string | null }) {
 
 // SSL Badge
 function SSLBadge({ status }: { status: string | null }) {
-  if (!status) return <span className="text-sm text-gray-400">—</span>;
+  if (!status) return <span className="text-sm text-[var(--text-muted)]">—</span>;
   const styles: Record<string, string> = {
     active: "badge-active",
     expired: "badge-suspended",
@@ -246,7 +246,7 @@ const getIconBgColor = (color: string) => {
     orange: "bg-orange-50",
     purple: "bg-purple-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -256,7 +256,7 @@ const getIconColor = (color: string) => {
     orange: "text-orange-600",
     purple: "text-purple-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function WhiteLabelPage() {
@@ -326,13 +326,13 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">White-Label</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">White-Label</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage per-organization branding and custom domains
                 </p>
               </div>
@@ -350,10 +350,10 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {stat.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-bold text-[var(--text-primary)]">
                             {stat.value}
                           </div>
                         </div>
@@ -366,7 +366,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
             {/* Tabs */}
             <Tabs defaultValue="branding" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1">
                 <TabsTrigger value="branding" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
                   <Palette className="w-4 h-4 mr-2" />
                   Organization Branding
@@ -388,7 +388,7 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <Input
                           placeholder="Search organizations..."
                           value={searchQuery}
@@ -433,15 +433,15 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Display Name</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Primary Color</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Custom Domain</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">DNS</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">SSL</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Plan</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Display Name</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Primary Color</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Custom Domain</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">DNS</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">SSL</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -458,35 +458,35 @@ const [searchQuery, setSearchQuery] = useState("");
                                 <div>
                                   <Link
                                     href={`/organizations/${org.id}`}
-                                    className="text-sm font-medium text-gray-900 hover:text-brand-primary"
+                                    className="text-sm font-medium text-[var(--text-primary)] hover:text-brand-primary"
                                   >
                                     {org.organization}
                                   </Link>
-                                  <div className="text-xs text-gray-500 mono">{org.id}</div>
+                                  <div className="text-xs text-[var(--text-secondary)] mono">{org.id}</div>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <PlanBadge plan={org.plan} />
                             </TableCell>
-                            <TableCell className="text-sm text-gray-900">{org.branding.displayName}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-primary)]">{org.branding.displayName}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
                                 <div
-                                  className="w-6 h-6 rounded border border-gray-200"
+                                  className="w-6 h-6 rounded border border-[var(--border-input)]"
                                   style={{ backgroundColor: org.branding.primaryColor }}
                                 />
-                                <span className="text-sm text-gray-600 mono">{org.branding.primaryColor}</span>
+                                <span className="text-sm text-[var(--text-secondary)] mono">{org.branding.primaryColor}</span>
                               </div>
                             </TableCell>
                             <TableCell>
                               {org.branding.adminDomain ? (
                                 <div className="flex items-center gap-1">
-                                  <span className="text-sm text-gray-600">{org.branding.adminDomain}</span>
-                                  <ExternalLink className="w-3 h-3 text-gray-400" />
+                                  <span className="text-sm text-[var(--text-secondary)]">{org.branding.adminDomain}</span>
+                                  <ExternalLink className="w-3 h-3 text-[var(--text-muted)]" />
                                 </div>
                               ) : (
-                                <span className="text-sm text-gray-400">Default</span>
+                                <span className="text-sm text-[var(--text-muted)]">Default</span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -528,14 +528,14 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Domain</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">DNS Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">SSL</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Expires</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Auto-Renew</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Domain</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">DNS Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">SSL</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Expires</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Auto-Renew</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -543,11 +543,11 @@ const [searchQuery, setSearchQuery] = useState("");
                           .filter((org) => org.branding.adminDomain)
                           .map((org) => (
                             <TableRow key={org.id} className="hover:bg-brand-primary-tint">
-                              <TableCell className="font-medium text-gray-900">{org.branding.adminDomain}</TableCell>
+                              <TableCell className="font-medium text-[var(--text-primary)]">{org.branding.adminDomain}</TableCell>
                               <TableCell>
                                 <Link
                                   href={`/organizations/${org.id}`}
-                                  className="text-sm text-gray-700 hover:text-brand-primary"
+                                  className="text-sm text-[var(--text-primary)] hover:text-brand-primary"
                                 >
                                   {org.organization}
                                 </Link>
@@ -558,12 +558,12 @@ const [searchQuery, setSearchQuery] = useState("");
                               <TableCell>
                                 <SSLBadge status={org.dns?.sslStatus || null} />
                               </TableCell>
-                              <TableCell className="text-sm text-gray-600">{org.dns?.expiresOn || "—"}</TableCell>
+                              <TableCell className="text-sm text-[var(--text-secondary)]">{org.dns?.expiresOn || "—"}</TableCell>
                               <TableCell>
                                 {org.dns?.autoRenew ? (
                                   <CheckCircle className="w-4 h-4 text-green-600" />
                                 ) : (
-                                  <XCircle className="w-4 h-4 text-gray-400" />
+                                  <XCircle className="w-4 h-4 text-[var(--text-muted)]" />
                                 )}
                               </TableCell>
                               <TableCell className="text-right">
@@ -595,26 +595,26 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Partner</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Orgs</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Revenue Share</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Total Generated</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Partner Cut</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Partner</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Orgs</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Revenue Share</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Total Generated</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Partner Cut</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {resellerPartners.map((partner) => (
                           <TableRow key={partner.id} className="hover:bg-brand-primary-tint">
-                            <TableCell className="font-medium text-gray-900">{partner.name}</TableCell>
-                            <TableCell className="text-sm text-gray-900">{partner.orgs}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{partner.revenueShare}%</TableCell>
-                            <TableCell className="text-sm text-gray-900 font-medium">₹{(partner.totalGenerated / 1000).toFixed(0)}K</TableCell>
-                            <TableCell className="text-sm text-gray-900 font-medium">₹{(partner.partnerCut / 1000).toFixed(0)}K</TableCell>
+                            <TableCell className="font-medium text-[var(--text-primary)]">{partner.name}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-primary)]">{partner.orgs}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{partner.revenueShare}%</TableCell>
+                            <TableCell className="text-sm text-[var(--text-primary)] font-medium">₹{(partner.totalGenerated / 1000).toFixed(0)}K</TableCell>
+                            <TableCell className="text-sm text-[var(--text-primary)] font-medium">₹{(partner.partnerCut / 1000).toFixed(0)}K</TableCell>
                             <TableCell>
-                              <span className={`badge ${partner.status === "Active" ? "badge-active" : "bg-gray-100 text-gray-600"}`}>
+                              <span className={`badge ${partner.status === "Active" ? "badge-active" : "bg-[var(--bg-main)] text-[var(--text-secondary)]"}`}>
                                 {partner.status}
                               </span>
                             </TableCell>
@@ -737,23 +737,23 @@ const [searchQuery, setSearchQuery] = useState("");
 
                     {/* DNS Status */}
                     {selectedOrg?.dns && (
-                      <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-                        <h4 className="font-semibold text-gray-900">DNS Status</h4>
+                      <div className="p-4 bg-[var(--bg-main)] rounded-lg space-y-2">
+                        <h4 className="font-semibold text-[var(--text-primary)]">DNS Status</h4>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">{selectedOrg.branding.adminDomain}</span>
+                          <span className="text-[var(--text-secondary)]">{selectedOrg.branding.adminDomain}</span>
                           <div className="flex items-center gap-2">
                             <CheckCircle className="w-4 h-4 text-green-600" />
                             <span className="text-green-700">DNS VERIFIED</span>
                           </div>
                         </div>
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">SSL Certificate</span>
+                          <span className="text-[var(--text-secondary)]">SSL Certificate</span>
                           <div className="flex items-center gap-2">
                             <CheckCircle className="w-4 h-4 text-green-600" />
                             <span className="text-green-700">SSL ACTIVE</span>
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500">
+                        <div className="text-xs text-[var(--text-secondary)]">
                           Expires: {selectedOrg.dns.expiresOn} (Auto-renew {selectedOrg.dns.autoRenew ? "ON" : "OFF"})
                         </div>
                       </div>
@@ -767,40 +767,40 @@ const [searchQuery, setSearchQuery] = useState("");
                       <div className="flex items-center gap-1 border rounded-lg p-1">
                         <button
                           onClick={() => setPreviewDevice("desktop")}
-                          className={`p-1.5 rounded ${previewDevice === "desktop" ? "bg-gray-100" : ""}`}
+                          className={`p-1.5 rounded ${previewDevice === "desktop" ? "bg-[var(--bg-main)]" : ""}`}
                         >
                           <Monitor className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setPreviewDevice("tablet")}
-                          className={`p-1.5 rounded ${previewDevice === "tablet" ? "bg-gray-100" : ""}`}
+                          className={`p-1.5 rounded ${previewDevice === "tablet" ? "bg-[var(--bg-main)]" : ""}`}
                         >
                           <Tablet className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setPreviewDevice("mobile")}
-                          className={`p-1.5 rounded ${previewDevice === "mobile" ? "bg-gray-100" : ""}`}
+                          className={`p-1.5 rounded ${previewDevice === "mobile" ? "bg-[var(--bg-main)]" : ""}`}
                         >
                           <Smartphone className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
                     <div
-                      className="border rounded-lg bg-gray-100 aspect-video flex items-center justify-center"
+                      className="border rounded-lg bg-[var(--bg-main)] aspect-video flex items-center justify-center"
                       style={{
                         width: previewDevice === "desktop" ? "100%" : previewDevice === "tablet" ? "80%" : "50%",
                         margin: "0 auto",
                       }}
                     >
-                      <div className="text-center text-gray-500">
+                      <div className="text-center text-[var(--text-secondary)]">
                         <div
                           className="w-12 h-12 rounded-lg mx-auto mb-3 flex items-center justify-center text-white font-bold"
                           style={{ backgroundColor: formData.primaryColor }}
                         >
                           {formData.displayName.charAt(0) || "O"}
                         </div>
-                        <div className="font-semibold text-gray-900">{formData.displayName || "Organization"}</div>
-                        <div className="text-sm text-gray-400">Org Admin Panel Preview</div>
+                        <div className="font-semibold text-[var(--text-primary)]">{formData.displayName || "Organization"}</div>
+                        <div className="text-sm text-[var(--text-muted)]">Org Admin Panel Preview</div>
                       </div>
                     </div>
                   </div>

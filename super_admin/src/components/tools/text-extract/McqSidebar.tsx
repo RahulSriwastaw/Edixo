@@ -270,17 +270,17 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-y-0 right-0 w-full max-w-md bg-slate-50 shadow-2xl z-50 flex flex-col border-l border-slate-200"
+            className="fixed inset-y-0 right-0 w-full max-w-md bg-[var(--bg-main)] shadow-2xl z-50 flex flex-col border-l border-[var(--border-input)]"
           >
-            <div className="flex flex-col gap-3 p-4 bg-white border-b border-slate-200">
+            <div className="flex flex-col gap-3 p-4 bg-white border-b border-[var(--border-input)]">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-slate-800">MCQ Bank</h2>
-                  <p className="text-xs text-slate-500">{mcqs.length} questions extracted</p>
+                  <p className="text-xs text-[var(--text-secondary)]">{mcqs.length} questions extracted</p>
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                  className="p-2 text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-slate-100 rounded-full transition-colors"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -288,7 +288,7 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
               
               {/* Export Actions */}
               {mcqs.length > 0 && (
-                <div className="flex flex-col gap-2 pt-2 border-t border-slate-100">
+                <div className="flex flex-col gap-2 pt-2 border-t border-[var(--divider)]">
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={exportToWord}
@@ -335,7 +335,7 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
                   {manualMcqs && (
                     <button 
                       onClick={() => setManualMcqs(null)}
-                      className="text-[10px] text-slate-400 hover:text-slate-600 text-center underline"
+                      className="text-[10px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] text-center underline"
                     >
                       Reset to auto-extracted version
                     </button>
@@ -346,31 +346,31 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
 
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {!mcqMode ? (
-                <div className="text-center py-12 text-slate-500">
-                  <BookOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <div className="text-center py-12 text-[var(--text-secondary)]">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 text-[var(--text-muted)]" />
                   <p className="font-bold">MCQ Mode is Disabled</p>
                   <p className="text-sm mt-1">Enable MCQ Mode from the top bar to extract questions.</p>
                 </div>
               ) : mcqs.length === 0 ? (
-                <div className="text-center py-12 text-slate-500">
-                  <BookOpen className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+                <div className="text-center py-12 text-[var(--text-secondary)]">
+                  <BookOpen className="w-12 h-12 mx-auto mb-3 text-[var(--text-muted)]" />
                   <p>No MCQs found yet.</p>
                   <p className="text-sm mt-1">Convert a document containing multiple choice questions.</p>
                 </div>
               ) : (
                 mcqs.map((mcq, idx) => (
-                  <div key={idx} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 flex flex-col gap-3">
+                  <div key={idx} className="bg-white rounded-xl border border-[var(--border-input)] shadow-sm p-4 flex flex-col gap-3">
                     {/* Top Row */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <input type="checkbox" className="w-4 h-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
+                        <input type="checkbox" className="w-4 h-4 rounded border-[var(--border-input)] text-orange-500 focus:ring-orange-500" />
                         <div className="min-w-[24px] h-6 px-1.5 rounded-full bg-orange-50 text-orange-600 flex items-center justify-center text-xs font-bold">
                           {idx + 1}
                         </div>
                       </div>
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-200 rounded-full">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-main)] border border-[var(--border-input)] rounded-full">
                         <div className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">{mcq.status}</span>
+                        <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">{mcq.status}</span>
                       </div>
                     </div>
 
@@ -391,22 +391,22 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
 
                     {/* Options */}
                     <div className="mt-1">
-                      <h4 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Options:</h4>
+                      <h4 className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider mb-2">Options:</h4>
                       <div className="space-y-2">
                         {mcq.options.map((opt, oIdx) => (
                           <div key={oIdx} className="flex items-start gap-2 text-sm">
-                            <span className="font-bold text-slate-400 w-4">{opt.label}.</span>
-                            <span className="text-slate-700">{opt.text}</span>
+                            <span className="font-bold text-[var(--text-muted)] w-4">{opt.label}.</span>
+                            <span className="text-[var(--text-primary)]">{opt.text}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
-                    <hr className="border-slate-100 my-2" />
+                    <hr className="border-[var(--divider)] my-2" />
 
                     {/* Actions */}
                     <div className="flex items-center gap-2">
-                      <button className="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                      <button className="flex-1 flex items-center justify-center gap-1.5 py-1.5 border border-[var(--border-input)] rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)] transition-colors">
                         <Edit className="w-4 h-4" />
                         Edit
                       </button>
@@ -418,11 +418,11 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
 
                     {/* Bottom Tags */}
                     <div className="flex items-center justify-between pt-1">
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-main)] border border-[var(--divider)] rounded-lg text-xs text-[var(--text-secondary)]">
                         <BookOpen className="w-3.5 h-3.5" />
                         Question Bank
                       </div>
-                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-slate-50 border border-slate-100 rounded-lg text-xs text-slate-500">
+                      <div className="flex items-center gap-1.5 px-2.5 py-1 bg-[var(--bg-main)] border border-[var(--divider)] rounded-lg text-xs text-[var(--text-secondary)]">
                         <FileText className="w-3.5 h-3.5" />
                         1 Test
                       </div>

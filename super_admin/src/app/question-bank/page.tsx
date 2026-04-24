@@ -60,7 +60,7 @@ function getIconBgColor(color: string) {
     red: "bg-red-50",
     amber: "bg-amber-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 }
 
 function getIconColor(color: string) {
@@ -72,7 +72,7 @@ function getIconColor(color: string) {
     red: "text-red-600",
     amber: "text-amber-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 }
 
 function getToken(): string {
@@ -127,13 +127,13 @@ export default function QuestionBankPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Question Bank</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Question Bank</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Global platform questions — manage, generate, and publish
                 </p>
               </div>
@@ -171,10 +171,10 @@ export default function QuestionBankPage() {
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div className="flex-1">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {stat.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900 mt-1">
+                          <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                             {isLoading ? "..." : stat.value.toLocaleString()}
                           </div>
                           <div className="flex items-center gap-1 mt-1">
@@ -215,7 +215,7 @@ export default function QuestionBankPage() {
                         </BarChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
+                      <div className="h-full flex items-center justify-center text-[var(--text-muted)] text-sm italic">
                         {isLoading ? "Loading subject data..." : "No subject data available"}
                       </div>
                     )}
@@ -253,7 +253,7 @@ export default function QuestionBankPage() {
                         </LineChart>
                       </ResponsiveContainer>
                     ) : (
-                      <div className="h-full flex items-center justify-center text-gray-400 text-sm italic">
+                      <div className="h-full flex items-center justify-center text-[var(--text-muted)] text-sm italic">
                         {isLoading ? "Loading trend data..." : "No trend data available"}
                       </div>
                     )}
@@ -276,12 +276,12 @@ export default function QuestionBankPage() {
                 <div className="overflow-x-auto w-full">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50 hover:bg-gray-50">
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[200px]">Question Preview</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Used By</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[120px]">Teacher</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase min-w-[100px]">Date</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Points</TableHead>
+                      <TableRow className="bg-[var(--bg-main)] hover:bg-[var(--bg-main)]">
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase whitespace-nowrap min-w-[200px]">Question Preview</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">Used By</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[120px]">Teacher</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase min-w-[100px]">Date</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Points</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -289,20 +289,20 @@ export default function QuestionBankPage() {
                         recentData.map((usage: any) => (
                           <TableRow key={usage.id} className="hover:bg-brand-primary-tint">
                             <TableCell>
-                              <span className="text-sm text-gray-700 italic truncate max-w-[300px] block">
+                              <span className="text-sm text-[var(--text-primary)] italic truncate max-w-[300px] block">
                                 {usage.question}
                               </span>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-2">
-                                <span className="text-sm text-gray-900 whitespace-nowrap">{usage.org}</span>
-                                <Button variant="ghost" size="icon" className="h-5 w-5 text-gray-400 hover:text-brand-primary">
+                                <span className="text-sm text-[var(--text-primary)] whitespace-nowrap">{usage.org}</span>
+                                <Button variant="ghost" size="icon" className="h-5 w-5 text-[var(--text-muted)] hover:text-brand-primary">
                                   <ExternalLink className="w-3 h-3" />
                                 </Button>
                               </div>
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600 whitespace-nowrap">{usage.teacher}</TableCell>
-                            <TableCell className="text-sm text-gray-500 whitespace-nowrap">{usage.date}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)] whitespace-nowrap">{usage.teacher}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)] whitespace-nowrap">{usage.date}</TableCell>
                             <TableCell className="text-right">
                               <span className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600">
                                 <Coins className="w-3 h-3" />
@@ -313,7 +313,7 @@ export default function QuestionBankPage() {
                         ))
                       ) : (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-10 text-gray-400 italic">
+                          <TableCell colSpan={5} className="text-center py-10 text-[var(--text-muted)] italic">
                             {isLoading ? "Loading recent usage..." : "No recent activity recorded"}
                           </TableCell>
                         </TableRow>
@@ -333,8 +333,8 @@ export default function QuestionBankPage() {
                       <BookOpen className="w-6 h-6 text-orange-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Manage Questions</div>
-                      <div className="text-sm text-gray-500">View, edit, and organize all questions</div>
+                      <div className="font-semibold text-[var(--text-primary)]">Manage Questions</div>
+                      <div className="text-sm text-[var(--text-secondary)]">View, edit, and organize all questions</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -346,8 +346,8 @@ export default function QuestionBankPage() {
                       <Layers className="w-6 h-6 text-purple-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Question Sets</div>
-                      <div className="text-sm text-gray-500">Create and manage question sets</div>
+                      <div className="font-semibold text-[var(--text-primary)]">Question Sets</div>
+                      <div className="text-sm text-[var(--text-secondary)]">Create and manage question sets</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -359,8 +359,8 @@ export default function QuestionBankPage() {
                       <Globe className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Marketplace</div>
-                      <div className="text-sm text-gray-500">Browse public questions catalog</div>
+                      <div className="font-semibold text-[var(--text-primary)]">Marketplace</div>
+                      <div className="text-sm text-[var(--text-secondary)]">Browse public questions catalog</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -372,8 +372,8 @@ export default function QuestionBankPage() {
                       <History className="w-6 h-6 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Usage Log</div>
-                      <div className="text-sm text-gray-500">Track question usage & points</div>
+                      <div className="font-semibold text-[var(--text-primary)]">Usage Log</div>
+                      <div className="text-sm text-[var(--text-secondary)]">Track question usage & points</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -385,8 +385,8 @@ export default function QuestionBankPage() {
                       <FolderOpen className="w-6 h-6 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Manage Folders</div>
-                      <div className="text-sm text-gray-500">Create & organize global folders</div>
+                      <div className="font-semibold text-[var(--text-primary)]">Manage Folders</div>
+                      <div className="text-sm text-[var(--text-secondary)]">Create & organize global folders</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -398,8 +398,8 @@ export default function QuestionBankPage() {
                       <AlertTriangle className="w-6 h-6 text-red-600" />
                     </div>
                     <div>
-                      <div className="font-semibold text-gray-900">Error Reports</div>
-                      <div className="text-sm text-gray-500">Resolve reported question issues</div>
+                      <div className="font-semibold text-[var(--text-primary)]">Error Reports</div>
+                      <div className="text-sm text-[var(--text-secondary)]">Resolve reported question issues</div>
                     </div>
                   </CardContent>
                 </Card>

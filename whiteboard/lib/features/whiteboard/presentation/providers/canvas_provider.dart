@@ -12,6 +12,7 @@ import '../../data/models/slide_annotation.dart';
 import 'tool_provider.dart';
 import 'session_provider.dart';
 import 'current_slide_id_provider.dart';
+import '../../../question_widget/presentation/providers/set_layout_notifier.dart';
 
 part 'canvas_provider.g.dart';
 final canvasTransformationProvider = StateProvider<Matrix4>((ref) => Matrix4.identity());
@@ -89,11 +90,12 @@ class CanvasNotifier extends _$CanvasNotifier {
     final strokeType = _mapToolToStrokeType(settings.activeTool);
     if (strokeType == null) return;
     final slideId = ref.read(currentSlideIdProvider) ?? '';
+    final resolvedColorARGB = _resolveStrokeColorARGB(settings.currentSettings.color.toARGB32());
     state = state.copyWith(
       activeStroke: StrokeModel(
         id:          const Uuid().v4(),
         points:      [point],
-          colorARGB:   settings.currentSettings.color.toARGB32(),
+          colorARGB:   resolvedColorARGB,
           strokeWidth: settings.currentSettings.strokeWidth,
           type:        strokeType,
           opacity:     settings.currentSettings.opacity,
@@ -535,9 +537,27 @@ class CanvasNotifier extends _$CanvasNotifier {
       Tool.calligraphy => StrokeType.calligraphy,
       Tool.spray => StrokeType.spray,
       Tool.laserPointer => StrokeType.laserPointer,
-      Tool.magicPen => StrokeType.laserPointer,
+      // Magic pen should persist like normal ink; only laser pointer is ephemeral.
+      Tool.magicPen => StrokeType.softPen,
       _ => null,
     };
+  }
+
+  int _resolveStrokeColorARGB(int colorARGB) {
+    final selected = Color(colorARGB);
+    final bgARGB = ref.read(setLayoutNotifierProvider).settings.screenBg;
+    final bg = Color(bgARGB);
+
+    final isPureBlack = selected.toARGB32() == const Color(0xFF111111).toARGB32() ||
+        selected.toARGB32() == const Color(0xFF000000).toARGB32();
+    final isPureWhite = selected.toARGB32() == const Color(0xFFFFFFFF).toARGB32();
+    final isDarkBoard = bg.computeLuminance() < 0.2;
+    final isLightBoard = bg.computeLuminance() > 0.8;
+
+    // Keep user-picked custom colors intact; only auto-correct invisible defaults.
+    if (isDarkBoard && isPureBlack) return const Color(0xFFFFFFFF).toARGB32();
+    if (isLightBoard && isPureWhite) return const Color(0xFF111111).toARGB32();
+    return colorARGB;
   }
   // --- Lasso selection prompt methods ---
   

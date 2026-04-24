@@ -120,11 +120,11 @@ const contentTypes = [
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     published: "bg-green-50 text-green-700 border-green-200",
-    draft: "bg-gray-100 text-gray-600 border-gray-200",
+    draft: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]",
     scheduled: "bg-blue-50 text-blue-700 border-blue-200",
     review: "bg-yellow-50 text-yellow-700 border-yellow-200",
     unpublished: "bg-red-50 text-red-600 border-red-200",
-    archived: "bg-gray-50 text-gray-500 border-gray-200",
+    archived: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]",
   };
   const labels: Record<string, string> = {
     published: "Published",
@@ -282,13 +282,13 @@ const [posts, setPosts] = useState<Post[]>([]);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Blog & Articles</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Blog & Articles</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   WordPress-level CMS with Google SEO optimization
                 </p>
               </div>
@@ -324,8 +324,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                         <FileText className="w-5 h-5 text-blue-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Total Posts</div>
-                        <div className="text-xl font-bold text-gray-900">{stats.totalPosts}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Total Posts</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)]">{stats.totalPosts}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -337,8 +337,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                         <Send className="w-5 h-5 text-green-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Published</div>
-                        <div className="text-xl font-bold text-gray-900">{stats.publishedPosts}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Published</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)]">{stats.publishedPosts}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -346,12 +346,12 @@ const [posts, setPosts] = useState<Post[]>([]);
                 <Card className="kpi-card">
                   <CardContent className="p-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                        <Edit className="w-5 h-5 text-gray-600" />
+                      <div className="w-10 h-10 rounded-full bg-[var(--bg-main)] flex items-center justify-center">
+                        <Edit className="w-5 h-5 text-[var(--text-secondary)]" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Drafts</div>
-                        <div className="text-xl font-bold text-gray-900">{stats.draftPosts}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Drafts</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)]">{stats.draftPosts}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -363,8 +363,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                         <Eye className="w-5 h-5 text-orange-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Total Views</div>
-                        <div className="text-xl font-bold text-gray-900">{stats.totalViews.toLocaleString()}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Total Views</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)]">{stats.totalViews.toLocaleString()}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -376,8 +376,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                         <Users className="w-5 h-5 text-purple-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Authors</div>
-                        <div className="text-xl font-bold text-gray-900">{stats.totalAuthors}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Authors</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)]">{stats.totalAuthors}</div>
                       </div>
                     </div>
                   </CardContent>
@@ -389,8 +389,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                         <MessageSquare className="w-5 h-5 text-cyan-600" />
                       </div>
                       <div>
-                        <div className="text-xs text-gray-500">Comments</div>
-                        <div className="text-xl font-bold text-gray-900">{stats.totalComments}</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Comments</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)]">{stats.totalComments}</div>
                         {stats.pendingComments > 0 && (
                           <div className="text-xs text-orange-600">{stats.pendingComments} pending</div>
                         )}
@@ -410,8 +410,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                       <Sparkles className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">AI-Assisted Writing</div>
-                      <div className="text-xs text-gray-500">Create with AI help</div>
+                      <div className="font-medium text-[var(--text-primary)]">AI-Assisted Writing</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Create with AI help</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -423,8 +423,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                       <ImageIcon className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">Media Library</div>
-                      <div className="text-xs text-gray-500">Manage images & files</div>
+                      <div className="font-medium text-[var(--text-primary)]">Media Library</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Manage images & files</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -436,8 +436,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                       <MessageSquare className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">Comments</div>
-                      <div className="text-xs text-gray-500">Moderate comments</div>
+                      <div className="font-medium text-[var(--text-primary)]">Comments</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Moderate comments</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -449,8 +449,8 @@ const [posts, setPosts] = useState<Post[]>([]);
                       <BarChart3 className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">SEO Overview</div>
-                      <div className="text-xs text-gray-500">Check performance</div>
+                      <div className="font-medium text-[var(--text-primary)]">SEO Overview</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Check performance</div>
                     </div>
                   </CardContent>
                 </Card>
@@ -462,7 +462,7 @@ const [posts, setPosts] = useState<Post[]>([]);
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search posts..."
                       value={searchQuery}
@@ -539,14 +539,14 @@ const [posts, setPosts] = useState<Post[]>([]);
             <Card>
               <CardContent className="p-0">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-500">
+                  <div className="p-8 text-center text-[var(--text-secondary)]">
                     Loading posts...
                   </div>
                 ) : posts.length === 0 ? (
                   <div className="p-8 text-center">
                     <FileText className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-1">No posts found</h3>
-                    <p className="text-gray-500 text-sm mb-4">
+                    <h3 className="font-medium text-[var(--text-primary)] mb-1">No posts found</h3>
+                    <p className="text-[var(--text-secondary)] text-sm mb-4">
                       {searchQuery || statusFilter !== "all" ? "Try adjusting your filters" : "Create your first blog post"}
                     </p>
                     <Link href="/admin/blog/new">
@@ -559,15 +559,15 @@ const [posts, setPosts] = useState<Post[]>([]);
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Title</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Author</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Category</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Date</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Views</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                      <TableRow className="bg-[var(--bg-main)]">
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Title</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Type</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Author</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Category</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Date</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Views</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -575,10 +575,10 @@ const [posts, setPosts] = useState<Post[]>([]);
                         <TableRow key={post.id} className="hover:bg-brand-primary-tint">
                           <TableCell>
                             <div>
-                              <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                              <div className="text-xs text-gray-500 mono">/{post.slug}</div>
+                              <div className="text-sm font-medium text-[var(--text-primary)]">{post.title}</div>
+                              <div className="text-xs text-[var(--text-secondary)] mono">/{post.slug}</div>
                               {post.wordCount && (
-                                <div className="text-xs text-gray-400 mt-0.5">
+                                <div className="text-xs text-[var(--text-muted)] mt-0.5">
                                   {post.wordCount.toLocaleString()} words · {post.readingTimeMin} min read
                                 </div>
                               )}
@@ -601,33 +601,33 @@ const [posts, setPosts] = useState<Post[]>([]);
                               {post.author.photoUrl ? (
                                 <img src={post.author.photoUrl} alt={post.author.name} className="w-6 h-6 rounded-full" />
                               ) : (
-                                <div className="w-6 h-6 rounded-full bg-gray-200 flex items-center justify-center text-xs text-gray-500">
+                                <div className="w-6 h-6 rounded-full bg-[var(--bg-sidebar)] flex items-center justify-center text-xs text-[var(--text-secondary)]">
                                   {post.author.name.charAt(0)}
                                 </div>
                               )}
-                              <span className="text-sm text-gray-600">{post.author.name}</span>
+                              <span className="text-sm text-[var(--text-secondary)]">{post.author.name}</span>
                             </div>
                           </TableCell>
                           <TableCell>
                             {post.categories.length > 0 ? (
                               <div className="flex flex-wrap gap-1">
                                 {post.categories.slice(0, 2).map(({ category }) => (
-                                  <span key={category.id} className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
+                                  <span key={category.id} className="text-xs bg-[var(--bg-main)] text-[var(--text-secondary)] px-2 py-0.5 rounded">
                                     {category.name}
                                   </span>
                                 ))}
                                 {post.categories.length > 2 && (
-                                  <span className="text-xs text-gray-400">+{post.categories.length - 2}</span>
+                                  <span className="text-xs text-[var(--text-muted)]">+{post.categories.length - 2}</span>
                                 )}
                               </div>
                             ) : (
-                              <span className="text-xs text-gray-400">—</span>
+                              <span className="text-xs text-[var(--text-muted)]">—</span>
                             )}
                           </TableCell>
-                          <TableCell className="text-sm text-gray-500">
+                          <TableCell className="text-sm text-[var(--text-secondary)]">
                             {post.status === 'published' ? formatDate(post.publishedAt) : formatDate(post.createdAt)}
                           </TableCell>
-                          <TableCell className="text-sm text-gray-900 font-medium">
+                          <TableCell className="text-sm text-[var(--text-primary)] font-medium">
                             {post.viewCount.toLocaleString()}
                           </TableCell>
                           <TableCell className="text-right">
@@ -677,7 +677,7 @@ const [posts, setPosts] = useState<Post[]>([]);
                 >
                   Previous
                 </Button>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[var(--text-secondary)]">
                   Page {page} of {totalPages}
                 </span>
                 <Button

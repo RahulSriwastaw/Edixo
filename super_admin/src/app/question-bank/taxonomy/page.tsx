@@ -161,17 +161,17 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Subject Taxonomy</h1>
-                <p className="text-gray-500 text-sm">Manage subjects, chapters, and topics</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Subject Taxonomy</h1>
+                <p className="text-[var(--text-secondary)] text-sm">Manage subjects, chapters, and topics</p>
               </div>
               <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white gap-2" onClick={() => setAddDialog({ type: "subject" })}>
                 <Plus className="w-4 h-4" /> Add Subject
@@ -182,26 +182,26 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-gray-900">{taxonomy.length}</div>
-                  <div className="text-sm text-gray-500">Subjects</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{taxonomy.length}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Subjects</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-gray-900">{taxonomy.reduce((sum, s) => sum + s.chapters.length, 0)}</div>
-                  <div className="text-sm text-gray-500">Chapters</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{taxonomy.reduce((sum, s) => sum + s.chapters.length, 0)}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Chapters</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-gray-900">{taxonomy.reduce((sum, s) => sum + s.chapters.reduce((cSum, c) => cSum + c.topics.length, 0), 0)}</div>
-                  <div className="text-sm text-gray-500">Topics</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{taxonomy.reduce((sum, s) => sum + s.chapters.reduce((cSum, c) => cSum + c.topics.length, 0), 0)}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Topics</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-[#F4511E]">{taxonomy.reduce((sum, s) => sum + s.questions, 0).toLocaleString()}</div>
-                  <div className="text-sm text-gray-500">Questions</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Questions</div>
                 </CardContent>
               </Card>
             </div>
@@ -210,7 +210,7 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
             <Card>
               <CardContent className="p-4">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <Input placeholder="Search taxonomy..." value={search} onChange={(e) => setSearch(e.target.value)} className="pl-10" />
                 </div>
               </CardContent>
@@ -229,12 +229,12 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
                   {taxonomy.map((subject) => (
                     <div key={subject.id}>
                       {/* Subject Level */}
-                      <div className="flex items-center gap-2 p-4 hover:bg-gray-50">
-                        <button onClick={() => toggleSubject(subject.id)} className="p-1 hover:bg-gray-200 rounded">
-                          {subject.expanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
+                      <div className="flex items-center gap-2 p-4 hover:bg-[var(--bg-main)]">
+                        <button onClick={() => toggleSubject(subject.id)} className="p-1 hover:bg-[var(--bg-sidebar)] rounded">
+                          {subject.expanded ? <ChevronDown className="w-4 h-4 text-[var(--text-secondary)]" /> : <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />}
                         </button>
                         <BookOpen className="w-5 h-5 text-purple-500" />
-                        <span className="font-medium text-gray-900 flex-1">{subject.name}</span>
+                        <span className="font-medium text-[var(--text-primary)] flex-1">{subject.name}</span>
                         <Badge className="bg-purple-50 text-purple-700">{subject.questions} questions</Badge>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -255,12 +255,12 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
                       {/* Chapters Level */}
                       {subject.expanded && subject.chapters.map((chapter) => (
                         <div key={chapter.id}>
-                          <div className="flex items-center gap-2 pl-10 pr-4 py-3 hover:bg-gray-50 border-l-4 border-purple-200 ml-4">
-                            <button onClick={() => toggleChapter(subject.id, chapter.id)} className="p-1 hover:bg-gray-200 rounded">
-                              {chapter.expanded ? <ChevronDown className="w-4 h-4 text-gray-500" /> : <ChevronRight className="w-4 h-4 text-gray-500" />}
+                          <div className="flex items-center gap-2 pl-10 pr-4 py-3 hover:bg-[var(--bg-main)] border-l-4 border-purple-200 ml-4">
+                            <button onClick={() => toggleChapter(subject.id, chapter.id)} className="p-1 hover:bg-[var(--bg-sidebar)] rounded">
+                              {chapter.expanded ? <ChevronDown className="w-4 h-4 text-[var(--text-secondary)]" /> : <ChevronRight className="w-4 h-4 text-[var(--text-secondary)]" />}
                             </button>
                             <FolderOpen className="w-4 h-4 text-blue-500" />
-                            <span className="text-gray-700 flex-1">{chapter.name}</span>
+                            <span className="text-[var(--text-primary)] flex-1">{chapter.name}</span>
                             <Badge className="bg-blue-50 text-blue-700 text-xs">{chapter.questions}</Badge>
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -280,10 +280,10 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
 
                           {/* Topics Level */}
                           {chapter.expanded && chapter.topics.map((topic) => (
-                            <div key={topic.id} className="flex items-center gap-2 pl-[72px] pr-4 py-2 hover:bg-gray-50 border-l-4 border-blue-200 ml-8">
+                            <div key={topic.id} className="flex items-center gap-2 pl-[72px] pr-4 py-2 hover:bg-[var(--bg-main)] border-l-4 border-blue-200 ml-8">
                               <FileText className="w-4 h-4 text-emerald-500" />
-                              <span className="text-gray-600 text-sm flex-1">{topic.name}</span>
-                              <Badge className="bg-gray-100 text-gray-600 text-xs">{topic.questions}</Badge>
+                              <span className="text-[var(--text-secondary)] text-sm flex-1">{topic.name}</span>
+                              <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)] text-xs">{topic.questions}</Badge>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
                                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
@@ -318,7 +318,7 @@ const [taxonomy, setTaxonomy] = useState<Subject[]>(mockTaxonomy);
           </DialogHeader>
           <div className="space-y-4 py-4">
             {addDialog?.parentName && (
-              <p className="text-sm text-gray-500">Under: {addDialog.parentName}</p>
+              <p className="text-sm text-[var(--text-secondary)]">Under: {addDialog.parentName}</p>
             )}
             <Input
               placeholder={`Enter ${addDialog?.type} name...`}

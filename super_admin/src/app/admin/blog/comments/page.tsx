@@ -268,7 +268,7 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
       approved: "bg-green-50 text-green-700",
       pending: "bg-yellow-50 text-yellow-700",
       spam: "bg-red-50 text-red-700",
-      trash: "bg-gray-100 text-gray-600",
+      trash: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
     };
     const icons: Record<string, any> = {
       approved: CheckCircle,
@@ -290,17 +290,17 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/blog" className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/admin/blog" className="p-2 hover:bg-[var(--bg-main)] rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Comments</h1>
-                  <p className="text-gray-500 text-sm">Moderate blog post comments</p>
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Comments</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">Moderate blog post comments</p>
                 </div>
               </div>
             </div>
@@ -317,8 +317,8 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
                       <MessageSquare className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total</div>
-                      <div className="text-xl font-bold text-gray-900">{stats.total}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{stats.total}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -333,7 +333,7 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
                       <Clock className="w-5 h-5 text-yellow-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Pending</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Pending</div>
                       <div className="text-xl font-bold text-yellow-600">{stats.pending}</div>
                     </div>
                   </div>
@@ -349,7 +349,7 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Approved</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Approved</div>
                       <div className="text-xl font-bold text-green-600">{stats.approved}</div>
                     </div>
                   </div>
@@ -365,7 +365,7 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
                       <AlertTriangle className="w-5 h-5 text-red-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Spam</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Spam</div>
                       <div className="text-xl font-bold text-red-600">{stats.spam}</div>
                     </div>
                   </div>
@@ -380,7 +380,7 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
                   <div className="flex items-center gap-3">
                     {selectedComments.length > 0 && (
                       <>
-                        <span className="text-sm text-gray-500">{selectedComments.length} selected</span>
+                        <span className="text-sm text-[var(--text-secondary)]">{selectedComments.length} selected</span>
                         <Button variant="outline" size="sm" onClick={() => handleBulkAction('approve')}>
                           <CheckCircle className="w-4 h-4 mr-1 text-green-600" />
                           Approve
@@ -414,54 +414,54 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
                 {filteredComments.length === 0 ? (
                   <div className="p-8 text-center">
                     <MessageSquare className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-1">No comments found</h3>
-                    <p className="text-gray-500 text-sm">
+                    <h3 className="font-medium text-[var(--text-primary)] mb-1">No comments found</h3>
+                    <p className="text-[var(--text-secondary)] text-sm">
                       {statusFilter !== 'all' ? `No ${statusFilter} comments` : 'No comments yet'}
                     </p>
                   </div>
                 ) : (
                   <div className="divide-y">
                     {/* Select All */}
-                    <div className="p-3 bg-gray-50 flex items-center gap-3">
+                    <div className="p-3 bg-[var(--bg-main)] flex items-center gap-3">
                       <input
                         type="checkbox"
                         checked={selectedComments.length === filteredComments.length && filteredComments.length > 0}
                         onChange={toggleSelectAll}
-                        className="rounded border-gray-300"
+                        className="rounded border-[var(--border-input)]"
                       />
-                      <span className="text-sm text-gray-500">Select all</span>
+                      <span className="text-sm text-[var(--text-secondary)]">Select all</span>
                     </div>
 
                     {filteredComments.map((comment) => (
-                      <div key={comment.id} className="p-4 hover:bg-gray-50 transition-colors">
+                      <div key={comment.id} className="p-4 hover:bg-[var(--bg-main)] transition-colors">
                         <div className="flex items-start gap-3">
                           <input
                             type="checkbox"
                             checked={selectedComments.includes(comment.id)}
                             onChange={() => toggleSelect(comment.id)}
-                            className="rounded border-gray-300 mt-1"
+                            className="rounded border-[var(--border-input)] mt-1"
                           />
                           
-                          <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
-                            <span className="text-sm font-medium text-gray-500">
+                          <div className="w-10 h-10 rounded-full bg-[var(--bg-sidebar)] flex items-center justify-center flex-shrink-0">
+                            <span className="text-sm font-medium text-[var(--text-secondary)]">
                               {comment.authorName.charAt(0).toUpperCase()}
                             </span>
                           </div>
 
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium text-gray-900">{comment.authorName}</span>
-                              <span className="text-xs text-gray-400">{comment.authorEmail}</span>
+                              <span className="font-medium text-[var(--text-primary)]">{comment.authorName}</span>
+                              <span className="text-xs text-[var(--text-muted)]">{comment.authorEmail}</span>
                               <StatusBadge status={comment.status} />
                               {comment.likeCount > 0 && (
-                                <span className="text-xs text-gray-400">👍 {comment.likeCount}</span>
+                                <span className="text-xs text-[var(--text-muted)]">👍 {comment.likeCount}</span>
                               )}
                             </div>
 
-                            <p className="text-sm text-gray-600 mt-1">{comment.content}</p>
+                            <p className="text-sm text-[var(--text-secondary)] mt-1">{comment.content}</p>
 
                             <div className="flex items-center gap-4 mt-2">
-                              <span className="text-xs text-gray-400">{formatDate(comment.createdAt)}</span>
+                              <span className="text-xs text-[var(--text-muted)]">{formatDate(comment.createdAt)}</span>
                               {comment.post && (
                                 <a 
                                   href={`/blog/${comment.post.slug}`}
@@ -556,9 +556,9 @@ const [comments, setComments] = useState<Comment[]>(mockComments);
 
           {replyDialog && (
             <div className="py-4">
-              <div className="p-3 bg-gray-50 rounded-lg mb-4">
-                <div className="text-sm font-medium text-gray-900">{replyDialog.authorName}</div>
-                <div className="text-sm text-gray-600 mt-1">{replyDialog.content}</div>
+              <div className="p-3 bg-[var(--bg-main)] rounded-lg mb-4">
+                <div className="text-sm font-medium text-[var(--text-primary)]">{replyDialog.authorName}</div>
+                <div className="text-sm text-[var(--text-secondary)] mt-1">{replyDialog.content}</div>
               </div>
 
               <Textarea

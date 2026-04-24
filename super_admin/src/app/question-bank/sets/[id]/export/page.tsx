@@ -717,10 +717,10 @@ export default function QuestionSetExportPage() {
   return (
     <Suspense
       fallback={
-        <div className="h-screen w-full flex items-center justify-center bg-gray-50">
+        <div className="h-screen w-full flex items-center justify-center bg-[var(--bg-main)]">
           <div className="text-center">
             <div className="animate-spin w-8 h-8 border-4 border-[#F4511E] border-t-transparent rounded-full mx-auto mb-4" />
-            <p className="text-gray-500 font-medium">Loading Export Studio...</p>
+            <p className="text-[var(--text-secondary)] font-medium">Loading Export Studio...</p>
           </div>
         </div>
       }

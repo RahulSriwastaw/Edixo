@@ -102,20 +102,20 @@ export default function MockbookPlansPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
               <Link href="/mockbook" className="hover:text-brand-primary">MockBook</Link>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-900 font-medium">Plans & Packs</span>
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
+              <span className="text-[var(--text-primary)] font-medium">Plans & Packs</span>
             </div>
 
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Subscription Plans</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Subscription Plans</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage student subscription packages for the Mockbook app
                 </p>
               </div>
@@ -137,7 +137,7 @@ export default function MockbookPlansPage() {
                     <Package className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500 uppercase">Total Plans</div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)] uppercase">Total Plans</div>
                     <div className="text-2xl font-bold">{plans.length}</div>
                   </div>
                 </CardContent>
@@ -148,7 +148,7 @@ export default function MockbookPlansPage() {
                     <Check className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500 uppercase">Active Plans</div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)] uppercase">Active Plans</div>
                     <div className="text-2xl font-bold">{plans.filter(p => p.isActive).length}</div>
                   </div>
                 </CardContent>
@@ -159,7 +159,7 @@ export default function MockbookPlansPage() {
                     <Users className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500 uppercase">Subscribed Students</div>
+                    <div className="text-xs font-medium text-[var(--text-secondary)] uppercase">Subscribed Students</div>
                     <div className="text-2xl font-bold">--</div>
                   </div>
                 </CardContent>
@@ -169,9 +169,9 @@ export default function MockbookPlansPage() {
             {/* List Section */}
             <Card>
               <CardContent className="p-0">
-                <div className="p-4 border-b border-gray-100 flex items-center gap-4">
+                <div className="p-4 border-b border-[var(--divider)] flex items-center gap-4">
                   <div className="relative flex-1 max-w-sm">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input 
                       placeholder="Search plans by name..." 
                       className="pl-9 input-field"
@@ -184,7 +184,7 @@ export default function MockbookPlansPage() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50/50">
+                      <TableRow className="bg-[var(--bg-main)]/50">
                         <TableHead className="w-[80px]">Order</TableHead>
                         <TableHead>Plan Details</TableHead>
                         <TableHead>Pricing</TableHead>
@@ -198,7 +198,7 @@ export default function MockbookPlansPage() {
                       {isLoading ? (
                         Array.from({ length: 3 }).map((_, i) => (
                           <TableRow key={i}>
-                            <TableCell colSpan={7} className="text-center py-10 text-gray-400">Loading...</TableCell>
+                            <TableCell colSpan={7} className="text-center py-10 text-[var(--text-muted)]">Loading...</TableCell>
                           </TableRow>
                         ))
                       ) : filteredPlans.length === 0 ? (
@@ -206,7 +206,7 @@ export default function MockbookPlansPage() {
                           <TableCell colSpan={7} className="text-center py-20">
                             <div className="flex flex-col items-center gap-2">
                               <Package className="w-12 h-12 text-gray-200" />
-                              <p className="font-medium text-gray-500">No plans found</p>
+                              <p className="font-medium text-[var(--text-secondary)]">No plans found</p>
                               <Button variant="outline" size="sm" asChild className="mt-2">
                                 <Link href="/mockbook/plans/create">Create your first plan</Link>
                               </Button>
@@ -216,29 +216,29 @@ export default function MockbookPlansPage() {
                       ) : (
                         filteredPlans.map((plan) => (
                           <TableRow key={plan.id} className="group hover:bg-orange-50/30">
-                            <TableCell className="font-mono text-gray-400">{plan.sortOrder}</TableCell>
+                            <TableCell className="font-mono text-[var(--text-muted)]">{plan.sortOrder}</TableCell>
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600">
                                   <Zap className="w-4 h-4" />
                                 </div>
                                 <div>
-                                  <div className="font-semibold text-gray-900">{plan.name}</div>
-                                  <div className="text-xs text-gray-500 truncate max-w-[200px]">{plan.description || 'No description'}</div>
+                                  <div className="font-semibold text-[var(--text-primary)]">{plan.name}</div>
+                                  <div className="text-xs text-[var(--text-secondary)] truncate max-w-[200px]">{plan.description || 'No description'}</div>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex flex-col">
-                                <span className="font-bold text-gray-900">₹{plan.price}</span>
+                                <span className="font-bold text-[var(--text-primary)]">₹{plan.price}</span>
                                 {plan.discountPrice && (
-                                  <span className="text-xs text-gray-400 line-through">₹{plan.discountPrice}</span>
+                                  <span className="text-xs text-[var(--text-muted)] line-through">₹{plan.discountPrice}</span>
                                 )}
                               </div>
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center gap-1.5 text-sm">
-                                <Clock className="w-3.5 h-3.5 text-gray-400" />
+                                <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                                 {plan.durationDays} Days
                               </div>
                             </TableCell>
@@ -254,14 +254,14 @@ export default function MockbookPlansPage() {
                             <TableCell>
                               <Badge className={cn(
                                 "text-[10px] font-bold px-2 py-0.5",
-                                plan.isActive ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-500"
+                                plan.isActive ? "bg-green-100 text-green-700" : "bg-[var(--bg-main)] text-[var(--text-secondary)]"
                               )}>
                                 {plan.isActive ? 'ACTIVE' : 'INACTIVE'}
                               </Badge>
                             </TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-brand-primary" asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-[var(--text-secondary)] hover:text-brand-primary" asChild>
                                   <Link href={`/mockbook/plans/edit/${plan.id}`}>
                                     <Edit className="w-4 h-4" />
                                   </Link>
@@ -269,7 +269,7 @@ export default function MockbookPlansPage() {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-8 w-8 text-gray-500 hover:text-red-500"
+                                  className="h-8 w-8 text-[var(--text-secondary)] hover:text-red-500"
                                   onClick={() => setPlanToDelete(plan)}
                                 >
                                   <Trash2 className="w-4 h-4" />

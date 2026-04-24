@@ -382,7 +382,7 @@ const stats = [
 
 // Color options
 const colorOptions = [
-  { value: "gray", label: "Gray", class: "bg-gray-100 text-gray-700" },
+  { value: "gray", label: "Gray", class: "bg-[var(--bg-main)] text-[var(--text-primary)]" },
   { value: "amber", label: "Amber", class: "bg-amber-100 text-amber-700" },
   { value: "purple", label: "Purple", class: "bg-purple-100 text-purple-700" },
   { value: "green", label: "Green", class: "bg-green-100 text-green-700" },
@@ -422,7 +422,7 @@ const examCategoryOptions = [
 function StatusBadge({ status }: { status: string }) {
   const config: Record<string, { label: string; className: string }> = {
     active: { label: "Active", className: "bg-green-50 text-green-700 border-green-200" },
-    draft: { label: "Draft", className: "bg-gray-50 text-gray-600 border-gray-200" },
+    draft: { label: "Draft", className: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]" },
     archived: { label: "Archived", className: "bg-yellow-50 text-yellow-700 border-yellow-200" },
   };
 
@@ -452,12 +452,12 @@ const getIconBgColor = (color: string) => {
     green: "bg-green-50",
     orange: "bg-orange-50",
     purple: "bg-purple-50",
-    gray: "bg-gray-50",
+    gray: "bg-[var(--bg-main)]",
     amber: "bg-amber-50",
     red: "bg-red-50",
     teal: "bg-teal-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -466,12 +466,12 @@ const getIconColor = (color: string) => {
     green: "text-green-600",
     orange: "text-orange-600",
     purple: "text-purple-600",
-    gray: "text-gray-600",
+    gray: "text-[var(--text-secondary)]",
     amber: "text-amber-600",
     red: "text-red-600",
     teal: "text-teal-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 const getIconComponent = (iconName: string) => {
@@ -664,20 +664,20 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/website" className="hover:text-orange-600">Public Website CMS</Link>
-              <ChevronRight className="w-4 h-4 text-gray-400" />
-              <span className="text-gray-900 font-medium">Plans & Packs</span>
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
+              <span className="text-[var(--text-primary)] font-medium">Plans & Packs</span>
             </div>
 
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Plans & Packs Management</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Plans & Packs Management</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Create and manage subscription plans for public website
                 </p>
               </div>
@@ -701,10 +701,10 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {stat.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-bold text-[var(--text-primary)]">
                             {stat.value}
                           </div>
                         </div>
@@ -720,7 +720,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search plans..."
                       value={searchQuery}
@@ -765,15 +765,15 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase w-[60px]">Order</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Pricing</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">AI Points</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Subscribers</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Revenue</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                    <TableRow className="bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase w-[60px]">Order</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Plan</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Pricing</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">AI Points</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Subscribers</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Revenue</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -784,7 +784,7 @@ const [searchQuery, setSearchQuery] = useState("");
                           <TableCell>
                             <div className="flex items-center gap-2">
                               <GripVertical className="w-4 h-4 text-gray-300 cursor-move" />
-                              <span className="text-sm text-gray-500">{plan.sortOrder}</span>
+                              <span className="text-sm text-[var(--text-secondary)]">{plan.sortOrder}</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -794,7 +794,7 @@ const [searchQuery, setSearchQuery] = useState("");
                               </div>
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="font-medium text-gray-900">{plan.name}</span>
+                                  <span className="font-medium text-[var(--text-primary)]">{plan.name}</span>
                                   {plan.isPopular && (
                                     <Badge className="bg-orange-100 text-orange-700 text-[10px]">Popular</Badge>
                                   )}
@@ -802,7 +802,7 @@ const [searchQuery, setSearchQuery] = useState("");
                                     <Badge className="bg-purple-100 text-purple-700 text-[10px]">{plan.badge}</Badge>
                                   )}
                                 </div>
-                                <div className="text-xs text-gray-500">{plan.shortDescription}</div>
+                                <div className="text-xs text-[var(--text-secondary)]">{plan.shortDescription}</div>
                               </div>
                             </div>
                           </TableCell>
@@ -811,7 +811,7 @@ const [searchQuery, setSearchQuery] = useState("");
                               {plan.pricingPlans.slice(0, 2).map((p, idx) => (
                                 <div key={idx} className="text-sm">
                                   <span className="font-medium">₹{p.price.toLocaleString()}</span>
-                                  <span className="text-xs text-gray-500">/{p.durationType === "yearly" ? "yr" : "mo"}</span>
+                                  <span className="text-xs text-[var(--text-secondary)]">/{p.durationType === "yearly" ? "yr" : "mo"}</span>
                                 </div>
                               ))}
                             </div>
@@ -820,7 +820,7 @@ const [searchQuery, setSearchQuery] = useState("");
                             <div className="flex items-center gap-1 text-orange-600">
                               <Zap className="w-4 h-4" />
                               <span className="font-medium">{plan.aiPoints}</span>
-                              <span className="text-xs text-gray-500">/mo</span>
+                              <span className="text-xs text-[var(--text-secondary)]">/mo</span>
                             </div>
                           </TableCell>
                           <TableCell>
@@ -895,7 +895,7 @@ const [searchQuery, setSearchQuery] = useState("");
           </DialogHeader>
 
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="bg-gray-100 rounded-lg p-1 w-full grid grid-cols-4">
+            <TabsList className="bg-[var(--bg-main)] rounded-lg p-1 w-full grid grid-cols-4">
               <TabsTrigger value="basic" className="text-xs">Basic Info</TabsTrigger>
               <TabsTrigger value="features" className="text-xs">Features</TabsTrigger>
               <TabsTrigger value="pricing" className="text-xs">Pricing</TabsTrigger>
@@ -1086,7 +1086,7 @@ const [searchQuery, setSearchQuery] = useState("");
                       onClick={() => removeFeature(feature.id)}
                       disabled={formData.features.length <= 1}
                     >
-                      <Minus className="w-4 h-4 text-gray-400" />
+                      <Minus className="w-4 h-4 text-[var(--text-muted)]" />
                     </Button>
                   </div>
                 ))}
@@ -1095,12 +1095,12 @@ const [searchQuery, setSearchQuery] = useState("");
               <div className="border-t pt-4 mt-4">
                 <Label className="mb-3 block">Additional Features</Label>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-gray-500" />
+                      <Calendar className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
                         <div className="text-sm font-medium">Daily Questions</div>
-                        <div className="text-xs text-gray-500">Questions per day</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Questions per day</div>
                       </div>
                     </div>
                     <Input
@@ -1111,12 +1111,12 @@ const [searchQuery, setSearchQuery] = useState("");
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <BookOpen className="w-5 h-5 text-gray-500" />
+                      <BookOpen className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
                         <div className="text-sm font-medium">Study Plans</div>
-                        <div className="text-xs text-gray-500">Structured learning</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Structured learning</div>
                       </div>
                     </div>
                     <Switch
@@ -1125,12 +1125,12 @@ const [searchQuery, setSearchQuery] = useState("");
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <BarChart3 className="w-5 h-5 text-gray-500" />
+                      <BarChart3 className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
                         <div className="text-sm font-medium">Analytics</div>
-                        <div className="text-xs text-gray-500">Performance insights</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Performance insights</div>
                       </div>
                     </div>
                     <Select value={formData.analytics} onValueChange={(v: "none" | "basic" | "advanced") => setFormData({ ...formData, analytics: v })}>
@@ -1145,12 +1145,12 @@ const [searchQuery, setSearchQuery] = useState("");
                     </Select>
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Sparkles className="w-5 h-5 text-gray-500" />
+                      <Sparkles className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
                         <div className="text-sm font-medium">AI Solver</div>
-                        <div className="text-xs text-gray-500">Doubt solving</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Doubt solving</div>
                       </div>
                     </div>
                     <Switch
@@ -1159,12 +1159,12 @@ const [searchQuery, setSearchQuery] = useState("");
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Trophy className="w-5 h-5 text-gray-500" />
+                      <Trophy className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
                         <div className="text-sm font-medium">Certificates</div>
-                        <div className="text-xs text-gray-500">Course completion</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Course completion</div>
                       </div>
                     </div>
                     <Switch
@@ -1173,12 +1173,12 @@ const [searchQuery, setSearchQuery] = useState("");
                     />
                   </div>
 
-                  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                     <div className="flex items-center gap-3">
-                      <Users className="w-5 h-5 text-gray-500" />
+                      <Users className="w-5 h-5 text-[var(--text-secondary)]" />
                       <div>
                         <div className="text-sm font-medium">Priority Support</div>
-                        <div className="text-xs text-gray-500">Dedicated help</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Dedicated help</div>
                       </div>
                     </div>
                     <Switch
@@ -1212,7 +1212,7 @@ const [searchQuery, setSearchQuery] = useState("");
                           onClick={() => removePricingPlan(plan.id)}
                           disabled={formData.pricingPlans.length <= 1}
                         >
-                          <Trash2 className="w-4 h-4 text-gray-400" />
+                          <Trash2 className="w-4 h-4 text-[var(--text-muted)]" />
                         </Button>
                       </div>
                       <div className="grid grid-cols-5 gap-3">
@@ -1280,11 +1280,11 @@ const [searchQuery, setSearchQuery] = useState("");
             <TabsContent value="settings" className="mt-4 space-y-4">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                  <div className="p-4 bg-[var(--bg-main)] rounded-lg space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <div className="font-medium">Trial Period</div>
-                        <div className="text-xs text-gray-500">Free trial days for new users</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Free trial days for new users</div>
                       </div>
                       <Input
                         type="number"
@@ -1295,7 +1295,7 @@ const [searchQuery, setSearchQuery] = useState("");
                     </div>
                   </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                  <div className="p-4 bg-[var(--bg-main)] rounded-lg space-y-4">
                     <div className="font-medium">Purchase Methods</div>
                     <div className="space-y-2">
                       {["In-App Purchase", "Admin Assign", "Website Purchase"].map((method) => (
@@ -1309,18 +1309,18 @@ const [searchQuery, setSearchQuery] = useState("");
                 </div>
 
                 <div className="space-y-4">
-                  <div className="p-4 bg-gray-50 rounded-lg space-y-4">
+                  <div className="p-4 bg-[var(--bg-main)] rounded-lg space-y-4">
                     <div className="font-medium">Thumbnail Image</div>
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Drag and drop or click to upload</p>
+                    <div className="border-2 border-dashed border-[var(--border-input)] rounded-lg p-6 text-center">
+                      <ImageIcon className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2" />
+                      <p className="text-sm text-[var(--text-secondary)]">Drag and drop or click to upload</p>
                       <Button variant="outline" size="sm" className="mt-2">
                         Browse Files
                       </Button>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="p-4 bg-[var(--bg-main)] rounded-lg">
                     <div className="font-medium mb-3">Status</div>
                     <Select defaultValue="draft">
                       <SelectTrigger className="input-field">
@@ -1389,19 +1389,19 @@ const [searchQuery, setSearchQuery] = useState("");
                     <div className="flex items-center gap-1 text-orange-600">
                       <Zap className="w-4 h-4" />
                       <span className="font-bold text-sm">{selectedPlan.aiPoints}</span>
-                      <span className="text-xs text-gray-500">pts/mo</span>
+                      <span className="text-xs text-[var(--text-secondary)]">pts/mo</span>
                     </div>
                   </div>
 
-                  <h3 className="font-semibold text-gray-900">{selectedPlan.name}</h3>
-                  <p className="text-sm text-gray-500 mt-1">{selectedPlan.shortDescription}</p>
+                  <h3 className="font-semibold text-[var(--text-primary)]">{selectedPlan.name}</h3>
+                  <p className="text-sm text-[var(--text-secondary)] mt-1">{selectedPlan.shortDescription}</p>
 
                   <div className="mt-4">
                     <div className="flex items-baseline gap-2">
-                      <span className="text-2xl font-bold text-gray-900">
+                      <span className="text-2xl font-bold text-[var(--text-primary)]">
                         ₹{selectedPlan.pricingPlans[0]?.price.toLocaleString()}
                       </span>
-                      <span className="text-gray-500 text-sm">/month</span>
+                      <span className="text-[var(--text-secondary)] text-sm">/month</span>
                     </div>
                   </div>
 
@@ -1409,7 +1409,7 @@ const [searchQuery, setSearchQuery] = useState("");
                     {selectedPlan.features.filter(f => f.included).slice(0, 5).map((feature) => (
                       <div key={feature.id} className="flex items-center gap-2 text-sm">
                         <Check className="w-4 h-4 text-green-500" />
-                        <span className="text-gray-700">{feature.text}</span>
+                        <span className="text-[var(--text-primary)]">{feature.text}</span>
                       </div>
                     ))}
                   </div>
@@ -1422,22 +1422,22 @@ const [searchQuery, setSearchQuery] = useState("");
 
               {/* Details */}
               <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Plan Details</h4>
+                <h4 className="font-medium text-[var(--text-primary)]">Plan Details</h4>
                 <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div className="p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500">Status:</span>
+                  <div className="p-2 bg-[var(--bg-main)] rounded">
+                    <span className="text-[var(--text-secondary)]">Status:</span>
                     <StatusBadge status={selectedPlan.status} />
                   </div>
-                  <div className="p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500">Subscribers:</span>
+                  <div className="p-2 bg-[var(--bg-main)] rounded">
+                    <span className="text-[var(--text-secondary)]">Subscribers:</span>
                     <span className="font-medium ml-1">{selectedPlan.subscribers.toLocaleString()}</span>
                   </div>
-                  <div className="p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500">Revenue:</span>
+                  <div className="p-2 bg-[var(--bg-main)] rounded">
+                    <span className="text-[var(--text-secondary)]">Revenue:</span>
                     <span className="font-medium ml-1">₹{(selectedPlan.revenue / 100000).toFixed(1)}L</span>
                   </div>
-                  <div className="p-2 bg-gray-50 rounded">
-                    <span className="text-gray-500">Trial:</span>
+                  <div className="p-2 bg-[var(--bg-main)] rounded">
+                    <span className="text-[var(--text-secondary)]">Trial:</span>
                     <span className="font-medium ml-1">{selectedPlan.trialDays} days</span>
                   </div>
                 </div>

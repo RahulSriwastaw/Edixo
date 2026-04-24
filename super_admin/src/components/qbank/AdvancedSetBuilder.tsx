@@ -333,36 +333,36 @@ export function AdvancedSetBuilder() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
             <MousePointer2 className="w-6 h-6 text-brand-primary" />
             Advanced Set Builder
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-[var(--text-secondary)] mt-1">
             Browse and pick questions across categories to build your mock test sets.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-lg">
-            <Globe2 className="w-4 h-4 text-slate-500 ml-2" />
+            <Globe2 className="w-4 h-4 text-[var(--text-secondary)] ml-2" />
             <div className="flex bg-slate-100 p-0.5 rounded-md gap-0.5">
               <Button 
                 variant="ghost" 
                 onClick={() => setDisplayLanguage('en')}
-                className={cn("h-7 px-3 text-xs", displayLanguage === 'en' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-slate-500 hover:text-slate-700")}
+                className={cn("h-7 px-3 text-xs", displayLanguage === 'en' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}
               >
                 English
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => setDisplayLanguage('hi')}
-                className={cn("h-7 px-3 text-xs", displayLanguage === 'hi' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-slate-500 hover:text-slate-700")}
+                className={cn("h-7 px-3 text-xs", displayLanguage === 'hi' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}
               >
                 हिंदी
               </Button>
               <Button 
                 variant="ghost" 
                 onClick={() => setDisplayLanguage('both')}
-                className={cn("h-7 px-3 text-xs", displayLanguage === 'both' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-slate-500 hover:text-slate-700")}
+                className={cn("h-7 px-3 text-xs", displayLanguage === 'both' ? "bg-white shadow-sm font-medium text-brand-primary" : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]")}
               >
                 Both
               </Button>
@@ -390,7 +390,7 @@ export function AdvancedSetBuilder() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 flex-1 overflow-hidden">
         {/* Sidebar Filters */}
         <aside className="lg:col-span-1 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-          <Card className="border-slate-200 shadow-sm sticky top-0">
+          <Card className="border-[var(--border-input)] shadow-sm sticky top-0">
             <CardHeader className="p-4 border-b">
               <CardTitle className="text-sm font-semibold flex items-center gap-2">
                 <Filter className="w-4 h-4" /> Filters
@@ -399,9 +399,9 @@ export function AdvancedSetBuilder() {
             <CardContent className="p-4 space-y-5">
               {/* Search */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Search Content</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Search Content</label>
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                   <Input 
                     placeholder="Type to search..." 
                     className="pl-9 h-9 text-sm"
@@ -413,7 +413,7 @@ export function AdvancedSetBuilder() {
 
               {/* Exam Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Exam Category</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Exam Category</label>
                 <Select value={selectedExam} onValueChange={setSelectedExam}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Exams" />
@@ -427,7 +427,7 @@ export function AdvancedSetBuilder() {
 
               {/* Airtable Source Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Airtable Source</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Airtable Source</label>
                 <Select value={selectedSource} onValueChange={setSelectedSource}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Sources" />
@@ -441,7 +441,7 @@ export function AdvancedSetBuilder() {
 
               {/* Subject Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Subject</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Subject</label>
                 <Select value={selectedSubject} onValueChange={setSelectedSubject}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Subjects" />
@@ -455,7 +455,7 @@ export function AdvancedSetBuilder() {
 
               {/* Chapter Select (Cascading) */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Chapter</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Chapter</label>
                 <Select 
                     value={selectedChapter} 
                     onValueChange={setSelectedChapter}
@@ -473,7 +473,7 @@ export function AdvancedSetBuilder() {
 
               {/* Year Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Year</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Year</label>
                 <Select value={selectedYear} onValueChange={setSelectedYear}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Years" />
@@ -487,7 +487,7 @@ export function AdvancedSetBuilder() {
 
               {/* Shift Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Shift / Section</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Shift / Section</label>
                 <Select value={selectedShift} onValueChange={setSelectedShift}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Shifts" />
@@ -501,7 +501,7 @@ export function AdvancedSetBuilder() {
 
               {/* Question Type Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Question Type</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Question Type</label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Types" />
@@ -518,7 +518,7 @@ export function AdvancedSetBuilder() {
 
               {/* Difficulty Select */}
               <div className="space-y-2">
-                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Difficulty Level</label>
+                <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Difficulty Level</label>
                 <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
                   <SelectTrigger className="h-9">
                     <SelectValue placeholder="All Levels" />
@@ -549,7 +549,7 @@ export function AdvancedSetBuilder() {
 
               <Button 
                 variant="ghost" 
-                className="w-full text-slate-500 h-8 text-xs hover:text-red-600 mt-2"
+                className="w-full text-[var(--text-secondary)] h-8 text-xs hover:text-red-600 mt-2"
                 onClick={() => {
                   setSelectedExam("all");
                   setSelectedSubject("all");
@@ -571,10 +571,10 @@ export function AdvancedSetBuilder() {
 
         {/* Question List Area */}
         <main className="lg:col-span-3 flex flex-col gap-4 overflow-hidden">
-          <Card className="flex-1 flex flex-col overflow-hidden border-slate-200">
-            <div className="p-4 border-b flex items-center justify-between shrink-0 bg-slate-50/50">
+          <Card className="flex-1 flex flex-col overflow-hidden border-[var(--border-input)]">
+            <div className="p-4 border-b flex items-center justify-between shrink-0 bg-[var(--bg-main)]">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-700">Available Questions</span>
+                <span className="text-sm font-semibold text-[var(--text-primary)]">Available Questions</span>
                 <Badge variant="outline" className="bg-white">{totalQuestions}</Badge>
                 {selectedQuestionIds.length > 0 && (
                   <Badge className="bg-brand-primary/10 text-brand-primary border-brand-primary/30">
@@ -634,7 +634,7 @@ export function AdvancedSetBuilder() {
                       <TableCell colSpan={4} className="h-64 text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Loader2 className="w-8 h-8 text-brand-primary animate-spin" />
-                          <p className="text-sm text-slate-500">Loading questions...</p>
+                          <p className="text-sm text-[var(--text-secondary)]">Loading questions...</p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -643,7 +643,7 @@ export function AdvancedSetBuilder() {
                       <TableCell colSpan={4} className="h-64 text-center">
                         <div className="flex flex-col items-center justify-center gap-2">
                           <Search className="w-12 h-12 text-slate-200" />
-                          <p className="text-slate-500">No questions found matching these filters.</p>
+                          <p className="text-[var(--text-secondary)]">No questions found matching these filters.</p>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -652,7 +652,7 @@ export function AdvancedSetBuilder() {
                       <TableRow 
                         key={q.id} 
                         className={cn(
-                          "group hover:bg-slate-50 transition-colors cursor-pointer",
+                          "group hover:bg-[var(--bg-sidebar)] transition-colors cursor-pointer",
                           selectedQuestionIds.includes(q.id) && "bg-brand-primary/5 hover:bg-brand-primary/10"
                         )}
                         onClick={() => toggleSelection(q.id)}
@@ -665,25 +665,25 @@ export function AdvancedSetBuilder() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1.5 py-1">
-                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                            <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">
                                {q.exam} • {q.subjectName} • {q.year || 'N/A'}
                             </span>
                             {displayLanguage !== 'hi' && q.textEn && (
-                              <p className="text-sm font-medium text-slate-700 line-clamp-2 leading-relaxed">
+                              <p className="text-sm font-medium text-[var(--text-primary)] line-clamp-2 leading-relaxed">
                                 {stripHtml(q.textEn)}
                               </p>
                             )}
                             {displayLanguage !== 'en' && q.textHi && (
-                              <p className={cn("text-sm font-medium text-slate-700 line-clamp-2 leading-relaxed", displayLanguage === 'both' && q.textEn && "mt-1 pt-1 border-t border-slate-100 text-slate-600")}>
+                              <p className={cn("text-sm font-medium text-[var(--text-primary)] line-clamp-2 leading-relaxed", displayLanguage === 'both' && q.textEn && "mt-1 pt-1 border-t border-[var(--divider)] text-[var(--text-secondary)]")}>
                                 {stripHtml(q.textHi)}
                               </p>
                             )}
                             {!q.textEn && !q.textHi && (
-                              <p className="text-sm font-medium text-slate-400 italic">No text available</p>
+                              <p className="text-sm font-medium text-[var(--text-muted)] italic">No text available</p>
                             )}
                             <div className="flex items-center gap-2 mt-0.5">
                                {q.chapterName && (
-                                 <Badge variant="secondary" className="text-[9px] h-4 bg-slate-100 text-slate-500 border-none font-normal">
+                                 <Badge variant="secondary" className="text-[9px] h-4 bg-slate-100 text-[var(--text-secondary)] border-none font-normal">
                                    {q.chapterName}
                                  </Badge>
                                )}
@@ -699,10 +699,10 @@ export function AdvancedSetBuilder() {
                         </TableCell>
                         <TableCell>
                            <div className="flex flex-col gap-1">
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                              <span className="text-[11px] text-[var(--text-secondary)] flex items-center gap-1">
                                 <Clock className="w-3 h-3" /> {q.section || 'General'}
                               </span>
-                              <span className="text-[11px] text-slate-500 flex items-center gap-1">
+                              <span className="text-[11px] text-[var(--text-secondary)] flex items-center gap-1">
                                 <BookOpen className="w-3 h-3" /> {q.type}
                               </span>
                            </div>
@@ -711,7 +711,7 @@ export function AdvancedSetBuilder() {
                            <Button 
                             variant="ghost" 
                             size="icon" 
-                            className="text-slate-400 hover:text-brand-primary"
+                            className="text-[var(--text-muted)] hover:text-brand-primary"
                             onClick={() => setPreviewQuestion(q)}
                            >
                              <Eye className="w-4 h-4" />
@@ -725,7 +725,7 @@ export function AdvancedSetBuilder() {
             </div>
 
             {/* Pagination footer */}
-            <div className="p-2 border-t mt-auto bg-slate-50/50">
+            <div className="p-2 border-t mt-auto bg-[var(--bg-main)]">
               <SuperPagination 
                 currentPage={page} 
                 totalPages={Math.ceil(totalQuestions / limit)} 
@@ -750,7 +750,7 @@ export function AdvancedSetBuilder() {
           </DialogHeader>
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Set Name</label>
+              <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Set Name</label>
               <Input 
                 placeholder="e.g., SSC CGL Math Practice" 
                 value={setName}
@@ -760,18 +760,18 @@ export function AdvancedSetBuilder() {
 
             <div className="space-y-2">
                <div className="flex items-center justify-between">
-                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Selected Questions ({selectedQuestionIds.length})</label>
+                 <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Selected Questions ({selectedQuestionIds.length})</label>
                  <Button variant="link" className="h-auto p-0 text-red-600 text-[10px]" onClick={() => setSelectedQuestionIds([])}>Clear All</Button>
                </div>
                <div className="max-h-[300px] overflow-y-auto border rounded-xl divide-y">
                   {selectedQuestionIds.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 text-sm">No questions selected yet.</div>
+                    <div className="p-8 text-center text-[var(--text-muted)] text-sm">No questions selected yet.</div>
                   ) : (
                     selectedQuestionIds.map(id => {
                         const question = questions.find(q => q.id === id);
                         return (
                           <div key={id} className="p-3 flex items-center justify-between group">
-                            <span className="text-xs text-slate-600 font-medium line-clamp-1 flex-1">
+                            <span className="text-xs text-[var(--text-secondary)] font-medium line-clamp-1 flex-1">
                                 {question ? (
                                     displayLanguage === 'en' ? stripHtml(question.textEn || question.textHi) :
                                     displayLanguage === 'hi' ? stripHtml(question.textHi || question.textEn) :
@@ -781,7 +781,7 @@ export function AdvancedSetBuilder() {
                             <Button 
                                 variant="ghost" 
                                 size="icon" 
-                                className="h-6 w-6 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                className="h-6 w-6 text-[var(--text-muted)] hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
                                 onClick={() => toggleSelection(id)}
                             >
                                 <Trash2 className="w-3.5 h-3.5" />
@@ -826,37 +826,37 @@ export function AdvancedSetBuilder() {
             </DialogDescription>
           </DialogHeader>
           <div className="py-4 space-y-6">
-             <div className="bg-slate-50 rounded-2xl p-6 border border-slate-200">
+             <div className="bg-[var(--bg-main)] rounded-2xl p-6 border border-[var(--border-input)]">
                 {displayLanguage !== 'hi' && previewQuestion?.textEn && (
                   <div className="text-lg font-medium text-slate-800 leading-relaxed">
                      {stripHtml(previewQuestion.textEn)}
                   </div>
                 )}
                 {displayLanguage !== 'en' && previewQuestion?.textHi && (
-                  <div className={cn("text-lg font-medium text-slate-800 leading-relaxed", displayLanguage === 'both' && previewQuestion?.textEn && "mt-2 pt-2 border-t border-slate-200 text-slate-700")}>
+                  <div className={cn("text-lg font-medium text-slate-800 leading-relaxed", displayLanguage === 'both' && previewQuestion?.textEn && "mt-2 pt-2 border-t border-[var(--border-input)] text-[var(--text-primary)]")}>
                      {stripHtml(previewQuestion.textHi)}
                   </div>
                 )}
                 {!previewQuestion?.textEn && !previewQuestion?.textHi && (
-                  <div className="text-lg font-medium text-slate-400 italic">No text available</div>
+                  <div className="text-lg font-medium text-[var(--text-muted)] italic">No text available</div>
                 )}
              </div>
 
              {previewQuestion?.options && (
                <div className="space-y-3">
-                 <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Answer Options</label>
+                 <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Answer Options</label>
                  <div className="grid grid-cols-1 gap-2">
                     {previewQuestion.options.map((opt: any, idx: number) => (
                       <div 
                         key={idx} 
                         className={cn(
                           "p-4 rounded-xl border flex items-center gap-3",
-                          opt.isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-white border-slate-200 text-slate-600"
+                          opt.isCorrect ? "bg-green-50 border-green-200 text-green-800" : "bg-white border-[var(--border-input)] text-[var(--text-secondary)]"
                         )}
                       >
                         <div className={cn(
                           "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold",
-                          opt.isCorrect ? "bg-green-500 text-white" : "bg-slate-100 text-slate-500"
+                          opt.isCorrect ? "bg-green-500 text-white" : "bg-slate-100 text-[var(--text-secondary)]"
                         )}>
                           {String.fromCharCode(65 + idx)}
                         </div>
@@ -865,12 +865,12 @@ export function AdvancedSetBuilder() {
                             <span className="text-sm font-medium">{stripHtml(opt.textEn)}</span>
                           )}
                           {displayLanguage !== 'en' && opt.textHi && (
-                            <span className={cn("text-sm font-medium", displayLanguage === 'both' && opt.textEn && "text-slate-500 text-xs pt-1 mt-1 border-t border-slate-100")}>
+                            <span className={cn("text-sm font-medium", displayLanguage === 'both' && opt.textEn && "text-[var(--text-secondary)] text-xs pt-1 mt-1 border-t border-[var(--divider)]")}>
                               {stripHtml(opt.textHi)}
                             </span>
                           )}
                           {!opt.textEn && !opt.textHi && (
-                            <span className="text-sm font-medium italic text-slate-400">Empty Option</span>
+                            <span className="text-sm font-medium italic text-[var(--text-muted)]">Empty Option</span>
                           )}
                         </div>
                         {opt.isCorrect && <CheckCircle2 className="w-4 h-4 ml-auto text-green-500 shrink-0" />}
@@ -882,13 +882,13 @@ export function AdvancedSetBuilder() {
 
              {(previewQuestion?.explanationEn || previewQuestion?.explanationHi) && (
                <div className="space-y-2">
-                  <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Explanation</label>
-                  <div className="p-4 bg-brand-primary/5 rounded-xl text-sm text-slate-600 leading-relaxed italic border border-brand-primary/10">
+                  <label className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">Explanation</label>
+                  <div className="p-4 bg-brand-primary/5 rounded-xl text-sm text-[var(--text-secondary)] leading-relaxed italic border border-brand-primary/10">
                     {displayLanguage !== 'hi' && previewQuestion.explanationEn && (
                       <p>{stripHtml(previewQuestion.explanationEn)}</p>
                     )}
                     {displayLanguage !== 'en' && previewQuestion.explanationHi && (
-                      <p className={cn(displayLanguage === 'both' && previewQuestion.explanationEn && "mt-2 pt-2 border-t border-brand-primary/10 text-slate-500")}>
+                      <p className={cn(displayLanguage === 'both' && previewQuestion.explanationEn && "mt-2 pt-2 border-t border-brand-primary/10 text-[var(--text-secondary)]")}>
                         {stripHtml(previewQuestion.explanationHi)}
                       </p>
                     )}

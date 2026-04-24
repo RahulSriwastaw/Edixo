@@ -131,21 +131,21 @@ export default function CategoriesPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
 
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">Exam Categories</span>
+              <span className="text-[var(--text-primary)] font-medium">Exam Categories</span>
             </div>
 
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Exam Categories</h1>
-                <p className="text-gray-500 text-sm mt-1">Manage and organize exam categories (SSC, Banking, NEET, etc.)</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Exam Categories</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">Manage and organize exam categories (SSC, Banking, NEET, etc.)</p>
               </div>
               <Button className="btn-primary" onClick={openCreate}>
                 <Plus className="w-4 h-4 mr-2" /> Add Category
@@ -161,8 +161,8 @@ export default function CategoriesPage() {
               ].map(stat => (
                 <Card key={stat.label} className="kpi-card">
                   <div className="p-4">
-                    <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                    <div className="text-xl font-bold text-gray-900 mt-0.5">{stat.value}</div>
+                    <div className="text-xs text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                    <div className="text-xl font-bold text-[var(--text-primary)] mt-0.5">{stat.value}</div>
                   </div>
                 </Card>
               ))}
@@ -170,7 +170,7 @@ export default function CategoriesPage() {
 
             {/* Loading */}
             {isLoading ? (
-              <div className="py-20 text-center text-gray-400">
+              <div className="py-20 text-center text-[var(--text-muted)]">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-orange-500" />
                 Loading categories...
               </div>
@@ -195,7 +195,7 @@ export default function CategoriesPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-gray-400 hover:text-orange-600"
+                            className="h-7 w-7 text-[var(--text-muted)] hover:text-orange-600"
                             onClick={() => openEdit(cat)}
                           >
                             <Edit className="w-3.5 h-3.5" />
@@ -203,7 +203,7 @@ export default function CategoriesPage() {
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-gray-400 hover:text-red-500"
+                            className="h-7 w-7 text-[var(--text-muted)] hover:text-red-500"
                             onClick={() => setDeleteId(cat.id)}
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -211,21 +211,21 @@ export default function CategoriesPage() {
                         </div>
                       </div>
 
-                      <div className="font-bold text-gray-900 text-base mb-0.5 flex items-center gap-2">
+                      <div className="font-bold text-[var(--text-primary)] text-base mb-0.5 flex items-center gap-2">
                         {cat.name}
                         {cat.isFeatured && <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-400" />}
                       </div>
-                      <div className="text-xs text-gray-500 mb-4 line-clamp-2">{cat.description || "No description"}</div>
+                      <div className="text-xs text-[var(--text-secondary)] mb-4 line-clamp-2">{cat.description || "No description"}</div>
 
                       {/* Stats row */}
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                           <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
                             <Package className="w-3.5 h-3.5" />
                           </div>
                           <span><strong>{(cat as any)._count?.subCategories || 0}</strong> series</span>
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                           <div className="p-1.5 bg-green-50 text-green-600 rounded-lg">
                             <Users className="w-3.5 h-3.5" />
                           </div>
@@ -254,15 +254,15 @@ export default function CategoriesPage() {
 
                 {/* Add New Category card */}
                 <Card
-                  className="border-2 border-dashed border-gray-200 hover:border-orange-300 transition-colors cursor-pointer group"
+                  className="border-2 border-dashed border-[var(--border-input)] hover:border-orange-300 transition-colors cursor-pointer group"
                   onClick={openCreate}
                 >
                   <CardContent className="p-5 flex flex-col items-center justify-center h-full min-h-[200px]">
-                    <div className="w-12 h-12 rounded-2xl bg-gray-50 group-hover:bg-orange-50 flex items-center justify-center mb-3 transition-colors">
-                      <Plus className="w-6 h-6 text-gray-400 group-hover:text-orange-500 transition-colors" />
+                    <div className="w-12 h-12 rounded-2xl bg-[var(--bg-main)] group-hover:bg-orange-50 flex items-center justify-center mb-3 transition-colors">
+                      <Plus className="w-6 h-6 text-[var(--text-muted)] group-hover:text-orange-500 transition-colors" />
                     </div>
-                    <div className="text-sm font-medium text-gray-500 group-hover:text-orange-600 transition-colors">Add New Category</div>
-                    <div className="text-xs text-gray-400 mt-1 text-center">Create a new exam category for the platform</div>
+                    <div className="text-sm font-medium text-[var(--text-secondary)] group-hover:text-orange-600 transition-colors">Add New Category</div>
+                    <div className="text-xs text-[var(--text-muted)] mt-1 text-center">Create a new exam category for the platform</div>
                   </CardContent>
                 </Card>
               </div>
@@ -272,8 +272,8 @@ export default function CategoriesPage() {
             {!isLoading && categories.length === 0 && (
               <div className="py-16 text-center">
                 <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-gray-600 font-medium">No categories yet</h3>
-                <p className="text-gray-400 text-sm mt-1">Create your first exam category to get started</p>
+                <h3 className="text-[var(--text-secondary)] font-medium">No categories yet</h3>
+                <p className="text-[var(--text-muted)] text-sm mt-1">Create your first exam category to get started</p>
                 <Button className="btn-primary mt-4" onClick={openCreate}>
                   <Plus className="w-4 h-4 mr-2" /> Create Category
                 </Button>
@@ -329,7 +329,7 @@ export default function CategoriesPage() {
                       onClick={() => setForm(p => ({ ...p, icon }))}
                       className={cn(
                         "w-9 h-9 rounded-lg text-lg flex items-center justify-center transition-all",
-                        form.icon === icon ? "bg-orange-100 ring-2 ring-orange-400 scale-110" : "hover:bg-gray-100"
+                        form.icon === icon ? "bg-orange-100 ring-2 ring-orange-400 scale-110" : "hover:bg-[var(--bg-main)]"
                       )}
                     >
                       {icon}
@@ -367,7 +367,7 @@ export default function CategoriesPage() {
             <div className="flex items-center justify-between p-3 border rounded-lg">
               <div>
                 <div className="font-medium text-sm">Featured Category</div>
-                <div className="text-xs text-gray-500">Shown prominently on the platform homepage</div>
+                <div className="text-xs text-[var(--text-secondary)]">Shown prominently on the platform homepage</div>
               </div>
               <Switch
                 checked={form.isFeatured}

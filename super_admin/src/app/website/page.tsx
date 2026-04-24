@@ -239,10 +239,10 @@ const stats = [
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Published: "badge-active",
-    Draft: "bg-gray-100 text-gray-600",
+    Draft: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
     Scheduled: "bg-blue-50 text-blue-700",
     Active: "badge-active",
-    Hidden: "bg-gray-100 text-gray-600",
+    Hidden: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
     New: "bg-orange-50 text-orange-700",
     Contacted: "bg-blue-50 text-blue-700",
     Qualified: "badge-active",
@@ -268,7 +268,7 @@ const getIconBgColor = (color: string) => {
     orange: "bg-orange-50",
     purple: "bg-purple-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -278,7 +278,7 @@ const getIconColor = (color: string) => {
     orange: "text-orange-600",
     purple: "text-purple-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function WebsiteCMSPage() {
@@ -297,13 +297,13 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Public Website CMS</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Public Website CMS</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage blogs, tools, SEO content and leads
                 </p>
               </div>
@@ -327,10 +327,10 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {stat.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-bold text-[var(--text-primary)]">
                             {stat.value}
                           </div>
                         </div>
@@ -343,7 +343,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
             {/* Tabs */}
             <Tabs defaultValue="blogs" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1">
                 <TabsTrigger value="blogs" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
                   <FileText className="w-4 h-4 mr-2" />
                   Blogs
@@ -373,7 +373,7 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <Input
                           placeholder="Search blogs..."
                           value={searchQuery}
@@ -405,14 +405,14 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Title</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Category</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Author</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Published</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Views</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Title</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Category</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Author</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Published</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Views</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -420,17 +420,17 @@ const [searchQuery, setSearchQuery] = useState("");
                           <TableRow key={post.id} className="hover:bg-brand-primary-tint">
                             <TableCell>
                               <div>
-                                <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                                <div className="text-xs text-gray-500">{post.slug}</div>
+                                <div className="text-sm font-medium text-[var(--text-primary)]">{post.title}</div>
+                                <div className="text-xs text-[var(--text-secondary)]">{post.slug}</div>
                               </div>
                             </TableCell>
                             <TableCell>
                               <StatusBadge status={post.status} />
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">{post.category}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{post.author}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{post.publishedDate || "—"}</TableCell>
-                            <TableCell className="text-sm text-gray-900 font-medium">{post.views.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{post.category}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{post.author}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{post.publishedDate || "—"}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-primary)] font-medium">{post.views.toLocaleString()}</TableCell>
                             <TableCell className="text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -465,7 +465,7 @@ const [searchQuery, setSearchQuery] = useState("");
                 <Card>
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Manage free and paid tools</div>
+                      <div className="text-sm text-[var(--text-secondary)]">Manage free and paid tools</div>
                       <Button className="btn-primary">
                         <Plus className="w-4 h-4 mr-2" />
                         Add Tool
@@ -478,28 +478,28 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Tool Name</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Price</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Uses (30d)</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Revenue (30d)</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Tool Name</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Type</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Price</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Uses (30d)</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Revenue (30d)</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {toolsData.map((tool) => (
                           <TableRow key={tool.id} className="hover:bg-brand-primary-tint">
-                            <TableCell className="font-medium text-gray-900">{tool.name}</TableCell>
+                            <TableCell className="font-medium text-[var(--text-primary)]">{tool.name}</TableCell>
                             <TableCell>
                               <TypeBadge type={tool.type} />
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">
+                            <TableCell className="text-sm text-[var(--text-secondary)]">
                               {tool.price ? `₹${tool.price}` : "Free"}
                             </TableCell>
-                            <TableCell className="text-sm text-gray-900">{tool.uses30d.toLocaleString()}</TableCell>
-                            <TableCell className="text-sm text-gray-900 font-medium">
+                            <TableCell className="text-sm text-[var(--text-primary)]">{tool.uses30d.toLocaleString()}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-primary)] font-medium">
                               {tool.revenue30d ? `₹${(tool.revenue30d / 1000).toFixed(1)}K` : "—"}
                             </TableCell>
                             <TableCell>
@@ -540,26 +540,26 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Name</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Email</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Phone</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Source</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Date</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Name</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Email</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Phone</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Source</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Date</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {leadsData.map((lead) => (
                           <TableRow key={lead.id} className="hover:bg-brand-primary-tint">
-                            <TableCell className="font-medium text-gray-900">{lead.name}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{lead.email}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{lead.phone}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{lead.organization || "—"}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{lead.source}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{lead.date}</TableCell>
+                            <TableCell className="font-medium text-[var(--text-primary)]">{lead.name}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{lead.email}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{lead.phone}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{lead.organization || "—"}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{lead.source}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{lead.date}</TableCell>
                             <TableCell>
                               <StatusBadge status={lead.status} />
                             </TableCell>
@@ -600,15 +600,15 @@ const [searchQuery, setSearchQuery] = useState("");
                       <CardContent>
                         <div className="space-y-4">
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">Downloads</span>
-                            <span className="text-lg font-bold text-gray-900">{download.downloads.toLocaleString()}</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Downloads</span>
+                            <span className="text-lg font-bold text-[var(--text-primary)]">{download.downloads.toLocaleString()}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">Last Updated</span>
-                            <span className="text-sm text-gray-600">{download.lastUpdated}</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Last Updated</span>
+                            <span className="text-sm text-[var(--text-secondary)]">{download.lastUpdated}</span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-500">Status</span>
+                            <span className="text-sm text-[var(--text-secondary)]">Status</span>
                             <StatusBadge status={download.status} />
                           </div>
                           <Button className="w-full btn-primary">
@@ -631,35 +631,35 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="space-y-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="space-y-4">
-                        <h4 className="font-semibold text-gray-900">Meta Tags</h4>
+                        <h4 className="font-semibold text-[var(--text-primary)]">Meta Tags</h4>
                         <div className="space-y-3">
                           <div>
-                            <label className="text-sm text-gray-600">Site Title</label>
+                            <label className="text-sm text-[var(--text-secondary)]">Site Title</label>
                             <Input defaultValue="EduHub - Complete EdTech Platform" className="input-field mt-1" />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-600">Meta Description</label>
+                            <label className="text-sm text-[var(--text-secondary)]">Meta Description</label>
                             <Input defaultValue="Multi-tenant EdTech platform for coaching institutes" className="input-field mt-1" />
                           </div>
                           <div>
-                            <label className="text-sm text-gray-600">Focus Keywords</label>
+                            <label className="text-sm text-[var(--text-secondary)]">Focus Keywords</label>
                             <Input defaultValue="edtech, coaching, mock tests, JEE, NEET" className="input-field mt-1" />
                           </div>
                         </div>
                       </div>
                       <div className="space-y-4">
-                        <h4 className="font-semibold text-gray-900">Sitemap & Indexing</h4>
+                        <h4 className="font-semibold text-[var(--text-primary)]">Sitemap & Indexing</h4>
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-600">sitemap.xml</span>
+                          <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
+                            <span className="text-sm text-[var(--text-secondary)]">sitemap.xml</span>
                             <Button variant="outline" size="sm">Regenerate</Button>
                           </div>
-                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-600">robots.txt</span>
+                          <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
+                            <span className="text-sm text-[var(--text-secondary)]">robots.txt</span>
                             <Button variant="outline" size="sm">Edit</Button>
                           </div>
-                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <span className="text-sm text-gray-600">Google Search Console</span>
+                          <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
+                            <span className="text-sm text-[var(--text-secondary)]">Google Search Console</span>
                             <Badge className="badge-active">Connected</Badge>
                           </div>
                         </div>

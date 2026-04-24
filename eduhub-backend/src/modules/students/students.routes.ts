@@ -9,6 +9,9 @@ const router = Router();
 // Fix: Do not apply requireOrgAccess globally, as it blocks STUDENT role from accessing /me
 router.use(authenticate);
 
+// DEBUG: verify router is alive
+router.get('/ping', (_req, res) => res.json({ success: true, message: 'students router alive' }));
+
 // ─── GET /api/students?orgId=:orgId ─────────────────────────
 router.get('/', async (req, res, next) => {
     try {
@@ -97,13 +100,13 @@ router.post('/', async (req, res, next) => {
 router.get('/me', async (req, res, next) => {
     try {
         if (!req.user) throw new AppError('Unauthorized', 401);
-        
+
         const student = await prisma.student.findFirst({
             where: { userId: (req.user as any).userId },
         });
-        
+
         if (!student) throw new AppError('Student profile not found', 404);
-        
+
         res.json({ success: true, data: student });
     } catch (err) { next(err); }
 });
@@ -112,7 +115,7 @@ router.get('/me', async (req, res, next) => {
 router.patch('/me', async (req, res, next) => {
     try {
         if (!req.user) throw new AppError('Unauthorized', 401);
-        
+
         const schema = z.object({
             name: z.string().min(2).optional(),
             phone: z.string().optional(),
@@ -131,7 +134,7 @@ router.patch('/me', async (req, res, next) => {
                 mobile: body.phone !== undefined ? body.phone : undefined,
             },
         });
-        
+
         // Also update User mobile if provided
         if (body.phone) {
             await prisma.user.update({

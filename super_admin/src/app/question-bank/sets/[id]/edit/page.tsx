@@ -264,7 +264,7 @@ export default function EditSetPage() {
 
     if (isLoading) {
         return (
-            <div className="min-h-screen bg-slate-50">
+            <div className="min-h-screen bg-neutral-bg">
                 <Sidebar />
                 <div className={cn("flex flex-col min-h-screen", isOpen ? "md:ml-60" : "ml-0")}>
                     <TopBar />
@@ -284,10 +284,10 @@ export default function EditSetPage() {
                 <main className="flex-1 overflow-hidden flex flex-col">
                     {/* Top Bar */}
                     <div className="p-4 border-b bg-white flex justify-between items-center z-10 shadow-sm">
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/question-bank/sets" className="hover:text-[#F4511E]">Question Sets</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-semibold">Edit Set</span>
+                            <span className="text-[var(--text-primary)] font-semibold">Edit Set</span>
                         </div>
                         <div className="flex gap-3">
                             <Button variant="outline" onClick={() => router.push(`/question-bank/sets/${setId}`)}>
@@ -311,10 +311,10 @@ export default function EditSetPage() {
                     <div className="flex-1 overflow-hidden flex flex-col lg:flex-row h-[calc(100vh-130px)]">
 
                         {/* ── Left: Set Builder ── */}
-                        <div className="w-full lg:w-[420px] xl:w-[460px] bg-gray-50 border-r flex flex-col">
+                        <div className="w-full lg:w-[420px] xl:w-[460px] bg-[var(--bg-main)] border-r flex flex-col">
                             <Tabs defaultValue="questions" className="w-full h-full flex flex-col">
                                 <div className="px-4 pt-4 border-b bg-white">
-                                    <TabsList className="w-full grid-cols-2 grid bg-gray-100">
+                                    <TabsList className="w-full grid-cols-2 grid bg-[var(--bg-main)]">
                                         <TabsTrigger value="questions">
                                             Questions ({questions.length})
                                         </TabsTrigger>
@@ -326,7 +326,7 @@ export default function EditSetPage() {
                                     {/* Questions Tab */}
                                     <TabsContent value="questions" className="m-0 p-4 space-y-3">
                                         {questions.length === 0 ? (
-                                            <div className="text-center py-12 text-gray-500 bg-white border border-dashed rounded-lg">
+                                            <div className="text-center py-12 text-[var(--text-secondary)] bg-white border border-dashed rounded-lg">
                                                 <Layers className="w-10 h-10 mx-auto mb-3 text-gray-300" />
                                                 <p className="text-sm">No questions in this set.</p>
                                                 <p className="text-xs mt-1">Select from the right panel to add.</p>
@@ -348,14 +348,14 @@ export default function EditSetPage() {
                                                         <div className="flex items-start justify-between">
                                                             <div className="flex items-start gap-2 max-w-[85%]">
                                                                 <GripVertical className="w-4 h-4 text-gray-300 mt-0.5 shrink-0" />
-                                                                <span className="text-xs font-semibold text-gray-400 mt-0.5">Q{index + 1}.</span>
-                                                                <div className="text-sm text-gray-800 line-clamp-2">
+                                                                <span className="text-xs font-semibold text-[var(--text-muted)] mt-0.5">Q{index + 1}.</span>
+                                                                <div className="text-sm text-[var(--text-primary)] line-clamp-2">
                                                                     {stripHtml(q.question_eng || q.question_hin || "")}
                                                                 </div>
                                                             </div>
                                                             <button
                                                                 onClick={() => removeQuestion(q.id)}
-                                                                className="p-1 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded shrink-0"
+                                                                className="p-1 text-[var(--text-muted)] hover:text-red-500 hover:bg-red-50 rounded shrink-0"
                                                             >
                                                                 <Trash2 className="w-4 h-4" />
                                                             </button>
@@ -373,7 +373,7 @@ export default function EditSetPage() {
                                     {/* Details Tab */}
                                     <TabsContent value="details" className="m-0 p-4 space-y-4">
                                         <div>
-                                            <label className="text-xs font-medium text-gray-700">Set Name *</label>
+                                            <label className="text-xs font-medium text-[var(--text-primary)]">Set Name *</label>
                                             <Input
                                                 placeholder="e.g., Target SSC CGL 2024"
                                                 value={name}
@@ -382,7 +382,7 @@ export default function EditSetPage() {
                                             />
                                         </div>
                                         <div>
-                                            <label className="text-xs font-medium text-gray-700">Description</label>
+                                            <label className="text-xs font-medium text-[var(--text-primary)]">Description</label>
                                             <Textarea
                                                 placeholder="Brief description..."
                                                 value={description}
@@ -400,10 +400,10 @@ export default function EditSetPage() {
                         {/* ── Right: Question Bank Browser ── */}
                         <div className="flex-1 bg-white flex flex-col h-full overflow-hidden">
                             {/* Search & Filters */}
-                            <div className="p-4 border-b space-y-3 bg-gray-50/50">
+                            <div className="p-4 border-b space-y-3 bg-[var(--bg-main)]/50">
                                 <div className="flex flex-wrap gap-3 items-center">
                                     <div className="relative flex-1 min-w-[250px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                         <Input
                                             placeholder="Search questions..."
                                             value={searchQuery}
@@ -437,7 +437,7 @@ export default function EditSetPage() {
                             </div>
 
                             {/* Selection Action Bar */}
-                            <div className="px-4 py-2 border-b bg-gray-50 flex items-center justify-between">
+                            <div className="px-4 py-2 border-b bg-[var(--bg-main)] flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Checkbox
                                         checked={
@@ -446,7 +446,7 @@ export default function EditSetPage() {
                                         }
                                         onCheckedChange={toggleSelectAll}
                                     />
-                                    <span className="text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                                    <span className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                                         Select All Visible
                                     </span>
                                     {selectedQuestionIds.size > 0 && (
@@ -466,7 +466,7 @@ export default function EditSetPage() {
                             </div>
 
                             {/* Question List */}
-                            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-gray-50/30">
+                            <div className="flex-1 overflow-y-auto p-4 space-y-2 bg-[var(--bg-main)]/30">
                                 {isFetchingQuestions ? (
                                     <div className="flex justify-center items-center py-12">
                                         <svg className="animate-spin text-[#F4511E] w-8 h-8" fill="none" viewBox="0 0 24 24">
@@ -475,7 +475,7 @@ export default function EditSetPage() {
                                         </svg>
                                     </div>
                                 ) : apiQuestions.length === 0 ? (
-                                    <div className="text-center py-12 text-gray-500">
+                                    <div className="text-center py-12 text-[var(--text-secondary)]">
                                         <Layers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                                         <p>No questions found.</p>
                                         <p className="text-sm">Try adjusting your filters.</p>
@@ -491,7 +491,7 @@ export default function EditSetPage() {
                                                     "flex items-start gap-3 p-3 bg-white border rounded-lg transition-all",
                                                     isInSet
                                                         ? "border-[#F4511E] bg-orange-50/30 opacity-70"
-                                                        : "hover:border-gray-300 hover:shadow-sm"
+                                                        : "hover:border-[var(--border-input)] hover:shadow-sm"
                                                 )}
                                             >
                                                 {!isInSet && (
@@ -507,11 +507,11 @@ export default function EditSetPage() {
                                                     </div>
                                                 )}
                                                 <div className="flex-1 min-w-0">
-                                                    <p className="text-sm text-gray-800 line-clamp-2">
+                                                    <p className="text-sm text-[var(--text-primary)] line-clamp-2">
                                                         {stripHtml(q.question_eng || q.question_hin)}
                                                     </p>
                                                     <div className="flex items-center gap-2 mt-1.5">
-                                                        <span className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded font-mono">
+                                                        <span className="text-xs text-[var(--text-muted)] bg-[var(--bg-main)] px-1.5 py-0.5 rounded font-mono">
                                                             {q.subject}
                                                         </span>
                                                         <TypeBadge type={q.type} />
@@ -522,7 +522,7 @@ export default function EditSetPage() {
                                                     <Button
                                                         size="sm"
                                                         variant="ghost"
-                                                        className="h-8 w-8 p-0 shrink-0 text-gray-400 hover:text-[#F4511E] hover:bg-orange-50"
+                                                        className="h-8 w-8 p-0 shrink-0 text-[var(--text-muted)] hover:text-[#F4511E] hover:bg-orange-50"
                                                         onClick={() => addQuestion(q)}
                                                     >
                                                         <Plus className="w-4 h-4" />
@@ -544,7 +544,7 @@ export default function EditSetPage() {
                                         >
                                             <ChevronLeft className="w-4 h-4" />
                                         </Button>
-                                        <span className="text-sm text-gray-500 flex items-center px-2">
+                                        <span className="text-sm text-[var(--text-secondary)] flex items-center px-2">
                                             Page {page} of {Math.ceil(totalQuestions / 20)}
                                         </span>
                                         <Button

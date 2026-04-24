@@ -11,7 +11,7 @@ function SetBuilderContent() {
   const { isOpen } = useSidebarStore();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
@@ -26,10 +26,10 @@ function SetBuilderContent() {
 export default function SetBuilderPage() {
   return (
     <Suspense fallback={
-       <div className="flex h-screen items-center justify-center bg-slate-50">
+       <div className="flex h-screen items-center justify-center bg-neutral-bg">
          <div className="flex flex-col items-center gap-4">
             <div className="w-10 h-10 border-4 border-brand-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm font-medium text-slate-500 animate-pulse">Initializing Set Builder...</p>
+            <p className="text-sm font-medium text-[var(--text-secondary)] animate-pulse">Initializing Set Builder...</p>
          </div>
        </div>
     }>

@@ -83,7 +83,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected, isLoading 
         className={`relative group border-2 border-dashed rounded-2xl p-10 text-center transition-all duration-200 ease-in-out ${
           isDragActive
             ? 'border-brand-primary bg-orange-50/40 scale-[1.01]'
-            : 'border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-white'
+            : 'border-[var(--border-input)] bg-[var(--bg-main)]/60 hover:border-[var(--border-input)] hover:bg-white'
         } ${isLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       >
         <input
@@ -99,7 +99,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected, isLoading 
           <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 shadow-sm ${
             isDragActive
               ? 'bg-brand-primary text-white scale-110 shadow-orange-200'
-              : 'bg-white text-slate-400 border border-slate-200 group-hover:border-slate-300 group-hover:text-slate-600'
+              : 'bg-white text-[var(--text-muted)] border border-[var(--border-input)] group-hover:border-[var(--border-input)] group-hover:text-[var(--text-secondary)]'
           }`}>
             <Upload className="w-6 h-6" />
           </div>
@@ -108,27 +108,27 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected, isLoading 
             <h3 className="text-base font-semibold text-slate-800 tracking-tight">
               {isDragActive ? 'Release to upload' : 'Drop your documents here'}
             </h3>
-            <p className="text-slate-500 text-sm">
+            <p className="text-[var(--text-secondary)] text-sm">
               or <span className="text-brand-primary font-semibold hover:underline">browse your files</span>
             </p>
-            <p className="text-slate-400 text-xs mt-1">
+            <p className="text-[var(--text-muted)] text-xs mt-1">
               Paste with{' '}
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-mono text-[10px] shadow-sm">Ctrl+V</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-[var(--border-input)] rounded text-[var(--text-secondary)] font-mono text-[10px] shadow-sm">Ctrl+V</kbd>
               {' '}or{' '}
-              <kbd className="px-1.5 py-0.5 bg-white border border-slate-200 rounded text-slate-600 font-mono text-[10px] shadow-sm">⌘V</kbd>
+              <kbd className="px-1.5 py-0.5 bg-white border border-[var(--border-input)] rounded text-[var(--text-secondary)] font-mono text-[10px] shadow-sm">⌘V</kbd>
             </p>
           </div>
 
           <div className="flex items-center gap-2 pt-1">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 shadow-sm">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--border-input)] rounded-lg text-xs font-medium text-[var(--text-secondary)] shadow-sm">
               <FileText className="w-3.5 h-3.5 text-red-400" />
               PDF
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-medium text-slate-600 shadow-sm">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-[var(--border-input)] rounded-lg text-xs font-medium text-[var(--text-secondary)] shadow-sm">
               <ImageIcon className="w-3.5 h-3.5 text-blue-400" />
               JPG / PNG
             </div>
-            <span className="text-xs text-slate-400 font-medium">· Max 50 MB</span>
+            <span className="text-xs text-[var(--text-muted)] font-medium">· Max 50 MB</span>
           </div>
         </label>
 
@@ -166,7 +166,7 @@ const FileUploader: React.FC<FileUploaderProps> = ({ onFilesSelected, isLoading 
         ].map((feature, i) => (
           <div key={i} className={`p-3 rounded-xl border ${feature.bg} flex flex-col gap-0.5`}>
             <h4 className={`font-semibold text-xs ${feature.color}`}>{feature.title}</h4>
-            <p className="text-slate-500 text-[11px]">{feature.desc}</p>
+            <p className="text-[var(--text-secondary)] text-[11px]">{feature.desc}</p>
           </div>
         ))}
       </div>

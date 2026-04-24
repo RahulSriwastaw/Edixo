@@ -165,7 +165,7 @@ const toolsData = [
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Active: "badge-active",
-    Hidden: "bg-gray-100 text-gray-600",
+    Hidden: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
   };
   return <span className={`badge ${styles[status] || ""}`}>{status}</span>;
 }
@@ -254,19 +254,19 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center gap-4">
               <Link
                 href="/website"
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--bg-main)] rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
               </Link>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">Tools Management</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Tools Management</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage free and paid tools for the public website
                 </p>
               </div>
@@ -285,8 +285,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <Wrench className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total Tools</div>
-                      <div className="text-xl font-bold text-gray-900">{toolsData.length}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total Tools</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{toolsData.length}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -298,8 +298,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <Users className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Uses (30d)</div>
-                      <div className="text-xl font-bold text-gray-900">{(totalUses / 1000).toFixed(1)}K</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Uses (30d)</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{(totalUses / 1000).toFixed(1)}K</div>
                     </div>
                   </div>
                 </CardContent>
@@ -311,8 +311,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <DollarSign className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Revenue (30d)</div>
-                      <div className="text-xl font-bold text-gray-900">₹{(totalRevenue / 100000).toFixed(1)}L</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Revenue (30d)</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">₹{(totalRevenue / 100000).toFixed(1)}L</div>
                     </div>
                   </div>
                 </CardContent>
@@ -324,8 +324,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <TrendingUp className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Active Tools</div>
-                      <div className="text-xl font-bold text-gray-900">{activeTools}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Active Tools</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{activeTools}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -337,7 +337,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search tools..."
                       value={searchQuery}
@@ -388,14 +388,14 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Tool Name</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Price</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Uses (30d)</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Revenue (30d)</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                    <TableRow className="bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Tool Name</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Type</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Price</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Uses (30d)</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Revenue (30d)</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -403,18 +403,18 @@ const [searchQuery, setSearchQuery] = useState("");
                       <TableRow key={tool.id} className="hover:bg-brand-primary-tint">
                         <TableCell>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{tool.name}</div>
-                            <div className="text-xs text-gray-500 mono">/{tool.slug}</div>
+                            <div className="text-sm font-medium text-[var(--text-primary)]">{tool.name}</div>
+                            <div className="text-xs text-[var(--text-secondary)] mono">/{tool.slug}</div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <TypeBadge type={tool.type} />
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">
+                        <TableCell className="text-sm text-[var(--text-secondary)]">
                           {tool.price ? `₹${tool.price}` : "Free"}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-900">{tool.uses30d.toLocaleString()}</TableCell>
-                        <TableCell className="text-sm text-gray-900 font-medium">
+                        <TableCell className="text-sm text-[var(--text-primary)]">{tool.uses30d.toLocaleString()}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-primary)] font-medium">
                           {tool.revenue30d ? `₹${(tool.revenue30d / 1000).toFixed(1)}K` : "—"}
                         </TableCell>
                         <TableCell>
@@ -431,7 +431,7 @@ const [searchQuery, setSearchQuery] = useState("");
                               {tool.status === "Active" ? (
                                 <ToggleRight className="w-5 h-5 text-green-600" />
                               ) : (
-                                <ToggleLeft className="w-5 h-5 text-gray-400" />
+                                <ToggleLeft className="w-5 h-5 text-[var(--text-muted)]" />
                               )}
                             </Button>
                             <DropdownMenu>

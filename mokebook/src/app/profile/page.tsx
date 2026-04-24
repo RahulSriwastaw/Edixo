@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { User, Mail, Phone, Target, Calendar, Award, ShieldCheck, Loader2, Save, BookOpen, Flame } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 import { ProfilePictureUpload } from "@/components/profile/ProfilePictureUpload";
 import { apiFetch } from "@/lib/api";
 
@@ -30,7 +30,6 @@ export default function ProfilePage() {
     studentId: "",
   });
 
-  // Fetch profile from backend on mount
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -42,13 +41,12 @@ export default function ProfilePage() {
             name: data.name || "",
             email: data.email || data.user?.email || "",
             phone: data.mobile || "",
-            primaryExam: "JEE", // Will be stored in backend metadata once the field is added
+            primaryExam: "JEE",
             targetYear: new Date().getFullYear() + 1,
             studentId: data.studentId || "",
           });
         }
       } catch (err: any) {
-        // Student profile might not exist if this is a Firebase-auth user
         console.warn("Could not fetch student profile:", err?.message);
       } finally {
         setLoading(false);
@@ -83,21 +81,21 @@ export default function ProfilePage() {
   };
 
   const achievements = [
-    { icon: Flame, label: "18-Day Streak", color: "text-orange-500 bg-orange-50" },
-    { icon: BookOpen, label: "50 Tests Done", color: "text-blue-500 bg-blue-50" },
-    { icon: Award, label: "Silver League", color: "text-slate-500 bg-slate-50" },
+    { icon: Flame, label: "18-Day Streak", color: "text-[#FF6B2B]" },
+    { icon: BookOpen, label: "50 Tests Done", color: "text-[var(--badge-info-text)]" },
+    { icon: Award, label: "Silver League", color: "text-[var(--text-muted)]" },
   ];
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-[#F0F2F8] overflow-hidden">
+      <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-body)" }}>
         <Navbar />
         <div className="flex-1 flex overflow-hidden">
           <Sidebar />
           <main className="flex-1 flex items-center justify-center">
             <div className="text-center space-y-3">
-              <Loader2 className="h-10 w-10 animate-spin mx-auto text-primary" />
-              <p className="text-sm font-semibold text-slate-500">Loading your profile...</p>
+              <Loader2 className="h-10 w-10 animate-spin mx-auto" style={{ color: "#FF6B2B" }} />
+              <p className="text-[12px] font-semibold" style={{ color: "var(--text-muted)" }}>Loading your profile...</p>
             </div>
           </main>
         </div>
@@ -106,26 +104,26 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col h-screen bg-[#F0F2F8] overflow-hidden">
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 p-4 md:p-6 overflow-y-auto thin-scrollbar pb-16 md:pb-0">
-          <div className="max-w-4xl mx-auto space-y-5">
+        <main className="flex-1 p-4 md:p-5 overflow-y-auto thin-scrollbar pb-16 md:pb-0">
+          <div className="max-w-4xl mx-auto space-y-4">
             {/* Header */}
             <div>
-              <h1 className="text-xl font-bold text-slate-900">My Profile</h1>
-              <p className="text-sm text-slate-400 mt-0.5">Manage your personal information and exam goals.</p>
+              <h1 className="text-[18px] font-bold" style={{ color: "var(--text-primary)" }}>My Profile</h1>
+              <p className="text-[11px] mt-0.5" style={{ color: "var(--text-muted)" }}>Manage your personal information and exam goals.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left: Avatar + Info */}
               <div className="lg:col-span-1 space-y-4">
-                <Card className="shadow-sm border border-slate-200 bg-white rounded-xl overflow-hidden">
-                  <div className="h-16 bg-gradient-to-r from-[#1a73e8]/20 via-blue-100 to-blue-50" />
-                  <CardContent className="px-5 pb-5 -mt-10">
-                    <div className="flex flex-col items-center text-center space-y-3">
-                      <div className="ring-4 ring-white rounded-full shadow-lg">
+                <Card>
+                  <div className="h-14 rounded-t-lg" style={{ background: "rgba(255,107,43,0.08)" }} />
+                  <CardContent className="px-4 pb-4 -mt-9">
+                    <div className="flex flex-col items-center text-center space-y-2.5">
+                      <div className="ring-4 rounded-full shadow-lg" style={{ borderColor: "var(--bg-card)" }}>
                         <ProfilePictureUpload
                           currentPhotoURL={null}
                           displayName={profileData.name}
@@ -137,40 +135,43 @@ export default function ProfilePage() {
                         />
                       </div>
                       <div className="space-y-0.5">
-                        <h2 className="text-lg font-bold text-slate-900">{profileData.name || "Student"}</h2>
-                        <p className="text-xs text-slate-400">{profileData.email}</p>
+                        <h2 className="text-[14px] font-bold" style={{ color: "var(--text-primary)" }}>{profileData.name || "Student"}</h2>
+                        <p className="text-[10px]" style={{ color: "var(--text-muted)" }}>{profileData.email}</p>
                         {profileData.studentId && (
-                          <p className="text-[11px] text-primary font-bold bg-primary/5 px-2 py-0.5 rounded-full inline-block mt-1">
+                          <p
+                            className="text-[10px] font-bold px-2 py-[1px] rounded-full inline-block mt-1"
+                            style={{ background: "rgba(255,107,43,0.08)", color: "#FF6B2B" }}
+                          >
                             ID: {profileData.studentId}
                           </p>
                         )}
                       </div>
-                      <Badge className="bg-primary/10 text-primary border-primary/20 border text-xs font-bold px-3">
-                        <Award className="h-3 w-3 mr-1.5" /> Silver League
+                      <Badge variant="default">
+                        <Award className="h-3 w-3 mr-1" /> Silver League
                       </Badge>
                       {/* Level progress */}
-                      <div className="w-full pt-3 border-t border-slate-50 space-y-2">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="text-slate-400 font-semibold">Level 12</span>
-                          <span className="font-bold text-primary">65%</span>
+                      <div className="w-full pt-2 space-y-1.5" style={{ borderTop: "var(--divider)" }}>
+                        <div className="flex items-center justify-between text-[10px]">
+                          <span style={{ color: "var(--text-muted)" }}>Level 12</span>
+                          <span className="font-bold" style={{ color: "#FF6B2B" }}>65%</span>
                         </div>
-                        <Progress value={65} className="h-2" />
-                        <p className="text-[10px] text-slate-400">350 XP to Level 13</p>
+                        <Progress value={65} className="h-1.5" />
+                        <p className="text-[9px]" style={{ color: "var(--text-muted)" }}>350 XP to Level 13</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Achievements */}
-                <Card className="shadow-sm border-none bg-white rounded-2xl">
-                  <CardHeader className="p-4 pb-2">
-                    <CardTitle className="text-sm font-bold">Achievements</CardTitle>
+                <Card>
+                  <CardHeader className="p-3 pb-1">
+                    <CardTitle>Achievements</CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 pt-0 space-y-2">
+                  <CardContent className="p-3 pt-0 space-y-1.5">
                     {achievements.map((a) => (
-                      <div key={a.label} className={`flex items-center gap-2.5 p-2.5 rounded-xl ${a.color}`}>
-                        <a.icon className="h-4 w-4 shrink-0" />
-                        <span className="text-xs font-semibold">{a.label}</span>
+                      <div key={a.label} className="flex items-center gap-2 p-2 rounded-lg" style={{ background: "var(--bg-main)" }}>
+                        <a.icon className={cn("h-4 w-4 shrink-0", a.color)} />
+                        <span className="text-[11px] font-semibold" style={{ color: "var(--text-primary)" }}>{a.label}</span>
                       </div>
                     ))}
                   </CardContent>
@@ -178,35 +179,35 @@ export default function ProfilePage() {
               </div>
 
               {/* Right: Form */}
-              <Card className="lg:col-span-2 shadow-sm border-none bg-white rounded-2xl">
-                <CardHeader className="p-5 pb-0">
-                  <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <ShieldCheck className="h-4.5 w-4.5 text-emerald-500" /> Account Settings
+              <Card className="lg:col-span-2">
+                <CardHeader className="p-4 pb-0">
+                  <CardTitle className="flex items-center gap-2">
+                    <ShieldCheck className="h-4 w-4" style={{ color: "var(--badge-success-text)" }} /> Account Settings
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-5 pt-4">
-                  <form onSubmit={handleSave} className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="name" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Full Name</Label>
+                <CardContent className="p-4 pt-3">
+                  <form onSubmit={handleSave} className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="name" className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Full Name</Label>
                         <div className="relative">
-                          <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                          <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-muted)" }} />
                           <Input
                             id="name"
-                            className="pl-10 h-11 text-sm rounded-xl bg-slate-50 border-slate-100 focus-visible:ring-primary"
+                            className="pl-9 h-9 rounded-lg"
                             placeholder="Your full name"
                             value={profileData.name}
                             onChange={(e) => setProfileData({ ...profileData, name: e.target.value })}
                           />
                         </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="email" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Email</Label>
+                      <div className="space-y-1">
+                        <Label htmlFor="email" className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Email</Label>
                         <div className="relative">
-                          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-muted)" }} />
                           <Input
                             id="email"
-                            className="pl-10 h-11 text-sm rounded-xl bg-slate-50 border-slate-100"
+                            className="pl-9 h-9 rounded-lg"
                             disabled
                             value={profileData.email}
                           />
@@ -214,26 +215,26 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="space-y-1.5">
-                        <Label htmlFor="phone" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Phone Number</Label>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <Label htmlFor="phone" className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Phone Number</Label>
                         <div className="relative">
-                          <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300" />
+                          <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-muted)" }} />
                           <Input
                             id="phone"
-                            className="pl-10 h-11 text-sm rounded-xl bg-slate-50 border-slate-100 focus-visible:ring-primary"
+                            className="pl-9 h-9 rounded-lg"
                             placeholder="+91 9876543210"
                             value={profileData.phone}
                             onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
                           />
                         </div>
                       </div>
-                      <div className="space-y-1.5">
-                        <Label htmlFor="exam" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Primary Exam</Label>
+                      <div className="space-y-1">
+                        <Label htmlFor="exam" className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Primary Exam</Label>
                         <div className="relative">
-                          <Target className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 z-10" />
+                          <Target className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 z-10" style={{ color: "var(--text-muted)" }} />
                           <Select value={profileData.primaryExam} onValueChange={(v) => setProfileData({ ...profileData, primaryExam: v })}>
-                            <SelectTrigger id="exam" className="pl-10 h-11 text-sm rounded-xl bg-slate-50 border-slate-100">
+                            <SelectTrigger id="exam" className="pl-9 h-9 rounded-lg">
                               <SelectValue placeholder="Select Exam" />
                             </SelectTrigger>
                             <SelectContent>
@@ -249,12 +250,12 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <div className="space-y-1.5">
-                      <Label htmlFor="year" className="text-xs font-bold uppercase text-slate-400 tracking-wide">Target Year</Label>
+                    <div className="space-y-1">
+                      <Label htmlFor="year" className="text-[10px] font-bold uppercase tracking-wide" style={{ color: "var(--text-muted)" }}>Target Year</Label>
                       <div className="relative">
-                        <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-300 z-10" />
+                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 z-10" style={{ color: "var(--text-muted)" }} />
                         <Select value={profileData.targetYear.toString()} onValueChange={(v) => setProfileData({ ...profileData, targetYear: parseInt(v) })}>
-                          <SelectTrigger id="year" className="pl-10 h-11 text-sm rounded-xl bg-slate-50 border-slate-100">
+                          <SelectTrigger id="year" className="pl-9 h-9 rounded-lg">
                             <SelectValue placeholder="Year" />
                           </SelectTrigger>
                           <SelectContent>
@@ -266,7 +267,7 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    <Button type="submit" className="w-full bg-primary hover:bg-primary/90 h-11 font-bold mt-2 text-sm rounded-xl shadow-sm shadow-primary/20" disabled={saving}>
+                    <Button type="submit" className="w-full h-9 font-bold mt-1 text-[13px] rounded-lg" disabled={saving}>
                       {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                       Save Profile
                     </Button>

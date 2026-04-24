@@ -160,7 +160,7 @@ const getIconBgColor = (color: string) => {
     orange: "bg-orange-50",
     purple: "bg-purple-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -170,7 +170,7 @@ const getIconColor = (color: string) => {
     orange: "text-orange-600",
     purple: "text-purple-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 // Gamification config state
@@ -255,13 +255,13 @@ export default function StudentAppPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "lg:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Student App</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Student App</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage students, gamification, and notifications
                 </p>
               </div>
@@ -285,8 +285,8 @@ export default function StudentAppPage() {
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                          <div className="text-xl font-bold text-gray-900">{stat.value}</div>
+                          <div className="text-xs text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                          <div className="text-xl font-bold text-[var(--text-primary)]">{stat.value}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -297,7 +297,7 @@ export default function StudentAppPage() {
 
             {/* Tabs */}
             <Tabs defaultValue="students" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1">
                 <TabsTrigger value="students" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
                   Students
                 </TabsTrigger>
@@ -319,7 +319,7 @@ export default function StudentAppPage() {
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <Input
                           placeholder="Search students..."
                           value={searchQuery}
@@ -353,28 +353,28 @@ export default function StudentAppPage() {
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Student</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Student ID</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">App Access</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Linked Teacher</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Last Active</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Tests</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Student</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Student ID</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">App Access</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Linked Teacher</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Last Active</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-center">Tests</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {isLoading ? (
                           <TableRow>
-                            <TableCell colSpan={9} className="text-center py-8 text-gray-400">
+                            <TableCell colSpan={9} className="text-center py-8 text-[var(--text-muted)]">
                               Loading students...
                             </TableCell>
                           </TableRow>
                         ) : studentList.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={9} className="text-center py-8 text-gray-400">
+                            <TableCell colSpan={9} className="text-center py-8 text-[var(--text-muted)]">
                               No students found for this organization.
                             </TableCell>
                           </TableRow>
@@ -383,18 +383,18 @@ export default function StudentAppPage() {
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="w-8 h-8">
-                                  <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-medium">
+                                  <AvatarFallback className="bg-[var(--bg-sidebar)] text-[var(--text-secondary)] text-sm font-medium">
                                     {student.name ? student.name.split(" ").map((n: string) => n[0]).join("") : "U"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium text-gray-900">{student.name}</div>
-                                  <div className="text-xs text-gray-500">{student.phone || "No phone"}</div>
+                                  <div className="font-medium text-[var(--text-primary)]">{student.name}</div>
+                                  <div className="text-xs text-[var(--text-secondary)]">{student.phone || "No phone"}</div>
                                 </div>
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="font-mono text-xs text-gray-600">{student.studentId}</span>
+                              <span className="font-mono text-xs text-[var(--text-secondary)]">{student.studentId}</span>
                             </TableCell>
                             <TableCell>
                               {selectedOrg?.name || "Global"}
@@ -403,9 +403,9 @@ export default function StudentAppPage() {
                               <Badge variant="outline">{student.isActive ? "ACTIVE" : "INACTIVE"}</Badge>
                             </TableCell>
                             <TableCell>
-                              <span className="text-xs text-gray-400">—</span>
+                              <span className="text-xs text-[var(--text-muted)]">—</span>
                             </TableCell>
-                            <TableCell className="text-sm text-gray-500">{new Date(student.createdAt).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{new Date(student.createdAt).toLocaleDateString()}</TableCell>
                             <TableCell className="text-center text-sm">{student.totalAttempts}</TableCell>
                             <TableCell>
                               <StatusBadge status={student.isActive ? "Active" : "Suspended"} />
@@ -433,7 +433,7 @@ export default function StudentAppPage() {
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-[var(--text-secondary)]">
                     Showing {studentList.length} students
                   </div>
                   <div className="flex items-center gap-2">
@@ -559,13 +559,13 @@ export default function StudentAppPage() {
                             className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${
                               badge.enabled
                                 ? "border-brand-primary bg-brand-primary-tint"
-                                : "border-gray-200 bg-gray-50"
+                                : "border-[var(--border-input)] bg-[var(--bg-main)]"
                             }`}
                             onClick={() => toggleBadge(badge.id)}
                           >
                             <div className="flex items-center gap-3">
                               <span className="text-2xl">{badge.icon}</span>
-                              <span className="font-medium text-gray-900">{badge.name}</span>
+                              <span className="font-medium text-[var(--text-primary)]">{badge.name}</span>
                             </div>
                             <Switch checked={badge.enabled} />
                           </div>
@@ -630,16 +630,16 @@ export default function StudentAppPage() {
                           Send Notification
                         </Button>
                       </div>
-                      <div className="bg-gray-50 rounded-lg p-4">
-                        <div className="text-sm text-gray-500 mb-2">Preview</div>
+                      <div className="bg-[var(--bg-main)] rounded-lg p-4">
+                        <div className="text-sm text-[var(--text-secondary)] mb-2">Preview</div>
                         <div className="bg-white rounded-xl shadow-md p-4 max-w-[280px]">
                           <div className="flex items-start gap-3">
                             <div className="w-10 h-10 rounded-full bg-brand-primary flex items-center justify-center">
                               <span className="text-white font-bold text-sm">E</span>
                             </div>
                             <div className="flex-1">
-                              <div className="font-semibold text-sm text-gray-900">EduHub</div>
-                              <div className="text-sm text-gray-600 mt-1">
+                              <div className="font-semibold text-sm text-[var(--text-primary)]">EduHub</div>
+                              <div className="text-sm text-[var(--text-secondary)] mt-1">
                                 Your notification message will appear here...
                               </div>
                             </div>
@@ -656,7 +656,7 @@ export default function StudentAppPage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-gray-600" />
+                      <Settings className="w-5 h-5 text-[var(--text-secondary)]" />
                       App Configuration
                     </CardTitle>
                     <CardDescription>Global student app settings</CardDescription>
@@ -665,29 +665,29 @@ export default function StudentAppPage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <div className="font-medium text-gray-900">Maintenance Mode</div>
-                          <div className="text-sm text-gray-500">Disable app for all users</div>
+                          <div className="font-medium text-[var(--text-primary)]">Maintenance Mode</div>
+                          <div className="text-sm text-[var(--text-secondary)]">Disable app for all users</div>
                         </div>
                         <Switch />
                       </div>
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <div className="font-medium text-gray-900">Force Update Required</div>
-                          <div className="text-sm text-gray-500">Require app update to continue</div>
+                          <div className="font-medium text-[var(--text-primary)]">Force Update Required</div>
+                          <div className="text-sm text-[var(--text-secondary)]">Require app update to continue</div>
                         </div>
                         <Switch />
                       </div>
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <div className="font-medium text-gray-900">Show Leaderboard</div>
-                          <div className="text-sm text-gray-500">Display public leaderboard</div>
+                          <div className="font-medium text-[var(--text-primary)]">Show Leaderboard</div>
+                          <div className="text-sm text-[var(--text-secondary)]">Display public leaderboard</div>
                         </div>
                         <Switch defaultChecked />
                       </div>
                       <div className="flex items-center justify-between p-4 border rounded-lg">
                         <div>
-                          <div className="font-medium text-gray-900">Allow Offline Mode</div>
-                          <div className="text-sm text-gray-500">Download content for offline</div>
+                          <div className="font-medium text-[var(--text-primary)]">Allow Offline Mode</div>
+                          <div className="text-sm text-[var(--text-secondary)]">Download content for offline</div>
                         </div>
                         <Switch defaultChecked />
                       </div>

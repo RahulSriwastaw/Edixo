@@ -181,19 +181,19 @@ const router = useRouter();
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-3xl mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/admin/staff" className="hover:text-[#F4511E]">Staff Management</Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">Add Staff Member</span>
+              <span className="text-[var(--text-primary)] font-medium">Add Staff Member</span>
             </div>
 
             {/* Form Header */}
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Add New Staff Member</h1>
-              <p className="text-gray-500 text-sm">Create a new staff account with role-based access</p>
+              <h1 className="text-2xl font-bold text-[var(--text-primary)]">Add New Staff Member</h1>
+              <p className="text-[var(--text-secondary)] text-sm">Create a new staff account with role-based access</p>
             </div>
 
             <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
@@ -209,8 +209,8 @@ const router = useRouter();
                   {/* Photo + Name Row */}
                   <div className="flex gap-4 items-start">
                     <div className="flex flex-col items-center gap-2">
-                      <Avatar className="w-20 h-20 border-2 border-dashed border-gray-300">
-                        <AvatarFallback className="bg-gray-100 text-gray-400">
+                      <Avatar className="w-20 h-20 border-2 border-dashed border-[var(--border-input)]">
+                        <AvatarFallback className="bg-[var(--bg-main)] text-[var(--text-muted)]">
                           <Camera className="w-6 h-6" />
                         </AvatarFallback>
                       </Avatar>
@@ -231,7 +231,7 @@ const router = useRouter();
                       <div>
                         <Label>Phone Number</Label>
                         <div className="relative mt-1">
-                          <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                          <Phone className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                           <Input
                             placeholder="+91 98765 43210"
                             value={form.phone}
@@ -247,7 +247,7 @@ const router = useRouter();
                   <div>
                     <Label>Email Address *</Label>
                     <div className="relative mt-1">
-                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Mail className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <Input
                         type="email"
                         placeholder="rahul@apexacademy.edu"
@@ -310,7 +310,7 @@ const router = useRouter();
                       onChange={(e) => updateField("loginId", e.target.value)}
                       className="mt-1"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                       Auto-generated from name. Used for login.
                     </p>
                   </div>
@@ -374,14 +374,14 @@ const router = useRouter();
                           onClick={() => updateField("role", role.value)}
                           className={cn(
                             "w-full text-left p-4 rounded-xl border-2 transition-all",
-                            isSelected ? role.color : "border-gray-200 hover:border-gray-300 bg-white"
+                            isSelected ? role.color : "border-[var(--border-input)] hover:border-[var(--border-input)] bg-white"
                           )}
                         >
                           <div className="flex items-start gap-3">
                             <div
                               className={cn(
                                 "w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5",
-                                isSelected ? "border-[#F4511E] bg-[#F4511E]" : "border-gray-300"
+                                isSelected ? "border-[#F4511E] bg-[#F4511E]" : "border-[var(--border-input)]"
                               )}
                             >
                               {isSelected && <Check className="w-3 h-3 text-white" />}
@@ -389,9 +389,9 @@ const router = useRouter();
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
                                 <Icon className="w-4 h-4" />
-                                <span className="font-medium text-gray-900">{role.label}</span>
+                                <span className="font-medium text-[var(--text-primary)]">{role.label}</span>
                               </div>
-                              <p className="text-sm text-gray-500 mt-0.5">{role.description}</p>
+                              <p className="text-sm text-[var(--text-secondary)] mt-0.5">{role.description}</p>
                             </div>
                           </div>
                         </button>
@@ -424,7 +424,7 @@ const router = useRouter();
                         ))}
                       </SelectContent>
                     </Select>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-[var(--text-secondary)] mt-1">
                       Staff member will have access to this organization&apos;s resources.
                     </p>
                   </div>
@@ -436,8 +436,8 @@ const router = useRouter();
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="font-medium text-gray-900">Send Welcome Email</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="font-medium text-[var(--text-primary)]">Send Welcome Email</p>
+                      <p className="text-sm text-[var(--text-secondary)]">
                         Send login credentials to {form.email || "the new staff member"}
                       </p>
                     </div>

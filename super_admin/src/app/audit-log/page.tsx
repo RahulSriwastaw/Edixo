@@ -54,7 +54,7 @@ const actionColors: Record<string, string> = {
   AI_QUOTA_RESET: "bg-yellow-50 text-yellow-700",
   LOGIN_SUCCESS: "bg-green-50 text-green-700",
   LOGIN_FAILED: "bg-red-50 text-red-700",
-  SETTINGS_CHANGED: "bg-gray-50 text-gray-700",
+  SETTINGS_CHANGED: "bg-[var(--bg-main)] text-[var(--text-primary)]",
 };
 
 // Role badge colors
@@ -121,13 +121,13 @@ export default function AuditLogPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Audit Log</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Audit Log</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Complete trail of all platform actions
                 </p>
               </div>
@@ -146,8 +146,8 @@ export default function AuditLogPage() {
                       <Clock className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Today's Events</div>
-                      <div className="text-xl font-bold text-gray-900">847</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Today's Events</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">847</div>
                     </div>
                   </div>
                 </CardContent>
@@ -159,8 +159,8 @@ export default function AuditLogPage() {
                       <User className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Unique Actors</div>
-                      <div className="text-xl font-bold text-gray-900">124</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Unique Actors</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">124</div>
                     </div>
                   </div>
                 </CardContent>
@@ -172,8 +172,8 @@ export default function AuditLogPage() {
                       <AlertTriangle className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Security Events</div>
-                      <div className="text-xl font-bold text-gray-900">23</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Security Events</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">23</div>
                     </div>
                   </div>
                 </CardContent>
@@ -185,8 +185,8 @@ export default function AuditLogPage() {
                       <Shield className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Impersonations</div>
-                      <div className="text-xl font-bold text-gray-900">5</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Impersonations</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">5</div>
                     </div>
                   </div>
                 </CardContent>
@@ -198,7 +198,7 @@ export default function AuditLogPage() {
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search actions..."
                       value={searchQuery}
@@ -247,13 +247,13 @@ export default function AuditLogPage() {
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Timestamp</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Actor</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Action</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Entity</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Details</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">IP Address</TableHead>
+                    <TableRow className="bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Timestamp</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Actor</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Action</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Entity</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Details</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">IP Address</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -262,13 +262,13 @@ export default function AuditLogPage() {
                          <TableCell colSpan={6} className="text-center py-10">
                            <div className="flex flex-col items-center gap-2">
                              <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
-                             <span className="text-gray-500">Loading logs...</span>
+                             <span className="text-[var(--text-secondary)]">Loading logs...</span>
                            </div>
                          </TableCell>
                        </TableRow>
                     ) : logs.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} className="text-center py-10 text-gray-500">
+                        <TableCell colSpan={6} className="text-center py-10 text-[var(--text-secondary)]">
                           No audit logs found
                         </TableCell>
                       </TableRow>
@@ -276,7 +276,7 @@ export default function AuditLogPage() {
                       logs.map((log) => (
                         <TableRow key={log.id} className="hover:bg-brand-primary-tint">
                           <TableCell>
-                            <span className="font-mono text-xs text-gray-600">
+                            <span className="font-mono text-xs text-[var(--text-secondary)]">
                               {new Date(log.createdAt).toLocaleString()}
                             </span>
                           </TableCell>
@@ -284,11 +284,11 @@ export default function AuditLogPage() {
                             <div className="flex items-center gap-2">
                               <div>
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium text-gray-900">{log.actorName}</span>
+                                  <span className="text-sm font-medium text-[var(--text-primary)]">{log.actorName}</span>
                                 </div>
                                 <span
                                   className={`text-[10px] px-1.5 py-0.5 rounded uppercase font-bold ${
-                                    roleColors[log.actorType] || "bg-gray-100 text-gray-600"
+                                    roleColors[log.actorType] || "bg-[var(--bg-main)] text-[var(--text-secondary)]"
                                   }`}
                                 >
                                   {log.actorType}
@@ -297,23 +297,23 @@ export default function AuditLogPage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className={`badge ${actionColors[log.action] || "bg-gray-100 text-gray-600"}`}>
+                            <span className={`badge ${actionColors[log.action] || "bg-[var(--bg-main)] text-[var(--text-secondary)]"}`}>
                               {log.action.replace(/_/g, ' ')}
                             </span>
                           </TableCell>
                           <TableCell>
                             <div>
-                              <div className="text-sm text-gray-900">{log.resource || '—'}</div>
-                              <span className="text-xs text-gray-400">Resource</span>
+                              <div className="text-sm text-[var(--text-primary)]">{log.resource || '—'}</div>
+                              <span className="text-xs text-[var(--text-muted)]">Resource</span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm text-gray-600 line-clamp-2 max-w-[250px]">
+                            <span className="text-sm text-[var(--text-secondary)] line-clamp-2 max-w-[250px]">
                               {log.action} performed on {log.resource || 'system'}
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono text-xs text-gray-500">{log.ip || 'N/A'}</span>
+                            <span className="font-mono text-xs text-[var(--text-secondary)]">{log.ip || 'N/A'}</span>
                           </TableCell>
                         </TableRow>
                       ))
@@ -325,7 +325,7 @@ export default function AuditLogPage() {
 
             {/* Pagination */}
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-[var(--text-secondary)]">
                 Showing {(page - 1) * limit + 1}–{Math.min(page * limit, total)} of {total}
               </div>
               <div className="flex items-center gap-2">

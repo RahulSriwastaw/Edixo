@@ -510,7 +510,7 @@ const PdfConverter: React.FC = () => {
                     className="mt-8 flex flex-col items-center gap-3"
                   >
                     <div className="w-8 h-8 border-2 border-slate-900/20 border-t-slate-900 rounded-full animate-spin" />
-                    <p className="text-slate-600 font-semibold tracking-wider uppercase text-[10px]">
+                    <p className="text-[var(--text-secondary)] font-semibold tracking-wider uppercase text-[10px]">
                       Analyzing document...
                     </p>
                   </motion.div>
@@ -523,23 +523,23 @@ const PdfConverter: React.FC = () => {
                className="space-y-6"
              >
                 {/* Action Bar - Reorganized for better accessibility */}
-                <div className="bg-white/95 backdrop-blur-xl p-3 rounded-2xl border border-slate-200 shadow-lg flex flex-col gap-4 sticky top-4 z-30">
+                <div className="bg-white/95 backdrop-blur-xl p-3 rounded-2xl border border-[var(--border-input)] shadow-lg flex flex-col gap-4 sticky top-4 z-30">
                    
                    {/* Top Row: Selection & Main Actions */}
                    <div className="flex flex-col md:flex-row justify-between items-center gap-4">
                         <div className="flex items-center gap-3">
                              <div className="flex items-center gap-2 px-2 py-1 bg-slate-100 rounded-lg">
-                                <span className="text-xs font-bold text-slate-600">{selectedCount}/{totalCount}</span>
+                                <span className="text-xs font-bold text-[var(--text-secondary)]">{selectedCount}/{totalCount}</span>
                                 <div className="flex gap-1">
                                     <button 
                                         onClick={() => toggleAllSelection(true)}
-                                        className="text-[10px] font-bold text-slate-700 hover:bg-white px-2 py-0.5 rounded shadow-sm transition-all"
+                                        className="text-[10px] font-bold text-[var(--text-primary)] hover:bg-white px-2 py-0.5 rounded shadow-sm transition-all"
                                     >
                                         ALL
                                     </button>
                                     <button 
                                         onClick={() => toggleAllSelection(false)}
-                                        className="text-[10px] font-bold text-slate-400 hover:bg-white px-2 py-0.5 rounded shadow-sm transition-all"
+                                        className="text-[10px] font-bold text-[var(--text-muted)] hover:bg-white px-2 py-0.5 rounded shadow-sm transition-all"
                                     >
                                         NONE
                                     </button>
@@ -547,11 +547,11 @@ const PdfConverter: React.FC = () => {
                              </div>
 
                              <div className="relative">
-                                <Filter className="w-3 h-3 text-slate-400 absolute left-2 top-1/2 -translate-y-1/2" />
+                                <Filter className="w-3 h-3 text-[var(--text-muted)] absolute left-2 top-1/2 -translate-y-1/2" />
                                 <input 
                                     type="text" 
                                     placeholder="Range (e.g. 1-5)" 
-                                    className="pl-6 pr-2 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all w-28"
+                                    className="pl-6 pr-2 py-1 text-xs bg-[var(--bg-main)] border border-[var(--border-input)] rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-200 transition-all w-28"
                                     value={rangeInput}
                                     onChange={(e) => setRangeInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && applyRangeSelection()}
@@ -575,7 +575,7 @@ const PdfConverter: React.FC = () => {
                                 <div className="flex gap-2 mr-2">
                                     <button 
                                         onClick={copyAllText}
-                                        className="p-2 text-slate-500 hover:bg-slate-100 rounded-lg transition-colors"
+                                        className="p-2 text-[var(--text-secondary)] hover:bg-slate-100 rounded-lg transition-colors"
                                         title="Copy All"
                                     >
                                         {copySuccess ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
@@ -592,7 +592,7 @@ const PdfConverter: React.FC = () => {
 
                             {appState !== AppState.ANALYZING ? (
                                 <div className="flex gap-2 flex-1 md:flex-none">
-                                    <label className="px-4 py-2 bg-slate-100 text-slate-700 hover:bg-slate-200 rounded-lg text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors">
+                                    <label className="px-4 py-2 bg-slate-100 text-[var(--text-primary)] hover:bg-slate-200 rounded-lg text-xs font-bold flex items-center justify-center gap-2 cursor-pointer transition-colors">
                                         <Plus className="w-4 h-4" />
                                         ADD
                                         <input 
@@ -608,7 +608,7 @@ const PdfConverter: React.FC = () => {
                                         disabled={selectedPendingCount === 0 && !hasErrorPages}
                                         className={`flex-1 md:flex-none px-6 py-2 rounded-lg flex items-center justify-center gap-2 text-xs font-bold transition-all ${
                                             selectedPendingCount === 0 && !hasErrorPages
-                                                ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                                ? 'bg-slate-100 text-[var(--text-muted)] cursor-not-allowed'
                                                 : 'bg-orange-500 text-white hover:bg-orange-600 shadow-md shadow-orange-100'
                                         }`}
                                     >
@@ -620,7 +620,7 @@ const PdfConverter: React.FC = () => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="flex-1 md:flex-none px-6 py-2 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold flex items-center justify-center gap-2">
+                                <div className="flex-1 md:flex-none px-6 py-2 bg-slate-100 text-[var(--text-secondary)] rounded-lg text-xs font-bold flex items-center justify-center gap-2">
                                     <RefreshCw className="w-4 h-4 animate-spin" />
                                     PROCESSING...
                                 </div>
@@ -629,7 +629,7 @@ const PdfConverter: React.FC = () => {
                    </div>
 
                    {/* Bottom Row: Tools & Settings Grid */}
-                   <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 pt-3 border-t border-slate-100">
+                   <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 pt-3 border-t border-[var(--divider)]">
                         {/* MCQ Mode */}
                         <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-orange-50/50 border border-orange-100">
                             <span className="text-[10px] font-bold text-orange-600 uppercase tracking-wider">MCQ Mode</span>
@@ -688,10 +688,10 @@ const PdfConverter: React.FC = () => {
                         </div>
 
                         {/* Images */}
-                        <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
-                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Images</span>
+                        <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-input)]">
+                            <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Images</span>
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-slate-500 font-medium">{includeImages ? 'Keep' : 'Skip'}</span>
+                                <span className="text-[10px] text-[var(--text-secondary)] font-medium">{includeImages ? 'Keep' : 'Skip'}</span>
                                 <button
                                     onClick={() => setIncludeImages(!includeImages)}
                                     className={`w-8 h-4 rounded-full transition-all flex items-center px-0.5 ${includeImages ? 'bg-slate-800' : 'bg-slate-300'}`}
@@ -702,10 +702,10 @@ const PdfConverter: React.FC = () => {
                         </div>
 
                         {/* Auto Save */}
-                        <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
-                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">Auto Save</span>
+                        <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-input)]">
+                            <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">Auto Save</span>
                             <div className="flex items-center justify-between">
-                                <span className="text-[10px] text-slate-500 font-medium">{autoDownload ? 'On' : 'Off'}</span>
+                                <span className="text-[10px] text-[var(--text-secondary)] font-medium">{autoDownload ? 'On' : 'Off'}</span>
                                 <button
                                     onClick={() => setAutoDownload(!autoDownload)}
                                     className={`w-8 h-4 rounded-full transition-all flex items-center px-0.5 ${autoDownload ? 'bg-slate-800' : 'bg-slate-300'}`}
@@ -716,11 +716,11 @@ const PdfConverter: React.FC = () => {
                         </div>
 
                         {/* History */}
-                        <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-slate-50 border border-slate-200">
-                            <span className="text-[10px] font-bold text-slate-600 uppercase tracking-wider">History</span>
+                        <div className="flex flex-col gap-1.5 p-2 rounded-xl bg-[var(--bg-main)] border border-[var(--border-input)]">
+                            <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">History</span>
                             <button
                                 onClick={() => setIsHistoryOpen(true)}
-                                className="flex items-center justify-between text-slate-700 hover:text-slate-900 transition-colors"
+                                className="flex items-center justify-between text-[var(--text-primary)] hover:text-[var(--text-primary)] transition-colors"
                             >
                                 <span className="text-[10px] font-medium">View Past</span>
                                 <Clock className="w-3.5 h-3.5" />

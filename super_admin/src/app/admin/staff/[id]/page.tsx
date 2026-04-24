@@ -138,13 +138,13 @@ export default function StaffProfilePage({
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/admin/staff" className="hover:text-[#F4511E]">Staff Management</Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">{staffData.name}</span>
+              <span className="text-[var(--text-primary)] font-medium">{staffData.name}</span>
             </div>
 
             {/* Profile Header */}
@@ -160,7 +160,7 @@ export default function StaffProfilePage({
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-3">
-                        <h1 className="text-2xl font-bold text-gray-900">{staffData.name}</h1>
+                        <h1 className="text-2xl font-bold text-[var(--text-primary)]">{staffData.name}</h1>
                         <Badge className={roleInfo.color}>
                           <RoleIcon className="w-3 h-3 mr-1" />
                           {roleInfo.label}
@@ -175,8 +175,8 @@ export default function StaffProfilePage({
                           </Badge>
                         )}
                       </div>
-                      <p className="text-gray-500 mt-1">{staffData.designation} • {staffData.department}</p>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <p className="text-[var(--text-secondary)] mt-1">{staffData.designation} • {staffData.department}</p>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1">
                           <Building2 className="w-4 h-4" /> {staffData.org}
                         </span>
@@ -206,36 +206,36 @@ export default function StaffProfilePage({
               <Card>
                 <CardContent className="p-4 text-center">
                   <Layers className="w-5 h-5 mx-auto text-[#F4511E] mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{staffData.stats.setsCreated}</div>
-                  <div className="text-xs text-gray-500">Sets Created</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{staffData.stats.setsCreated}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">Sets Created</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <BookOpen className="w-5 h-5 mx-auto text-blue-600 mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{staffData.stats.questionsAdded}</div>
-                  <div className="text-xs text-gray-500">Questions Added</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{staffData.stats.questionsAdded}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">Questions Added</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <FileText className="w-5 h-5 mx-auto text-purple-600 mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{staffData.stats.mocktestsCreated}</div>
-                  <div className="text-xs text-gray-500">MockTests</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{staffData.stats.mocktestsCreated}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">MockTests</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <Users className="w-5 h-5 mx-auto text-green-600 mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{staffData.stats.studentsHelped}</div>
-                  <div className="text-xs text-gray-500">Students Helped</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{staffData.stats.studentsHelped}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">Students Helped</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4 text-center">
                   <Activity className="w-5 h-5 mx-auto text-amber-600 mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{staffData.stats.totalViews}</div>
-                  <div className="text-xs text-gray-500">Total Views</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{staffData.stats.totalViews}</div>
+                  <div className="text-xs text-[var(--text-secondary)]">Total Views</div>
                 </CardContent>
               </Card>
             </div>
@@ -261,7 +261,7 @@ export default function StaffProfilePage({
                   <CardContent className="p-0">
                     <div className="divide-y">
                       {staffData.recentActivity.map((activity) => (
-                        <div key={activity.id} className="p-4 flex items-center justify-between hover:bg-gray-50">
+                        <div key={activity.id} className="p-4 flex items-center justify-between hover:bg-[var(--bg-main)]">
                           <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
                               {activity.action.includes("Created") ? (
@@ -273,11 +273,11 @@ export default function StaffProfilePage({
                               )}
                             </div>
                             <div>
-                              <p className="font-medium text-gray-900">{activity.action}</p>
-                              <p className="text-sm text-gray-500">{activity.item}</p>
+                              <p className="font-medium text-[var(--text-primary)]">{activity.action}</p>
+                              <p className="text-sm text-[var(--text-secondary)]">{activity.item}</p>
                             </div>
                           </div>
-                          <span className="text-sm text-gray-400 flex items-center gap-1">
+                          <span className="text-sm text-[var(--text-muted)] flex items-center gap-1">
                             <Clock className="w-3 h-3" /> {activity.time}
                           </span>
                         </div>
@@ -297,7 +297,7 @@ export default function StaffProfilePage({
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6">
-                    <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div className="mb-4 p-4 bg-[var(--bg-main)] rounded-lg">
                       <div className="flex items-center gap-2">
                         <RoleIcon className="w-5 h-5" />
                         <span className="font-medium">{roleInfo.label}</span>
@@ -308,16 +308,16 @@ export default function StaffProfilePage({
                       <table className="w-full">
                         <thead>
                           <tr className="border-b">
-                            <th className="text-left p-3 font-medium text-gray-500">Module</th>
-                            <th className="text-center p-3 font-medium text-gray-500">Read</th>
-                            <th className="text-center p-3 font-medium text-gray-500">Write</th>
-                            <th className="text-center p-3 font-medium text-gray-500">Delete</th>
+                            <th className="text-left p-3 font-medium text-[var(--text-secondary)]">Module</th>
+                            <th className="text-center p-3 font-medium text-[var(--text-secondary)]">Read</th>
+                            <th className="text-center p-3 font-medium text-[var(--text-secondary)]">Write</th>
+                            <th className="text-center p-3 font-medium text-[var(--text-secondary)]">Delete</th>
                           </tr>
                         </thead>
                         <tbody>
                           {Object.entries(staffData.permissions).map(([module, perms]) => (
                             <tr key={module} className="border-b">
-                              <td className="p-3 font-medium text-gray-900">{module}</td>
+                              <td className="p-3 font-medium text-[var(--text-primary)]">{module}</td>
                               <td className="p-3 text-center">
                                 {perms.read ? (
                                   <Check className="w-5 h-5 text-green-600 mx-auto" />
@@ -365,29 +365,29 @@ export default function StaffProfilePage({
                   <CardContent className="p-0">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b bg-gray-50">
-                          <th className="text-left p-4 font-medium text-gray-500">Set</th>
-                          <th className="text-left p-4 font-medium text-gray-500">ID</th>
-                          <th className="text-center p-4 font-medium text-gray-500">Questions</th>
-                          <th className="text-left p-4 font-medium text-gray-500">Created</th>
-                          <th className="text-center p-4 font-medium text-gray-500">Actions</th>
+                        <tr className="border-b bg-[var(--bg-main)]">
+                          <th className="text-left p-4 font-medium text-[var(--text-secondary)]">Set</th>
+                          <th className="text-left p-4 font-medium text-[var(--text-secondary)]">ID</th>
+                          <th className="text-center p-4 font-medium text-[var(--text-secondary)]">Questions</th>
+                          <th className="text-left p-4 font-medium text-[var(--text-secondary)]">Created</th>
+                          <th className="text-center p-4 font-medium text-[var(--text-secondary)]">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {staffData.sets.map((set) => (
-                          <tr key={set.id} className="border-b hover:bg-gray-50">
+                          <tr key={set.id} className="border-b hover:bg-[var(--bg-main)]">
                             <td className="p-4">
-                              <span className="font-medium text-gray-900">{set.name}</span>
+                              <span className="font-medium text-[var(--text-primary)]">{set.name}</span>
                             </td>
                             <td className="p-4">
-                              <code className="text-xs bg-gray-100 px-2 py-1 rounded font-mono">
+                              <code className="text-xs bg-[var(--bg-main)] px-2 py-1 rounded font-mono">
                                 {set.code}
                               </code>
                             </td>
                             <td className="p-4 text-center">
                               <Badge className="bg-blue-50 text-blue-700">{set.questions}</Badge>
                             </td>
-                            <td className="p-4 text-gray-500 text-sm">{set.created}</td>
+                            <td className="p-4 text-[var(--text-secondary)] text-sm">{set.created}</td>
                             <td className="p-4 text-center">
                               <Button variant="ghost" size="sm">
                                 <Eye className="w-4 h-4" />
@@ -414,25 +414,25 @@ export default function StaffProfilePage({
                     <CardContent className="p-6 space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-gray-500">Full Name</label>
-                          <p className="font-medium text-gray-900">{staffData.name}</p>
+                          <label className="text-xs text-[var(--text-secondary)]">Full Name</label>
+                          <p className="font-medium text-[var(--text-primary)]">{staffData.name}</p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500">Login ID</label>
-                          <p className="font-medium text-gray-900">{staffData.loginId}</p>
+                          <label className="text-xs text-[var(--text-secondary)]">Login ID</label>
+                          <p className="font-medium text-[var(--text-primary)]">{staffData.loginId}</p>
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500">Email Address</label>
-                        <p className="font-medium text-gray-900 flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-gray-400" />
+                        <label className="text-xs text-[var(--text-secondary)]">Email Address</label>
+                        <p className="font-medium text-[var(--text-primary)] flex items-center gap-2">
+                          <Mail className="w-4 h-4 text-[var(--text-muted)]" />
                           {staffData.email}
                         </p>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500">Phone Number</label>
-                        <p className="font-medium text-gray-900 flex items-center gap-2">
-                          <Phone className="w-4 h-4 text-gray-400" />
+                        <label className="text-xs text-[var(--text-secondary)]">Phone Number</label>
+                        <p className="font-medium text-[var(--text-primary)] flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-[var(--text-muted)]" />
                           {staffData.phone}
                         </p>
                       </div>
@@ -449,28 +449,28 @@ export default function StaffProfilePage({
                     <CardContent className="p-6 space-y-4">
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-gray-500">Organization</label>
-                          <p className="font-medium text-gray-900">{staffData.org}</p>
+                          <label className="text-xs text-[var(--text-secondary)]">Organization</label>
+                          <p className="font-medium text-[var(--text-primary)]">{staffData.org}</p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500">Department</label>
-                          <p className="font-medium text-gray-900">{staffData.department}</p>
+                          <label className="text-xs text-[var(--text-secondary)]">Department</label>
+                          <p className="font-medium text-[var(--text-primary)]">{staffData.department}</p>
                         </div>
                       </div>
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-xs text-gray-500">Designation</label>
-                          <p className="font-medium text-gray-900">{staffData.designation}</p>
+                          <label className="text-xs text-[var(--text-secondary)]">Designation</label>
+                          <p className="font-medium text-[var(--text-primary)]">{staffData.designation}</p>
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500">Role</label>
+                          <label className="text-xs text-[var(--text-secondary)]">Role</label>
                           <Badge className={roleInfo.color}>{roleInfo.label}</Badge>
                         </div>
                       </div>
                       <div>
-                        <label className="text-xs text-gray-500">Last Login</label>
-                        <p className="font-medium text-gray-900 flex items-center gap-2">
-                          <Clock className="w-4 h-4 text-gray-400" />
+                        <label className="text-xs text-[var(--text-secondary)]">Last Login</label>
+                        <p className="font-medium text-[var(--text-primary)] flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-[var(--text-muted)]" />
                           {staffData.lastLogin}
                         </p>
                       </div>

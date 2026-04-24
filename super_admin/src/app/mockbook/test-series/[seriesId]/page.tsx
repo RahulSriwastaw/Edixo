@@ -29,7 +29,7 @@ import { toast } from "sonner";
 function StatusBadge({ status }: { status: string }) {
     const cfg: Record<string, string> = {
         LIVE: "bg-green-50 text-green-700 border-green-200",
-        DRAFT: "bg-gray-50 text-gray-600 border-gray-200",
+        DRAFT: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]",
         ENDED: "bg-red-50 text-red-600 border-red-200",
     };
     return <Badge variant="outline" className={cn("text-[10px]", cfg[status] || cfg.DRAFT)}>{status}</Badge>;
@@ -151,14 +151,14 @@ export default function SeriesDetailPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
-                        <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] flex-wrap">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
                             <Link href="/mockbook/test-series" className="hover:text-orange-600">Test Series</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium truncate max-w-[300px]">{series.name}</span>
+                            <span className="text-[var(--text-primary)] font-medium truncate max-w-[300px]">{series.name}</span>
                         </div>
 
                         <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -168,13 +168,13 @@ export default function SeriesDetailPage() {
                                 </div>
                                 <div>
                                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                                        <h1 className="text-xl font-bold text-gray-900">{series.name}</h1>
-                                        <Badge variant="outline" className={cn("text-[10px]", series.isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-gray-50 text-gray-600")}>
+                                        <h1 className="text-xl font-bold text-[var(--text-primary)]">{series.name}</h1>
+                                        <Badge variant="outline" className={cn("text-[10px]", series.isActive ? "bg-green-50 text-green-700 border-green-200" : "bg-[var(--bg-main)] text-[var(--text-secondary)]")}>
                                             {series.isActive ? "Active" : "Inactive"}
                                         </Badge>
                                         {series.isFeatured && <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 text-[10px]"><Star className="w-2.5 h-2.5 mr-1" />Featured</Badge>}
                                     </div>
-                                    {series.description && <p className="text-sm text-gray-500 max-w-[600px]">{series.description}</p>}
+                                    {series.description && <p className="text-sm text-[var(--text-secondary)] max-w-[600px]">{series.description}</p>}
                                 </div>
                             </div>
                             <div className="flex items-center gap-2 shrink-0">
@@ -196,15 +196,15 @@ export default function SeriesDetailPage() {
                             ].map(stat => (
                                 <Card key={stat.label} className="kpi-card">
                                     <CardContent className="p-4">
-                                        <div className="text-[10px] text-gray-500 uppercase">{stat.label}</div>
-                                        <div className="text-lg font-bold text-gray-900 mt-0.5">{stat.value}</div>
+                                        <div className="text-[10px] text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                                        <div className="text-lg font-bold text-[var(--text-primary)] mt-0.5">{stat.value}</div>
                                     </CardContent>
                                 </Card>
                             ))}
                         </div>
 
                         <Tabs defaultValue="tests">
-                            <TabsList className="bg-white border border-gray-200 rounded-lg p-1 h-auto flex-wrap">
+                            <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1 h-auto flex-wrap">
                                 {["tests", "folders", "pricing", "analytics", "students"].map(v => (
                                     <TabsTrigger key={v} value={v} className="capitalize data-[state=active]:bg-brand-primary data-[state=active]:text-white text-sm">
                                         {v === "folders" ? "Folders" : v.charAt(0).toUpperCase() + v.slice(1)}
@@ -215,7 +215,7 @@ export default function SeriesDetailPage() {
                             {/* TESTS */}
                             <TabsContent value="tests" className="mt-4 space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500">{tests.length} tests</span>
+                                    <span className="text-sm text-[var(--text-secondary)]">{tests.length} tests</span>
                                     <Button size="sm" className="btn-primary" onClick={() => router.push(`/mockbook/mock-tests?seriesId=${seriesId}`)}>
                                         <Plus className="w-3.5 h-3.5 mr-1" /> Create New Test
                                     </Button>
@@ -225,12 +225,12 @@ export default function SeriesDetailPage() {
                                         {tests.length === 0 ? (
                                             <div className="p-12 text-center space-y-2">
                                                 <FileText className="w-12 h-12 text-gray-200 mx-auto" />
-                                                <p className="text-gray-400 text-sm">No tests yet</p>
+                                                <p className="text-[var(--text-muted)] text-sm">No tests yet</p>
                                             </div>
                                         ) : (
                                             <Table>
                                                 <TableHeader>
-                                                    <TableRow className="bg-gray-50">
+                                                    <TableRow className="bg-[var(--bg-main)]">
                                                         <TableHead className="text-xs uppercase">Test Name</TableHead>
                                                         <TableHead className="text-xs uppercase">Folder</TableHead>
                                                         <TableHead className="text-xs uppercase">Duration</TableHead>
@@ -244,12 +244,12 @@ export default function SeriesDetailPage() {
                                                     {tests.map((test: any) => (
                                                         <TableRow key={test.id} className="hover:bg-orange-50/30">
                                                             <TableCell>
-                                                                <div className="font-medium text-sm text-gray-900 max-w-[220px] truncate">{test.name}</div>
-                                                                <div className="text-[10px] text-gray-400 font-mono">{test.testId}</div>
+                                                                <div className="font-medium text-sm text-[var(--text-primary)] max-w-[220px] truncate">{test.name}</div>
+                                                                <div className="text-[10px] text-[var(--text-muted)] font-mono">{test.testId}</div>
                                                             </TableCell>
-                                                            <TableCell className="text-xs text-gray-500">{test.subCategoryName || "—"}</TableCell>
-                                                            <TableCell className="text-xs text-gray-600">{test.durationMins}m</TableCell>
-                                                            <TableCell className="text-xs text-gray-600">{test.totalMarks}</TableCell>
+                                                            <TableCell className="text-xs text-[var(--text-secondary)]">{test.subCategoryName || "—"}</TableCell>
+                                                            <TableCell className="text-xs text-[var(--text-secondary)]">{test.durationMins}m</TableCell>
+                                                            <TableCell className="text-xs text-[var(--text-secondary)]">{test.totalMarks}</TableCell>
                                                             <TableCell><StatusBadge status={test.status} /></TableCell>
                                                             <TableCell className="text-sm font-semibold">{test.attemptsCount || test._count?.attempts || 0}</TableCell>
                                                             <TableCell className="text-right">
@@ -295,7 +295,7 @@ export default function SeriesDetailPage() {
                             {/* FOLDERS / SUB-CATEGORIES */}
                             <TabsContent value="folders" className="mt-4 space-y-3">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-sm text-gray-500">{subCategories.length} folders — group tests like "Tier 1", "PYQ", "Sectional"</span>
+                                    <span className="text-sm text-[var(--text-secondary)]">{subCategories.length} folders — group tests like "Tier 1", "PYQ", "Sectional"</span>
                                     <Button size="sm" className="btn-primary" onClick={openAddSubCat}>
                                         <Plus className="w-3.5 h-3.5 mr-1" /> Add Folder
                                     </Button>
@@ -304,7 +304,7 @@ export default function SeriesDetailPage() {
                                     <Card>
                                         <CardContent className="p-12 text-center space-y-3">
                                             <Folder className="w-12 h-12 text-gray-200 mx-auto" />
-                                            <p className="text-gray-400 text-sm">No folders yet. Add folders to organize tests.</p>
+                                            <p className="text-[var(--text-muted)] text-sm">No folders yet. Add folders to organize tests.</p>
                                             <Button size="sm" className="btn-primary" onClick={openAddSubCat}>
                                                 <Plus className="w-3.5 h-3.5 mr-1" /> Create First Folder
                                             </Button>
@@ -321,8 +321,8 @@ export default function SeriesDetailPage() {
                                                                 <Folder className="w-4 h-4 text-orange-500" />
                                                             </div>
                                                             <div>
-                                                                <div className="font-semibold text-sm text-gray-900">{sc.name}</div>
-                                                                {sc.description && <div className="text-xs text-gray-400">{sc.description}</div>}
+                                                                <div className="font-semibold text-sm text-[var(--text-primary)]">{sc.name}</div>
+                                                                {sc.description && <div className="text-xs text-[var(--text-muted)]">{sc.description}</div>}
                                                                 <div className="text-[10px] text-gray-300 mt-0.5">{(sc.mockTests || []).length} tests</div>
                                                             </div>
                                                         </div>
@@ -358,11 +358,11 @@ export default function SeriesDetailPage() {
                                             <Switch checked={pricingForm.isFree} onCheckedChange={v => setPricingForm(f => ({ ...f, isFree: v }))} />
                                             <div>
                                                 <div className="text-sm font-medium">Free Series</div>
-                                                <div className="text-xs text-gray-400">Students access without purchasing</div>
+                                                <div className="text-xs text-[var(--text-muted)]">Students access without purchasing</div>
                                             </div>
                                         </label>
                                         {!pricingForm.isFree && (
-                                            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-gray-50">
+                                            <div className="grid grid-cols-2 gap-4 p-4 border rounded-lg bg-[var(--bg-main)]">
                                                 <div className="space-y-1.5">
                                                     <Label>Original Price (₹)</Label>
                                                     <Input type="number" min={0} value={pricingForm.price} onChange={e => setPricingForm(f => ({ ...f, price: e.target.value }))} />
@@ -400,14 +400,14 @@ export default function SeriesDetailPage() {
                                     ].map(kpi => (
                                         <Card key={kpi.label} className="kpi-card">
                                             <CardContent className="p-5">
-                                                <div className="text-xs text-gray-500 uppercase">{kpi.label}</div>
-                                                <div className="text-2xl font-bold text-gray-900 mt-1">{kpi.value}</div>
+                                                <div className="text-xs text-[var(--text-secondary)] uppercase">{kpi.label}</div>
+                                                <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">{kpi.value}</div>
                                             </CardContent>
                                         </Card>
                                     ))}
                                 </div>
                                 <Card>
-                                    <CardContent className="p-8 text-center text-gray-400 text-sm">
+                                    <CardContent className="p-8 text-center text-[var(--text-muted)] text-sm">
                                         View <Link href="/mockbook/analytics" className="text-orange-500 hover:underline">Analytics page</Link> for platform-wide data.
                                     </CardContent>
                                 </Card>
@@ -425,7 +425,7 @@ export default function SeriesDetailPage() {
                                         </div>
                                     </CardHeader>
                                     <CardContent>
-                                        <div className="text-sm text-gray-400 text-center py-8">
+                                        <div className="text-sm text-[var(--text-muted)] text-center py-8">
                                             Student enrollment data is available on the <Link href="/mockbook/students" className="text-orange-500 hover:underline">Students page</Link>.
                                         </div>
                                     </CardContent>
@@ -489,7 +489,7 @@ export default function SeriesDetailPage() {
                         <DialogTitle className="flex items-center gap-2 text-red-600"><AlertCircle className="w-5 h-5" />Delete Folder</DialogTitle>
                         <DialogDescription className="hidden">Confirm deletion of this folder.</DialogDescription>
                     </DialogHeader>
-                    <p className="text-sm text-gray-600">Delete <strong>{deleteSubCat?.name}</strong>? Tests inside will be unlinked.</p>
+                    <p className="text-sm text-[var(--text-secondary)]">Delete <strong>{deleteSubCat?.name}</strong>? Tests inside will be unlinked.</p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteSubCat(null)}>Cancel</Button>
                         <Button variant="destructive" onClick={handleDeleteSubCat}>Delete</Button>
@@ -504,7 +504,7 @@ export default function SeriesDetailPage() {
                         <DialogTitle className="flex items-center gap-2 text-red-600"><AlertCircle className="w-5 h-5" />Delete Test</DialogTitle>
                         <DialogDescription className="hidden">Confirm deletion of this test.</DialogDescription>
                     </DialogHeader>
-                    <p className="text-sm text-gray-600">Permanently delete <strong>{deleteTest?.name}</strong>? All attempts will also be deleted.</p>
+                    <p className="text-sm text-[var(--text-secondary)]">Permanently delete <strong>{deleteTest?.name}</strong>? All attempts will also be deleted.</p>
                     <DialogFooter>
                         <Button variant="outline" onClick={() => setDeleteTest(null)}>Cancel</Button>
                         <Button variant="destructive" onClick={handleDeleteTest}>Delete Permanently</Button>

@@ -112,7 +112,7 @@ const getIconBgColor = (color: string) => {
     orange: "bg-orange-50",
     purple: "bg-purple-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -122,7 +122,7 @@ const getIconColor = (color: string) => {
     orange: "text-orange-600",
     purple: "text-purple-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function StudentPerformancePage() {
@@ -135,23 +135,23 @@ const [timeRange, setTimeRange] = useState("12m");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "lg:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-4 lg:p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/student-app" className="hover:text-brand-primary flex items-center gap-1">
                 <GraduationCap className="w-4 h-4" />
                 <span className="hidden sm:inline">Student App</span>
               </Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">Performance</span>
+              <span className="text-[var(--text-primary)] font-medium">Performance</span>
             </div>
 
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Cross-Org Analytics</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Cross-Org Analytics</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Student performance insights across all organizations
                 </p>
               </div>
@@ -186,8 +186,8 @@ const [timeRange, setTimeRange] = useState("12m");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div className="flex-1">
-                          <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                          <div className="text-xl font-bold text-gray-900">{stat.value}</div>
+                          <div className="text-xs text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                          <div className="text-xl font-bold text-[var(--text-primary)]">{stat.value}</div>
                         </div>
                         <Badge className="bg-green-50 text-green-700 text-xs">
                           {stat.change}
@@ -251,20 +251,20 @@ const [timeRange, setTimeRange] = useState("12m");
                   <div className="space-y-4">
                     {subjectPerformance.map((subject) => (
                       <div key={subject.subject} className="flex items-center gap-4">
-                        <div className="w-28 text-sm font-medium text-gray-700">{subject.subject}</div>
+                        <div className="w-28 text-sm font-medium text-[var(--text-primary)]">{subject.subject}</div>
                         <div className="flex-1">
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm text-gray-600">{subject.avgScore}%</span>
+                            <span className="text-sm text-[var(--text-secondary)]">{subject.avgScore}%</span>
                             <span className="text-xs text-green-600">+{subject.improvement}%</span>
                           </div>
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-[var(--bg-main)] rounded-full overflow-hidden">
                             <div
                               className="h-full bg-[#F4511E] rounded-full"
                               style={{ width: `${subject.avgScore}%` }}
                             />
                           </div>
                         </div>
-                        <div className="text-xs text-gray-500 w-16 text-right">
+                        <div className="text-xs text-[var(--text-secondary)] w-16 text-right">
                           {subject.tests} tests
                         </div>
                       </div>
@@ -284,23 +284,23 @@ const [timeRange, setTimeRange] = useState("12m");
                     {topPerformers.map((performer) => (
                       <div
                         key={performer.rank}
-                        className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg"
+                        className="flex items-center gap-4 p-3 bg-[var(--bg-main)] rounded-lg"
                       >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
                           performer.rank === 1 ? "bg-yellow-100 text-yellow-700" :
-                          performer.rank === 2 ? "bg-gray-200 text-gray-600" :
+                          performer.rank === 2 ? "bg-[var(--bg-sidebar)] text-[var(--text-secondary)]" :
                           performer.rank === 3 ? "bg-orange-100 text-orange-700" :
-                          "bg-gray-100 text-gray-500"
+                          "bg-[var(--bg-main)] text-[var(--text-secondary)]"
                         }`}>
                           {performer.rank}
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">{performer.name}</div>
-                          <div className="text-xs text-gray-500">{performer.org}</div>
+                          <div className="font-medium text-[var(--text-primary)]">{performer.name}</div>
+                          <div className="text-xs text-[var(--text-secondary)]">{performer.org}</div>
                         </div>
                         <div className="text-right">
                           <div className="font-bold text-[#F4511E]">{performer.score}%</div>
-                          <div className="text-xs text-gray-500">{performer.tests} tests</div>
+                          <div className="text-xs text-[var(--text-secondary)]">{performer.tests} tests</div>
                         </div>
                       </div>
                     ))}
@@ -318,21 +318,21 @@ const [timeRange, setTimeRange] = useState("12m");
               <CardContent className="p-0">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b bg-gray-50">
-                      <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Organization</th>
-                      <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Students</th>
-                      <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Avg Score</th>
-                      <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Trend</th>
-                      <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Performance</th>
+                    <tr className="border-b bg-[var(--bg-main)]">
+                      <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Organization</th>
+                      <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Students</th>
+                      <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Avg Score</th>
+                      <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Trend</th>
+                      <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Performance</th>
                     </tr>
                   </thead>
                   <tbody>
                     {orgPerformance.map((org) => (
                       <tr key={org.org} className="border-b last:border-0">
                         <td className="p-4">
-                          <div className="font-medium text-gray-900">{org.org}</div>
+                          <div className="font-medium text-[var(--text-primary)]">{org.org}</div>
                         </td>
-                        <td className="p-4 text-sm text-gray-600">{org.students.toLocaleString()}</td>
+                        <td className="p-4 text-sm text-[var(--text-secondary)]">{org.students.toLocaleString()}</td>
                         <td className="p-4">
                           <span className="font-bold text-[#F4511E]">{org.avgScore}%</span>
                         </td>
@@ -350,7 +350,7 @@ const [timeRange, setTimeRange] = useState("12m");
                           )}
                         </td>
                         <td className="p-4">
-                          <div className="h-2 w-32 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2 w-32 bg-[var(--bg-main)] rounded-full overflow-hidden">
                             <div
                               className="h-full bg-[#F4511E] rounded-full"
                               style={{ width: `${org.avgScore}%` }}
@@ -399,7 +399,7 @@ const [timeRange, setTimeRange] = useState("12m");
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-xs text-gray-600">{item.name}</span>
+                        <span className="text-xs text-[var(--text-secondary)]">{item.name}</span>
                       </div>
                     ))}
                   </div>

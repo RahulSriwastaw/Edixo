@@ -92,19 +92,19 @@ Sitemap: https://eduhub.in/sitemap.xml`);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center gap-4">
               <Link
                 href="/website"
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--bg-main)] rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
               </Link>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">SEO Settings</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">SEO Settings</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage meta tags, sitemap, and search engine indexing
                 </p>
               </div>
@@ -116,7 +116,7 @@ Sitemap: https://eduhub.in/sitemap.xml`);
 
             {/* Tabs */}
             <Tabs defaultValue="general" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1">
                 <TabsTrigger value="general" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
                   <Globe className="w-4 h-4 mr-2" />
                   General SEO
@@ -147,7 +147,7 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label>Site Title</Label>
-                          <span className={`text-xs ${formData.siteTitle.length > 60 ? "text-red-500" : "text-gray-400"}`}>
+                          <span className={`text-xs ${formData.siteTitle.length > 60 ? "text-red-500" : "text-[var(--text-muted)]"}`}>
                             {formData.siteTitle.length}/60
                           </span>
                         </div>
@@ -156,13 +156,13 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                           onChange={(e) => setFormData({ ...formData, siteTitle: e.target.value })}
                           className="input-field"
                         />
-                        <p className="text-xs text-gray-500">Recommended: 50-60 characters</p>
+                        <p className="text-xs text-[var(--text-secondary)]">Recommended: 50-60 characters</p>
                       </div>
 
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <Label>Meta Description</Label>
-                          <span className={`text-xs ${formData.metaDescription.length > 160 ? "text-red-500" : "text-gray-400"}`}>
+                          <span className={`text-xs ${formData.metaDescription.length > 160 ? "text-red-500" : "text-[var(--text-muted)]"}`}>
                             {formData.metaDescription.length}/160
                           </span>
                         </div>
@@ -171,7 +171,7 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                           onChange={(e) => setFormData({ ...formData, metaDescription: e.target.value })}
                           className="input-field min-h-[80px]"
                         />
-                        <p className="text-xs text-gray-500">Recommended: 150-160 characters</p>
+                        <p className="text-xs text-[var(--text-secondary)]">Recommended: 150-160 characters</p>
                       </div>
 
                       <div className="space-y-2">
@@ -181,7 +181,7 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                           onChange={(e) => setFormData({ ...formData, focusKeywords: e.target.value })}
                           className="input-field"
                         />
-                        <p className="text-xs text-gray-500">Comma-separated keywords</p>
+                        <p className="text-xs text-[var(--text-secondary)]">Comma-separated keywords</p>
                       </div>
                     </CardContent>
                   </Card>
@@ -208,7 +208,7 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                           onChange={(e) => setFormData({ ...formData, ogImage: e.target.value })}
                           className="input-field"
                         />
-                        <p className="text-xs text-gray-500">Recommended: 1200x630 pixels</p>
+                        <p className="text-xs text-[var(--text-secondary)]">Recommended: 1200x630 pixels</p>
                       </div>
 
                       <div className="space-y-2">
@@ -235,8 +235,8 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                               <Search className="w-5 h-5 text-blue-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">Google Search Console</div>
-                              <div className="text-xs text-gray-500">Track search performance</div>
+                              <div className="font-medium text-[var(--text-primary)]">Google Search Console</div>
+                              <div className="text-xs text-[var(--text-secondary)]">Track search performance</div>
                             </div>
                           </div>
                           <Badge className="badge-active">Connected</Badge>
@@ -248,8 +248,8 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                               <BarChart3 className="w-5 h-5 text-orange-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">Google Analytics</div>
-                              <div className="text-xs text-gray-500">Track user behavior</div>
+                              <div className="font-medium text-[var(--text-primary)]">Google Analytics</div>
+                              <div className="text-xs text-[var(--text-secondary)]">Track user behavior</div>
                             </div>
                           </div>
                           <Badge className="badge-active">Connected</Badge>
@@ -261,11 +261,11 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                               <Globe className="w-5 h-5 text-green-600" />
                             </div>
                             <div>
-                              <div className="font-medium text-gray-900">Bing Webmaster</div>
-                              <div className="text-xs text-gray-500">Bing search indexing</div>
+                              <div className="font-medium text-[var(--text-primary)]">Bing Webmaster</div>
+                              <div className="text-xs text-[var(--text-secondary)]">Bing search indexing</div>
                             </div>
                           </div>
-                          <Badge className="bg-gray-100 text-gray-600">Not Connected</Badge>
+                          <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)]">Not Connected</Badge>
                         </div>
                       </div>
                     </CardContent>
@@ -296,28 +296,28 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50 border-b">
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">URL</th>
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">Priority</th>
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">Change Frequency</th>
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">Last Modified</th>
-                            <th className="text-right p-4 text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                          <tr className="bg-[var(--bg-main)] border-b">
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">URL</th>
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Priority</th>
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Change Frequency</th>
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Last Modified</th>
+                            <th className="text-right p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {sitemapPages.map((page, index) => (
-                            <tr key={index} className="border-b hover:bg-gray-50">
+                            <tr key={index} className="border-b hover:bg-[var(--bg-main)]">
                               <td className="p-4">
                                 <div className="flex items-center gap-2">
-                                  <Link2 className="w-4 h-4 text-gray-400" />
-                                  <span className="text-sm text-gray-900 mono">{page.url}</span>
+                                  <Link2 className="w-4 h-4 text-[var(--text-muted)]" />
+                                  <span className="text-sm text-[var(--text-primary)] mono">{page.url}</span>
                                 </div>
                               </td>
                               <td className="p-4">
                                 <Badge className="bg-blue-50 text-blue-700">{page.priority}</Badge>
                               </td>
-                              <td className="p-4 text-sm text-gray-600">{page.changeFreq}</td>
-                              <td className="p-4 text-sm text-gray-500">{page.lastModified}</td>
+                              <td className="p-4 text-sm text-[var(--text-secondary)]">{page.changeFreq}</td>
+                              <td className="p-4 text-sm text-[var(--text-secondary)]">{page.lastModified}</td>
                               <td className="p-4 text-right">
                                 <Button variant="ghost" size="sm">
                                   <Edit className="w-4 h-4" />
@@ -346,8 +346,8 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                       className="input-field mono min-h-[300px]"
                     />
                     <div className="flex items-center justify-between">
-                      <p className="text-xs text-gray-500">
-                        Current URL: <span className="mono text-gray-700">https://eduhub.in/robots.txt</span>
+                      <p className="text-xs text-[var(--text-secondary)]">
+                        Current URL: <span className="mono text-[var(--text-primary)]">https://eduhub.in/robots.txt</span>
                       </p>
                       <Button className="btn-primary" onClick={() => toast.success("Robots.txt updated successfully")}>
                         Save Changes
@@ -368,19 +368,19 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="bg-gray-50 border-b">
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">URL</th>
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">Indexed</th>
-                            <th className="text-left p-4 text-xs font-semibold text-gray-500 uppercase">Last Crawled</th>
-                            <th className="text-right p-4 text-xs font-semibold text-gray-500 uppercase">Impressions</th>
-                            <th className="text-right p-4 text-xs font-semibold text-gray-500 uppercase">Clicks</th>
+                          <tr className="bg-[var(--bg-main)] border-b">
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">URL</th>
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Indexed</th>
+                            <th className="text-left p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Last Crawled</th>
+                            <th className="text-right p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Impressions</th>
+                            <th className="text-right p-4 text-xs font-semibold text-[var(--text-secondary)] uppercase">Clicks</th>
                           </tr>
                         </thead>
                         <tbody>
                           {indexedPages.map((page, index) => (
-                            <tr key={index} className="border-b hover:bg-gray-50">
+                            <tr key={index} className="border-b hover:bg-[var(--bg-main)]">
                               <td className="p-4">
-                                <span className="text-sm text-gray-900 mono">{page.url}</span>
+                                <span className="text-sm text-[var(--text-primary)] mono">{page.url}</span>
                               </td>
                               <td className="p-4">
                                 {page.indexed ? (
@@ -395,9 +395,9 @@ Sitemap: https://eduhub.in/sitemap.xml`);
                                   </div>
                                 )}
                               </td>
-                              <td className="p-4 text-sm text-gray-500">{page.lastCrawled || "—"}</td>
-                              <td className="p-4 text-right text-sm text-gray-900">{page.impressions.toLocaleString()}</td>
-                              <td className="p-4 text-right text-sm text-gray-900">{page.clicks.toLocaleString()}</td>
+                              <td className="p-4 text-sm text-[var(--text-secondary)]">{page.lastCrawled || "—"}</td>
+                              <td className="p-4 text-right text-sm text-[var(--text-primary)]">{page.impressions.toLocaleString()}</td>
+                              <td className="p-4 text-right text-sm text-[var(--text-primary)]">{page.clicks.toLocaleString()}</td>
                             </tr>
                           ))}
                         </tbody>

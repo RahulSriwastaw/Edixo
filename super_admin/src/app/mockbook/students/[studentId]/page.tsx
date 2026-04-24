@@ -79,21 +79,21 @@ export default function StudentAnalyticsPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
                             <Link href="/mockbook/students" className="hover:text-orange-600">Students</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Performance Profile</span>
+                            <span className="text-[var(--text-primary)] font-medium">Performance Profile</span>
                         </div>
 
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">{analytics.studentName}'s Performance Profile</h1>
-                                <p className="text-gray-500 text-sm mt-1">
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">{analytics.studentName}'s Performance Profile</h1>
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">
                                     Student ID: {analytics.studentRollId} | 30-Day performance overview and AI-generated study recommendations
                                 </p>
                             </div>
@@ -124,9 +124,9 @@ export default function StudentAnalyticsPage() {
                                             <Target className="w-6 h-6 text-blue-600" />
                                         </div>
                                         <div>
-                                            <div className="text-sm text-gray-500 font-medium mb-0.5">Tests Completed</div>
-                                            <div className="text-2xl font-bold text-gray-900">{analytics.totalTests}</div>
-                                            <div className="text-xs text-gray-400 mt-1">in last 30 days</div>
+                                            <div className="text-sm text-[var(--text-secondary)] font-medium mb-0.5">Tests Completed</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{analytics.totalTests}</div>
+                                            <div className="text-xs text-[var(--text-muted)] mt-1">in last 30 days</div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -137,9 +137,9 @@ export default function StudentAnalyticsPage() {
                                             <Activity className="w-6 h-6 text-emerald-600" />
                                         </div>
                                         <div>
-                                            <div className="text-sm text-gray-500 font-medium mb-0.5">Overall Accuracy</div>
-                                            <div className="text-2xl font-bold text-gray-900">{analytics.overallAccuracy}%</div>
-                                            <div className="text-xs text-gray-400 mt-1">across all subjects</div>
+                                            <div className="text-sm text-[var(--text-secondary)] font-medium mb-0.5">Overall Accuracy</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{analytics.overallAccuracy}%</div>
+                                            <div className="text-xs text-[var(--text-muted)] mt-1">across all subjects</div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -150,9 +150,9 @@ export default function StudentAnalyticsPage() {
                                             <Clock className="w-6 h-6 text-purple-600" />
                                         </div>
                                         <div>
-                                            <div className="text-sm text-gray-500 font-medium mb-0.5">Time Spent</div>
-                                            <div className="text-2xl font-bold text-gray-900">{formatTime(analytics.totalTimeSecs)}</div>
-                                            <div className="text-xs text-gray-400 mt-1">active test taking time</div>
+                                            <div className="text-sm text-[var(--text-secondary)] font-medium mb-0.5">Time Spent</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{formatTime(analytics.totalTimeSecs)}</div>
+                                            <div className="text-xs text-[var(--text-muted)] mt-1">active test taking time</div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -190,7 +190,7 @@ export default function StudentAnalyticsPage() {
                                                         </ResponsiveContainer>
                                                     </div>
                                                 ) : (
-                                                    <div className="h-[300px] flex items-center justify-center text-gray-400 flex-col">
+                                                    <div className="h-[300px] flex items-center justify-center text-[var(--text-muted)] flex-col">
                                                         <TrendingUp className="w-12 h-12 mb-2 text-gray-200" />
                                                         <p>Not enough test data to construct a trendline.</p>
                                                     </div>
@@ -215,18 +215,18 @@ export default function StudentAnalyticsPage() {
                                                 <div className="space-y-4 mt-2 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                                     {studyPlan?.plan?.map((day: any) => (
                                                         <div key={day.day} className="flex gap-4 p-4 border rounded-xl hover:border-orange-200 transition-colors bg-white">
-                                                            <div className="flex flex-col items-center justify-center shrink-0 w-12 h-12 rounded-full bg-gray-50 border border-gray-100">
-                                                                <span className="text-[10px] text-gray-400 font-bold uppercase">Day</span>
-                                                                <span className="text-lg font-bold text-gray-800 leading-none">{day.day}</span>
+                                                            <div className="flex flex-col items-center justify-center shrink-0 w-12 h-12 rounded-full bg-[var(--bg-main)] border border-[var(--divider)]">
+                                                                <span className="text-[10px] text-[var(--text-muted)] font-bold uppercase">Day</span>
+                                                                <span className="text-lg font-bold text-[var(--text-primary)] leading-none">{day.day}</span>
                                                             </div>
                                                             <div>
                                                                 <div className="flex items-center gap-2 mb-1">
-                                                                    <h4 className="font-semibold text-gray-900">{day.title}</h4>
-                                                                    <Badge variant="outline" className="text-[10px] font-medium bg-gray-50 text-gray-600">
+                                                                    <h4 className="font-semibold text-[var(--text-primary)]">{day.title}</h4>
+                                                                    <Badge variant="outline" className="text-[10px] font-medium bg-[var(--bg-main)] text-[var(--text-secondary)]">
                                                                         {day.taskType}
                                                                     </Badge>
                                                                 </div>
-                                                                <p className="text-sm text-gray-500">{day.description}</p>
+                                                                <p className="text-sm text-[var(--text-secondary)]">{day.description}</p>
                                                             </div>
                                                         </div>
                                                     ))}

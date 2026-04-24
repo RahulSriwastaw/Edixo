@@ -184,7 +184,7 @@ function CategoryBadge({ category }: { category: string }) {
     Trial: "bg-orange-50 text-orange-700",
     Compliance: "bg-pink-50 text-pink-700",
   };
-  return <span className={`badge ${styles[category] || "bg-gray-50 text-gray-600"}`}>{category}</span>;
+  return <span className={`badge ${styles[category] || "bg-[var(--bg-main)] text-[var(--text-secondary)]"}`}>{category}</span>;
 }
 
 // Category Icon
@@ -210,7 +210,7 @@ function CategoryIcon({ category }: { category: string }) {
     Compliance: "bg-pink-50 text-pink-600",
   };
   return (
-    <div className={`w-10 h-10 rounded-full ${colors[category] || "bg-gray-50 text-gray-600"} flex items-center justify-center`}>
+    <div className={`w-10 h-10 rounded-full ${colors[category] || "bg-[var(--bg-main)] text-[var(--text-secondary)]"} flex items-center justify-center`}>
       {icons[category] || <Bell className="w-5 h-5" />}
     </div>
   );
@@ -224,7 +224,7 @@ const getIconBgColor = (color: string) => {
     red: "bg-red-50",
     yellow: "bg-yellow-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -235,7 +235,7 @@ const getIconColor = (color: string) => {
     red: "text-red-600",
     yellow: "text-yellow-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function AlertsPage() {
@@ -307,13 +307,13 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Alerts</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Alerts</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Platform notifications and action items
                 </p>
               </div>
@@ -337,10 +337,10 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {stat.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-bold text-[var(--text-primary)]">
                             {stat.value}
                           </div>
                         </div>
@@ -356,7 +356,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search alerts..."
                       value={searchQuery}
@@ -411,7 +411,7 @@ const [searchQuery, setSearchQuery] = useState("");
             {selectedAlerts.length > 0 && (
               <div className="bg-brand-primary-tint border border-brand-primary/20 rounded-lg px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
                     {selectedAlerts.length} selected
                   </span>
                   <Button variant="outline" size="sm" onClick={handleBulkMarkRead}>
@@ -453,9 +453,9 @@ const [searchQuery, setSearchQuery] = useState("");
                             <Badge className="bg-orange-100 text-orange-700 text-[10px]">ACTION REQUIRED</Badge>
                           )}
                         </div>
-                        <h3 className="font-semibold text-gray-900 mb-1">{alert.title}</h3>
-                        <p className="text-sm text-gray-600 mb-2">{alert.message}</p>
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <h3 className="font-semibold text-[var(--text-primary)] mb-1">{alert.title}</h3>
+                        <p className="text-sm text-[var(--text-secondary)] mb-2">{alert.message}</p>
+                        <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)]">
                           <span className="font-mono">{alert.timestamp}</span>
                           {alert.org && (
                             <Link
@@ -502,7 +502,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
               {filteredAlerts.length === 0 && (
                 <Card>
-                  <CardContent className="p-12 text-center text-gray-500">
+                  <CardContent className="p-12 text-center text-[var(--text-secondary)]">
                     <Bell className="w-12 h-12 mx-auto mb-4 text-gray-300" />
                     <p className="text-lg font-medium">No alerts found</p>
                     <p className="text-sm">Try adjusting your filters</p>

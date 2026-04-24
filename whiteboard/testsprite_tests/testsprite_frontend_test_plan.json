@@ -1,0 +1,307 @@
+[
+  {
+    "id": "TC001",
+    "title": "Draw multiple strokes sequentially without losing existing strokes",
+    "description": "Verifies a user can draw repeated strokes on the main canvas and each new stroke renders immediately while previous strokes remain visible.",
+    "category": "Whiteboard Drawing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a pen tool from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw an additional stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify multiple strokes are rendered on the canvas and remain visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Draw a single stroke and see it render immediately",
+    "description": "Verifies a user can draw a stroke with a pen tool and the stroke appears on the canvas immediately after drawing.",
+    "category": "Whiteboard Drawing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a pen tool from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the stroke is rendered on the canvas"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Open pen picker via double-tap and apply color, width, and pen type to subsequent strokes",
+    "description": "Verifies double-tapping a pen tool opens the pen picker and chosen color, width, and pen type apply to new strokes while the toolbar reflects the updated settings.",
+    "category": "Tool Customization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Double-tap a pen tool in the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Select a color from the palette"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the stroke width slider"
+      },
+      {
+        "type": "action",
+        "description": "Choose a different pen type"
+      },
+      {
+        "type": "action",
+        "description": "Close the pen picker dialog"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the toolbar reflects the selected pen settings and the new stroke uses the updated settings"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Switch pen tools and ensure only subsequent strokes use the current tool",
+    "description": "Verifies switching between pen tools changes only future strokes and does not retroactively alter previously drawn strokes.",
+    "category": "Whiteboard Drawing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select one pen tool from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "action",
+        "description": "Select a different pen tool from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw another stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify both strokes remain visible and the later stroke uses the currently selected tool settings"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Change only stroke width and keep the previously selected color",
+    "description": "Verifies adjusting only stroke width in the pen picker updates width for new strokes while keeping the existing color unchanged.",
+    "category": "Tool Customization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Double-tap a pen tool in the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Select a color from the palette"
+      },
+      {
+        "type": "action",
+        "description": "Close the pen picker dialog"
+      },
+      {
+        "type": "action",
+        "description": "Double-tap the same pen tool in the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the stroke width slider"
+      },
+      {
+        "type": "action",
+        "description": "Close the pen picker dialog"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the selected pen color remains the same while the stroke width reflects the new setting"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Drawing works when lasso selection overlay is present",
+    "description": "Verifies that when the lasso selection overlay is visible/active, drawing input is not unexpectedly blocked and the user can still produce a stroke when intending to draw.",
+    "category": "Whiteboard Drawing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Activate the lasso selection overlay from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Select a pen tool from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a stroke is rendered on the canvas"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC007",
+    "title": "Close pen picker by tapping outside and keep last applied settings",
+    "description": "Verifies the pen picker can be dismissed by an outside tap and the currently applied pen settings remain in effect after closing.",
+    "category": "Tool Customization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Double-tap a pen tool in the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Select a color from the palette"
+      },
+      {
+        "type": "action",
+        "description": "Tap outside the pen picker dialog to dismiss it"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the new stroke uses the last selected pen settings"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC008",
+    "title": "Drawing at canvas edges still produces visible strokes",
+    "description": "Verifies a user can draw near the canvas boundaries and the stroke remains visible without being lost or clipped unexpectedly.",
+    "category": "Whiteboard Drawing",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Select a pen tool from the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas near an edge to draw a stroke"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the stroke is rendered on the canvas"
+      }
+    ],
+    "priority": "Low"
+  },
+  {
+    "id": "TC009",
+    "title": "Stroke width supports smallest and largest selectable values",
+    "description": "Verifies the stroke width slider allows selecting minimum and maximum values and new strokes reflect the selected extremes.",
+    "category": "Tool Customization",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /"
+      },
+      {
+        "type": "action",
+        "description": "Double-tap a pen tool in the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Set the stroke width slider to the minimum value"
+      },
+      {
+        "type": "action",
+        "description": "Close the pen picker dialog"
+      },
+      {
+        "type": "action",
+        "description": "Drag on the canvas to draw a stroke"
+      },
+      {
+        "type": "action",
+        "description": "Double-tap a pen tool in the toolbar"
+      },
+      {
+        "type": "action",
+        "description": "Set the stroke width slider to the maximum value"
+      },
+      {
+        "type": "action",
+        "description": "Close the pen picker dialog"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the stroke drawn at maximum width is visibly thicker than the stroke drawn at minimum width"
+      }
+    ],
+    "priority": "Low"
+  }
+]

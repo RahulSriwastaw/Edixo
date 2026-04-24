@@ -127,7 +127,7 @@ export default function CreatePlanPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <form onSubmit={handleSubmit} className="max-w-[1000px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -138,8 +138,8 @@ export default function CreatePlanPage() {
                   </Link>
                 </Button>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Create Subscription Plan</h1>
-                  <p className="text-gray-500 text-sm">Define a new package for your students</p>
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Create Subscription Plan</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">Define a new package for your students</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -280,7 +280,7 @@ export default function CreatePlanPage() {
                   <CardContent className="space-y-3">
                     {formData.features.map((feature, index) => (
                       <div key={index} className="flex items-center gap-2">
-                        <div className="w-6 h-6 flex items-center justify-center text-gray-400 font-mono text-xs">
+                        <div className="w-6 h-6 flex items-center justify-center text-[var(--text-muted)] font-mono text-xs">
                           {index + 1}.
                         </div>
                         <Input 
@@ -293,7 +293,7 @@ export default function CreatePlanPage() {
                           type="button" 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 text-gray-400 hover:text-red-500"
+                          className="h-8 w-8 text-[var(--text-muted)] hover:text-red-500"
                           onClick={() => removeFeature(index)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -315,10 +315,10 @@ export default function CreatePlanPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-6">
-                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                       <div className="space-y-0.5">
                         <Label className="text-sm font-semibold">Active Status</Label>
-                        <p className="text-xs text-gray-500">Enable or disable this plan</p>
+                        <p className="text-xs text-[var(--text-secondary)]">Enable or disable this plan</p>
                       </div>
                       <Switch 
                         checked={formData.isActive}
@@ -335,7 +335,7 @@ export default function CreatePlanPage() {
                         onChange={(e) => setFormData({...formData, sortOrder: e.target.value})}
                         className="input-field" 
                       />
-                      <p className="text-[10px] text-gray-400">Lower numbers appear first</p>
+                      <p className="text-[10px] text-[var(--text-muted)]">Lower numbers appear first</p>
                     </div>
                   </CardContent>
                 </Card>
@@ -376,7 +376,7 @@ export default function CreatePlanPage() {
                         </div>
                       ) : (
                         <div className="space-y-3">
-                          <Label className="text-xs font-semibold uppercase text-gray-400">Select Exam Categories</Label>
+                          <Label className="text-xs font-semibold uppercase text-[var(--text-muted)]">Select Exam Categories</Label>
                           <div className="max-h-[250px] overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                             {categories.map((cat) => (
                               <div 
@@ -386,10 +386,10 @@ export default function CreatePlanPage() {
                                   "flex items-center justify-between p-2.5 rounded-lg border cursor-pointer transition-all",
                                   formData.examCategoryIds.includes(cat.id) 
                                     ? "bg-brand-primary/5 border-brand-primary/50" 
-                                    : "bg-white border-gray-100 hover:border-gray-300"
+                                    : "bg-white border-[var(--divider)] hover:border-[var(--border-input)]"
                                 )}
                               >
-                                <span className={cn("text-sm", formData.examCategoryIds.includes(cat.id) ? "font-bold text-brand-primary" : "text-gray-600")}>
+                                <span className={cn("text-sm", formData.examCategoryIds.includes(cat.id) ? "font-bold text-brand-primary" : "text-[var(--text-secondary)]")}>
                                   {cat.name}
                                 </span>
                                 {formData.examCategoryIds.includes(cat.id) && <Check className="w-4 h-4 text-brand-primary" />}

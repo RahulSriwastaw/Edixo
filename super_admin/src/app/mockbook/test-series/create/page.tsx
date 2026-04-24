@@ -59,13 +59,13 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
                                 "w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all",
                                 isDone ? "bg-green-500 border-green-500 text-white" :
                                     isActive ? "bg-orange-500 border-orange-500 text-white" :
-                                        "bg-white border-gray-200 text-gray-400"
+                                        "bg-white border-[var(--border-input)] text-[var(--text-muted)]"
                             )}>
                                 {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                             </div>
                             <span className={cn(
                                 "text-[10px] font-medium text-center max-w-[72px] leading-tight",
-                                isActive ? "text-orange-600" : isDone ? "text-green-600" : "text-gray-400"
+                                isActive ? "text-orange-600" : isDone ? "text-green-600" : "text-[var(--text-muted)]"
                             )}>
                                 {step.label}
                             </span>
@@ -73,7 +73,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
                         {i < STEPS.length - 1 && (
                             <div className={cn(
                                 "h-0.5 w-10 mb-5 mx-1",
-                                step.id < current ? "bg-green-400" : "bg-gray-200"
+                                step.id < current ? "bg-green-400" : "bg-[var(--bg-sidebar)]"
                             )} />
                         )}
                     </div>
@@ -183,20 +183,20 @@ export default function CreateTestSeriesPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[900px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
                             <Link href="/mockbook/test-series" className="hover:text-orange-600">Test Series</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Create New Series</span>
+                            <span className="text-[var(--text-primary)] font-medium">Create New Series</span>
                         </div>
 
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Create New Test Series</h1>
-                            <p className="text-gray-500 text-sm mt-1">Fill in the details step by step to publish your series</p>
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Create New Test Series</h1>
+                            <p className="text-[var(--text-secondary)] text-sm mt-1">Fill in the details step by step to publish your series</p>
                         </div>
 
                         {/* Step Indicator */}
@@ -218,7 +218,7 @@ export default function CreateTestSeriesPage() {
                                     <>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
-                                                <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                                                <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
                                                     Series Name <span className="text-red-500">*</span>
                                                 </label>
                                                 <Input
@@ -229,7 +229,7 @@ export default function CreateTestSeriesPage() {
                                                 />
                                             </div>
                                             <div>
-                                                <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                                                <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
                                                     Short Name (for badges)
                                                 </label>
                                                 <Input
@@ -243,7 +243,7 @@ export default function CreateTestSeriesPage() {
 
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                             <div>
-                                                <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                                                <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
                                                     Exam Category <span className="text-red-500">*</span>
                                                 </label>
                                                 <Select value={form.folderId} onValueChange={v => setField("folderId", v)}>
@@ -256,7 +256,7 @@ export default function CreateTestSeriesPage() {
                                                 </Select>
                                             </div>
                                             <div>
-                                                <label className="text-sm font-medium text-gray-700 mb-1.5 block">
+                                                <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">
                                                     Series Type
                                                 </label>
                                                 <Select value={form.seriesType} onValueChange={v => setField("seriesType", v)}>
@@ -275,7 +275,7 @@ export default function CreateTestSeriesPage() {
                                         </div>
 
                                         <div>
-                                            <label className="text-sm font-medium text-gray-700 mb-2 block">Target</label>
+                                            <label className="text-sm font-medium text-[var(--text-primary)] mb-2 block">Target</label>
                                             <div className="flex items-center gap-4">
                                                 {[
                                                     { val: "platform", label: "Public Platform (MockVeda)", icon: Globe, desc: "Visible to all students" },
@@ -290,13 +290,13 @@ export default function CreateTestSeriesPage() {
                                                                 "flex-1 flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left",
                                                                 form.target === opt.val
                                                                     ? "border-orange-400 bg-orange-50"
-                                                                    : "border-gray-200 hover:border-gray-300"
+                                                                    : "border-[var(--border-input)] hover:border-[var(--border-input)]"
                                                             )}
                                                         >
-                                                            <Icon className={cn("w-5 h-5", form.target === opt.val ? "text-orange-500" : "text-gray-400")} />
+                                                            <Icon className={cn("w-5 h-5", form.target === opt.val ? "text-orange-500" : "text-[var(--text-muted)]")} />
                                                             <div>
-                                                                <div className="font-medium text-sm text-gray-900">{opt.label}</div>
-                                                                <div className="text-xs text-gray-500">{opt.desc}</div>
+                                                                <div className="font-medium text-sm text-[var(--text-primary)]">{opt.label}</div>
+                                                                <div className="text-xs text-[var(--text-secondary)]">{opt.desc}</div>
                                                             </div>
                                                         </button>
                                                     );
@@ -305,7 +305,7 @@ export default function CreateTestSeriesPage() {
                                         </div>
 
                                         <div>
-                                            <label className="text-sm font-medium text-gray-700 mb-1.5 block">Short Description</label>
+                                            <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">Short Description</label>
                                             <Input
                                                 placeholder="Brief description shown on series cards..."
                                                 value={form.description}
@@ -315,7 +315,7 @@ export default function CreateTestSeriesPage() {
                                         </div>
 
                                         <div>
-                                            <label className="text-sm font-medium text-gray-700 mb-1.5 block">Series Color Tag</label>
+                                            <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">Series Color Tag</label>
                                             <div className="flex gap-2">
                                                 {[
                                                     { name: "orange", cls: "bg-orange-500" },
@@ -338,10 +338,10 @@ export default function CreateTestSeriesPage() {
                                             </div>
                                         </div>
 
-                                        <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-orange-300 transition-colors cursor-pointer">
+                                        <div className="border-2 border-dashed border-[var(--border-input)] rounded-xl p-6 text-center hover:border-orange-300 transition-colors cursor-pointer">
                                             <Upload className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                                            <div className="text-sm text-gray-500">Click or drag to upload thumbnail / banner</div>
-                                            <div className="text-xs text-gray-400 mt-1">PNG, JPG up to 2MB · Recommended: 800×450px</div>
+                                            <div className="text-sm text-[var(--text-secondary)]">Click or drag to upload thumbnail / banner</div>
+                                            <div className="text-xs text-[var(--text-muted)] mt-1">PNG, JPG up to 2MB · Recommended: 800×450px</div>
                                         </div>
                                     </>
                                 )}
@@ -349,23 +349,23 @@ export default function CreateTestSeriesPage() {
                                 {/* ─── STEP 2: Structure Planning ─── */}
                                 {step === 2 && (
                                     <>
-                                        <div className="text-sm text-gray-500 mb-2">Select which test types to include and specify counts:</div>
+                                        <div className="text-sm text-[var(--text-secondary)] mb-2">Select which test types to include and specify counts:</div>
                                         <div className="space-y-3">
                                             {testTypes.map(type => {
                                                 const count = testCounts[type.key] || 0;
                                                 return (
                                                     <div key={type.key} className={cn(
                                                         "flex items-center gap-4 p-4 rounded-xl border-2 transition-all",
-                                                        count > 0 ? "border-orange-200 bg-orange-50/40" : "border-gray-100 bg-gray-50"
+                                                        count > 0 ? "border-orange-200 bg-orange-50/40" : "border-[var(--divider)] bg-[var(--bg-main)]"
                                                     )}>
                                                         <div className="flex-1">
-                                                            <div className="font-medium text-gray-900 text-sm">{type.label}</div>
-                                                            <div className="text-xs text-gray-500 mt-0.5">{type.description}</div>
+                                                            <div className="font-medium text-[var(--text-primary)] text-sm">{type.label}</div>
+                                                            <div className="text-xs text-[var(--text-secondary)] mt-0.5">{type.description}</div>
                                                         </div>
                                                         <div className="flex items-center gap-2">
                                                             <button
                                                                 onClick={() => setTestCounts(t => ({ ...t, [type.key]: Math.max(0, (t[type.key] || 0) - 1) }))}
-                                                                className="w-7 h-7 rounded-md bg-gray-200 hover:bg-gray-300 flex items-center justify-center"
+                                                                className="w-7 h-7 rounded-md bg-[var(--bg-sidebar)] hover:bg-gray-300 flex items-center justify-center"
                                                             >
                                                                 <Minus className="w-3.5 h-3.5" />
                                                             </button>
@@ -388,8 +388,8 @@ export default function CreateTestSeriesPage() {
                                             })}
                                         </div>
 
-                                        <div className="mt-4 p-4 bg-gray-50 rounded-xl">
-                                            <div className="font-medium text-gray-900">
+                                        <div className="mt-4 p-4 bg-[var(--bg-main)] rounded-xl">
+                                            <div className="font-medium text-[var(--text-primary)]">
                                                 Total planned: {Object.values(testCounts).reduce((a, b) => a + b, 0)} tests
                                             </div>
                                             <div className="flex flex-wrap gap-2 mt-2">
@@ -417,12 +417,12 @@ export default function CreateTestSeriesPage() {
                                                 Import from PYQ Bank
                                             </Button>
                                         </div>
-                                        <div className="border border-dashed border-gray-200 rounded-xl p-8 text-center">
+                                        <div className="border border-dashed border-[var(--border-input)] rounded-xl p-8 text-center">
                                             <BookOpen className="w-10 h-10 text-gray-200 mx-auto mb-3" />
-                                            <div className="text-gray-500 font-medium text-sm">No tests added yet</div>
-                                            <div className="text-gray-400 text-xs mt-1">Add or create tests to include them in this series</div>
+                                            <div className="text-[var(--text-secondary)] font-medium text-sm">No tests added yet</div>
+                                            <div className="text-[var(--text-muted)] text-xs mt-1">Add or create tests to include them in this series</div>
                                         </div>
-                                        <div className="text-xs text-gray-400 text-center">
+                                        <div className="text-xs text-[var(--text-muted)] text-center">
                                             💡 Tip: You can also add tests after publishing — series can be updated anytime.
                                         </div>
                                     </div>
@@ -432,7 +432,7 @@ export default function CreateTestSeriesPage() {
                                 {step === 4 && (
                                     <div className="space-y-5">
                                         <div>
-                                            <label className="text-sm font-medium text-gray-700 mb-2 block">Access Type</label>
+                                            <label className="text-sm font-medium text-[var(--text-primary)] mb-2 block">Access Type</label>
                                             <div className="flex gap-3">
                                                 {[
                                                     { val: "free", label: "All Free" },
@@ -446,7 +446,7 @@ export default function CreateTestSeriesPage() {
                                                             "flex-1 py-3 px-4 rounded-xl border-2 text-sm font-medium transition-all",
                                                             pricing.type === opt.val
                                                                 ? "border-orange-400 bg-orange-50 text-orange-700"
-                                                                : "border-gray-200 text-gray-600 hover:border-gray-300"
+                                                                : "border-[var(--border-input)] text-[var(--text-secondary)] hover:border-[var(--border-input)]"
                                                         )}
                                                     >
                                                         {opt.label}
@@ -458,7 +458,7 @@ export default function CreateTestSeriesPage() {
                                         {pricing.type !== "free" && (
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Price (₹)</label>
+                                                    <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">Price (₹)</label>
                                                     <Input
                                                         type="number"
                                                         value={pricing.price}
@@ -468,7 +468,7 @@ export default function CreateTestSeriesPage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Offer Price (₹) — optional</label>
+                                                    <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">Offer Price (₹) — optional</label>
                                                     <Input
                                                         type="number"
                                                         value={pricing.offerPrice}
@@ -478,7 +478,7 @@ export default function CreateTestSeriesPage() {
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Validity</label>
+                                                    <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">Validity</label>
                                                     <Select value={pricing.validity} onValueChange={v => setPricing(p => ({ ...p, validity: v }))}>
                                                         <SelectTrigger className="input-field">
                                                             <SelectValue />
@@ -492,7 +492,7 @@ export default function CreateTestSeriesPage() {
                                                     </Select>
                                                 </div>
                                                 <div>
-                                                    <label className="text-sm font-medium text-gray-700 mb-1.5 block">Offer Valid Until</label>
+                                                    <label className="text-sm font-medium text-[var(--text-primary)] mb-1.5 block">Offer Valid Until</label>
                                                     <Input
                                                         type="date"
                                                         value={pricing.offerUntil}
@@ -515,7 +515,7 @@ export default function CreateTestSeriesPage() {
                                 {/* ─── STEP 5: Unlock Rules ─── */}
                                 {step === 5 && (
                                     <div className="space-y-4">
-                                        <div className="text-sm text-gray-600 mb-1">How will tests unlock for enrolled students?</div>
+                                        <div className="text-sm text-[var(--text-secondary)] mb-1">How will tests unlock for enrolled students?</div>
                                         {[
                                             { val: "all", label: "All Available Immediately", desc: "Students can attempt any test right after enrolling" },
                                             { val: "weekly", label: "One Test Per Week", desc: "A new test auto-unlocks every 7 days" },
@@ -529,18 +529,18 @@ export default function CreateTestSeriesPage() {
                                                     "w-full flex items-start gap-4 p-4 rounded-xl border-2 transition-all text-left",
                                                     unlockRule === opt.val
                                                         ? "border-orange-400 bg-orange-50"
-                                                        : "border-gray-200 hover:border-gray-300"
+                                                        : "border-[var(--border-input)] hover:border-[var(--border-input)]"
                                                 )}
                                             >
                                                 <div className={cn(
                                                     "w-5 h-5 rounded-full border-2 mt-0.5 shrink-0 flex items-center justify-center",
-                                                    unlockRule === opt.val ? "border-orange-500" : "border-gray-300"
+                                                    unlockRule === opt.val ? "border-orange-500" : "border-[var(--border-input)]"
                                                 )}>
                                                     {unlockRule === opt.val && <div className="w-2.5 h-2.5 rounded-full bg-orange-500" />}
                                                 </div>
                                                 <div>
-                                                    <div className="font-medium text-gray-900 text-sm">{opt.label}</div>
-                                                    <div className="text-xs text-gray-500 mt-0.5">{opt.desc}</div>
+                                                    <div className="font-medium text-[var(--text-primary)] text-sm">{opt.label}</div>
+                                                    <div className="text-xs text-[var(--text-secondary)] mt-0.5">{opt.desc}</div>
                                                 </div>
                                             </button>
                                         ))}
@@ -551,7 +551,7 @@ export default function CreateTestSeriesPage() {
                                                 <button className="flex-1 py-2 rounded-lg border-2 border-blue-400 bg-blue-100 text-blue-700 text-sm font-medium">
                                                     Yes — show "Unlocks on [date]"
                                                 </button>
-                                                <button className="flex-1 py-2 rounded-lg border-2 border-gray-200 text-gray-500 text-sm">
+                                                <button className="flex-1 py-2 rounded-lg border-2 border-[var(--border-input)] text-[var(--text-secondary)] text-sm">
                                                     No — hide until unlock date
                                                 </button>
                                             </div>
@@ -563,23 +563,23 @@ export default function CreateTestSeriesPage() {
                                 {step === 6 && (
                                     <div className="space-y-5">
                                         {/* Summary */}
-                                        <div className="p-5 bg-gray-50 rounded-xl space-y-2 text-sm">
-                                            <div className="flex justify-between"><span className="text-gray-500">Series Name</span><span className="font-medium">{form.name || "Not set"}</span></div>
+                                        <div className="p-5 bg-[var(--bg-main)] rounded-xl space-y-2 text-sm">
+                                            <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Series Name</span><span className="font-medium">{form.name || "Not set"}</span></div>
                                             <div className="flex justify-between">
-                                                <span className="text-gray-500">Category</span>
+                                                <span className="text-[var(--text-secondary)]">Category</span>
                                                 <span className="font-medium">
                                                     {allFolders.find(f => f.id === form.folderId)?.name || "Not set"}
                                                 </span>
                                             </div>
-                                            <div className="flex justify-between"><span className="text-gray-500">Target</span><span className="font-medium">{form.target === "platform" ? "Public (MockVeda)" : "My Institute"}</span></div>
-                                            <div className="flex justify-between"><span className="text-gray-500">Planned Tests</span><span className="font-medium">{Object.values(testCounts).reduce((a, b) => a + b, 0)}</span></div>
-                                            <div className="flex justify-between"><span className="text-gray-500">Price</span><span className="font-medium">{pricing.type === "free" ? "Free" : `₹${pricing.price}`}</span></div>
-                                            <div className="flex justify-between"><span className="text-gray-500">Unlock Rule</span><span className="font-medium capitalize">{unlockRule.replace("all", "All available immediately")}</span></div>
+                                            <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Target</span><span className="font-medium">{form.target === "platform" ? "Public (MockVeda)" : "My Institute"}</span></div>
+                                            <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Planned Tests</span><span className="font-medium">{Object.values(testCounts).reduce((a, b) => a + b, 0)}</span></div>
+                                            <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Price</span><span className="font-medium">{pricing.type === "free" ? "Free" : `₹${pricing.price}`}</span></div>
+                                            <div className="flex justify-between"><span className="text-[var(--text-secondary)]">Unlock Rule</span><span className="font-medium capitalize">{unlockRule.replace("all", "All available immediately")}</span></div>
                                         </div>
 
                                         {/* Checklist */}
                                         <div>
-                                            <div className="font-medium text-gray-900 mb-3">Pre-publish Checklist</div>
+                                            <div className="font-medium text-[var(--text-primary)] mb-3">Pre-publish Checklist</div>
                                             <div className="space-y-2">
                                                 {checklist.map((item, i) => (
                                                     <div key={i} className="flex items-center gap-3">
@@ -592,7 +592,7 @@ export default function CreateTestSeriesPage() {
                                                         )}
                                                         <span className={cn(
                                                             "text-sm",
-                                                            item.ok ? "text-gray-700" :
+                                                            item.ok ? "text-[var(--text-primary)]" :
                                                                 item.warn ? "text-yellow-700" : "text-red-600"
                                                         )}>
                                                             {item.label}

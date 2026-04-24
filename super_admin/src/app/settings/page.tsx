@@ -108,13 +108,13 @@ const [platformName, setPlatformName] = useState("EduHub");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[900px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Settings</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage platform configuration and preferences
                 </p>
               </div>
@@ -239,7 +239,7 @@ const [platformName, setPlatformName] = useState("EduHub");
                     placeholder="Enter allowed IP addresses, one per line"
                     className="input-field min-h-[80px]"
                   />
-                  <p className="text-xs text-gray-500">Leave empty to allow all IPs</p>
+                  <p className="text-xs text-[var(--text-secondary)]">Leave empty to allow all IPs</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
@@ -260,7 +260,7 @@ const [platformName, setPlatformName] = useState("EduHub");
                 <div className="flex items-center justify-between py-2">
                   <div>
                     <Label>MFA Enforcement</Label>
-                    <p className="text-sm text-gray-500">Require multi-factor authentication for Super Admin</p>
+                    <p className="text-sm text-[var(--text-secondary)]">Require multi-factor authentication for Super Admin</p>
                   </div>
                   <Switch
                     checked={mfaRequired}
@@ -360,13 +360,13 @@ const [platformName, setPlatformName] = useState("EduHub");
                         onChange={(e) => setDefaultAICost(e.target.value)}
                         className="input-field"
                       />
-                      <span className="text-sm text-gray-500">points/question</span>
+                      <span className="text-sm text-[var(--text-secondary)]">points/question</span>
                     </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pointRate">Platform Point Rate</Label>
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-500">1 point = ₹</span>
+                      <span className="text-sm text-[var(--text-secondary)]">1 point = ₹</span>
                       <Input
                         id="pointRate"
                         type="number"
@@ -387,10 +387,10 @@ const [platformName, setPlatformName] = useState("EduHub");
                 <CardDescription>Irreversible and destructive actions</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100">
+                <div className="flex items-center justify-between py-2 border-b border-[var(--divider)]">
                   <div>
-                    <div className="font-medium text-gray-900">Clear All Cache</div>
-                    <div className="text-sm text-gray-500">Clear platform-wide cache data</div>
+                    <div className="font-medium text-[var(--text-primary)]">Clear All Cache</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Clear platform-wide cache data</div>
                   </div>
                   <Button variant="outline" className="text-orange-600 border-orange-200 hover:bg-orange-50">
                     Clear Cache
@@ -398,8 +398,8 @@ const [platformName, setPlatformName] = useState("EduHub");
                 </div>
                 <div className="flex items-center justify-between py-2">
                   <div>
-                    <div className="font-medium text-gray-900">Reset Platform</div>
-                    <div className="text-sm text-gray-500">Reset all data to initial state. This cannot be undone.</div>
+                    <div className="font-medium text-[var(--text-primary)]">Reset Platform</div>
+                    <div className="text-sm text-[var(--text-secondary)]">Reset all data to initial state. This cannot be undone.</div>
                   </div>
                   <Button variant="outline" className="text-red-600 border-red-200 hover:bg-red-50">
                     Reset Platform

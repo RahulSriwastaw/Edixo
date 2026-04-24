@@ -56,13 +56,13 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
         <div 
             key={page.id} 
             className={`bg-white border rounded-xl overflow-hidden shadow-sm flex flex-col md:flex-row h-auto min-h-[200px] md:min-h-[250px] transition-all duration-200 ${
-                page.isSelected ? 'border-slate-300 ring-1 ring-slate-100' : 'border-slate-200 opacity-90'
+                page.isSelected ? 'border-[var(--border-input)] ring-1 ring-slate-100' : 'border-[var(--border-input)] opacity-90'
             }`}
         >
           
           {/* Image Side */}
           <div 
-            className="w-full md:w-1/4 bg-slate-50 relative group border-b md:border-b-0 md:border-r border-slate-200 cursor-pointer"
+            className="w-full md:w-1/4 bg-[var(--bg-main)] relative group border-b md:border-b-0 md:border-r border-[var(--border-input)] cursor-pointer"
             onClick={() => onToggleSelection(page.id)}
           >
             <img 
@@ -94,7 +94,7 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                 <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
                     page.isSelected 
                         ? 'bg-slate-800 border-slate-800 text-white' 
-                        : 'bg-white/90 border-slate-300 hover:border-slate-500'
+                        : 'bg-white/90 border-[var(--border-input)] hover:border-slate-500'
                 }`}>
                     {page.isSelected && <Check className="w-3.5 h-3.5" />}
                 </div>
@@ -127,8 +127,8 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
           {/* Text/Editor Side */}
           <div className="w-full md:w-3/4 flex flex-col h-[300px] md:h-auto">
             {/* Toolbar */}
-            <div className="flex justify-between items-center px-3 py-2 border-b border-slate-100 bg-slate-50/50">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex justify-between items-center px-3 py-2 border-b border-[var(--divider)] bg-[var(--bg-main)]">
+                <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                     {editingId === page.id ? "Edit Mode" : "Content"}
                 </span>
                 
@@ -144,7 +144,7 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                                 </button>
                                 <button 
                                     onClick={handleCancel}
-                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-semibold rounded hover:bg-slate-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[var(--border-input)] text-[var(--text-secondary)] text-[10px] font-semibold rounded hover:bg-[var(--bg-sidebar)] transition-colors shadow-sm"
                                 >
                                     <X className="w-3 h-3" /> Cancel
                                 </button>
@@ -153,14 +153,14 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                             <>
                                 <button 
                                     onClick={() => handleEditClick(page)}
-                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-semibold rounded hover:bg-slate-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[var(--border-input)] text-[var(--text-secondary)] text-[10px] font-semibold rounded hover:bg-[var(--bg-sidebar)] transition-colors shadow-sm"
                                     title="Edit Text"
                                 >
                                     <Edit2 className="w-3 h-3" /> Edit
                                 </button>
                                 <button 
                                     onClick={() => handleCopy(page.id, page.extractedText || '')}
-                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-semibold rounded hover:bg-slate-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[var(--border-input)] text-[var(--text-secondary)] text-[10px] font-semibold rounded hover:bg-[var(--bg-sidebar)] transition-colors shadow-sm"
                                     title="Copy to Clipboard"
                                 >
                                     {copiedId === page.id ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
@@ -168,14 +168,14 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                                 </button>
                                 <button 
                                     onClick={() => handleCopy(page.id, `\`\`\`markdown\n${page.extractedText || ''}\n\`\`\``)}
-                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-600 text-[10px] font-semibold rounded hover:bg-slate-50 transition-colors shadow-sm"
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[var(--border-input)] text-[var(--text-secondary)] text-[10px] font-semibold rounded hover:bg-[var(--bg-sidebar)] transition-colors shadow-sm"
                                     title="Copy as Markdown Code"
                                 >
                                     <FileText className="w-3 h-3" /> MD
                                 </button>
                                 <button 
                                     onClick={() => onRetry(page.id)}
-                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-slate-200 text-slate-900 text-[10px] font-semibold rounded hover:bg-slate-100 transition-colors shadow-sm"
+                                    className="flex items-center gap-1 px-2.5 py-1 bg-white border border-[var(--border-input)] text-[var(--text-primary)] text-[10px] font-semibold rounded hover:bg-slate-100 transition-colors shadow-sm"
                                     title="Regenerate Page"
                                 >
                                     <RefreshCw className="w-3 h-3" /> Regenerate
@@ -203,7 +203,7 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                    <textarea
                      value={editText}
                      onChange={(e) => setEditText(e.target.value)}
-                     className="w-full h-full p-4 text-xs font-mono text-slate-800 resize-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-100 leading-relaxed bg-slate-50/30"
+                     className="w-full h-full p-4 text-xs font-mono text-slate-800 resize-none focus:outline-none focus:ring-2 focus:ring-inset focus:ring-slate-100 leading-relaxed bg-[var(--bg-main)]/30"
                      spellCheck={false}
                    />
                ) : (
@@ -211,11 +211,11 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                         {page.elements && page.elements.length > 0 ? (
                             <div className="space-y-4">
                                 {page.elements.filter(el => includeImages || el.type !== 'image').map((el) => (
-                                    <div key={el.id} className="relative group p-2 -mx-2 rounded-lg hover:bg-slate-50/50 transition-colors">
+                                    <div key={el.id} className="relative group p-2 -mx-2 rounded-lg hover:bg-[var(--bg-sidebar)]/50 transition-colors">
                                         {el.content && (
                                             <button
                                                 onClick={() => handleCopy(el.id, el.content || '')}
-                                                className="absolute top-2 right-2 p-1.5 bg-white border border-slate-200 rounded-md text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-slate-50 hover:text-slate-700 z-10"
+                                                className="absolute top-2 right-2 p-1.5 bg-white border border-[var(--border-input)] rounded-md text-[var(--text-secondary)] opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-[var(--bg-sidebar)] hover:text-[var(--text-primary)] z-10"
                                                 title="Copy Content"
                                             >
                                                 {copiedId === el.id ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -223,7 +223,7 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                                         )}
                                         {el.type === 'text' || el.type === 'table' ? (
                                             <div className="flex flex-col gap-1.5 pr-8">
-                                                <div className="markdown-body prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed">
+                                                <div className="markdown-body prose prose-slate prose-sm max-w-none text-[var(--text-primary)] leading-relaxed">
                                                     <ReactMarkdown 
                                                         remarkPlugins={[remarkMath, remarkGfm]} 
                                                         rehypePlugins={[rehypeKatex]}
@@ -232,28 +232,28 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                                                     </ReactMarkdown>
                                                 </div>
                                                 {el.type === 'table' && el.imageB64 && (
-                                                    <div className="mt-1.5 p-1.5 border border-slate-100 rounded bg-slate-50/50">
-                                                        <div className="text-[9px] font-bold text-slate-400 uppercase mb-1">Original Table Source</div>
+                                                    <div className="mt-1.5 p-1.5 border border-[var(--divider)] rounded bg-[var(--bg-main)]">
+                                                        <div className="text-[9px] font-bold text-[var(--text-muted)] uppercase mb-1">Original Table Source</div>
                                                         <img src={el.imageB64} className="max-w-full h-auto rounded opacity-80 hover:opacity-100 transition-opacity" alt="Original table" />
                                                     </div>
                                                 )}
                                             </div>
                                         ) : (el.type === 'image' || el.type === 'table') && el.imageB64 ? (
                                             <div className="flex flex-col gap-1.5 pr-8">
-                                                <div className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">Detected Image</div>
+                                                <div className="text-[9px] font-bold text-[var(--text-muted)] uppercase tracking-tighter">Detected Image</div>
                                                 <img 
                                                     src={el.imageB64} 
                                                     alt="Extracted region" 
-                                                    className="max-w-full h-auto rounded border border-slate-200 shadow-sm bg-slate-50"
+                                                    className="max-w-full h-auto rounded border border-[var(--border-input)] shadow-sm bg-[var(--bg-main)]"
                                                 />
-                                                {el.content && <p className="text-[10px] text-slate-500 italic">{el.content}</p>}
+                                                {el.content && <p className="text-[10px] text-[var(--text-secondary)] italic">{el.content}</p>}
                                             </div>
                                         ) : null}
                                     </div>
                                 ))}
                             </div>
                         ) : page.extractedText ? (
-                            <div className="markdown-body prose prose-slate prose-sm max-w-none text-slate-700 leading-relaxed">
+                            <div className="markdown-body prose prose-slate prose-sm max-w-none text-[var(--text-primary)] leading-relaxed">
                                 <ReactMarkdown 
                                     remarkPlugins={[remarkMath, remarkGfm]} 
                                     rehypePlugins={[rehypeKatex]}
@@ -262,7 +262,7 @@ const ProcessingList: React.FC<ProcessingListProps> = ({ pages, onUpdateText, on
                                 </ReactMarkdown>
                             </div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 text-xs gap-2">
+                            <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] text-xs gap-2">
                                 <span className="italic flex items-center gap-1.5">
                                     {page.status === 'pending' && 'Waiting to process...'} 
                                     {page.status === 'processing' && (

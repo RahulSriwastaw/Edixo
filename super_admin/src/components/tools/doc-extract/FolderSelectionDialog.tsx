@@ -71,7 +71,7 @@ function FolderTreeNode({
           "group flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer text-sm transition-all duration-100 select-none",
           isSelected
             ? "bg-primary/15 text-primary font-semibold border border-primary/30"
-            : "text-slate-700 hover:bg-slate-100"
+            : "text-[var(--text-primary)] hover:bg-slate-100"
         )}
         style={{ marginLeft: `${level * 16}px` }}
         onClick={() => onSelect(node.id)}
@@ -86,9 +86,9 @@ function FolderTreeNode({
         >
           {hasChildren ? (
             isExpanded ? (
-              <ChevronDown className="w-4 h-4 text-slate-400" />
+              <ChevronDown className="w-4 h-4 text-[var(--text-muted)]" />
             ) : (
-              <ChevronRight className="w-4 h-4 text-slate-400" />
+              <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
             )
           ) : (
             <div className="w-4" />
@@ -96,7 +96,7 @@ function FolderTreeNode({
         </span>
 
         {/* Folder icon */}
-        <span className={cn("shrink-0", isSelected ? "text-primary" : "text-slate-500")}>
+        <span className={cn("shrink-0", isSelected ? "text-primary" : "text-[var(--text-secondary)]")}>
           {isExpanded && hasChildren ? (
             <FolderOpen className="w-4 h-4" />
           ) : (
@@ -113,7 +113,7 @@ function FolderTreeNode({
             "text-xs px-2 py-1 rounded-full font-semibold shrink-0",
             isSelected
               ? "bg-primary/20 text-primary"
-              : "bg-slate-100 text-slate-600"
+              : "bg-slate-100 text-[var(--text-secondary)]"
           )}>
             {node.questionCount}
           </span>
@@ -125,7 +125,7 @@ function FolderTreeNode({
             e.stopPropagation();
             onCreateSubfolder(node.id);
           }}
-          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded hover:bg-blue-100 text-slate-400 hover:text-blue-600"
+          className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 p-1 rounded hover:bg-blue-100 text-[var(--text-muted)] hover:text-blue-600"
           title="Create subfolder"
         >
           <FolderPlus className="w-3.5 h-3.5" />
@@ -296,7 +296,7 @@ export function FolderSelectionDialog({
         <DialogContent className="max-w-md rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">Select Folder for Questions</DialogTitle>
-          <DialogDescription className="text-sm text-slate-600">
+          <DialogDescription className="text-sm text-[var(--text-secondary)]">
             Choose where to save {questionCount} question{questionCount !== 1 ? 's' : ''} in the Question Bank
           </DialogDescription>
         </DialogHeader>
@@ -305,12 +305,12 @@ export function FolderSelectionDialog({
           {/* Search and Create Buttons */}
           <div className="space-y-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <Input
                 placeholder="Search folders..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 h-9 rounded-lg border-slate-200 bg-slate-50 text-sm"
+                className="pl-9 h-9 rounded-lg border-[var(--border-input)] bg-[var(--bg-main)] text-sm"
                 autoFocus
               />
             </div>
@@ -318,7 +318,7 @@ export function FolderSelectionDialog({
               onClick={() => openCreateDialog(null)}
               variant="outline"
               size="sm"
-              className="w-full h-8 rounded-lg border-slate-200 text-slate-700 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 font-semibold text-xs gap-1.5"
+              className="w-full h-8 rounded-lg border-[var(--border-input)] text-[var(--text-primary)] hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 font-semibold text-xs gap-1.5"
             >
               <FolderPlus className="w-3.5 h-3.5" />
               Create New Folder
@@ -326,17 +326,17 @@ export function FolderSelectionDialog({
           </div>
 
           {/* Folder Tree */}
-          <ScrollArea className="h-64 border border-slate-200 rounded-lg bg-white p-2">
+          <ScrollArea className="h-64 border border-[var(--border-input)] rounded-lg bg-white p-2">
             {loading ? (
               <div className="flex items-center justify-center h-full">
                 <div className="flex flex-col items-center gap-2">
-                  <Loader2 className="w-5 h-5 text-slate-400 animate-spin" />
-                  <p className="text-xs text-slate-500">Loading folders...</p>
+                  <Loader2 className="w-5 h-5 text-[var(--text-muted)] animate-spin" />
+                  <p className="text-xs text-[var(--text-secondary)]">Loading folders...</p>
                 </div>
               </div>
             ) : folders.length === 0 ? (
               <div className="flex items-center justify-center h-full">
-                <p className="text-sm text-slate-500">No folders available</p>
+                <p className="text-sm text-[var(--text-secondary)]">No folders available</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -360,7 +360,7 @@ export function FolderSelectionDialog({
           {/* Selected folder info */}
           {selectedId && (
             <div className="p-3 bg-primary/5 border border-primary/20 rounded-lg">
-              <p className="text-xs font-semibold text-slate-600">Selected Folder:</p>
+              <p className="text-xs font-semibold text-[var(--text-secondary)]">Selected Folder:</p>
               <p className="text-sm font-bold text-primary mt-1">
                 📁 {findFolderName(selectedId, folders)}
               </p>
@@ -372,7 +372,7 @@ export function FolderSelectionDialog({
           <Button
             variant="outline"
             onClick={handleClose}
-            className="rounded-lg border-slate-200"
+            className="rounded-lg border-[var(--border-input)]"
           >
             Cancel
           </Button>
@@ -392,7 +392,7 @@ export function FolderSelectionDialog({
       <DialogContent className="max-w-sm rounded-2xl">
         <DialogHeader>
           <DialogTitle className="text-lg font-bold">Create New Folder</DialogTitle>
-          <DialogDescription className="text-sm text-slate-600">
+          <DialogDescription className="text-sm text-[var(--text-secondary)]">
             {createParentId
               ? "Create a subfolder in the selected parent folder"
               : "Create a new top-level folder in the Question Bank"}
@@ -401,7 +401,7 @@ export function FolderSelectionDialog({
 
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide">
+            <label className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wide">
               Folder Name
             </label>
             <Input
@@ -413,7 +413,7 @@ export function FolderSelectionDialog({
                   handleCreateFolder();
                 }
               }}
-              className="h-9 rounded-lg border-slate-200 bg-slate-50 text-sm"
+              className="h-9 rounded-lg border-[var(--border-input)] bg-[var(--bg-main)] text-sm"
               autoFocus
               disabled={isCreating}
             />
@@ -421,7 +421,7 @@ export function FolderSelectionDialog({
 
           {createParentId && (
             <div className="p-2.5 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-xs font-semibold text-slate-600">Parent Folder:</p>
+              <p className="text-xs font-semibold text-[var(--text-secondary)]">Parent Folder:</p>
               <p className="text-sm font-bold text-blue-700 mt-1">
                 📁 {findFolderName(createParentId, folders)}
               </p>
@@ -438,7 +438,7 @@ export function FolderSelectionDialog({
               setCreateParentId(null);
             }}
             disabled={isCreating}
-            className="rounded-lg border-slate-200"
+            className="rounded-lg border-[var(--border-input)]"
           >
             Cancel
           </Button>

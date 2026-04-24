@@ -132,7 +132,7 @@ export default function PublicAccessPage() {
             <div className="w-8 h-8 bg-[#F4511E] rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">E</span>
             </div>
-            <span className="font-bold text-xl text-gray-900">EduHub</span>
+            <span className="font-bold text-xl text-[var(--text-primary)]">EduHub</span>
           </Link>
           <Button variant="outline" onClick={() => router.push("/login")}>
             Login
@@ -145,15 +145,15 @@ export default function PublicAccessPage() {
           <>
             {/* Access Form */}
             <div className="text-center mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">ACCESS YOUR CONTENT</h1>
-              <p className="text-gray-500 mt-2">Enter your Set, MockTest, or eBook ID & Password</p>
+              <h1 className="text-2xl font-bold text-[var(--text-primary)]">ACCESS YOUR CONTENT</h1>
+              <p className="text-[var(--text-secondary)] mt-2">Enter your Set, MockTest, or eBook ID & Password</p>
             </div>
 
             <Card className="shadow-lg border-0">
               <CardContent className="p-6 space-y-6">
                 {/* Content Type Selector */}
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Content Type</label>
+                  <label className="text-sm font-medium text-[var(--text-primary)]">Content Type</label>
                   <div className="flex gap-2 mt-2">
                     {contentTypes.map((ct) => {
                       const Icon = ct.icon;
@@ -165,7 +165,7 @@ export default function PublicAccessPage() {
                             "flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 transition-all",
                             contentType === ct.value
                               ? "border-[#F4511E] bg-orange-50 text-[#F4511E]"
-                              : "border-gray-200 text-gray-600 hover:border-gray-300"
+                              : "border-[var(--border-input)] text-[var(--text-secondary)] hover:border-[var(--border-input)]"
                           )}
                         >
                           <Icon className="w-4 h-4" />
@@ -223,13 +223,13 @@ export default function PublicAccessPage() {
             {/* Divider */}
             <div className="flex items-center gap-4 my-8">
               <div className="flex-1 border-t" />
-              <span className="text-sm text-gray-400">OR BROWSE FREE CONTENT</span>
+              <span className="text-sm text-[var(--text-muted)]">OR BROWSE FREE CONTENT</span>
               <div className="flex-1 border-t" />
             </div>
 
             {/* Search */}
             <div className="relative mb-4">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <Input
                 placeholder="Search question papers, practice sets..."
                 value={searchQuery}
@@ -240,7 +240,7 @@ export default function PublicAccessPage() {
 
             {/* Trending Content */}
             <div className="space-y-3">
-              <h3 className="font-medium text-gray-700">TRENDING</h3>
+              <h3 className="font-medium text-[var(--text-primary)]">TRENDING</h3>
               {filteredContent.map((item) => {
                 const Icon = item.type === "set" ? Layers : item.type === "mocktest" ? FileText : BookOpen;
                 return (
@@ -257,8 +257,8 @@ export default function PublicAccessPage() {
                         <Icon className="w-5 h-5 text-[#F4511E]" />
                       </div>
                       <div className="flex-1">
-                        <p className="font-medium text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-500">{item.org} • {item.questions} questions</p>
+                        <p className="font-medium text-[var(--text-primary)]">{item.name}</p>
+                        <p className="text-sm text-[var(--text-secondary)]">{item.org} • {item.questions} questions</p>
                       </div>
                       <Badge variant="outline" className="text-xs">
                         {item.type.toUpperCase()}
@@ -276,8 +276,8 @@ export default function PublicAccessPage() {
               <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">✅</span>
               </div>
-              <h1 className="text-xl font-bold text-gray-900">{verifiedContent.name as string}</h1>
-              <p className="text-gray-500 mt-1">
+              <h1 className="text-xl font-bold text-[var(--text-primary)]">{verifiedContent.name as string}</h1>
+              <p className="text-[var(--text-secondary)] mt-1">
                 {verifiedContent.id as string} • By: {verifiedContent.org as string}
               </p>
             </div>
@@ -285,23 +285,23 @@ export default function PublicAccessPage() {
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between py-2 border-b">
-                  <span className="text-gray-600">Questions</span>
+                  <span className="text-[var(--text-secondary)]">Questions</span>
                   <Badge className="bg-blue-50 text-blue-700">{verifiedContent.questions as number}</Badge>
                 </div>
                 {verifiedContent.type === "mocktest" && (
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-gray-600">Duration</span>
+                    <span className="text-[var(--text-secondary)]">Duration</span>
                     <span className="font-medium">{verifiedContent.duration as number} minutes</span>
                   </div>
                 )}
                 {verifiedContent.type === "ebook" && (
                   <div className="flex items-center justify-between py-2 border-b">
-                    <span className="text-gray-600">Chapters</span>
+                    <span className="text-[var(--text-secondary)]">Chapters</span>
                     <span className="font-medium">{verifiedContent.chapters as number}</span>
                   </div>
                 )}
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-gray-600">Type</span>
+                  <span className="text-[var(--text-secondary)]">Type</span>
                   <Badge className="bg-[#F4511E]">{(verifiedContent.type as string).toUpperCase()}</Badge>
                 </div>
               </CardContent>
@@ -332,13 +332,13 @@ export default function PublicAccessPage() {
             {/* Preview */}
             <Card>
               <CardContent className="p-4">
-                <h3 className="font-medium text-gray-900 mb-3">Preview</h3>
-                <div className="space-y-2 text-sm text-gray-600">
-                  <p className="font-medium text-gray-900">Q1. If α and β are roots of x²-5x+6=0, find α²+β²</p>
+                <h3 className="font-medium text-[var(--text-primary)] mb-3">Preview</h3>
+                <div className="space-y-2 text-sm text-[var(--text-secondary)]">
+                  <p className="font-medium text-[var(--text-primary)]">Q1. If α and β are roots of x²-5x+6=0, find α²+β²</p>
                   <p>(A) 25  (B) 13  (C) 11  (D) 12</p>
-                  <p className="font-medium text-gray-900 mt-3">Q2. The value of ∫₀¹ x² dx is...</p>
+                  <p className="font-medium text-[var(--text-primary)] mt-3">Q2. The value of ∫₀¹ x² dx is...</p>
                   <p>(A) 1/3  (B) 1/2  (C) 2/3  (D) 1</p>
-                  <p className="text-gray-400 text-center py-4">...</p>
+                  <p className="text-[var(--text-muted)] text-center py-4">...</p>
                 </div>
               </CardContent>
             </Card>
@@ -353,7 +353,7 @@ export default function PublicAccessPage() {
 
       {/* Footer */}
       <footer className="border-t bg-white mt-12">
-        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-gray-500">
+        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-sm text-[var(--text-secondary)]">
           <p>© 2026 EduHub. All rights reserved.</p>
           <div className="flex justify-center gap-4 mt-2">
             <Link href="/terms" className="hover:text-[#F4511E]">Terms</Link>

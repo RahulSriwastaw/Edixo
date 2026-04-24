@@ -120,14 +120,14 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
               initial={{ opacity: 0, scale: 0.96, y: 10 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.96 }}
-              className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden"
+              className="w-full max-w-2xl bg-white rounded-2xl shadow-2xl border border-[var(--divider)] overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-                <h3 className="text-sm font-bold text-slate-900">Edit Question</h3>
+              <div className="flex items-center justify-between px-6 py-4 border-b border-[var(--divider)]">
+                <h3 className="text-sm font-bold text-[var(--text-primary)]">Edit Question</h3>
                 <button
                   onClick={() => setEditingQuestion(null)}
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:bg-slate-100 hover:text-[var(--text-primary)] transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -135,16 +135,16 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
 
               <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Question Text</Label>
+                  <Label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Question Text</Label>
                   <textarea
-                    className="w-full min-h-[90px] p-3 rounded-xl border border-slate-200 text-sm text-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none bg-slate-50 resize-none transition-all"
+                    className="w-full min-h-[90px] p-3 rounded-xl border border-[var(--border-input)] text-sm text-slate-800 focus:ring-2 focus:ring-primary/20 focus:border-primary/30 outline-none bg-[var(--bg-main)] resize-none transition-all"
                     value={editingQuestion.text}
                     onChange={(e) => setEditingQuestion({ ...editingQuestion, text: e.target.value })}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Options</Label>
+                  <Label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Options</Label>
                   {editingQuestion.options.map((opt, i) => {
                     const label = OPTION_LABELS[i];
                     const isCorrect = editingQuestion.correctOption === label;
@@ -156,7 +156,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                             "w-8 h-8 rounded-lg text-xs font-black shrink-0 border transition-all",
                             isCorrect
                               ? "bg-emerald-500 text-white border-emerald-500"
-                              : "bg-white text-slate-500 border-slate-200 hover:border-slate-300"
+                              : "bg-white text-[var(--text-secondary)] border-[var(--border-input)] hover:border-[var(--border-input)]"
                           )}
                         >
                           {label}
@@ -168,7 +168,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                             newOpts[i] = e.target.value;
                             setEditingQuestion({ ...editingQuestion, options: newOpts });
                           }}
-                          className="h-8 text-sm rounded-lg border-slate-200 bg-slate-50 font-medium"
+                          className="h-8 text-sm rounded-lg border-[var(--border-input)] bg-[var(--bg-main)] font-medium"
                         />
                       </div>
                     );
@@ -176,15 +176,15 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-xs font-bold text-slate-600 uppercase tracking-wide">Difficulty</Label>
+                  <Label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wide">Difficulty</Label>
                   <Select
                     value={editingQuestion.difficulty}
                     onValueChange={(val: any) => setEditingQuestion({ ...editingQuestion, difficulty: val })}
                   >
-                    <SelectTrigger className="h-9 rounded-lg bg-slate-50 border-slate-200 font-bold text-sm">
+                    <SelectTrigger className="h-9 rounded-lg bg-[var(--bg-main)] border-[var(--border-input)] font-bold text-sm">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-slate-100 shadow-xl">
+                    <SelectContent className="rounded-xl border-[var(--divider)] shadow-xl">
                       <SelectItem value="Easy">Easy</SelectItem>
                       <SelectItem value="Medium">Medium</SelectItem>
                       <SelectItem value="Hard">Hard</SelectItem>
@@ -193,7 +193,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                 </div>
               </div>
 
-              <div className="flex gap-2 px-6 py-4 border-t border-slate-100 bg-slate-50/50">
+              <div className="flex gap-2 px-6 py-4 border-t border-[var(--divider)] bg-[var(--bg-main)]">
                 <Button
                   onClick={() => handleUpdateQuestion(editingQuestion)}
                   className="flex-1 h-9 rounded-xl bg-primary hover:bg-primary/90 text-white font-bold text-sm shadow-md shadow-primary/20"
@@ -203,7 +203,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                 <Button
                   variant="outline"
                   onClick={() => setEditingQuestion(null)}
-                  className="h-9 px-5 rounded-xl border-slate-200 text-slate-600 font-bold text-sm"
+                  className="h-9 px-5 rounded-xl border-[var(--border-input)] text-[var(--text-secondary)] font-bold text-sm"
                 >
                   Cancel
                 </Button>
@@ -214,28 +214,28 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
       </AnimatePresence>
 
       {/* Toolbar */}
-      <div className="sticky top-0 z-20 bg-white border border-slate-100 rounded-xl shadow-sm flex flex-wrap items-center gap-2 px-4 py-2.5">
+      <div className="sticky top-0 z-20 bg-white border border-[var(--divider)] rounded-xl shadow-sm flex flex-wrap items-center gap-2 px-4 py-2.5">
         <Checkbox
           checked={selectedIds.length === filteredQuestions.length && filteredQuestions.length > 0}
           onCheckedChange={toggleSelectAll}
-          className="w-4 h-4 border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+          className="w-4 h-4 border-[var(--border-input)] data-[state=checked]:bg-primary data-[state=checked]:border-primary"
         />
 
         <div className="relative flex-1 min-w-[180px] max-w-xs">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--text-muted)]" />
           <Input
             placeholder="Search questions..."
-            className="pl-8 h-8 text-xs bg-slate-50 border-slate-200 rounded-lg focus:ring-2 focus:ring-primary/10"
+            className="pl-8 h-8 text-xs bg-[var(--bg-main)] border-[var(--border-input)] rounded-lg focus:ring-2 focus:ring-primary/10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="h-8 w-28 text-xs bg-slate-50 border-slate-200 rounded-lg font-medium text-slate-600">
+          <SelectTrigger className="h-8 w-28 text-xs bg-[var(--bg-main)] border-[var(--border-input)] rounded-lg font-medium text-[var(--text-secondary)]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl border-slate-100 shadow-xl text-xs">
+          <SelectContent className="rounded-xl border-[var(--divider)] shadow-xl text-xs">
             <SelectItem value="All">All Status</SelectItem>
             <SelectItem value="Draft">Draft</SelectItem>
             <SelectItem value="Published">Published</SelectItem>
@@ -243,7 +243,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
         </Select>
 
         <div className="flex items-center gap-1.5 ml-auto">
-          <span className="text-xs text-slate-400 font-medium">
+          <span className="text-xs text-[var(--text-muted)] font-medium">
             {filteredQuestions.length} question{filteredQuestions.length !== 1 ? 's' : ''}
           </span>
 
@@ -269,7 +269,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                   size="sm"
                   variant="outline"
                   onClick={handleDelete}
-                  className="h-7 px-3 rounded-lg border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-slate-500 font-bold text-xs gap-1.5"
+                  className="h-7 px-3 rounded-lg border-[var(--border-input)] hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 text-[var(--text-secondary)] font-bold text-xs gap-1.5"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                   Delete
@@ -297,7 +297,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                   "group bg-white border rounded-xl overflow-hidden transition-all duration-150",
                   isSelected
                     ? "border-primary/30 ring-1 ring-primary/20 bg-primary/[0.01]"
-                    : "border-slate-100 hover:border-slate-200"
+                    : "border-[var(--divider)] hover:border-[var(--border-input)]"
                 )}
               >
                 <div className="flex items-start gap-3 p-4">
@@ -305,14 +305,14 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                   <Checkbox
                     checked={isSelected}
                     onCheckedChange={() => toggleSelect(q.id)}
-                    className="mt-0.5 w-4 h-4 border-slate-300 data-[state=checked]:bg-primary data-[state=checked]:border-primary shrink-0"
+                    className="mt-0.5 w-4 h-4 border-[var(--border-input)] data-[state=checked]:bg-primary data-[state=checked]:border-primary shrink-0"
                   />
 
                   <div className="flex-1 min-w-0 space-y-3">
                     {/* Header Row */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded text-[10px] font-black uppercase tracking-wider">
+                        <span className="px-2 py-0.5 bg-slate-100 text-[var(--text-secondary)] rounded text-[10px] font-black uppercase tracking-wider">
                           {q.id}
                         </span>
                         <span className={cn(
@@ -333,7 +333,7 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                       </div>
                       <button
                         onClick={() => setEditingQuestion(q)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-slate-400 hover:bg-primary/10 hover:text-primary"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 rounded-lg text-[var(--text-muted)] hover:bg-primary/10 hover:text-primary"
                       >
                         <Edit className="w-3.5 h-3.5" />
                       </button>
@@ -357,12 +357,12 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
                               "flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all",
                               isCorrect
                                 ? "bg-emerald-50 border-emerald-200 text-emerald-700"
-                                : "bg-slate-50 border-slate-100 text-slate-600"
+                                : "bg-[var(--bg-main)] border-[var(--divider)] text-[var(--text-secondary)]"
                             )}
                           >
                             <span className={cn(
                               "w-4 h-4 flex items-center justify-center rounded text-[10px] font-black shrink-0",
-                              isCorrect ? "bg-emerald-500 text-white" : "bg-white border border-slate-200 text-slate-500"
+                              isCorrect ? "bg-emerald-500 text-white" : "bg-white border border-[var(--border-input)] text-[var(--text-secondary)]"
                             )}>
                               {label}
                             </span>
@@ -382,17 +382,17 @@ export default function Questions({ questions, onEdit, onQuestionsChange }: Ques
 
       {/* Empty State */}
       {filteredQuestions.length === 0 && (
-        <div className="py-16 text-center bg-white rounded-xl border border-slate-100">
-          <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center mx-auto mb-3 text-slate-300">
+        <div className="py-16 text-center bg-white rounded-xl border border-[var(--divider)]">
+          <div className="w-12 h-12 bg-[var(--bg-main)] rounded-xl flex items-center justify-center mx-auto mb-3 text-[var(--text-muted)]">
             <Search className="w-6 h-6" />
           </div>
           <h3 className="text-sm font-bold text-slate-800 mb-1">No questions found</h3>
-          <p className="text-xs text-slate-400 mb-4">Try adjusting your search or filters.</p>
+          <p className="text-xs text-[var(--text-muted)] mb-4">Try adjusting your search or filters.</p>
           <Button
             variant="outline"
             size="sm"
             onClick={() => { setSearch(''); setStatusFilter('All'); }}
-            className="rounded-lg border-slate-200 font-bold text-xs"
+            className="rounded-lg border-[var(--border-input)] font-bold text-xs"
           >
             Clear filters
           </Button>

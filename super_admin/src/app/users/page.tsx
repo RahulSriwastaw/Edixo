@@ -147,17 +147,17 @@ const [users, setUsers] = useState<any[]>([]);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Users</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   All users across all organizations
                 </p>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-[var(--text-secondary)]">
                 {totalCount.toLocaleString()} total users
               </div>
             </div>
@@ -167,7 +167,7 @@ const [users, setUsers] = useState<any[]>([]);
               <CardContent className="p-4">
                 <form onSubmit={handleSearch} className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search users..."
                       value={searchQuery}
@@ -213,14 +213,14 @@ const [users, setUsers] = useState<any[]>([]);
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50 hover:bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">User</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Role</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Unique ID</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Last Login</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                    <TableRow className="bg-[var(--bg-main)] hover:bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">User</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Role</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Unique ID</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Last Login</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -229,13 +229,13 @@ const [users, setUsers] = useState<any[]>([]);
                         <TableCell colSpan={7} className="text-center py-10">
                           <div className="flex flex-col items-center gap-2">
                             <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
-                            <span className="text-gray-500">Loading users...</span>
+                            <span className="text-[var(--text-secondary)]">Loading users...</span>
                           </div>
                         </TableCell>
                       </TableRow>
                     ) : users.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center py-10 text-gray-500">
+                        <TableCell colSpan={7} className="text-center py-10 text-[var(--text-secondary)]">
                           No users found
                         </TableCell>
                       </TableRow>
@@ -248,13 +248,13 @@ const [users, setUsers] = useState<any[]>([]);
                             <TableCell>
                               <div className="flex items-center gap-3">
                                 <Avatar className="w-8 h-8">
-                                  <AvatarFallback className="bg-gray-200 text-gray-600 text-sm font-medium">
+                                  <AvatarFallback className="bg-[var(--bg-sidebar)] text-[var(--text-secondary)] text-sm font-medium">
                                     {profile?.name?.split(" ").map((n: string) => n[0]).join("") || "U"}
                                   </AvatarFallback>
                                 </Avatar>
                                 <div>
-                                  <div className="font-medium text-gray-900">{profile?.name || "System User"}</div>
-                                  <div className="flex items-center gap-1 text-xs text-gray-500">
+                                  <div className="font-medium text-[var(--text-primary)]">{profile?.name || "System User"}</div>
+                                  <div className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                                     {user.email || user.mobile}
                                   </div>
                                 </div>
@@ -267,22 +267,22 @@ const [users, setUsers] = useState<any[]>([]);
                               {profile?.studentId || profile?.staffId ? (
                                 <span className="mono text-xs">{profile.studentId || profile.staffId}</span>
                               ) : (
-                                <span className="text-xs text-gray-400">—</span>
+                                <span className="text-xs text-[var(--text-muted)]">—</span>
                               )}
                             </TableCell>
                             <TableCell>
                               {org ? (
                                 <Link
                                   href={`/organizations/${org.orgId}`}
-                                  className="text-sm text-gray-700 hover:text-brand-primary font-medium"
+                                  className="text-sm text-[var(--text-primary)] hover:text-brand-primary font-medium"
                                 >
                                   {org.name}
                                 </Link>
                               ) : (
-                                <span className="text-xs text-gray-400">Platform</span>
+                                <span className="text-xs text-[var(--text-muted)]">Platform</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="text-sm text-[var(--text-secondary)]">
                               {user.lastLoginAt ? new Date(user.lastLoginAt).toLocaleDateString() : 'Never'}
                             </TableCell>
                             <TableCell>
@@ -336,7 +336,7 @@ const [users, setUsers] = useState<any[]>([]);
             {/* Pagination */}
             {!loading && totalCount > limit && (
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-[var(--text-secondary)]">
                   Showing {(page - 1) * limit + 1}–{Math.min(page * limit, totalCount)} of {totalCount}
                 </div>
                 <div className="flex items-center gap-2">

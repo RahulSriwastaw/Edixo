@@ -147,18 +147,18 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Question Reports</h1>
-                                <p className="text-gray-500 text-sm mt-1">Review and fix reported issues in questions</p>
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Question Reports</h1>
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">Review and fix reported issues in questions</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                                     <SelectTrigger className="w-[180px] bg-white">
-                                        <Filter className="w-4 h-4 mr-2 text-gray-400" />
+                                        <Filter className="w-4 h-4 mr-2 text-[var(--text-muted)]" />
                                         <SelectValue placeholder="Status Filter" />
                                     </SelectTrigger>
                                     <SelectContent>
@@ -180,8 +180,8 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                                             <Clock className="w-5 h-5 text-amber-600" />
                                         </div>
                                         <div>
-                                            <div className="text-2xl font-bold text-gray-900">{reports.filter(r => r.status === 'PENDING').length}</div>
-                                            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">Pending Reports</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{reports.filter(r => r.status === 'PENDING').length}</div>
+                                            <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Pending Reports</div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -193,8 +193,8 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                                             <CheckCircle className="w-5 h-5 text-green-600" />
                                         </div>
                                         <div>
-                                            <div className="text-2xl font-bold text-gray-900">{reports.filter(r => r.status === 'RESOLVED').length}</div>
-                                            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">Resolved</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{reports.filter(r => r.status === 'RESOLVED').length}</div>
+                                            <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Resolved</div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -206,8 +206,8 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                                             <XCircle className="w-5 h-5 text-red-600" />
                                         </div>
                                         <div>
-                                            <div className="text-2xl font-bold text-gray-900">{reports.filter(r => r.status === 'REJECTED').length}</div>
-                                            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">Rejected</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{reports.filter(r => r.status === 'REJECTED').length}</div>
+                                            <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Rejected</div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -219,8 +219,8 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                                             <AlertCircle className="w-5 h-5 text-blue-600" />
                                         </div>
                                         <div>
-                                            <div className="text-2xl font-bold text-gray-900">{reports.length}</div>
-                                            <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">Total Reports</div>
+                                            <div className="text-2xl font-bold text-[var(--text-primary)]">{reports.length}</div>
+                                            <div className="text-xs text-[var(--text-secondary)] font-medium uppercase tracking-wider">Total Reports</div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -232,7 +232,7 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                             <CardContent className="p-0">
                                 <Table>
                                     <TableHeader>
-                                        <TableRow className="bg-gray-50">
+                                        <TableRow className="bg-[var(--bg-main)]">
                                             <TableHead className="w-[100px]">Date</TableHead>
                                             <TableHead>Question ID</TableHead>
                                             <TableHead>Reason</TableHead>
@@ -245,26 +245,26 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                                     <TableBody>
                                         {loading ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="text-center py-12 text-gray-500">
+                                                <TableCell colSpan={7} className="text-center py-12 text-[var(--text-secondary)]">
                                                     Loading reports...
                                                 </TableCell>
                                             </TableRow>
                                         ) : reports.length === 0 ? (
                                             <TableRow>
-                                                <TableCell colSpan={7} className="text-center py-12 text-gray-500 text-lg">
+                                                <TableCell colSpan={7} className="text-center py-12 text-[var(--text-secondary)] text-lg">
                                                     No reports found.
                                                 </TableCell>
                                             </TableRow>
                                         ) : (
                                             reports.map((report) => (
                                                 <TableRow key={report.id} className="hover:bg-brand-primary-tint transition-colors">
-                                                    <TableCell className="text-sm text-gray-600">
+                                                    <TableCell className="text-sm text-[var(--text-secondary)]">
                                                         {new Date(report.createdAt).toLocaleDateString()}
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex flex-col">
-                                                            <span className="font-bold text-gray-900">{report.question.questionId}</span>
-                                                            <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                                                            <span className="font-bold text-[var(--text-primary)]">{report.question.questionId}</span>
+                                                            <span className="text-xs text-[var(--text-secondary)] truncate max-w-[200px]">
                                                                 {report.question.textEn || report.question.textHi}
                                                             </span>
                                                         </div>
@@ -276,16 +276,16 @@ const [reports, setReports] = useState<QuestionReport[]>([]);
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-start gap-2 max-w-[300px]">
-                                                            <MessageSquare className="w-3.5 h-3.5 text-gray-400 shrink-0 mt-1" />
-                                                            <span className="text-sm text-gray-600 line-clamp-2">
+                                                            <MessageSquare className="w-3.5 h-3.5 text-[var(--text-muted)] shrink-0 mt-1" />
+                                                            <span className="text-sm text-[var(--text-secondary)] line-clamp-2">
                                                                 {report.description || "No description provided."}
                                                             </span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-2">
-                                                            <User className="w-3.5 h-3.5 text-gray-400" />
-                                                            <span className="text-sm text-gray-700">{report.reporterName}</span>
+                                                            <User className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                                                            <span className="text-sm text-[var(--text-primary)]">{report.reporterName}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>

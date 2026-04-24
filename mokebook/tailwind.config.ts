@@ -50,14 +50,14 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        body: [
-          "Noto Sans",
-          "Noto Sans Devanagari",
+        sans: [
+          "Inter",
+          "system-ui",
           "sans-serif",
         ],
-        sans: [
-          "Noto Sans",
-          "Noto Sans Devanagari",
+        body: [
+          "Inter",
+          "system-ui",
           "sans-serif",
         ],
       },

@@ -554,11 +554,11 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
       <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
         {/* Folder Breadcrumb / Header */}
         {folderId && (
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-2">
+          <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-2">
             <Folder className="w-4 h-4 text-primary/60" />
-            <span className="font-medium text-slate-900">{currentFolderName || "Loading folder..."}</span>
-            <span className="text-slate-300">/</span>
-            <span className="text-xs text-slate-400">Viewing {totalQuestions} questions</span>
+            <span className="font-medium text-[var(--text-primary)]">{currentFolderName || "Loading folder..."}</span>
+            <span className="text-[var(--text-muted)]">/</span>
+            <span className="text-xs text-[var(--text-muted)]">Viewing {totalQuestions} questions</span>
           </div>
         )}
 
@@ -722,7 +722,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                     <Globe className="w-4 h-4 mr-1" />
                     Make Public
                   </Button>
-                  <Button variant="outline" size="sm" className="bg-white border-slate-200 text-slate-600 hover:bg-slate-50 whitespace-nowrap shadow-sm">
+                  <Button variant="outline" size="sm" className="bg-white border-[var(--border-input)] text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)] whitespace-nowrap shadow-sm">
                     <Lock className="w-4 h-4 mr-1" />
                     Make Private
                   </Button>
@@ -779,7 +779,7 @@ export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: 
                     Delete
                   </Button>
                   <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedQuestions([])} className="text-slate-500 hover:text-slate-700 whitespace-nowrap">
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedQuestions([])} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] whitespace-nowrap">
                     <X className="w-4 h-4 mr-1" />
                     Clear Selection
                   </Button>

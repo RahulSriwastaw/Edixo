@@ -325,17 +325,17 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/blog" className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/admin/blog" className="p-2 hover:bg-[var(--bg-main)] rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Media Library</h1>
-                  <p className="text-gray-500 text-sm">Manage images, documents, and files</p>
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Media Library</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">Manage images, documents, and files</p>
                 </div>
               </div>
               <Button className="btn-primary" onClick={() => fileInputRef.current?.click()}>
@@ -361,8 +361,8 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                       <ImageIcon className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total Files</div>
-                      <div className="text-xl font-bold text-gray-900">{stats.total}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total Files</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{stats.total}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -374,8 +374,8 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                       <ImageIcon className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Images</div>
-                      <div className="text-xl font-bold text-gray-900">{stats.images}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Images</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{stats.images}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -387,8 +387,8 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                       <FileText className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Documents</div>
-                      <div className="text-xl font-bold text-gray-900">{stats.documents}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Documents</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{stats.documents}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -400,8 +400,8 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                       <Download className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total Size</div>
-                      <div className="text-xl font-bold text-gray-900">{formatSize(stats.totalSize)}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total Size</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{formatSize(stats.totalSize)}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -444,7 +444,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
 
                     {/* Search */}
                     <div className="relative w-[250px]">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                       <Input
                         placeholder="Search files..."
                         value={searchQuery}
@@ -458,7 +458,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                     {/* Bulk Actions */}
                     {selectedItems.length > 0 && (
                       <>
-                        <span className="text-sm text-gray-500">{selectedItems.length} selected</span>
+                        <span className="text-sm text-[var(--text-secondary)]">{selectedItems.length} selected</span>
                         <Button variant="outline" size="sm" className="text-red-600" onClick={bulkDelete}>
                           <Trash2 className="w-4 h-4 mr-1" />
                           Delete
@@ -506,7 +506,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                       onClick={() => toggleSelect(item.id)}
                     >
                       <CardContent className="p-0">
-                        <div className="aspect-square relative bg-gray-100 rounded-t-lg overflow-hidden">
+                        <div className="aspect-square relative bg-[var(--bg-main)] rounded-t-lg overflow-hidden">
                           {isImage ? (
                             <img
                               src={item.cdnUrl}
@@ -515,7 +515,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <FileIcon className="w-12 h-12 text-gray-400" />
+                              <FileIcon className="w-12 h-12 text-[var(--text-muted)]" />
                             </div>
                           )}
                           
@@ -531,10 +531,10 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                         </div>
                         
                         <div className="p-2">
-                          <div className="text-sm font-medium text-gray-900 truncate" title={item.originalName}>
+                          <div className="text-sm font-medium text-[var(--text-primary)] truncate" title={item.originalName}>
                             {item.originalName}
                           </div>
-                          <div className="text-xs text-gray-500">{formatDate(item.createdAt)}</div>
+                          <div className="text-xs text-[var(--text-secondary)]">{formatDate(item.createdAt)}</div>
                         </div>
                       </CardContent>
                     </Card>
@@ -545,21 +545,21 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
               <Card>
                 <CardContent className="p-0">
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-[var(--bg-main)] border-b">
                       <tr>
                         <th className="p-3 text-left">
                           <input
                             type="checkbox"
                             checked={selectedItems.length === filteredMedia.length && filteredMedia.length > 0}
                             onChange={toggleSelectAll}
-                            className="rounded border-gray-300"
+                            className="rounded border-[var(--border-input)]"
                           />
                         </th>
-                        <th className="p-3 text-left text-xs font-semibold text-gray-500 uppercase">File</th>
-                        <th className="p-3 text-left text-xs font-semibold text-gray-500 uppercase">Type</th>
-                        <th className="p-3 text-left text-xs font-semibold text-gray-500 uppercase">Size</th>
-                        <th className="p-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
-                        <th className="p-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+                        <th className="p-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">File</th>
+                        <th className="p-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Type</th>
+                        <th className="p-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Size</th>
+                        <th className="p-3 text-left text-xs font-semibold text-[var(--text-secondary)] uppercase">Date</th>
+                        <th className="p-3 text-right text-xs font-semibold text-[var(--text-secondary)] uppercase">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y">
@@ -570,7 +570,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                         return (
                           <tr 
                             key={item.id} 
-                            className={`hover:bg-gray-50 cursor-pointer ${
+                            className={`hover:bg-[var(--bg-main)] cursor-pointer ${
                               selectedItems.includes(item.id) ? 'bg-brand-primary-tint' : ''
                             }`}
                             onClick={() => toggleSelect(item.id)}
@@ -580,21 +580,21 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                                 type="checkbox"
                                 checked={selectedItems.includes(item.id)}
                                 onChange={() => toggleSelect(item.id)}
-                                className="rounded border-gray-300"
+                                className="rounded border-[var(--border-input)]"
                               />
                             </td>
                             <td className="p-3">
                               <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center overflow-hidden">
+                                <div className="w-10 h-10 rounded bg-[var(--bg-main)] flex items-center justify-center overflow-hidden">
                                   {isImage ? (
                                     <img src={item.cdnUrl} alt="" className="w-full h-full object-cover" />
                                   ) : (
-                                    <FileIcon className="w-5 h-5 text-gray-400" />
+                                    <FileIcon className="w-5 h-5 text-[var(--text-muted)]" />
                                   )}
                                 </div>
                                 <div>
-                                  <div className="text-sm font-medium text-gray-900">{item.originalName}</div>
-                                  <div className="text-xs text-gray-500 mono">{item.filename}</div>
+                                  <div className="text-sm font-medium text-[var(--text-primary)]">{item.originalName}</div>
+                                  <div className="text-xs text-[var(--text-secondary)] mono">{item.filename}</div>
                                 </div>
                               </div>
                             </td>
@@ -603,8 +603,8 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                                 {item.mimeType.split('/')[1]?.toUpperCase() || 'FILE'}
                               </Badge>
                             </td>
-                            <td className="p-3 text-sm text-gray-500">{formatSize(item.sizeBytes)}</td>
-                            <td className="p-3 text-sm text-gray-500">{formatDate(item.createdAt)}</td>
+                            <td className="p-3 text-sm text-[var(--text-secondary)]">{formatSize(item.sizeBytes)}</td>
+                            <td className="p-3 text-sm text-[var(--text-secondary)]">{formatDate(item.createdAt)}</td>
                             <td className="p-3 text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
@@ -648,8 +648,8 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
             {filteredMedia.length === 0 && (
               <div className="p-12 text-center">
                 <ImageIcon className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="font-medium text-gray-900 mb-1">No files found</h3>
-                <p className="text-gray-500 text-sm">
+                <h3 className="font-medium text-[var(--text-primary)] mb-1">No files found</h3>
+                <p className="text-[var(--text-secondary)] text-sm">
                   Upload your first file to get started
                 </p>
               </div>
@@ -670,7 +670,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
 
           {editDialog && (
             <div className="py-4 space-y-4">
-              <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
+              <div className="aspect-video bg-[var(--bg-main)] rounded-lg overflow-hidden">
                 {editDialog.mimeType.startsWith("image/") ? (
                   <img src={editDialog.cdnUrl} alt="" className="w-full h-full object-contain" />
                 ) : (
@@ -682,21 +682,21 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
 
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Filename:</span>
+                  <span className="text-[var(--text-secondary)]">Filename:</span>
                   <div className="font-medium mono">{editDialog.filename}</div>
                 </div>
                 <div>
-                  <span className="text-gray-500">Size:</span>
+                  <span className="text-[var(--text-secondary)]">Size:</span>
                   <div className="font-medium">{formatSize(editDialog.sizeBytes)}</div>
                 </div>
                 {editDialog.width && editDialog.height && (
                   <div>
-                    <span className="text-gray-500">Dimensions:</span>
+                    <span className="text-[var(--text-secondary)]">Dimensions:</span>
                     <div className="font-medium">{editDialog.width} × {editDialog.height}</div>
                   </div>
                 )}
                 <div>
-                  <span className="text-gray-500">Type:</span>
+                  <span className="text-[var(--text-secondary)]">Type:</span>
                   <div className="font-medium">{editDialog.mimeType}</div>
                 </div>
               </div>
@@ -727,7 +727,7 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
                   <Input
                     value={editDialog.cdnUrl}
                     readOnly
-                    className="input-field mono text-sm bg-gray-50"
+                    className="input-field mono text-sm bg-[var(--bg-main)]"
                   />
                   <Button variant="outline" size="sm" onClick={() => copyUrl(editDialog.cdnUrl)}>
                     <Copy className="w-4 h-4" />
@@ -753,28 +753,28 @@ const [media, setMedia] = useState<MediaItem[]>(mockMedia);
           
           {previewItem && (
             <div className="space-y-4">
-              <div className="bg-gray-100 rounded-lg overflow-hidden">
+              <div className="bg-[var(--bg-main)] rounded-lg overflow-hidden">
                 {previewItem.mimeType.startsWith("image/") ? (
                   <img src={previewItem.cdnUrl} alt={previewItem.altText || ""} className="w-full" />
                 ) : (
                   <div className="p-12 text-center">
                     <File className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                    <p className="text-gray-500">Preview not available for this file type</p>
+                    <p className="text-[var(--text-secondary)]">Preview not available for this file type</p>
                   </div>
                 )}
               </div>
 
               <div className="grid grid-cols-3 gap-4 text-sm">
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="text-gray-500 text-xs">Type</div>
+                <div className="p-3 bg-[var(--bg-main)] rounded-lg">
+                  <div className="text-[var(--text-secondary)] text-xs">Type</div>
                   <div className="font-medium">{previewItem.mimeType}</div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="text-gray-500 text-xs">Size</div>
+                <div className="p-3 bg-[var(--bg-main)] rounded-lg">
+                  <div className="text-[var(--text-secondary)] text-xs">Size</div>
                   <div className="font-medium">{formatSize(previewItem.sizeBytes)}</div>
                 </div>
-                <div className="p-3 bg-gray-50 rounded-lg">
-                  <div className="text-gray-500 text-xs">Uploaded</div>
+                <div className="p-3 bg-[var(--bg-main)] rounded-lg">
+                  <div className="text-[var(--text-secondary)] text-xs">Uploaded</div>
                   <div className="font-medium">{formatDate(previewItem.createdAt)}</div>
                 </div>
               </div>

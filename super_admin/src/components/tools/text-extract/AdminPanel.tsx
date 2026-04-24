@@ -53,7 +53,7 @@ const AdminPanel = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
 
   return (
-    <div className="flex h-screen bg-slate-50 font-sans">
+    <div className="flex h-screen bg-[var(--bg-main)] font-sans">
       {/* Sidebar */}
       <aside className="w-64 bg-navy-900 text-white flex flex-col">
         <div className="p-6 flex items-center gap-3">
@@ -78,7 +78,7 @@ const AdminPanel = () => {
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                 activeTab === item.name 
                   ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' 
-                  : 'text-slate-400 hover:text-white hover:bg-white/5'
+                  : 'text-[var(--text-muted)] hover:text-white hover:bg-white/5'
               }`}
             >
               <item.icon size={20} />
@@ -89,11 +89,11 @@ const AdminPanel = () => {
 
         <div className="p-4 mt-auto">
           <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <p className="text-xs text-slate-400 mb-2 uppercase tracking-wider font-semibold">Storage Usage</p>
+            <p className="text-xs text-[var(--text-muted)] mb-2 uppercase tracking-wider font-semibold">Storage Usage</p>
             <div className="w-full bg-white/10 rounded-full h-1.5 mb-2">
               <div className="bg-orange-500 h-1.5 rounded-full w-3/4"></div>
             </div>
-            <p className="text-xs text-slate-300">75% of 100GB used</p>
+            <p className="text-xs text-[var(--text-muted)]">75% of 100GB used</p>
           </div>
         </div>
       </aside>
@@ -101,33 +101,33 @@ const AdminPanel = () => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Header */}
-        <header className="h-20 bg-white border-bottom border-slate-200 flex items-center justify-between px-8 shadow-soft z-10">
+        <header className="h-20 bg-white border-bottom border-[var(--border-input)] flex items-center justify-between px-8 shadow-soft z-10">
           <div className="flex items-center gap-4 flex-1">
             <div className="relative w-96">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" size={18} />
               <input 
                 type="text" 
                 placeholder="Search projects, users, or reports..." 
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                className="w-full pl-10 pr-4 py-2.5 bg-[var(--bg-main)] border border-[var(--border-input)] rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
               />
             </div>
           </div>
 
           <div className="flex items-center gap-6">
-            <button className="relative p-2 text-slate-500 hover:bg-slate-50 rounded-lg transition-colors">
+            <button className="relative p-2 text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)] rounded-lg transition-colors">
               <Bell size={20} />
               <span className="absolute top-2 right-2 w-2 h-2 bg-orange-500 rounded-full border-2 border-white"></span>
             </button>
             <div className="h-8 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3 cursor-pointer group">
               <div className="text-right">
-                <p className="text-sm font-bold text-slate-900">Alex Rivera</p>
-                <p className="text-xs text-slate-500">Super Admin</p>
+                <p className="text-sm font-bold text-[var(--text-primary)]">Alex Rivera</p>
+                <p className="text-xs text-[var(--text-secondary)]">Super Admin</p>
               </div>
               <div className="w-10 h-10 bg-slate-200 rounded-xl overflow-hidden border-2 border-transparent group-hover:border-orange-500 transition-all">
                 <img src="https://picsum.photos/seed/admin/40/40" alt="Avatar" referrerPolicy="no-referrer" />
               </div>
-              <ChevronDown size={16} className="text-slate-400" />
+              <ChevronDown size={16} className="text-[var(--text-muted)]" />
             </div>
           </div>
         </header>
@@ -137,11 +137,11 @@ const AdminPanel = () => {
           {/* Page Title */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Enterprise Overview</h1>
-              <p className="text-slate-500 mt-1">Monitor performance across all 24 active projects.</p>
+              <h1 className="text-2xl font-bold text-[var(--text-primary)] tracking-tight">Enterprise Overview</h1>
+              <p className="text-[var(--text-secondary)] mt-1">Monitor performance across all 24 active projects.</p>
             </div>
             <div className="flex gap-3">
-              <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 text-slate-700 rounded-xl font-medium hover:bg-slate-50 transition-all shadow-soft">
+              <button className="flex items-center gap-2 px-4 py-2.5 bg-white border border-[var(--border-input)] text-[var(--text-primary)] rounded-xl font-medium hover:bg-[var(--bg-sidebar)] transition-all shadow-soft">
                 <Download size={18} />
                 Export Data
               </button>
@@ -160,9 +160,9 @@ const AdminPanel = () => {
               { label: 'Course Completion', value: '84.2%', growth: '-2.4%', up: false, icon: BookOpen },
               { label: 'System Uptime', value: '99.99%', growth: 'Stable', up: true, icon: ShieldCheck },
             ].map((kpi, i) => (
-              <div key={i} className="bg-white p-6 rounded-xl shadow-card border border-slate-100">
+              <div key={i} className="bg-white p-6 rounded-xl shadow-card border border-[var(--divider)]">
                 <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 bg-slate-50 rounded-lg text-slate-600">
+                  <div className="p-2 bg-[var(--bg-main)] rounded-lg text-[var(--text-secondary)]">
                     <kpi.icon size={20} />
                   </div>
                   <div className={`flex items-center gap-1 text-xs font-bold px-2 py-1 rounded-full ${
@@ -172,18 +172,18 @@ const AdminPanel = () => {
                     {kpi.growth}
                   </div>
                 </div>
-                <p className="text-sm text-slate-500 font-medium">{kpi.label}</p>
-                <h3 className="text-2xl font-bold text-slate-900 mt-1">{kpi.value}</h3>
+                <p className="text-sm text-[var(--text-secondary)] font-medium">{kpi.label}</p>
+                <h3 className="text-2xl font-bold text-[var(--text-primary)] mt-1">{kpi.value}</h3>
               </div>
             ))}
           </div>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-card border border-slate-100">
+            <div className="lg:col-span-2 bg-white p-6 rounded-xl shadow-card border border-[var(--divider)]">
               <div className="flex items-center justify-between mb-8">
-                <h3 className="font-bold text-slate-900">Growth Analytics</h3>
-                <select className="text-sm bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 focus:outline-none">
+                <h3 className="font-bold text-[var(--text-primary)]">Growth Analytics</h3>
+                <select className="text-sm bg-[var(--bg-main)] border border-[var(--border-input)] rounded-lg px-3 py-1.5 focus:outline-none">
                   <option>Last 7 Days</option>
                   <option>Last 30 Days</option>
                   <option>Last Year</option>
@@ -227,8 +227,8 @@ const AdminPanel = () => {
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-card border border-slate-100">
-              <h3 className="font-bold text-slate-900 mb-8">User Distribution</h3>
+            <div className="bg-white p-6 rounded-xl shadow-card border border-[var(--divider)]">
+              <h3 className="font-bold text-[var(--text-primary)] mb-8">User Distribution</h3>
               <div className="h-80 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={data}>
@@ -257,14 +257,14 @@ const AdminPanel = () => {
           </div>
 
           {/* Table Section */}
-          <div className="bg-white rounded-xl shadow-card border border-slate-100 overflow-hidden">
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h3 className="font-bold text-slate-900">Project Management</h3>
+          <div className="bg-white rounded-xl shadow-card border border-[var(--divider)] overflow-hidden">
+            <div className="p-6 border-b border-[var(--divider)] flex items-center justify-between">
+              <h3 className="font-bold text-[var(--text-primary)]">Project Management</h3>
               <div className="flex gap-2">
-                <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200">
+                <button className="p-2 text-[var(--text-muted)] hover:bg-[var(--bg-sidebar)] rounded-lg transition-colors border border-[var(--border-input)]">
                   <Filter size={18} />
                 </button>
-                <button className="p-2 text-slate-400 hover:bg-slate-50 rounded-lg transition-colors border border-slate-200">
+                <button className="p-2 text-[var(--text-muted)] hover:bg-[var(--bg-sidebar)] rounded-lg transition-colors border border-[var(--border-input)]">
                   <Search size={18} />
                 </button>
               </div>
@@ -272,42 +272,42 @@ const AdminPanel = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="bg-slate-50/50">
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Project Name</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Status</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Students</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Growth</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Project Manager</th>
-                    <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider"></th>
+                  <tr className="bg-[var(--bg-main)]">
+                    <th className="px-6 py-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Project Name</th>
+                    <th className="px-6 py-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Students</th>
+                    <th className="px-6 py-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Growth</th>
+                    <th className="px-6 py-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Project Manager</th>
+                    <th className="px-6 py-4 text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider"></th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {projects.map((project) => (
-                    <tr key={project.id} className="hover:bg-slate-50/50 transition-colors group">
+                    <tr key={project.id} className="hover:bg-[var(--bg-sidebar)]/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs">
+                          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-[var(--text-secondary)] font-bold text-xs">
                             {project.name.charAt(0)}
                           </div>
-                          <span className="font-bold text-slate-900">{project.name}</span>
+                          <span className="font-bold text-[var(--text-primary)]">{project.name}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
                           project.status === 'Active' ? 'bg-emerald-50 text-emerald-600' :
                           project.status === 'Pending' ? 'bg-amber-50 text-amber-600' :
-                          'bg-slate-100 text-slate-500'
+                          'bg-slate-100 text-[var(--text-secondary)]'
                         }`}>
                           {project.status}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600 font-medium">
+                      <td className="px-6 py-4 text-sm text-[var(--text-secondary)] font-medium">
                         {project.students.toLocaleString()}
                       </td>
                       <td className="px-6 py-4">
                         <span className={`text-sm font-bold ${
                           project.growth.startsWith('+') ? 'text-emerald-600' : 
-                          project.growth.startsWith('-') ? 'text-rose-600' : 'text-slate-400'
+                          project.growth.startsWith('-') ? 'text-rose-600' : 'text-[var(--text-muted)]'
                         }`}>
                           {project.growth}
                         </span>
@@ -317,11 +317,11 @@ const AdminPanel = () => {
                           <div className="w-6 h-6 rounded-full bg-slate-200 overflow-hidden">
                             <img src={`https://i.pravatar.cc/24?u=${project.id}`} alt="PM" />
                           </div>
-                          <span className="text-sm text-slate-600 font-medium">{project.manager}</span>
+                          <span className="text-sm text-[var(--text-secondary)] font-medium">{project.manager}</span>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button className="p-1.5 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all opacity-0 group-hover:opacity-100">
+                        <button className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-slate-100 rounded-lg transition-all opacity-0 group-hover:opacity-100">
                           <MoreVertical size={18} />
                         </button>
                       </td>
@@ -330,11 +330,11 @@ const AdminPanel = () => {
                 </tbody>
               </table>
             </div>
-            <div className="p-6 border-t border-slate-100 flex items-center justify-between">
-              <p className="text-sm text-slate-500">Showing 5 of 24 projects</p>
+            <div className="p-6 border-t border-[var(--divider)] flex items-center justify-between">
+              <p className="text-sm text-[var(--text-secondary)]">Showing 5 of 24 projects</p>
               <div className="flex gap-2">
-                <button className="px-4 py-2 text-sm font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 disabled:opacity-50">Previous</button>
-                <button className="px-4 py-2 text-sm font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50">Next</button>
+                <button className="px-4 py-2 text-sm font-bold text-[var(--text-secondary)] border border-[var(--border-input)] rounded-lg hover:bg-[var(--bg-sidebar)] disabled:opacity-50">Previous</button>
+                <button className="px-4 py-2 text-sm font-bold text-[var(--text-secondary)] border border-[var(--border-input)] rounded-lg hover:bg-[var(--bg-sidebar)]">Next</button>
               </div>
             </div>
           </div>

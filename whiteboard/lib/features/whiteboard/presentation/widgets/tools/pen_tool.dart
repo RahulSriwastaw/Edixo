@@ -64,7 +64,7 @@ extension PenTypeExt on PenType {
       case PenType.marker:      return StrokeType.hardPen;
       case PenType.calligraphy: return StrokeType.calligraphy;
       case PenType.highlighter: return StrokeType.highlighter;
-      case PenType.magic:       return StrokeType.laserPointer;
+      case PenType.magic:       return StrokeType.softPen;
       case PenType.chalk:       return StrokeType.chalk;
     }
   }

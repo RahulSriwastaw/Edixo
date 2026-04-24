@@ -180,7 +180,7 @@ function StatusBadge({ status }: { status: string }) {
     Active: "badge-active",
     Suspended: "badge-suspended",
     Revoked: "bg-red-100 text-red-700",
-    Expired: "bg-gray-100 text-gray-600",
+    Expired: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
   };
   return <span className={`badge ${styles[status] || ""}`}>{status}</span>;
 }
@@ -202,7 +202,7 @@ const getIconBgColor = (color: string) => {
     orange: "bg-orange-50",
     purple: "bg-purple-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -212,7 +212,7 @@ const getIconColor = (color: string) => {
     orange: "text-orange-600",
     purple: "text-purple-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function UniqueIDsPage() {
@@ -299,13 +299,13 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Unique IDs</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Unique IDs</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Generate and manage teacher and public access IDs
                 </p>
               </div>
@@ -404,10 +404,10 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {stat.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900">
+                          <div className="text-2xl font-bold text-[var(--text-primary)]">
                             {stat.value}
                           </div>
                         </div>
@@ -423,7 +423,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search by ID, name..."
                       value={searchQuery}
@@ -479,7 +479,7 @@ const [searchQuery, setSearchQuery] = useState("");
             {selectedIDs.length > 0 && (
               <div className="bg-brand-primary-tint border border-brand-primary/20 rounded-lg px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
                     {selectedIDs.length} selected
                   </span>
                   <Button variant="outline" size="sm" className="text-orange-600 border-orange-200 hover:bg-orange-50">
@@ -507,7 +507,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableRow className="bg-[var(--bg-main)] hover:bg-[var(--bg-main)]">
                       <TableHead className="w-12">
                         <Checkbox
                           checked={allSelected}
@@ -515,15 +515,15 @@ const [searchQuery, setSearchQuery] = useState("");
                           aria-label="Select all"
                         />
                       </TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Unique ID</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Type</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Name</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">App Type</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Created</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Last Used</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Unique ID</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Type</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Name</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">App Type</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Created</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Last Used</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -545,7 +545,7 @@ const [searchQuery, setSearchQuery] = useState("");
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-6 w-6 text-gray-400 hover:text-brand-primary"
+                              className="h-6 w-6 text-[var(--text-muted)] hover:text-brand-primary"
                               onClick={() => handleCopyID(id.id)}
                             >
                               <Copy className="w-3 h-3" />
@@ -555,17 +555,17 @@ const [searchQuery, setSearchQuery] = useState("");
                         <TableCell>
                           <TypeBadge type={id.type} />
                         </TableCell>
-                        <TableCell className="text-sm text-gray-900">{id.name}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-primary)]">{id.name}</TableCell>
                         <TableCell>
                           {id.orgId ? (
                             <Link
                               href={`/organizations/${id.orgId}`}
-                              className="text-sm text-gray-700 hover:text-brand-primary"
+                              className="text-sm text-[var(--text-primary)] hover:text-brand-primary"
                             >
                               {id.organization}
                             </Link>
                           ) : (
-                            <span className="text-sm text-gray-500">{id.organization}</span>
+                            <span className="text-sm text-[var(--text-secondary)]">{id.organization}</span>
                           )}
                         </TableCell>
                         <TableCell>
@@ -574,8 +574,8 @@ const [searchQuery, setSearchQuery] = useState("");
                         <TableCell>
                           <StatusBadge status={id.status} />
                         </TableCell>
-                        <TableCell className="text-sm text-gray-500">{id.createdAt}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{id.lastUsed}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-secondary)]">{id.createdAt}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-secondary)]">{id.lastUsed}</TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -615,7 +615,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
             {/* Pagination */}
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-[var(--text-secondary)]">
                 Showing 1–{filteredIDs.length} of {uniqueIDs.length}
               </div>
               <div className="flex items-center gap-2">

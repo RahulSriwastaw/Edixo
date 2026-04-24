@@ -112,10 +112,10 @@ function RichTextEditor({
 
   return (
     <div className="border rounded-lg overflow-hidden">
-      <div className="flex items-center gap-1 p-2 bg-gray-50 border-b flex-wrap">
+      <div className="flex items-center gap-1 p-2 bg-[var(--bg-main)] border-b flex-wrap">
         {toolbarButtons.map((btn, idx) => {
           if (btn.divider) {
-            return <div key={idx} className="w-px h-6 bg-gray-200 mx-1" />;
+            return <div key={idx} className="w-px h-6 bg-[var(--bg-sidebar)] mx-1" />;
           }
           const Icon = btn.icon;
           return (
@@ -423,7 +423,7 @@ export default function EditBlogPostPage({
         <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
           <TopBar />
           <main className="flex-1 p-6 flex items-center justify-center">
-            <div className="text-gray-500">Loading post...</div>
+            <div className="text-[var(--text-secondary)]">Loading post...</div>
           </main>
         </div>
       </div>
@@ -435,17 +435,17 @@ export default function EditBlogPostPage({
       <Sidebar />
       <div className="md:ml-60 flex flex-col min-h-screen">
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1600px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/blog" className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/admin/blog" className="p-2 hover:bg-[var(--bg-main)] rounded-lg transition-colors">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Edit Post</h1>
-                  <p className="text-gray-500 text-sm">
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Edit Post</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">
                     {wordCount.toLocaleString()} words · {readingTime} min read · {post.viewCount.toLocaleString()} views
                   </p>
                 </div>
@@ -490,9 +490,9 @@ export default function EditBlogPostPage({
                         />
                       </div>
                       <div>
-                        <Label className="text-sm text-gray-500">URL Slug</Label>
+                        <Label className="text-sm text-[var(--text-secondary)]">URL Slug</Label>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-sm text-gray-400">eduhub.in/blog/</span>
+                          <span className="text-sm text-[var(--text-muted)]">eduhub.in/blog/</span>
                           <Input
                             value={post.slug}
                             onChange={(e) => setPost(p => ({ ...p, slug: e.target.value }))}
@@ -528,11 +528,11 @@ export default function EditBlogPostPage({
                           />
                         </div>
                       </div>
-                      <div className="w-48 h-32 bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
+                      <div className="w-48 h-32 bg-[var(--bg-main)] rounded-lg flex items-center justify-center overflow-hidden">
                         {post.featuredImageUrl ? (
                           <img src={post.featuredImageUrl} alt={post.featuredImageAlt} className="w-full h-full object-cover" />
                         ) : (
-                          <div className="text-center text-gray-400">
+                          <div className="text-center text-[var(--text-muted)]">
                             <ImageIcon className="w-8 h-8 mx-auto mb-1" />
                             <div className="text-xs">No image</div>
                           </div>
@@ -560,7 +560,7 @@ export default function EditBlogPostPage({
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between mb-2">
                       <Label>Excerpt (Optional)</Label>
-                      <span className={`text-xs ${post.excerpt.length > 160 ? 'text-red-500' : 'text-gray-400'}`}>
+                      <span className={`text-xs ${post.excerpt.length > 160 ? 'text-red-500' : 'text-[var(--text-muted)]'}`}>
                         {post.excerpt.length}/160
                       </span>
                     </div>
@@ -656,7 +656,7 @@ export default function EditBlogPostPage({
 
                     {post.publishedAt && (
                       <div className="pt-2 border-t">
-                        <div className="text-xs text-gray-500">Published</div>
+                        <div className="text-xs text-[var(--text-secondary)]">Published</div>
                         <div className="text-sm font-medium">
                           {new Date(post.publishedAt).toLocaleDateString('en-IN', {
                             day: 'numeric',
@@ -683,7 +683,7 @@ export default function EditBlogPostPage({
                           type="checkbox"
                           checked={post.categoryIds.includes(cat.id)}
                           onChange={() => toggleCategory(cat.id)}
-                          className="rounded border-gray-300"
+                          className="rounded border-[var(--border-input)]"
                         />
                         <span className="text-sm">{cat.name}</span>
                       </label>
@@ -729,7 +729,7 @@ export default function EditBlogPostPage({
                         {seoAnalysis.score}/100
                       </div>
                     </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                    <div className="w-full bg-[var(--bg-sidebar)] rounded-full h-2 mt-2">
                       <div
                         className={`h-2 rounded-full ${seoAnalysis.score >= 80 ? 'bg-green-500' : seoAnalysis.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'}`}
                         style={{ width: `${seoAnalysis.score}%` }}
@@ -740,7 +740,7 @@ export default function EditBlogPostPage({
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <Label>SEO Title</Label>
-                        <span className={`text-xs ${post.seoTitle.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>
+                        <span className={`text-xs ${post.seoTitle.length > 60 ? 'text-red-500' : 'text-[var(--text-muted)]'}`}>
                           {post.seoTitle.length}/60
                         </span>
                       </div>
@@ -755,7 +755,7 @@ export default function EditBlogPostPage({
                     <div>
                       <div className="flex items-center justify-between mb-1">
                         <Label>Meta Description</Label>
-                        <span className={`text-xs ${post.seoDescription.length > 160 ? 'text-red-500' : 'text-gray-400'}`}>
+                        <span className={`text-xs ${post.seoDescription.length > 160 ? 'text-red-500' : 'text-[var(--text-muted)]'}`}>
                           {post.seoDescription.length}/160
                         </span>
                       </div>
@@ -787,7 +787,7 @@ export default function EditBlogPostPage({
                           ) : (
                             <XCircle className="w-3.5 h-3.5 text-gray-300" />
                           )}
-                          <span className={check.pass ? 'text-gray-600' : 'text-gray-400'}>
+                          <span className={check.pass ? 'text-[var(--text-secondary)]' : 'text-[var(--text-muted)]'}>
                             {check.label}
                           </span>
                         </div>

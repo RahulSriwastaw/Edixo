@@ -29,7 +29,7 @@ function QuestionsViewContent() {
   }, [router, searchParams]);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
@@ -49,7 +49,7 @@ function QuestionsViewContent() {
               {sidebarCollapsed && (
                 <button
                   onClick={() => setSidebarCollapsed(false)}
-                  className="mb-4 flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-primary px-2 py-1.5 rounded-lg hover:bg-primary/5 transition-colors"
+                  className="mb-4 flex items-center gap-2 text-xs font-bold text-[var(--text-secondary)] hover:text-primary px-2 py-1.5 rounded-lg hover:bg-primary/5 transition-colors"
                 >
                   <FolderTree className="w-3.5 h-3.5" />
                   Show Folders

@@ -62,19 +62,19 @@ export default function MockbookStudentsPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Students</span>
+                            <span className="text-[var(--text-primary)] font-medium">Students</span>
                         </div>
 
                         {/* Header */}
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Students</h1>
-                            <p className="text-gray-500 text-sm mt-1">
+                            <h1 className="text-2xl font-bold text-[var(--text-primary)]">Students</h1>
+                            <p className="text-[var(--text-secondary)] text-sm mt-1">
                                 View all students, their test attempts, and performance analytics
                             </p>
                         </div>
@@ -93,8 +93,8 @@ export default function MockbookStudentsPage() {
                                             <stat.icon className="w-5 h-5 text-orange-600" />
                                         </div>
                                         <div>
-                                            <div className="text-xs text-gray-500">{stat.label}</div>
-                                            <div className="text-xl font-bold text-gray-900">{stat.value}</div>
+                                            <div className="text-xs text-[var(--text-secondary)]">{stat.label}</div>
+                                            <div className="text-xl font-bold text-[var(--text-primary)]">{stat.value}</div>
                                         </div>
                                     </CardContent>
                                 </Card>
@@ -106,7 +106,7 @@ export default function MockbookStudentsPage() {
                             <CardContent className="p-4">
                                 <div className="flex items-center gap-3">
                                     <div className="relative flex-1 max-w-sm">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                         <Input
                                             placeholder="Search by name, student ID, or phone..."
                                             value={search}
@@ -117,7 +117,7 @@ export default function MockbookStudentsPage() {
                                     {search && (
                                         <Button variant="ghost" onClick={() => setSearch("")}>Clear</Button>
                                     )}
-                                    <span className="ml-auto text-sm text-gray-500">{filtered.length} students</span>
+                                    <span className="ml-auto text-sm text-[var(--text-secondary)]">{filtered.length} students</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -126,27 +126,27 @@ export default function MockbookStudentsPage() {
                         <Card>
                             <CardContent className="p-0">
                                 {isLoading ? (
-                                    <div className="p-16 text-center flex flex-col items-center gap-3 text-gray-400">
+                                    <div className="p-16 text-center flex flex-col items-center gap-3 text-[var(--text-muted)]">
                                         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
                                         <p className="text-sm">Loading students...</p>
                                     </div>
                                 ) : filtered.length === 0 ? (
                                     <div className="p-16 text-center space-y-3">
                                         <Users className="w-14 h-14 text-gray-200 mx-auto" />
-                                        <p className="text-gray-500 font-medium">No students found</p>
-                                        <p className="text-sm text-gray-400">Students appear here once they register and attempt tests</p>
+                                        <p className="text-[var(--text-secondary)] font-medium">No students found</p>
+                                        <p className="text-sm text-[var(--text-muted)]">Students appear here once they register and attempt tests</p>
                                     </div>
                                 ) : (
                                     <Table>
                                         <TableHeader>
-                                            <TableRow className="bg-gray-50">
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Student</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Student ID</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Contact</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Total Attempts</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Avg Score</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Joined</TableHead>
+                                            <TableRow className="bg-[var(--bg-main)]">
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Student</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Student ID</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Contact</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Total Attempts</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Avg Score</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Joined</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -163,13 +163,13 @@ export default function MockbookStudentsPage() {
                                                                     {student.name?.charAt(0).toUpperCase() || "?"}
                                                                 </AvatarFallback>
                                                             </Avatar>
-                                                            <div className="font-medium text-sm text-gray-900">{student.name || "Unnamed"}</div>
+                                                            <div className="font-medium text-sm text-[var(--text-primary)]">{student.name || "Unnamed"}</div>
                                                         </div>
                                                     </TableCell>
-                                                    <TableCell className="text-xs font-mono text-gray-500">{student.studentId}</TableCell>
+                                                    <TableCell className="text-xs font-mono text-[var(--text-secondary)]">{student.studentId}</TableCell>
                                                     <TableCell>
                                                         {student.phone ? (
-                                                            <span className="flex items-center gap-1 text-xs text-gray-600">
+                                                            <span className="flex items-center gap-1 text-xs text-[var(--text-secondary)]">
                                                                 <Phone className="w-3 h-3" /> {student.phone}
                                                             </span>
                                                         ) : (
@@ -178,8 +178,8 @@ export default function MockbookStudentsPage() {
                                                     </TableCell>
                                                     <TableCell>
                                                         <div className="flex items-center gap-1">
-                                                            <FileText className="w-3.5 h-3.5 text-gray-400" />
-                                                            <span className="font-semibold text-sm text-gray-800">{student.totalAttempts}</span>
+                                                            <FileText className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+                                                            <span className="font-semibold text-sm text-[var(--text-primary)]">{student.totalAttempts}</span>
                                                         </div>
                                                     </TableCell>
                                                     <TableCell>
@@ -194,13 +194,13 @@ export default function MockbookStudentsPage() {
                                                             variant="outline"
                                                             className={cn("text-[10px]", student.isActive
                                                                 ? "bg-green-50 text-green-700 border-green-200"
-                                                                : "bg-gray-50 text-gray-500 border-gray-200"
+                                                                : "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]"
                                                             )}
                                                         >
                                                             {student.isActive ? "Active" : "Inactive"}
                                                         </Badge>
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-gray-500">
+                                                    <TableCell className="text-xs text-[var(--text-secondary)]">
                                                         {new Date(student.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                                                     </TableCell>
                                                 </TableRow>

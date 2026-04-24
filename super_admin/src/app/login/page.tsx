@@ -53,8 +53,8 @@ export default function SuperAdminLogin() {
                 <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center mb-4">
                     <Building2 className="w-6 h-6 text-white" />
                 </div>
-                <h1 className="text-2xl font-bold text-gray-900">EduHub Super Admin</h1>
-                <p className="text-gray-500">Platform Management System</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">EduHub Super Admin</h1>
+                <p className="text-[var(--text-secondary)]">Platform Management System</p>
             </div>
 
             <Card className="w-full max-w-md shadow-lg border-0">
@@ -95,8 +95,8 @@ export default function SuperAdminLogin() {
                 </CardContent>
             </Card>
 
-            <p className="mt-8 text-sm text-gray-400">
-                Use <span className="font-mono text-gray-500">admin</span> / <span className="font-mono text-gray-500">admin123</span>
+            <p className="mt-8 text-sm text-[var(--text-muted)]">
+                Use <span className="font-mono text-[var(--text-secondary)]">admin</span> / <span className="font-mono text-[var(--text-secondary)]">admin123</span>
             </p>
         </div>
     );

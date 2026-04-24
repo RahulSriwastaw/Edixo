@@ -1,4 +1,4 @@
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ||
   (process.env.NODE_ENV === 'development'
     ? "http://localhost:4000/api"
     : "https://eduhub-backend.onrender.com/api");
@@ -21,7 +21,7 @@ export const isAuthenticated = () => {
 /** Authorized API fetch — throws if unauthorized or request fails */
 export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   const token = getCookie('token');
-  
+
   const headers = new Headers(options.headers || {});
   headers.set('Content-Type', 'application/json');
 
@@ -39,7 +39,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     url = url.replace('://localhost:', '://127.0.0.1:');
   }
 
-  const res = await fetch(url, { ...options, headers });
+  const res = await fetch(url, { ...options, headers, credentials: 'include' });
 
   let data: any;
   try {

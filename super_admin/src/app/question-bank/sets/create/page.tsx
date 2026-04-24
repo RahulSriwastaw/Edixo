@@ -244,13 +244,13 @@ export default function CreateSetPage() {
       <Sidebar />
       <div className="md:ml-60 flex flex-col min-h-screen">
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-4xl mx-auto space-y-6 animate-fade-in">
             {/* Header */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/question-bank/sets" className="hover:text-[#F4511E]">Question Sets</Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">Create New Set</span>
+              <span className="text-[var(--text-primary)] font-medium">Create New Set</span>
             </div>
 
             {/* Step Progress */}
@@ -263,14 +263,14 @@ export default function CreateSetPage() {
                         "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium",
                         step >= s
                           ? "bg-[#F4511E] text-white"
-                          : "bg-gray-100 text-gray-400"
+                          : "bg-[var(--bg-main)] text-[var(--text-muted)]"
                       )}
                     >
                       {step > s ? <Check className="w-4 h-4" /> : s}
                     </div>
                     <span className={cn(
                       "text-sm",
-                      step >= s ? "text-gray-900 font-medium" : "text-gray-400"
+                      step >= s ? "text-[var(--text-primary)] font-medium" : "text-[var(--text-muted)]"
                     )}>
                       {s === 1 ? "Questions" : "Details"}
                     </span>
@@ -292,7 +292,7 @@ export default function CreateSetPage() {
                   {/* Question List with Drag & Drop */}
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {questions.length === 0 ? (
-                      <div className="text-center py-12 text-gray-500">
+                      <div className="text-center py-12 text-[var(--text-secondary)]">
                         <Layers className="w-12 h-12 mx-auto mb-3 text-gray-300" />
                         <p>No questions selected yet</p>
                         <p className="text-sm">Add questions from Question Bank</p>
@@ -310,17 +310,17 @@ export default function CreateSetPage() {
                             draggedIndex === index && "opacity-50 scale-[1.02] shadow-lg"
                           )}
                         >
-                          <GripVertical className="w-4 h-4 text-gray-400" />
-                          <span className="text-xs text-gray-500 w-12">Q{index + 1}</span>
+                          <GripVertical className="w-4 h-4 text-[var(--text-muted)]" />
+                          <span className="text-xs text-[var(--text-secondary)] w-12">Q{index + 1}</span>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm text-gray-700 truncate">{question.question_eng}</p>
-                            <p className="text-xs text-gray-500">{question.subject}</p>
+                            <p className="text-sm text-[var(--text-primary)] truncate">{question.question_eng}</p>
+                            <p className="text-xs text-[var(--text-secondary)]">{question.subject}</p>
                           </div>
                           <TypeBadge type={question.type} />
                           <DifficultyBadge difficulty={question.difficulty} />
                           <button
                             onClick={() => removeQuestion(question.id)}
-                            className="p-1 text-gray-400 hover:text-red-500 transition-colors"
+                            className="p-1 text-[var(--text-muted)] hover:text-red-500 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -367,7 +367,7 @@ export default function CreateSetPage() {
 
                       {/* Name */}
                       <div>
-                        <label className="text-sm font-medium text-gray-700">Set Name *</label>
+                        <label className="text-sm font-medium text-[var(--text-primary)]">Set Name *</label>
                         <Input
                           placeholder="e.g., Mathematics — Algebra & Calculus"
                           value={name}
@@ -378,7 +378,7 @@ export default function CreateSetPage() {
 
                       {/* Description */}
                       <div>
-                        <label className="text-sm font-medium text-gray-700">Description</label>
+                        <label className="text-sm font-medium text-[var(--text-primary)]">Description</label>
                         <Textarea
                           placeholder="Brief description of this question set..."
                           value={description}
@@ -391,7 +391,7 @@ export default function CreateSetPage() {
                       {/* Subject & Chapter */}
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-700">Subject</label>
+                          <label className="text-sm font-medium text-[var(--text-primary)]">Subject</label>
                           <Select value={subjectId} onValueChange={setSubjectId}>
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select subject" />
@@ -409,7 +409,7 @@ export default function CreateSetPage() {
                           </Select>
                         </div>
                         <div>
-                          <label className="text-sm font-medium text-gray-700">Chapter</label>
+                          <label className="text-sm font-medium text-[var(--text-primary)]">Chapter</label>
                           <Select value={chapterId} onValueChange={setChapterId}>
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select chapter" />
@@ -431,12 +431,12 @@ export default function CreateSetPage() {
                       {/* Org Selection (when org_only) */}
                       {visibility === "org_only" && (
                         <div className="space-y-2">
-                          <label className="text-sm font-medium text-gray-700">Select Organizations</label>
+                          <label className="text-sm font-medium text-[var(--text-primary)]">Select Organizations</label>
                           <div className="space-y-2 max-h-60 overflow-y-auto">
                             {loadedOrgs.map((org) => (
                               <label
                                 key={org.id}
-                                className="flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-gray-300"
+                                className="flex items-center gap-3 p-3 bg-white border rounded-lg cursor-pointer hover:border-[var(--border-input)]"
                               >
                                 <input
                                   type="checkbox"
@@ -446,7 +446,7 @@ export default function CreateSetPage() {
                                 />
                                 <div>
                                   <p className="text-sm font-medium">{org.name}</p>
-                                  <p className="text-xs text-gray-500">Org ID: {org.orgId}</p>
+                                  <p className="text-xs text-[var(--text-secondary)]">Org ID: {org.orgId}</p>
                                 </div>
                               </label>
                             ))}
@@ -457,7 +457,7 @@ export default function CreateSetPage() {
                       {/* Expiry */}
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
-                          <label className="text-sm font-medium text-gray-700">Set Expiry Date</label>
+                          <label className="text-sm font-medium text-[var(--text-primary)]">Set Expiry Date</label>
                           <Switch
                             checked={showExpiry}
                             onCheckedChange={setShowExpiry}
@@ -503,7 +503,7 @@ export default function CreateSetPage() {
                 <div className="lg:col-span-1">
                   <Card className="sticky top-6">
                     <CardContent className="p-4 space-y-4">
-                      <h3 className="font-medium text-gray-900">Difficulty Breakdown</h3>
+                      <h3 className="font-medium text-[var(--text-primary)]">Difficulty Breakdown</h3>
                       <div className="space-y-2">
                         {["easy", "medium", "hard"].map((diff) => {
                           const count = difficultyBreakdown[diff as keyof typeof difficultyBreakdown];
@@ -511,10 +511,10 @@ export default function CreateSetPage() {
                           return (
                             <div key={diff} className="space-y-1">
                               <div className="flex justify-between text-sm">
-                                <span className="capitalize text-gray-600">{diff}</span>
-                                <span className="text-gray-900">{count} ({percentage}%)</span>
+                                <span className="capitalize text-[var(--text-secondary)]">{diff}</span>
+                                <span className="text-[var(--text-primary)]">{count} ({percentage}%)</span>
                               </div>
-                              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div className="h-2 bg-[var(--bg-main)] rounded-full overflow-hidden">
                                 <div
                                   className={cn(
                                     "h-full rounded-full transition-all",
@@ -531,7 +531,7 @@ export default function CreateSetPage() {
                       </div>
 
                       <div className="border-t pt-4">
-                        <h3 className="font-medium text-gray-900">Question Types</h3>
+                        <h3 className="font-medium text-[var(--text-primary)]">Question Types</h3>
                         <div className="flex flex-wrap gap-2 mt-2">
                           {typeBreakdown.mcq > 0 && <Badge>MCQ: {typeBreakdown.mcq}</Badge>}
                           {typeBreakdown.integer > 0 && <Badge>Integer: {typeBreakdown.integer}</Badge>}
@@ -560,7 +560,7 @@ export default function CreateSetPage() {
 
                   <div>
                     <h2 className="text-2xl font-bold text-green-600">✅ SET CREATED SUCCESSFULLY!</h2>
-                    <p className="text-gray-600 mt-1">{createdSet.name}</p>
+                    <p className="text-[var(--text-secondary)] mt-1">{createdSet.name}</p>
                   </div>
 
                   {/* ID and Password Cards */}
@@ -626,7 +626,7 @@ export default function CreateSetPage() {
                       key={q.id}
                       className={cn(
                         "flex items-center gap-3 p-3 border rounded-lg cursor-pointer transition-all",
-                        isSelected ? "border-[#F4511E] bg-orange-50" : "border-gray-200 hover:border-gray-300"
+                        isSelected ? "border-[#F4511E] bg-orange-50" : "border-[var(--border-input)] hover:border-[var(--border-input)]"
                       )}
                     >
                       <input
@@ -640,8 +640,8 @@ export default function CreateSetPage() {
                         className="w-4 h-4 text-[#F4511E] rounded"
                       />
                       <div className="flex-1">
-                        <p className="text-sm text-gray-700">{q.question_eng}</p>
-                        <p className="text-xs text-gray-500">{q.subject}</p>
+                        <p className="text-sm text-[var(--text-primary)]">{q.question_eng}</p>
+                        <p className="text-xs text-[var(--text-secondary)]">{q.subject}</p>
                       </div>
                       <TypeBadge type={q.type} />
                       <DifficultyBadge difficulty={q.difficulty} />
@@ -651,7 +651,7 @@ export default function CreateSetPage() {
               </div>
 
               <div className="flex justify-between items-center pt-4 border-t">
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[var(--text-secondary)]">
                   {selectedToAdd.length} questions selected
                 </span>
                 <div className="flex gap-2">

@@ -74,7 +74,7 @@ export default function FeaturedPage() {
         });
     };
 
-    if (isLoading) return <div className="p-10 text-center text-gray-500">Loading series...</div>;
+    if (isLoading) return <div className="p-10 text-center text-[var(--text-secondary)]">Loading series...</div>;
     const featuredSeries = series.filter(s => s.isFeatured);
 
     return (
@@ -82,20 +82,20 @@ export default function FeaturedPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Featured Series</span>
+                            <span className="text-[var(--text-primary)] font-medium">Featured Series</span>
                         </div>
 
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Featured Series Management</h1>
-                                <p className="text-gray-500 text-sm mt-1">
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Featured Series Management</h1>
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">
                                     Control which series appear prominently on the MockVeda homepage
                                 </p>
                             </div>
@@ -116,9 +116,9 @@ export default function FeaturedPage() {
                                 <Star className="w-4 h-4 text-yellow-500" />
                                 <span className="text-sm font-medium text-yellow-800">{featuredSeries.length} featured</span>
                             </div>
-                            <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
-                                <BookOpen className="w-4 h-4 text-gray-500" />
-                                <span className="text-sm font-medium text-gray-700">{series.length} total series</span>
+                            <div className="p-3 bg-[var(--bg-main)] border border-[var(--border-input)] rounded-lg flex items-center gap-2">
+                                <BookOpen className="w-4 h-4 text-[var(--text-secondary)]" />
+                                <span className="text-sm font-medium text-[var(--text-primary)]">{series.length} total series</span>
                             </div>
                         </div>
 
@@ -141,7 +141,7 @@ export default function FeaturedPage() {
                                             "flex items-center gap-3 p-4 rounded-xl border-2 transition-all",
                                             s.isFeatured
                                                 ? "border-yellow-200 bg-yellow-50/40"
-                                                : "border-gray-100 bg-gray-50 opacity-60"
+                                                : "border-[var(--divider)] bg-[var(--bg-main)] opacity-60"
                                         )}
                                     >
                                         {/* Drag handle */}
@@ -152,15 +152,15 @@ export default function FeaturedPage() {
                                         {/* Position */}
                                         <div className={cn(
                                             "w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
-                                            s.isFeatured ? "bg-yellow-400 text-white" : "bg-gray-200 text-gray-500"
+                                            s.isFeatured ? "bg-yellow-400 text-white" : "bg-[var(--bg-sidebar)] text-[var(--text-secondary)]"
                                         )}>
                                             {i + 1}
                                         </div>
 
                                         {/* Info */}
                                         <div className="flex-1 min-w-0">
-                                            <div className="font-medium text-gray-900 text-sm truncate">{s.name}</div>
-                                            <div className="flex items-center gap-3 text-xs text-gray-500 mt-0.5">
+                                            <div className="font-medium text-[var(--text-primary)] text-sm truncate">{s.name}</div>
+                                            <div className="flex items-center gap-3 text-xs text-[var(--text-secondary)] mt-0.5">
                                                 <span>SSC</span>
                                                 <span>·</span>
                                                 <span className="flex items-center gap-1"><Users className="w-3 h-3" />{((s as any).enrolledCount || 0).toLocaleString()} enrolled</span>
@@ -169,12 +169,12 @@ export default function FeaturedPage() {
 
                                         {/* Featured toggle */}
                                         <div className="flex items-center gap-2">
-                                            <Badge variant="outline" className={cn("text-[10px]", s.isFeatured ? "border-yellow-300 text-yellow-700" : "border-gray-200 text-gray-500")}>
+                                            <Badge variant="outline" className={cn("text-[10px]", s.isFeatured ? "border-yellow-300 text-yellow-700" : "border-[var(--border-input)] text-[var(--text-secondary)]")}>
                                                 {s.isFeatured ? "Featured" : "Not Featured"}
                                             </Badge>
                                             <button
                                                 onClick={() => toggleFeatured(s.id, s.isFeatured)}
-                                                className="text-gray-400 hover:text-orange-500 transition-colors"
+                                                className="text-[var(--text-muted)] hover:text-orange-500 transition-colors"
                                             >
                                                 {s.isFeatured
                                                     ? <ToggleRight className="w-6 h-6 text-orange-500" />
@@ -187,14 +187,14 @@ export default function FeaturedPage() {
                                             <button
                                                 disabled={i === 0}
                                                 onClick={() => moveUp(i)}
-                                                className="text-gray-300 hover:text-gray-600 disabled:opacity-20 leading-none text-lg"
+                                                className="text-gray-300 hover:text-[var(--text-secondary)] disabled:opacity-20 leading-none text-lg"
                                             >
                                                 ↑
                                             </button>
                                             <button
                                                 disabled={i === series.length - 1}
                                                 onClick={() => moveDown(i)}
-                                                className="text-gray-300 hover:text-gray-600 disabled:opacity-20 leading-none text-lg"
+                                                className="text-gray-300 hover:text-[var(--text-secondary)] disabled:opacity-20 leading-none text-lg"
                                             >
                                                 ↓
                                             </button>
@@ -208,7 +208,7 @@ export default function FeaturedPage() {
                             </CardContent>
                         </Card>
 
-                                <div className="p-10 text-center text-gray-400 text-sm bg-gray-50 rounded-xl border border-dashed">
+                                <div className="p-10 text-center text-[var(--text-muted)] text-sm bg-[var(--bg-main)] rounded-xl border border-dashed">
                                     Category-wise specific reordering will be enabled as we refine the homepage layout.
                                 </div>
                     </div>

@@ -173,7 +173,7 @@ const roleConfig: Record<string, { label: string; icon: typeof Shield; color: st
 
 // Role badge component
 function RoleBadge({ role }: { role: string }) {
-  const config = roleConfig[role] || { label: role, icon: Users, color: "bg-gray-100 text-gray-600" };
+  const config = roleConfig[role] || { label: role, icon: Users, color: "bg-[var(--bg-main)] text-[var(--text-secondary)]" };
   const Icon = config.icon;
   return (
     <Badge className={`${config.color} gap-1`}>
@@ -270,13 +270,13 @@ const [search, setSearch] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
-                <p className="text-gray-500 text-sm">Manage employees, teachers, and their access permissions</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Staff Management</h1>
+                <p className="text-[var(--text-secondary)] text-sm">Manage employees, teachers, and their access permissions</p>
               </div>
               <div className="flex gap-3">
                 <Button variant="outline" className="gap-2" onClick={handleExport}>
@@ -294,26 +294,26 @@ const [search, setSearch] = useState("");
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <Card>
                 <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-                  <div className="text-sm text-gray-500">Total Staff</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{stats.total}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Total Staff</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-green-600">{stats.active}</div>
-                  <div className="text-sm text-gray-500">Active</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Active</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-blue-600">{stats.teachers}</div>
-                  <div className="text-sm text-gray-500">Teachers</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Teachers</div>
                 </CardContent>
               </Card>
               <Card>
                 <CardContent className="p-4">
                   <div className="text-2xl font-bold text-purple-600">{stats.admins}</div>
-                  <div className="text-sm text-gray-500">Admins</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Admins</div>
                 </CardContent>
               </Card>
             </div>
@@ -324,7 +324,7 @@ const [search, setSearch] = useState("");
                 <div className="flex flex-wrap gap-4">
                   <div className="flex-1 min-w-[250px]">
                     <div className="relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <Input
                         placeholder="Search by name or email..."
                         value={search}
@@ -364,7 +364,7 @@ const [search, setSearch] = useState("");
             {selectedStaff.length > 0 && (
               <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-[var(--text-primary)]">
                     {selectedStaff.length} selected
                   </span>
                   <Button variant="outline" size="sm">
@@ -389,14 +389,14 @@ const [search, setSearch] = useState("");
                 <div className="flex items-center gap-2">
                   <Users className="w-5 h-5 text-[#F4511E]" />
                   <CardTitle>Staff Members</CardTitle>
-                  <Badge className="bg-gray-100 text-gray-600">{filteredStaff.length} staff</Badge>
+                  <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)]">{filteredStaff.length} staff</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b bg-gray-50">
+                      <tr className="border-b bg-[var(--bg-main)]">
                         <th className="w-12 p-4">
                           <Checkbox
                             checked={allSelected}
@@ -404,12 +404,12 @@ const [search, setSearch] = useState("");
                             aria-label="Select all"
                           />
                         </th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Staff Member</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Role</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Organization</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Status</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Last Login</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Actions</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Staff Member</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Role</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Organization</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Status</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Last Login</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -417,7 +417,7 @@ const [search, setSearch] = useState("");
                         <tr
                           key={staff.id}
                           className={cn(
-                            "border-b hover:bg-gray-50 transition-colors cursor-pointer",
+                            "border-b hover:bg-[var(--bg-main)] transition-colors cursor-pointer",
                             selectedStaff.includes(staff.id) && "bg-orange-50"
                           )}
                           onClick={() => {}}
@@ -438,8 +438,8 @@ const [search, setSearch] = useState("");
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <p className="font-medium text-gray-900">{staff.name}</p>
-                                <p className="text-xs text-gray-500">{staff.email}</p>
+                                <p className="font-medium text-[var(--text-primary)]">{staff.name}</p>
+                                <p className="text-xs text-[var(--text-secondary)]">{staff.email}</p>
                               </div>
                             </div>
                           </td>
@@ -448,14 +448,14 @@ const [search, setSearch] = useState("");
                           </td>
                           <td className="p-4">
                             <div>
-                              <p className="text-sm text-gray-900">{staff.org}</p>
-                              <p className="text-xs text-gray-500">{staff.department}</p>
+                              <p className="text-sm text-[var(--text-primary)]">{staff.org}</p>
+                              <p className="text-xs text-[var(--text-secondary)]">{staff.department}</p>
                             </div>
                           </td>
                           <td className="p-4 text-center">
                             <StatusBadge status={staff.status} />
                           </td>
-                          <td className="p-4 text-sm text-gray-500">{staff.lastLogin}</td>
+                          <td className="p-4 text-sm text-[var(--text-secondary)]">{staff.lastLogin}</td>
                           <td className="p-4" onClick={(e) => e.stopPropagation()}>
                             <div className="flex justify-center">
                               <DropdownMenu>

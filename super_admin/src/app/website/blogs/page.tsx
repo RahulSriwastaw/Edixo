@@ -143,7 +143,7 @@ const categories = ["Exam Tips", "Technology", "Rankings", "News", "Study Materi
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Published: "badge-active",
-    Draft: "bg-gray-100 text-gray-600",
+    Draft: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
     Scheduled: "bg-blue-50 text-blue-700",
   };
   return <span className={`badge ${styles[status] || ""}`}>{status}</span>;
@@ -159,7 +159,7 @@ function CategoryBadge({ category }: { category: string }) {
     "Study Material": "bg-yellow-50 text-yellow-700",
     "Success Stories": "bg-pink-50 text-pink-700",
   };
-  return <span className={`badge ${styles[category] || "bg-gray-100 text-gray-600"}`}>{category}</span>;
+  return <span className={`badge ${styles[category] || "bg-[var(--bg-main)] text-[var(--text-secondary)]"}`}>{category}</span>;
 }
 
 export default function BlogsManagementPage() {
@@ -252,19 +252,19 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center gap-4">
               <Link
                 href="/website"
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 hover:bg-[var(--bg-main)] rounded-lg transition-colors"
               >
-                <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
               </Link>
               <div className="flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">Blog Management</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Blog Management</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Create, edit, and manage blog posts for the public website
                 </p>
               </div>
@@ -283,8 +283,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <FileText className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total Posts</div>
-                      <div className="text-xl font-bold text-gray-900">{blogPosts.length}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total Posts</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{blogPosts.length}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -296,8 +296,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <Send className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Published</div>
-                      <div className="text-xl font-bold text-gray-900">{blogPosts.filter(p => p.status === "Published").length}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Published</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{blogPosts.filter(p => p.status === "Published").length}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -305,12 +305,12 @@ const [searchQuery, setSearchQuery] = useState("");
               <Card className="kpi-card">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Edit className="w-5 h-5 text-gray-600" />
+                    <div className="w-10 h-10 rounded-full bg-[var(--bg-main)] flex items-center justify-center">
+                      <Edit className="w-5 h-5 text-[var(--text-secondary)]" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Drafts</div>
-                      <div className="text-xl font-bold text-gray-900">{blogPosts.filter(p => p.status === "Draft").length}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Drafts</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{blogPosts.filter(p => p.status === "Draft").length}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -322,8 +322,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <Eye className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total Views</div>
-                      <div className="text-xl font-bold text-gray-900">{blogPosts.reduce((sum, p) => sum + p.views, 0).toLocaleString()}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total Views</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{blogPosts.reduce((sum, p) => sum + p.views, 0).toLocaleString()}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -335,7 +335,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search blogs..."
                       value={searchQuery}
@@ -388,14 +388,14 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Title</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Category</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Author</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Published</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Views</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                    <TableRow className="bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Title</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Category</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Author</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Published</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Views</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -403,8 +403,8 @@ const [searchQuery, setSearchQuery] = useState("");
                       <TableRow key={post.id} className="hover:bg-brand-primary-tint">
                         <TableCell>
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{post.title}</div>
-                            <div className="text-xs text-gray-500 mono">/{post.slug}</div>
+                            <div className="text-sm font-medium text-[var(--text-primary)]">{post.title}</div>
+                            <div className="text-xs text-[var(--text-secondary)] mono">/{post.slug}</div>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -413,8 +413,8 @@ const [searchQuery, setSearchQuery] = useState("");
                         <TableCell>
                           <CategoryBadge category={post.category} />
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">{post.author}</TableCell>
-                        <TableCell className="text-sm text-gray-500">
+                        <TableCell className="text-sm text-[var(--text-secondary)]">{post.author}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-secondary)]">
                           {post.status === "Scheduled" && (
                             <div className="flex items-center gap-1 text-blue-600">
                               <Clock className="w-3 h-3" />
@@ -423,7 +423,7 @@ const [searchQuery, setSearchQuery] = useState("");
                           )}
                           {post.status !== "Scheduled" && (post.publishedDate || "—")}
                         </TableCell>
-                        <TableCell className="text-sm text-gray-900 font-medium">{post.views.toLocaleString()}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-primary)] font-medium">{post.views.toLocaleString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex items-center justify-end gap-2">
                             <Button
@@ -500,7 +500,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <div className="space-y-2">
                 <Label>Slug</Label>
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">eduhub.in/blog/</span>
+                  <span className="text-sm text-[var(--text-secondary)]">eduhub.in/blog/</span>
                   <Input
                     value={editorData.slug}
                     onChange={(e) => setEditorData({ ...editorData, slug: e.target.value })}
@@ -512,28 +512,28 @@ const [searchQuery, setSearchQuery] = useState("");
               <div className="space-y-2">
                 <Label>Content *</Label>
                 {/* Rich Text Toolbar */}
-                <div className="flex items-center gap-1 p-2 border border-b-0 rounded-t-lg bg-gray-50">
+                <div className="flex items-center gap-1 p-2 border border-b-0 rounded-t-lg bg-[var(--bg-main)]">
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Bold className="w-4 h-4" />
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Italic className="w-4 h-4" />
                   </Button>
-                  <div className="w-px h-6 bg-gray-200 mx-1" />
+                  <div className="w-px h-6 bg-[var(--bg-sidebar)] mx-1" />
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Heading1 className="w-4 h-4" />
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Heading2 className="w-4 h-4" />
                   </Button>
-                  <div className="w-px h-6 bg-gray-200 mx-1" />
+                  <div className="w-px h-6 bg-[var(--bg-sidebar)] mx-1" />
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <List className="w-4 h-4" />
                   </Button>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <ListOrdered className="w-4 h-4" />
                   </Button>
-                  <div className="w-px h-6 bg-gray-200 mx-1" />
+                  <div className="w-px h-6 bg-[var(--bg-sidebar)] mx-1" />
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                     <Quote className="w-4 h-4" />
                   </Button>
@@ -629,7 +629,7 @@ const [searchQuery, setSearchQuery] = useState("");
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label>Meta Title</Label>
-                      <span className={`text-xs ${editorData.seoTitle.length > 60 ? "text-red-500" : "text-gray-400"}`}>
+                      <span className={`text-xs ${editorData.seoTitle.length > 60 ? "text-red-500" : "text-[var(--text-muted)]"}`}>
                         {editorData.seoTitle.length}/60
                       </span>
                     </div>
@@ -644,7 +644,7 @@ const [searchQuery, setSearchQuery] = useState("");
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label>Meta Description</Label>
-                      <span className={`text-xs ${editorData.seoDescription.length > 160 ? "text-red-500" : "text-gray-400"}`}>
+                      <span className={`text-xs ${editorData.seoDescription.length > 160 ? "text-red-500" : "text-[var(--text-muted)]"}`}>
                         {editorData.seoDescription.length}/160
                       </span>
                     </div>

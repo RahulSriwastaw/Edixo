@@ -182,7 +182,7 @@ function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Live: "badge-active",
     Active: "badge-active",
-    Inactive: "bg-gray-100 text-gray-600",
+    Inactive: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
     "Under Review": "badge-pending",
   };
   return <span className={`badge ${styles[status] || ""}`}>{status}</span>;
@@ -193,7 +193,7 @@ function PlatformBadge({ platform }: { platform: string }) {
   const styles: Record<string, string> = {
     Windows: "bg-blue-50 text-blue-700",
     Android: "bg-green-50 text-green-700",
-    iOS: "bg-gray-50 text-gray-700",
+    iOS: "bg-[var(--bg-main)] text-[var(--text-primary)]",
   };
   return <span className={`badge ${styles[platform] || ""}`}>{platform}</span>;
 }
@@ -251,13 +251,13 @@ export default function DigitalBoardPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Digital Board</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Digital Board</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage whiteboard sessions, Set IDs, and app releases
                 </p>
               </div>
@@ -282,8 +282,8 @@ export default function DigitalBoardPage() {
                       <Activity className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Live Sessions</div>
-                      <div className="text-xl font-bold text-gray-900">47</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Live Sessions</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">47</div>
                     </div>
                   </div>
                 </CardContent>
@@ -295,8 +295,8 @@ export default function DigitalBoardPage() {
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Total Viewers</div>
-                      <div className="text-xl font-bold text-gray-900">1,247</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Total Viewers</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">1,247</div>
                     </div>
                   </div>
                 </CardContent>
@@ -308,8 +308,8 @@ export default function DigitalBoardPage() {
                       <Monitor className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Active Set IDs</div>
-                      <div className="text-xl font-bold text-gray-900">156</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Active Set IDs</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">156</div>
                     </div>
                   </div>
                 </CardContent>
@@ -321,8 +321,8 @@ export default function DigitalBoardPage() {
                       <Wifi className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">24h Sessions</div>
-                      <div className="text-xl font-bold text-gray-900">892</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">24h Sessions</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">892</div>
                     </div>
                   </div>
                 </CardContent>
@@ -331,7 +331,7 @@ export default function DigitalBoardPage() {
 
             {/* Tabs */}
             <Tabs defaultValue="sessions" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1">
                 <TabsTrigger value="sessions" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">
                   Live Sessions
                 </TabsTrigger>
@@ -362,15 +362,15 @@ export default function DigitalBoardPage() {
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Set ID</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Teacher</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Viewers</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Duration</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Platform</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Started</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Set ID</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Teacher</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-center">Viewers</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Duration</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Platform</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Started</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -383,7 +383,7 @@ export default function DigitalBoardPage() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6 text-gray-400 hover:text-brand-primary"
+                                  className="h-6 w-6 text-[var(--text-muted)] hover:text-brand-primary"
                                   onClick={() => handleCopyID(session.id)}
                                 >
                                   <Copy className="w-3 h-3" />
@@ -391,28 +391,28 @@ export default function DigitalBoardPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm text-gray-900">{session.organization}</span>
+                              <span className="text-sm text-[var(--text-primary)]">{session.organization}</span>
                             </TableCell>
                             <TableCell>
                               {session.teacher ? (
-                                <span className="text-sm text-gray-700">{session.teacher}</span>
+                                <span className="text-sm text-[var(--text-primary)]">{session.teacher}</span>
                               ) : (
-                                <span className="text-sm text-gray-400">Public Session</span>
+                                <span className="text-sm text-[var(--text-muted)]">Public Session</span>
                               )}
                             </TableCell>
                             <TableCell className="text-center">
                               <div className="flex items-center justify-center gap-1">
-                                <Users className="w-4 h-4 text-gray-400" />
+                                <Users className="w-4 h-4 text-[var(--text-muted)]" />
                                 <span className="text-sm font-medium">{session.viewers}</span>
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="font-mono text-sm text-gray-600">{session.duration}</span>
+                              <span className="font-mono text-sm text-[var(--text-secondary)]">{session.duration}</span>
                             </TableCell>
                             <TableCell>
                               <PlatformBadge platform={session.platform} />
                             </TableCell>
-                            <TableCell className="text-sm text-gray-500">{session.startedAt}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{session.startedAt}</TableCell>
                             <TableCell className="text-right">
                               <div className="flex items-center justify-end gap-2">
                                 <Button variant="ghost" size="sm" className="text-brand-primary">
@@ -444,7 +444,7 @@ export default function DigitalBoardPage() {
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <Input
                           placeholder="Search Set IDs..."
                           value={searchQuery}
@@ -464,15 +464,15 @@ export default function DigitalBoardPage() {
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Set ID</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Teacher</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center">Sessions</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Created</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Last Used</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Set ID</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Teacher</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-center">Sessions</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Created</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Last Used</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -484,7 +484,7 @@ export default function DigitalBoardPage() {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  className="h-6 w-6 text-gray-400 hover:text-brand-primary"
+                                  className="h-6 w-6 text-[var(--text-muted)] hover:text-brand-primary"
                                   onClick={() => handleCopyID(set.id)}
                                 >
                                   <Copy className="w-3 h-3" />
@@ -492,21 +492,21 @@ export default function DigitalBoardPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <span className="text-sm text-gray-900">{set.organization}</span>
+                              <span className="text-sm text-[var(--text-primary)]">{set.organization}</span>
                             </TableCell>
                             <TableCell>
                               {set.teacher ? (
-                                <span className="text-sm text-gray-700">{set.teacher}</span>
+                                <span className="text-sm text-[var(--text-primary)]">{set.teacher}</span>
                               ) : (
-                                <span className="text-sm text-gray-400">Public</span>
+                                <span className="text-sm text-[var(--text-muted)]">Public</span>
                               )}
                             </TableCell>
                             <TableCell>
                               <StatusBadge status={set.status} />
                             </TableCell>
                             <TableCell className="text-center text-sm">{set.sessions}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{set.createdAt}</TableCell>
-                            <TableCell className="text-sm text-gray-500">{set.lastUsed}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{set.createdAt}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{set.lastUsed}</TableCell>
                             <TableCell className="text-right">
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
@@ -546,26 +546,26 @@ export default function DigitalBoardPage() {
                           <div className="flex items-center gap-3">
                             <span className="text-3xl">{release.icon}</span>
                             <div>
-                              <div className="font-semibold text-gray-900">{release.platform} App</div>
-                              <div className="text-sm text-gray-500">{release.version}</div>
+                              <div className="font-semibold text-[var(--text-primary)]">{release.platform} App</div>
+                              <div className="text-sm text-[var(--text-secondary)]">{release.version}</div>
                             </div>
                           </div>
                           <StatusBadge status={release.status} />
                         </div>
                         <div className="space-y-3">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Total Installs</span>
-                            <span className="font-semibold text-gray-900">
+                            <span className="text-[var(--text-secondary)]">Total Installs</span>
+                            <span className="font-semibold text-[var(--text-primary)]">
                               {release.installs.toLocaleString()}
                             </span>
                           </div>
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-gray-500">Last Updated</span>
-                            <span className="text-gray-600">{release.lastUpdated}</span>
+                            <span className="text-[var(--text-secondary)]">Last Updated</span>
+                            <span className="text-[var(--text-secondary)]">{release.lastUpdated}</span>
                           </div>
                           <div className="pt-2 border-t">
-                            <span className="text-xs text-gray-500">Changelog:</span>
-                            <p className="text-sm text-gray-700 mt-1">{release.changelog}</p>
+                            <span className="text-xs text-[var(--text-secondary)]">Changelog:</span>
+                            <p className="text-sm text-[var(--text-primary)] mt-1">{release.changelog}</p>
                           </div>
                         </div>
                         <div className="flex gap-2 mt-4">
@@ -585,7 +585,7 @@ export default function DigitalBoardPage() {
               {/* Assets Tab */}
               <TabsContent value="assets" className="mt-6">
                 <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
+                  <CardContent className="p-8 text-center text-[var(--text-secondary)]">
                     Drawing asset library coming soon...
                   </CardContent>
                 </Card>
@@ -593,7 +593,7 @@ export default function DigitalBoardPage() {
 
               {/* Settings Tab */}
               <TabsContent value="settings" className="mt-6 space-y-6">
-                    <div className="p-12 text-center text-gray-500">
+                    <div className="p-12 text-center text-[var(--text-secondary)]">
                       Whiteboard settings are managed globally
                     </div>
                 {isLoading ? (
@@ -611,7 +611,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>AI Assistant</Label>
-                            <p className="text-sm text-gray-500">Enable AI-powered drawing and explanations</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Enable AI-powered drawing and explanations</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.aiAssistant} 
@@ -621,7 +621,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>Homework Generator</Label>
-                            <p className="text-sm text-gray-500">Auto-generate assignments from board content</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Auto-generate assignments from board content</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.homeworkGenerator} 
@@ -631,7 +631,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>Attendance Tracking</Label>
-                            <p className="text-sm text-gray-500">Auto-mark attendance for session viewers</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Auto-mark attendance for session viewers</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.attendance} 
@@ -641,7 +641,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>Split Screen Mode</Label>
-                            <p className="text-sm text-gray-500">Allow multiple boards in one view</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Allow multiple boards in one view</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.splitScreen} 
@@ -660,7 +660,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>Math Tools</Label>
-                            <p className="text-sm text-gray-500">Calculators, geometry tools, and equations</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Calculators, geometry tools, and equations</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.mathTools} 
@@ -670,7 +670,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>Chemistry Suite</Label>
-                            <p className="text-sm text-gray-500">Periodic table and molecular structure drawing</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Periodic table and molecular structure drawing</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.chemistryTools || wbSettings?.periodicTable} 
@@ -683,7 +683,7 @@ export default function DigitalBoardPage() {
                         <div className="flex items-center justify-between">
                           <div className="space-y-0.5">
                             <Label>Physics Simulations</Label>
-                            <p className="text-sm text-gray-500">Interactive 3D models and force simulations</p>
+                            <p className="text-sm text-[var(--text-secondary)]">Interactive 3D models and force simulations</p>
                           </div>
                           <Switch 
                             checked={wbSettings?.physicsSimulations || wbSettings?.shapeBuilder3D} 
@@ -714,7 +714,7 @@ export default function DigitalBoardPage() {
                               />
                               <Button variant="outline" size="sm">Set Limit</Button>
                             </div>
-                            <p className="text-xs text-gray-500">Total monthly AI tokens shared across all boards</p>
+                            <p className="text-xs text-[var(--text-secondary)]">Total monthly AI tokens shared across all boards</p>
                           </div>
                         </div>
                       </CardContent>

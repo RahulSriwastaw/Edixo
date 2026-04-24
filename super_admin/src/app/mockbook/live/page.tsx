@@ -91,28 +91,28 @@ export default function LiveMonitorPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Live Monitor</span>
+                            <span className="text-[var(--text-primary)] font-medium">Live Monitor</span>
                         </div>
 
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)] flex items-center gap-2">
                                     <span className="w-3 h-3 bg-green-500 rounded-full animate-pulse inline-block" />
                                     Live Monitor
                                 </h1>
-                                <p className="text-gray-500 text-sm mt-1">
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">
                                     Real-time view of live and upcoming tests · Auto-refreshes every 30s
                                 </p>
                             </div>
                             <div className="flex items-center gap-3">
-                                <span className="text-xs text-gray-400">
+                                <span className="text-xs text-[var(--text-muted)]">
                                     Last: {lastRefresh.toLocaleTimeString()}
                                 </span>
                                 <Button variant="outline" size="sm" onClick={loadData} disabled={isLoading}>
@@ -125,13 +125,13 @@ export default function LiveMonitorPage() {
                         {isLoading ? (
                             <div className="py-24 text-center flex flex-col items-center gap-3">
                                 <Loader2 className="w-10 h-10 animate-spin text-orange-500" />
-                                <p className="text-sm text-gray-400">Loading live tests...</p>
+                                <p className="text-sm text-[var(--text-muted)]">Loading live tests...</p>
                             </div>
                         ) : (
                             <>
                                 {/* Live Tests */}
                                 <div>
-                                    <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <h2 className="text-base font-bold text-[var(--text-primary)] mb-3 flex items-center gap-2">
                                         <Radio className="w-4 h-4 text-green-600" />
                                         Currently Live
                                         <Badge className="bg-green-100 text-green-700 border border-green-200 text-[10px]">{data.live.length}</Badge>
@@ -141,7 +141,7 @@ export default function LiveMonitorPage() {
                                         <Card>
                                             <CardContent className="p-10 text-center space-y-2">
                                                 <Radio className="w-10 h-10 text-gray-200 mx-auto" />
-                                                <p className="text-gray-400 text-sm">No tests are currently live</p>
+                                                <p className="text-[var(--text-muted)] text-sm">No tests are currently live</p>
                                                 <p className="text-xs text-gray-300">Publish a test from the Mock Tests page</p>
                                             </CardContent>
                                         </Card>
@@ -159,10 +159,10 @@ export default function LiveMonitorPage() {
                                                                 <LiveTimer startedAt={test.scheduledAt} />
                                                             )}
                                                         </div>
-                                                        <h3 className="font-bold text-gray-900 text-sm leading-tight mb-2 line-clamp-2">
+                                                        <h3 className="font-bold text-[var(--text-primary)] text-sm leading-tight mb-2 line-clamp-2">
                                                             {test.name}
                                                         </h3>
-                                                        <div className="flex items-center gap-4 text-xs text-gray-500 mb-4">
+                                                        <div className="flex items-center gap-4 text-xs text-[var(--text-secondary)] mb-4">
                                                             <span className="flex items-center gap-1">
                                                                 <Users className="w-3 h-3" />
                                                                 {(test as any)._count?.attempts || 0} attempts
@@ -194,7 +194,7 @@ export default function LiveMonitorPage() {
 
                                 {/* Scheduled Tests */}
                                 <div>
-                                    <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+                                    <h2 className="text-base font-bold text-[var(--text-primary)] mb-3 flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-blue-600" />
                                         Upcoming Scheduled
                                         <Badge className="bg-blue-100 text-blue-700 border border-blue-200 text-[10px]">{data.scheduled.length}</Badge>
@@ -204,7 +204,7 @@ export default function LiveMonitorPage() {
                                         <Card>
                                             <CardContent className="p-10 text-center space-y-2">
                                                 <Calendar className="w-10 h-10 text-gray-200 mx-auto" />
-                                                <p className="text-gray-400 text-sm">No scheduled tests</p>
+                                                <p className="text-[var(--text-muted)] text-sm">No scheduled tests</p>
                                                 <p className="text-xs text-gray-300">Set scheduledAt when creating a test</p>
                                             </CardContent>
                                         </Card>
@@ -217,9 +217,9 @@ export default function LiveMonitorPage() {
                                                             <Calendar className="w-4 h-4 text-blue-500" />
                                                             <Badge className="bg-blue-50 text-blue-700 border border-blue-200 text-[10px]">SCHEDULED</Badge>
                                                         </div>
-                                                        <h3 className="font-bold text-gray-900 text-sm leading-tight mb-1 line-clamp-2">{test.name}</h3>
+                                                        <h3 className="font-bold text-[var(--text-primary)] text-sm leading-tight mb-1 line-clamp-2">{test.name}</h3>
                                                         {test.scheduledAt && (
-                                                            <p className="text-xs text-gray-500 mb-3">
+                                                            <p className="text-xs text-[var(--text-secondary)] mb-3">
                                                                 <Clock className="w-3 h-3 inline mr-1" />
                                                                 {new Date(test.scheduledAt).toLocaleString("en-IN", {
                                                                     day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"
@@ -260,7 +260,7 @@ export default function LiveMonitorPage() {
                             <AlertCircle className="w-5 h-5" /> End Live Test
                         </DialogTitle>
                     </DialogHeader>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[var(--text-secondary)]">
                         Are you sure you want to end <strong>{endConfirm?.name}</strong>? Students who haven't submitted yet will be unable to continue.
                     </p>
                     <DialogFooter>

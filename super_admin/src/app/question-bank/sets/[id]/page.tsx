@@ -100,7 +100,7 @@ function VisibilityBadge({ visibility }: { visibility: string }) {
   } else if (visibility === "org_only") {
     return <Badge className="bg-blue-50 text-blue-700 gap-1"><Building2 className="w-3 h-3" /> Org-Only</Badge>;
   }
-  return <Badge className="bg-gray-100 text-gray-600 gap-1"><Lock className="w-3 h-3" /> Private</Badge>;
+  return <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)] gap-1"><Lock className="w-3 h-3" /> Private</Badge>;
 }
 
 export default function SetDetailPage() {
@@ -243,13 +243,13 @@ export default function SetDetailPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-6xl mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/question-bank/sets" className="hover:text-[#F4511E]">Question Sets</Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">{setData.name}</span>
+              <span className="text-[var(--text-primary)] font-medium">{setData.name}</span>
             </div>
 
             {/* Header Card */}
@@ -257,8 +257,8 @@ export default function SetDetailPage() {
               <CardContent className="p-6 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <h1 className="text-2xl font-bold text-gray-900">{setData.name}</h1>
-                    <p className="text-gray-500">{setData.description || "No description provided."}</p>
+                    <h1 className="text-2xl font-bold text-[var(--text-primary)]">{setData.name}</h1>
+                    <p className="text-[var(--text-secondary)]">{setData.description || "No description provided."}</p>
                   </div>
                   <VisibilityBadge visibility={setData.isGlobal ? "public" : "private"} />
                 </div>
@@ -266,15 +266,15 @@ export default function SetDetailPage() {
                 {/* ID and Password Row */}
                 <div className="flex flex-wrap items-center gap-6 py-4 border-y">
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-500">ID:</span>
-                    <code className="font-mono text-lg bg-gray-50 px-3 py-1 rounded">{setData.setId}</code>
+                    <span className="text-sm text-[var(--text-secondary)]">ID:</span>
+                    <code className="font-mono text-lg bg-[var(--bg-main)] px-3 py-1 rounded">{setData.setId}</code>
                     <Button variant="ghost" size="sm" onClick={copyId}>
                       <Copy className="w-4 h-4" />
                     </Button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-500">Password:</span>
-                    <code className="font-mono text-lg bg-gray-50 px-3 py-1 rounded">
+                    <span className="text-sm text-[var(--text-secondary)]">Password:</span>
+                    <code className="font-mono text-lg bg-[var(--bg-main)] px-3 py-1 rounded">
                       {showPassword ? setData.pin : "••••••"}
                     </code>
                     <Button variant="ghost" size="sm" onClick={() => setShowPassword(!showPassword)}>
@@ -292,7 +292,7 @@ export default function SetDetailPage() {
                 </div>
 
                 {/* Stats Row */}
-                <div className="flex items-center gap-6 text-sm text-gray-500">
+                <div className="flex items-center gap-6 text-sm text-[var(--text-secondary)]">
                   <div className="flex items-center gap-1">
                     <Layers className="w-4 h-4" />
                     <span>{setData.totalQuestions || 0} Questions</span>
@@ -316,8 +316,8 @@ export default function SetDetailPage() {
                     <CardContent className="p-6 space-y-3 bg-orange-50 border-orange-200">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
-                          <h2 className="text-lg font-semibold text-gray-900">Whiteboard Notes PDF</h2>
-                          <p className="text-sm text-gray-600">Downloaded from this set after PDF upload.</p>
+                          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Whiteboard Notes PDF</h2>
+                          <p className="text-sm text-[var(--text-secondary)]">Downloaded from this set after PDF upload.</p>
                         </div>
                         <Link
                           href={`${API_URL.replace('/api', '')}${setData.pdf_notes.url}`}
@@ -327,17 +327,17 @@ export default function SetDetailPage() {
                           <Download className="w-4 h-4" /> Download PDF
                         </Link>
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-gray-700">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-[var(--text-primary)]">
                         <div>
-                          <span className="block text-xs text-gray-500">Pages</span>
+                          <span className="block text-xs text-[var(--text-secondary)]">Pages</span>
                           <span className="font-semibold">{setData.pdf_notes.totalPages || 0}</span>
                         </div>
                         <div>
-                          <span className="block text-xs text-gray-500">File size</span>
+                          <span className="block text-xs text-[var(--text-secondary)]">File size</span>
                           <span className="font-semibold">{setData.pdf_notes.fileSize || 'N/A'} MB</span>
                         </div>
                         <div>
-                          <span className="block text-xs text-gray-500">Uploaded</span>
+                          <span className="block text-xs text-[var(--text-secondary)]">Uploaded</span>
                           <span className="font-semibold">{new Date(setData.pdf_notes.createdAt).toLocaleDateString()}</span>
                         </div>
                       </div>
@@ -412,10 +412,10 @@ export default function SetDetailPage() {
                             draggedIndex === index && "opacity-50 shadow-lg"
                           )}
                         >
-                          <GripVertical className="w-4 h-4 text-gray-400" />
-                          <span className="text-xs text-gray-500 w-12">Q{index + 1}</span>
+                          <GripVertical className="w-4 h-4 text-[var(--text-muted)]" />
+                          <span className="text-xs text-[var(--text-secondary)] w-12">Q{index + 1}</span>
                           <div className="flex-1">
-                            <p className="text-sm text-gray-700">{q.text}</p>
+                            <p className="text-sm text-[var(--text-primary)]">{q.text}</p>
                           </div>
                           <TypeBadge type={q.type} />
                           <DifficultyBadge difficulty={q.difficulty} />
@@ -443,16 +443,16 @@ export default function SetDetailPage() {
                 </div>
                 <Card>
                   <CardContent className="p-4 space-y-3">
-                    <h3 className="font-medium text-gray-900">Linked MockTests ({linkedMockTests.length})</h3>
+                    <h3 className="font-medium text-[var(--text-primary)]">Linked MockTests ({linkedMockTests.length})</h3>
                     {linkedMockTests.map((mock) => (
-                      <div key={mock.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={mock.id} className="flex items-center justify-between p-3 bg-[var(--bg-main)] rounded-lg">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
                             <Layers className="w-5 h-5 text-[#F4511E]" />
                           </div>
                           <div>
-                            <p className="font-medium text-gray-900">{mock.name}</p>
-                            <p className="text-xs text-gray-500">{mock.id} • {mock.attempts} attempts</p>
+                            <p className="font-medium text-[var(--text-primary)]">{mock.name}</p>
+                            <p className="text-xs text-[var(--text-secondary)]">{mock.id} • {mock.attempts} attempts</p>
                           </div>
                         </div>
                         <Button variant="ghost" size="sm">
@@ -476,14 +476,14 @@ export default function SetDetailPage() {
                     </div>
                     <div className="space-y-4">
                       {["Rahul Kumar", "Amit Sharma"].map((user, i) => (
-                        <div key={user} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                        <div key={user} className="flex items-center justify-between p-2 bg-[var(--bg-main)] rounded-lg">
                           <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 font-bold">
                               {user[0]}
                             </div>
                             <div>
                               <p className="text-sm font-medium">{user}</p>
-                              <p className="text-xs text-gray-500">Shared on Mar {i + 1}</p>
+                              <p className="text-xs text-[var(--text-secondary)]">Shared on Mar {i + 1}</p>
                             </div>
                           </div>
                           <Button variant="ghost" size="sm" className="text-red-500">Revoke</Button>
@@ -500,16 +500,16 @@ export default function SetDetailPage() {
                   <CardContent className="p-0">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b bg-gray-50">
-                          <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Date/Time</th>
-                          <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">User</th>
-                          <th className="text-left p-4 text-xs font-medium text-gray-500 uppercase">Method</th>
+                        <tr className="border-b bg-[var(--bg-main)]">
+                          <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Date/Time</th>
+                          <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">User</th>
+                          <th className="text-left p-4 text-xs font-medium text-[var(--text-secondary)] uppercase">Method</th>
                         </tr>
                       </thead>
                       <tbody>
                         {accessLog.map((log) => (
                           <tr key={log.id} className="border-b last:border-0">
-                            <td className="p-4 text-sm text-gray-600">{log.timestamp}</td>
+                            <td className="p-4 text-sm text-[var(--text-secondary)]">{log.timestamp}</td>
                             <td className="p-4 text-sm font-medium">{log.user}</td>
                             <td className="p-4">
                               <Badge variant="outline">{log.source}</Badge>
@@ -534,7 +534,7 @@ export default function SetDetailPage() {
                             key={vis}
                             className={cn(
                               "flex items-center gap-3 p-4 border rounded-lg cursor-pointer transition-all",
-                              (setData.isGlobal ? (vis === "public") : (vis === "private")) ? "border-[#F4511E] bg-orange-50" : "hover:border-gray-300"
+                              (setData.isGlobal ? (vis === "public") : (vis === "private")) ? "border-[#F4511E] bg-orange-50" : "hover:border-[var(--border-input)]"
                             )}
                           >
                             <input
@@ -547,7 +547,7 @@ export default function SetDetailPage() {
                             />
                             <div>
                                 <p className="font-medium capitalize">{vis.replace("_", "-")}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-sm text-[var(--text-secondary)]">
                                     {vis === "private" && "Only accessible with PIN"}
                                     {vis === "org_only" && "Org members + PIN access"}
                                     {vis === "public" && "Listed on public website"}

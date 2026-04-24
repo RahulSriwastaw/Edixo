@@ -1,0 +1,44 @@
+version: "2"
+type: frontend
+tech_stack:
+  - Dart
+  - Flutter
+  - Riverpod
+  - Perfect Freehand
+routes:
+  - path: /
+    file: lib/main.dart
+    auth_required: false
+    description: Main whiteboard interface
+features:
+  - name: Whiteboard Drawing
+    description: Draw on the canvas using various pen tools
+    files:
+      - lib/features/whiteboard/presentation/widgets/canvas/annotation_layer.dart
+      - lib/features/whiteboard/presentation/widgets/tools/tools_controller.dart
+      - lib/features/whiteboard/presentation/widgets/tools/pen_tool.dart
+      - lib/features/whiteboard/presentation/providers/canvas_provider.dart
+    entry_route: /
+    user_interactions:
+      - Select a pen tool from the toolbar
+      - Drag on the canvas to draw a stroke
+      - Double-tap a pen tool to change color/width
+    api_calls: []
+    auth_required: false
+  - name: Tool Customization
+    description: Change pen settings like color, width, and type
+    files:
+      - lib/features/whiteboard/presentation/dialogs/pen_picker_dialog.dart
+      - lib/features/whiteboard/presentation/providers/tool_provider.dart
+    entry_route: /
+    user_interactions:
+      - Open pen picker dialog
+      - Select a color from the palette
+      - Adjust stroke width slider
+      - Choose a different pen type
+    api_calls: []
+    auth_required: false
+known_limitations:
+  - issue: Lasso selection might intercept drawing events if not configured correctly
+    location: lib/features/whiteboard/presentation/widgets/tools/lasso_selection_overlay.dart
+    impact: Users might accidentally select instead of draw

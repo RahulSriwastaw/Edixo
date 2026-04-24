@@ -264,7 +264,7 @@ export default function AirtableSyncPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
@@ -281,10 +281,10 @@ export default function AirtableSyncPage() {
                   </Button>
                 )}
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">
                     {selectedFolder ? `${selectedFolder.name} Questions` : "Airtable Question Source"}
                   </h1>
-                  <p className="text-gray-500 text-sm">
+                  <p className="text-[var(--text-secondary)] text-sm">
                     {selectedFolder 
                       ? `Sync and manage questions from the "${selectedFolder.slug}" table.`
                       : "Manage your question bank tables synced directly from Airtable."}
@@ -319,7 +319,7 @@ export default function AirtableSyncPage() {
                       <Badge className="bg-brand-primary/10 text-brand-primary hover:bg-brand-primary/20 px-3 py-1">
                         Display: {selectedFolder.name}
                       </Badge>
-                      <span className="text-sm text-gray-500 font-mono">
+                      <span className="text-sm text-[var(--text-secondary)] font-mono">
                         Airtable: {selectedFolder.slug}
                       </span>
                    </div>
@@ -342,12 +342,12 @@ export default function AirtableSyncPage() {
             ) : (
               <>
                 {isLoadingFolders ? (
-                  <div className="text-center py-10 text-gray-500 animate-pulse">Loading synced folders...</div>
+                  <div className="text-center py-10 text-[var(--text-secondary)] animate-pulse">Loading synced folders...</div>
                 ) : folders.length === 0 ? (
                   <div className="text-center py-20 bg-white border rounded-xl shadow-sm">
                     <Database className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-gray-900">No Airtable tables added yet</h3>
-                    <p className="text-gray-500 mt-1 mb-6">Click "Add Table Folder" to select a table from your Airtable base.</p>
+                    <h3 className="text-lg font-semibold text-[var(--text-primary)]">No Airtable tables added yet</h3>
+                    <p className="text-[var(--text-secondary)] mt-1 mb-6">Click "Add Table Folder" to select a table from your Airtable base.</p>
                     <Button onClick={handleOpenAddModal} className="bg-brand-primary text-white">
                       <Plus className="w-4 h-4 mr-2" /> Add Your First Table
                     </Button>
@@ -401,16 +401,16 @@ export default function AirtableSyncPage() {
                              
                              <div className="flex flex-col gap-1 py-1">
                                <div className="flex items-center justify-between text-xs">
-                                 <span className="text-gray-500 font-medium">Total Questions:</span>
+                                 <span className="text-[var(--text-secondary)] font-medium">Total Questions:</span>
                                  <span className="text-brand-primary font-bold">{folder.totalQuestions || 0}</span>
                                </div>
                                <div className="flex items-center justify-between text-[10px]">
-                                 <span className="text-gray-400">Last Sync:</span>
-                                 <span className="text-gray-500">{formatDate(folder.updatedAt)}</span>
+                                 <span className="text-[var(--text-muted)]">Last Sync:</span>
+                                 <span className="text-[var(--text-secondary)]">{formatDate(folder.updatedAt)}</span>
                                </div>
                              </div>
 
-                             <span className="text-[11px] text-gray-400 font-medium group-hover:text-brand-primary transition-colors mt-1">Click to view/manage questions →</span>
+                             <span className="text-[11px] text-[var(--text-muted)] font-medium group-hover:text-brand-primary transition-colors mt-1">Click to view/manage questions →</span>
                           </CardDescription>
                         </CardContent>
                       </Card>

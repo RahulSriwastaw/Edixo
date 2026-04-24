@@ -308,7 +308,7 @@ export default function WhiteboardAccountsPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6">
             {notice === "single-owner-mode" && (
               <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-sm text-orange-800">
@@ -318,8 +318,8 @@ export default function WhiteboardAccountsPage() {
 
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Whiteboard Accounts</h1>
-                <p className="text-gray-500 text-sm">Manage login IDs and passwords for direct whiteboard access</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Whiteboard Accounts</h1>
+                <p className="text-[var(--text-secondary)] text-sm">Manage login IDs and passwords for direct whiteboard access</p>
               </div>
               <Button 
                 className="bg-[#F4511E] hover:bg-[#E64A19] text-white gap-2"
@@ -332,7 +332,7 @@ export default function WhiteboardAccountsPage() {
             <Card>
               <CardContent className="p-4">
                 <div className="relative">
-                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                   <Input
                     placeholder="Search by ID or name..."
                     value={search}
@@ -348,36 +348,36 @@ export default function WhiteboardAccountsPage() {
                 <div className="flex items-center gap-2">
                   <Monitor className="w-5 h-5 text-[#F4511E]" />
                   <CardTitle>Accounts</CardTitle>
-                  <Badge className="bg-gray-100 text-gray-600">{filteredAccounts.length}</Badge>
+                  <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)]">{filteredAccounts.length}</Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b bg-gray-50">
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Username</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Teacher Name</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Active Logins</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Max Allowed</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Status</th>
-                        <th className="text-left p-4 font-medium text-gray-500 text-sm">Created At</th>
-                        <th className="text-center p-4 font-medium text-gray-500 text-sm">Actions</th>
+                      <tr className="border-b bg-[var(--bg-main)]">
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Username</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Teacher Name</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Active Logins</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Max Allowed</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Status</th>
+                        <th className="text-left p-4 font-medium text-[var(--text-secondary)] text-sm">Created At</th>
+                        <th className="text-center p-4 font-medium text-[var(--text-secondary)] text-sm">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {isLoading ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-gray-500">Loading accounts...</td>
+                          <td colSpan={7} className="p-8 text-center text-[var(--text-secondary)]">Loading accounts...</td>
                         </tr>
                       ) : filteredAccounts.length === 0 ? (
                         <tr>
-                          <td colSpan={7} className="p-8 text-center text-gray-500">No accounts found</td>
+                          <td colSpan={7} className="p-8 text-center text-[var(--text-secondary)]">No accounts found</td>
                         </tr>
                       ) : filteredAccounts.map((acc) => (
-                        <tr key={acc.id} className="border-b hover:bg-gray-50 transition-colors">
-                          <td className="p-4 font-medium text-gray-900">{acc.username || acc.loginId}</td>
-                          <td className="p-4 text-gray-600">{acc.name || "N/A"}</td>
+                        <tr key={acc.id} className="border-b hover:bg-[var(--bg-main)] transition-colors">
+                          <td className="p-4 font-medium text-[var(--text-primary)]">{acc.username || acc.loginId}</td>
+                          <td className="p-4 text-[var(--text-secondary)]">{acc.name || "N/A"}</td>
                           <td className="p-4 text-center">
                             <Badge className="bg-blue-100 text-blue-700 font-normal">
                               {acc.activeLoginCount ?? 0}
@@ -414,7 +414,7 @@ export default function WhiteboardAccountsPage() {
                               {acc.isActive ? "Active" : "Inactive"}
                             </Badge>
                           </td>
-                          <td className="p-4 text-sm text-gray-500">
+                          <td className="p-4 text-sm text-[var(--text-secondary)]">
                             {new Date(acc.createdAt).toLocaleDateString()}
                           </td>
                           <td className="p-4">
@@ -498,7 +498,7 @@ export default function WhiteboardAccountsPage() {
                 value={newAccount.maxConcurrentLogins}
                 onChange={(e) => setNewAccount({ ...newAccount, maxConcurrentLogins: e.target.value })}
               />
-              <p className="text-xs text-gray-500">1 recommended. Isse same ID se multiple devices login control hoga.</p>
+              <p className="text-xs text-[var(--text-secondary)]">1 recommended. Isse same ID se multiple devices login control hoga.</p>
             </div>
           </div>
           <DialogFooter>
@@ -519,11 +519,11 @@ export default function WhiteboardAccountsPage() {
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="rounded-md border p-3">
-              <p className="text-xs text-gray-500">Username</p>
+              <p className="text-xs text-[var(--text-secondary)]">Username</p>
               <p className="font-mono text-sm">{createdCredentials?.username}</p>
             </div>
             <div className="rounded-md border p-3">
-              <p className="text-xs text-gray-500">Password</p>
+              <p className="text-xs text-[var(--text-secondary)]">Password</p>
               <p className="font-mono text-sm">{createdCredentials?.password}</p>
             </div>
           </div>

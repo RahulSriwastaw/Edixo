@@ -35,7 +35,7 @@ const List<ToolDefinition> toolRegistry = [
     name: 'Soft Pen',
     category: ToolLibraryCategory.freeForm,
     icon: Icons.edit_outlined,
-    defaultSettings: ToolSettings(strokeWidth: 4.0, color: Color(0xFFFFFFFF)),
+    defaultSettings: ToolSettings(strokeWidth: 4.0, color: Color(0xFF111111)),
   ),
   ToolDefinition(
     id: 'hard-pen',
@@ -43,7 +43,7 @@ const List<ToolDefinition> toolRegistry = [
     name: 'Hard Pen',
     category: ToolLibraryCategory.freeForm,
     icon: Icons.edit,
-    defaultSettings: ToolSettings(strokeWidth: 3.0, color: Color(0xFFFFFFFF)),
+    defaultSettings: ToolSettings(strokeWidth: 3.0, color: Color(0xFF111111)),
   ),
   ToolDefinition(
     id: 'highlighter',
@@ -63,6 +63,7 @@ const List<ToolDefinition> toolRegistry = [
     name: 'Chalk',
     category: ToolLibraryCategory.freeForm,
     icon: Icons.draw_outlined,
+    defaultSettings: ToolSettings(strokeWidth: 4.0, color: Color(0xFF111111)),
   ),
   ToolDefinition(
     id: 'calligraphy',
@@ -70,6 +71,7 @@ const List<ToolDefinition> toolRegistry = [
     name: 'Calligraphy',
     category: ToolLibraryCategory.freeForm,
     icon: Icons.brush_outlined,
+    defaultSettings: ToolSettings(strokeWidth: 6.0, color: Color(0xFF111111)),
   ),
   ToolDefinition(
     id: 'spray',
@@ -77,6 +79,7 @@ const List<ToolDefinition> toolRegistry = [
     name: 'Spray',
     category: ToolLibraryCategory.freeForm,
     icon: Icons.blur_on_outlined,
+    defaultSettings: ToolSettings(strokeWidth: 5.0, color: Color(0xFF111111)),
   ),
   ToolDefinition(
     id: 'laser-pointer',
@@ -240,6 +243,7 @@ const List<ToolDefinition> toolRegistry = [
     name: 'Magic Pen',
     category: ToolLibraryCategory.insert,
     icon: Icons.auto_awesome_outlined,
+    defaultSettings: ToolSettings(strokeWidth: 5.0, color: Color(0xFF6A1B9A), opacity: 0.9),
   ),
   ToolDefinition(
     id: 'eyedropper',

@@ -379,6 +379,28 @@ router.post('/login', async (req, res, next) => {
       data: { lastLoginAt: new Date() },
     });
 
+    // Auto-create student profile if missing (for STUDENT role)
+    if (user.role === 'STUDENT') {
+      const existingStudent = await prismaAny.student.findFirst({
+        where: { userId: user.id }
+      });
+      if (!existingStudent) {
+        const globalCount = await prismaAny.student.count();
+        const timestamp = Date.now().toString().slice(-3);
+        const studentId = `GK-STU-${String(globalCount + 1).padStart(5, '0')}-${timestamp}`;
+        await prismaAny.student.create({
+          data: {
+            studentId,
+            userId: user.id,
+            name: user.email?.split('@')[0] || 'Student',
+            email: user.email,
+            mobile: user.mobile,
+            isActive: true,
+          },
+        });
+      }
+    }
+
     const tokenPayload = {
       userId: user.id,
       email: user.email,

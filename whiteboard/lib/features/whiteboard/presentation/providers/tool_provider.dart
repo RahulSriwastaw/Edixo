@@ -355,6 +355,7 @@ class ToolNotifier extends _$ToolNotifier {
 
     final mode = _autoInteractionMode(tool);
     state = state.copyWith(activeTool: tool, interactionMode: mode);
+    _ensureVisiblePenInk(tool);
 
     // Clear question widget selection if not in Move Question mode
     if (tool != Tool.selectObject) {
@@ -368,6 +369,28 @@ class ToolNotifier extends _$ToolNotifier {
     if (tool == Tool.lassoRect) {
       ref.read(lassoProvider.notifier).setMode(LassoMode.rect);
     }
+  }
+
+  void _ensureVisiblePenInk(Tool tool) {
+    const visibilityCriticalPens = {
+      Tool.softPen,
+      Tool.hardPen,
+      Tool.chalk,
+      Tool.calligraphy,
+      Tool.spray,
+    };
+    if (!visibilityCriticalPens.contains(tool)) return;
+
+    final current = state.toolSettings[tool];
+    if (current == null) return;
+
+    // Auto-migrate old pure-white pen defaults so ink remains visible
+    // on light/white board backgrounds.
+    if (current.color.toARGB32() != const Color(0xFFFFFFFF).toARGB32()) return;
+
+    final updated = Map<Tool, ToolSettings>.from(state.toolSettings);
+    updated[tool] = current.copyWith(color: const Color(0xFF111111));
+    state = state.copyWith(toolSettings: updated);
   }
 
   void setColor(Color color) {

@@ -153,7 +153,7 @@ const stats = [
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
     Active: "badge-active",
-    Ended: "bg-gray-100 text-gray-600",
+    Ended: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
   };
   return <span className={`badge ${styles[status] || ""}`}>{status}</span>;
 }
@@ -164,11 +164,11 @@ function DeviceBadge({ device }: { device: string }) {
   return (
     <div className="flex items-center gap-2">
       {isMobile ? (
-        <Smartphone className="w-4 h-4 text-gray-400" />
+        <Smartphone className="w-4 h-4 text-[var(--text-muted)]" />
       ) : (
-        <Monitor className="w-4 h-4 text-gray-400" />
+        <Monitor className="w-4 h-4 text-[var(--text-muted)]" />
       )}
-      <span className="text-sm text-gray-700">{device}</span>
+      <span className="text-sm text-[var(--text-primary)]">{device}</span>
     </div>
   );
 }
@@ -180,7 +180,7 @@ const getIconBgColor = (color: string) => {
     orange: "bg-orange-50",
     purple: "bg-purple-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -190,7 +190,7 @@ const getIconColor = (color: string) => {
     orange: "text-orange-600",
     purple: "text-purple-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function PublicUsersPage() {
@@ -229,20 +229,20 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/digital-board" className="hover:text-[#F4511E]">Digital Board</Link>
               <ChevronRight className="w-4 h-4" />
-              <span className="text-gray-900 font-medium">Public Users</span>
+              <span className="text-[var(--text-primary)] font-medium">Public Users</span>
             </div>
 
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Public Access Log</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Public Access Log</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Track all public access sessions via Set ID + Password
                 </p>
               </div>
@@ -266,8 +266,8 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(stat.color)}`} />
                         </div>
                         <div>
-                          <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                          <div className="text-xl font-bold text-gray-900">{stat.value}</div>
+                          <div className="text-xs text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                          <div className="text-xl font-bold text-[var(--text-primary)]">{stat.value}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -281,7 +281,7 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-4">
                 <div className="flex flex-wrap items-center gap-3">
                   <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search by Set ID, IP, location..."
                       value={searchQuery}
@@ -324,39 +324,39 @@ const [searchQuery, setSearchQuery] = useState("");
               <CardContent className="p-0">
                 <Table>
                   <TableHeader>
-                    <TableRow className="bg-gray-50">
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Session ID</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Set Code</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">IP Address</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Location</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Device</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Browser</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Accessed At</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Duration</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                      <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                    <TableRow className="bg-[var(--bg-main)]">
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Session ID</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Set Code</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">IP Address</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Location</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Device</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Browser</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Accessed At</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Duration</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                      <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredUsers.map((user) => (
                       <TableRow key={user.id} className="hover:bg-brand-primary-tint">
                         <TableCell>
-                          <span className="font-mono text-xs text-gray-600">{user.id}</span>
+                          <span className="font-mono text-xs text-[var(--text-secondary)]">{user.id}</span>
                         </TableCell>
                         <TableCell>
                           <span className="font-mono text-sm text-[#F4511E]">{user.setCode}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="font-mono text-sm text-gray-600">{user.ipAddress}</span>
+                          <span className="font-mono text-sm text-[var(--text-secondary)]">{user.ipAddress}</span>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-700">{user.location}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-primary)]">{user.location}</TableCell>
                         <TableCell>
                           <DeviceBadge device={user.device} />
                         </TableCell>
-                        <TableCell className="text-sm text-gray-600">{user.browser}</TableCell>
-                        <TableCell className="text-sm text-gray-500">{user.accessedAt}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-secondary)]">{user.browser}</TableCell>
+                        <TableCell className="text-sm text-[var(--text-secondary)]">{user.accessedAt}</TableCell>
                         <TableCell>
-                          <span className="font-mono text-sm text-gray-600">{user.duration}</span>
+                          <span className="font-mono text-sm text-[var(--text-secondary)]">{user.duration}</span>
                         </TableCell>
                         <TableCell>
                           <StatusBadge status={user.status} />
@@ -391,7 +391,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
             {/* Pagination */}
             <div className="flex items-center justify-between">
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-[var(--text-secondary)]">
                 Showing 1–{filteredUsers.length} of {publicUsers.length}
               </div>
               <div className="flex items-center gap-2">

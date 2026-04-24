@@ -38,7 +38,7 @@ import { toast } from "sonner";
 function StatusBadge({ status }: { status: string }) {
     const cfg: Record<string, { label: string; cls: string; icon: any }> = {
         LIVE: { label: "Live", cls: "bg-green-50 text-green-700 border-green-200", icon: Radio },
-        DRAFT: { label: "Draft", cls: "bg-gray-50 text-gray-600 border-gray-200", icon: Edit },
+        DRAFT: { label: "Draft", cls: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]", icon: Edit },
         ENDED: { label: "Ended", cls: "bg-red-50 text-red-600 border-red-200", icon: XCircle },
     };
     const { label, cls, icon: Icon } = cfg[status] || cfg.DRAFT;
@@ -215,20 +215,20 @@ function MockTestsContent() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Mock Tests</span>
+                            <span className="text-[var(--text-primary)] font-medium">Mock Tests</span>
                         </div>
 
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Mock Tests</h1>
-                                <p className="text-gray-500 text-sm mt-1">
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Mock Tests</h1>
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">
                                     Manage all mock tests — create, publish, schedule, and monitor
                                 </p>
                             </div>
@@ -242,8 +242,8 @@ function MockTestsContent() {
                             {stats.map(stat => (
                                 <Card key={stat.label} className="kpi-card">
                                     <CardContent className="p-4">
-                                        <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                                        <div className="text-xl font-bold text-gray-900 mt-0.5">{stat.value}</div>
+                                        <div className="text-xs text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                                        <div className="text-xl font-bold text-[var(--text-primary)] mt-0.5">{stat.value}</div>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -254,7 +254,7 @@ function MockTestsContent() {
                             <CardContent className="p-4">
                                 <div className="flex flex-wrap items-center gap-3">
                                     <div className="relative flex-1 min-w-[200px] max-w-[320px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                         <Input placeholder="Search tests..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 input-field" />
                                     </div>
                                     <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -284,7 +284,7 @@ function MockTestsContent() {
                                             Clear
                                         </Button>
                                     )}
-                                    <span className="ml-auto text-sm text-gray-500">{filtered.length} results</span>
+                                    <span className="ml-auto text-sm text-[var(--text-secondary)]">{filtered.length} results</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -293,14 +293,14 @@ function MockTestsContent() {
                         <Card>
                             <CardContent className="p-0">
                                 {isLoading ? (
-                                    <div className="p-16 text-center flex flex-col items-center gap-3 text-gray-400">
+                                    <div className="p-16 text-center flex flex-col items-center gap-3 text-[var(--text-muted)]">
                                         <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
                                         <p className="text-sm">Loading tests...</p>
                                     </div>
                                 ) : filtered.length === 0 ? (
                                     <div className="p-16 text-center space-y-3">
                                         <FileText className="w-14 h-14 text-gray-200 mx-auto" />
-                                        <p className="text-gray-500 font-medium">No tests found</p>
+                                        <p className="text-[var(--text-secondary)] font-medium">No tests found</p>
                                         <Button className="btn-primary" onClick={() => setShowCreate(true)}>
                                             <Plus className="w-4 h-4 mr-2" /> Create First Test
                                         </Button>
@@ -308,41 +308,41 @@ function MockTestsContent() {
                                 ) : (
                                     <Table>
                                         <TableHeader>
-                                            <TableRow className="bg-gray-50">
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Test Name</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Series/Folder</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Duration</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Marks</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Attempts</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase">Scheduled</TableHead>
-                                                <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                                            <TableRow className="bg-[var(--bg-main)]">
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Test Name</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Series/Folder</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Duration</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Marks</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Attempts</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Scheduled</TableHead>
+                                                <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
                                             {filtered.map(test => (
                                                 <TableRow key={test.id} className="hover:bg-orange-50/30">
                                                     <TableCell>
-                                                        <div className="font-medium text-sm text-gray-900 max-w-[260px] truncate">{test.name}</div>
-                                                        <div className="text-[10px] text-gray-400 font-mono">{test.testId}</div>
+                                                        <div className="font-medium text-sm text-[var(--text-primary)] max-w-[260px] truncate">{test.name}</div>
+                                                        <div className="text-[10px] text-[var(--text-muted)] font-mono">{test.testId}</div>
                                                     </TableCell>
                                                     <TableCell>
-                                                        <div className="text-xs text-gray-700">{test.subCategory?.category?.name || "—"}</div>
-                                                        <div className="text-[10px] text-gray-400">{test.subCategory?.name || ""}</div>
+                                                        <div className="text-xs text-[var(--text-primary)]">{test.subCategory?.category?.name || "—"}</div>
+                                                        <div className="text-[10px] text-[var(--text-muted)]">{test.subCategory?.name || ""}</div>
                                                     </TableCell>
-                                                    <TableCell className="text-sm text-gray-600">
+                                                    <TableCell className="text-sm text-[var(--text-secondary)]">
                                                         <span className="flex items-center gap-1">
                                                             <Clock className="w-3 h-3" /> {test.durationMins}m
                                                         </span>
                                                     </TableCell>
-                                                    <TableCell className="text-sm text-gray-600">{test.totalMarks}</TableCell>
-                                                    <TableCell className="text-sm text-gray-700 font-medium">
+                                                    <TableCell className="text-sm text-[var(--text-secondary)]">{test.totalMarks}</TableCell>
+                                                    <TableCell className="text-sm text-[var(--text-primary)] font-medium">
                                                         {test._count?.attempts || 0}
                                                     </TableCell>
                                                     <TableCell>
                                                         <StatusBadge status={test.status} />
                                                     </TableCell>
-                                                    <TableCell className="text-xs text-gray-500">
+                                                    <TableCell className="text-xs text-[var(--text-secondary)]">
                                                         {test.scheduledAt
                                                             ? new Date(test.scheduledAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
                                                             : "—"}
@@ -366,7 +366,7 @@ function MockTestsContent() {
                                                                         </Button>
                                                                     )}
                                                                     {test.status === "ENDED" && (
-                                                                        <Button variant="outline" size="sm" className="h-7 text-xs text-gray-500"
+                                                                        <Button variant="outline" size="sm" className="h-7 text-xs text-[var(--text-secondary)]"
                                                                             onClick={() => handleChangeStatus(test, "DRAFT")}>
                                                                             Reopen
                                                                         </Button>
@@ -466,7 +466,7 @@ function MockTestsContent() {
                         </div>
                         {form.seriesId && (
                             <div className="space-y-1.5">
-                                <Label>Sub-Category / Folder <span className="text-gray-400 font-normal">(optional)</span></Label>
+                                <Label>Sub-Category / Folder <span className="text-[var(--text-muted)] font-normal">(optional)</span></Label>
                                 {subCategories.length > 0 ? (
                                     <Select value={form.subCategoryId || "auto"} onValueChange={v => setForm(f => ({ ...f, subCategoryId: v === "auto" ? "" : v }))}>
                                         <SelectTrigger>
@@ -478,7 +478,7 @@ function MockTestsContent() {
                                         </SelectContent>
                                     </Select>
                                 ) : (
-                                    <p className="text-xs text-gray-400 py-1.5 px-3 bg-gray-50 rounded border border-gray-100">
+                                    <p className="text-xs text-[var(--text-muted)] py-1.5 px-3 bg-[var(--bg-main)] rounded border border-[var(--divider)]">
                                         ✓ Will auto-create a "General" folder under this series
                                     </p>
                                 )}
@@ -524,7 +524,7 @@ function MockTestsContent() {
                         </DialogTitle>
                         <DialogDescription>Are you sure you want to delete this test? This action is permanent.</DialogDescription>
                     </DialogHeader>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[var(--text-secondary)]">
                         Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? All attempts and answers will also be permanently deleted.
                     </p>
                     <DialogFooter>

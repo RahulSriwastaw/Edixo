@@ -23,7 +23,7 @@ export const ToolHeader: React.FC<ToolHeaderProps> = ({
       <div className="flex items-center gap-4 mb-4">
         <Link 
           href={backHref}
-          className="p-2.5 hover:bg-white hover:shadow-md rounded-xl transition-all text-slate-500 hover:text-primary border border-transparent hover:border-slate-100"
+          className="p-2.5 hover:bg-white hover:shadow-md rounded-xl transition-all text-[var(--text-secondary)] hover:text-primary border border-transparent hover:border-[var(--divider)]"
         >
           <ArrowLeft className="w-5 h-5" />
         </Link>
@@ -34,10 +34,10 @@ export const ToolHeader: React.FC<ToolHeaderProps> = ({
       </div>
       
       <div className="space-y-1">
-        <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
+        <h1 className="text-3xl md:text-4xl font-black text-[var(--text-primary)] tracking-tight">
           {title}
         </h1>
-        <p className="text-slate-500 text-lg">
+        <p className="text-[var(--text-secondary)] text-lg">
           {description}
         </p>
       </div>

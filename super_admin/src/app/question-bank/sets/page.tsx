@@ -41,7 +41,7 @@ function VisibilityBadge({ visibility }: { visibility: string }) {
   } else if (visibility === "org_only") {
     return <Badge className="bg-blue-50 text-blue-700 gap-1"><Building2 className="w-3 h-3" /> Org</Badge>;
   }
-  return <Badge className="bg-gray-100 text-gray-600 gap-1"><Lock className="w-3 h-3" /> Private</Badge>;
+  return <Badge className="bg-[var(--bg-main)] text-[var(--text-secondary)] gap-1"><Lock className="w-3 h-3" /> Private</Badge>;
 }
 
 export default function QuestionSetsPage() {
@@ -181,11 +181,11 @@ export default function QuestionSetsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="mb-4 bg-white border shadow-sm">
@@ -200,8 +200,8 @@ export default function QuestionSetsPage() {
               <TabsContent value="all-sets" className="mt-0 space-y-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Question Sets</h1>
-                    <p className="text-gray-500 text-sm">Manage all sets in a flat list</p>
+                    <h1 className="text-2xl font-bold text-[var(--text-primary)]">Question Sets</h1>
+                    <p className="text-[var(--text-secondary)] text-sm">Manage all sets in a flat list</p>
                   </div>
                   <div className="flex gap-3">
                     <Link href="/question-bank/sets/create">
@@ -215,7 +215,7 @@ export default function QuestionSetsPage() {
                 <Card>
                   <CardContent className="p-4 flex flex-wrap gap-4 items-center">
                     <div className="flex-1 min-w-[300px] relative">
-                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                      <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" />
                       <Input placeholder="Search sets..." value={search} onChange={e => setSearch(e.target.value)} className="pl-10" />
                     </div>
                     <Button
@@ -239,7 +239,7 @@ export default function QuestionSetsPage() {
                 <Card>
                   <CardContent className="p-0 overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50 border-b">
+                      <thead className="bg-[var(--bg-main)] border-b">
                         <tr>
                           <th className="w-12 p-4 text-center"><Checkbox checked={allSelected} onCheckedChange={toggleSelectAll} /></th>
                           <th className="text-left p-4 font-medium">Set Name</th>
@@ -251,12 +251,12 @@ export default function QuestionSetsPage() {
                       </thead>
                       <tbody>
                         {filteredSets.map((set) => (
-                          <tr key={set.id} className="border-b hover:bg-gray-50">
+                          <tr key={set.id} className="border-b hover:bg-[var(--bg-main)]">
                             <td className="p-4 text-center"><Checkbox checked={selectedSets.includes(set.id)} onCheckedChange={() => toggleSelect(set.id)} /></td>
                             <td className="p-4 font-medium">{set.name}</td>
                             <td className="p-4">
-                              <code className="text-xs bg-gray-100 px-1 rounded block">{set.setId}</code>
-                              <code className="text-xs text-gray-400 block">PWD: {set.pin}</code>
+                              <code className="text-xs bg-[var(--bg-main)] px-1 rounded block">{set.setId}</code>
+                              <code className="text-xs text-[var(--text-muted)] block">PWD: {set.pin}</code>
                             </td>
                             <td className="p-4 text-center">
                               {set.pdf_notes ? (
@@ -270,7 +270,7 @@ export default function QuestionSetsPage() {
                                     <span className="text-xs font-semibold">Notes PDF</span>
                                     <DownloadCloud className="w-3 h-3" />
                                   </Link>
-                                  <div className="text-[10px] text-gray-500 leading-tight">
+                                  <div className="text-[10px] text-[var(--text-secondary)] leading-tight">
                                     {set.pdf_notes.totalPages} pages • {set.pdf_notes.fileSize}MB
                                     <br/>
                                     {new Date(set.pdf_notes.createdAt).toLocaleDateString()}

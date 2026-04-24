@@ -53,7 +53,7 @@ export default function TestInstructionsPage() {
     if (!isAuthenticated()) return;
     apiFetch("/students/me").then(res => {
       if (res.data?.name) setDisplayName(res.data.name);
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   // Load test metadata
@@ -62,7 +62,7 @@ export default function TestInstructionsPage() {
     setLoadingMeta(true);
     apiFetch(`/mockbook/tests/${testId}`)
       .then(res => setTestMeta(res.data || null))
-      .catch(() => {})
+      .catch(() => { })
       .finally(() => setLoadingMeta(false));
   }, [testId]);
 
@@ -71,7 +71,7 @@ export default function TestInstructionsPage() {
     if (language && declared) {
       sessionStorage.setItem("testLanguage", language);
       setIsNavigating(true);
-      setTimeout(() => { window.location.href = `/tests/exam/${testId}`; }, 300);
+      setTimeout(() => { router.push(`/tests/exam/${testId}`); }, 300);
     }
   };
 
@@ -262,11 +262,10 @@ export default function TestInstructionsPage() {
           </button>
         ) : (
           <button
-            className={`px-6 py-2 text-sm font-semibold rounded transition-colors ${
-              declared && language
+            className={`px-6 py-2 text-sm font-semibold rounded transition-colors ${declared && language
                 ? "bg-[#1a73e8] text-white hover:bg-[#1557b0]"
                 : "bg-gray-200 text-gray-400 cursor-not-allowed"
-            }`}
+              }`}
             disabled={!declared || !language || isNavigating}
             onClick={handleBegin}
           >

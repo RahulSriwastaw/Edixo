@@ -268,17 +268,17 @@ const [authors, setAuthors] = useState<Author[]>([]);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/blog" className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/admin/blog" className="p-2 hover:bg-[var(--bg-main)] rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Authors</h1>
-                  <p className="text-gray-500 text-sm">Manage blog authors and contributors</p>
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Authors</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">Manage blog authors and contributors</p>
                 </div>
               </div>
               <Button className="btn-primary" onClick={() => handleOpenDialog()}>
@@ -291,13 +291,13 @@ const [authors, setAuthors] = useState<Author[]>([]);
             <div className="grid grid-cols-4 gap-4">
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">Total Authors</div>
-                  <div className="text-2xl font-bold text-gray-900">{authors.length}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Total Authors</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{authors.length}</div>
                 </CardContent>
               </Card>
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">Active</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Active</div>
                   <div className="text-2xl font-bold text-green-600">
                     {authors.filter(a => a.isActive).length}
                   </div>
@@ -305,16 +305,16 @@ const [authors, setAuthors] = useState<Author[]>([]);
               </Card>
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">Total Posts</div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-sm text-[var(--text-secondary)]">Total Posts</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">
                     {authors.reduce((sum, a) => sum + a.postCount, 0)}
                   </div>
                 </CardContent>
               </Card>
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">With Posts</div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-sm text-[var(--text-secondary)]">With Posts</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">
                     {authors.filter(a => a.postCount > 0).length}
                   </div>
                 </CardContent>
@@ -326,7 +326,7 @@ const [authors, setAuthors] = useState<Author[]>([]);
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <div className="relative flex-1 max-w-[300px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search authors..."
                       value={searchQuery}
@@ -352,12 +352,12 @@ const [authors, setAuthors] = useState<Author[]>([]);
             {/* Authors Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {loading ? (
-                <div className="col-span-full p-8 text-center text-gray-500">Loading...</div>
+                <div className="col-span-full p-8 text-center text-[var(--text-secondary)]">Loading...</div>
               ) : filteredAuthors.length === 0 ? (
                 <div className="col-span-full p-8 text-center">
                   <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="font-medium text-gray-900 mb-1">No authors found</h3>
-                  <p className="text-gray-500 text-sm mb-4">
+                  <h3 className="font-medium text-[var(--text-primary)] mb-1">No authors found</h3>
+                  <p className="text-[var(--text-secondary)] text-sm mb-4">
                     {searchQuery ? 'Try a different search' : 'Add your first author'}
                   </p>
                   <Button onClick={() => handleOpenDialog()}>
@@ -370,28 +370,28 @@ const [authors, setAuthors] = useState<Author[]>([]);
                   <Card key={author.id} className="hover:shadow-md transition-shadow">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-4">
-                        <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden flex-shrink-0">
+                        <div className="w-16 h-16 rounded-full bg-[var(--bg-main)] flex items-center justify-center overflow-hidden flex-shrink-0">
                           {author.photoUrl ? (
                             <img src={author.photoUrl} alt={author.name} className="w-full h-full object-cover" />
                           ) : (
-                            <span className="text-xl font-bold text-gray-400">
+                            <span className="text-xl font-bold text-[var(--text-muted)]">
                               {author.name.charAt(0)}
                             </span>
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-medium text-gray-900 truncate">{author.name}</h3>
+                            <h3 className="font-medium text-[var(--text-primary)] truncate">{author.name}</h3>
                             {!author.isActive && (
                               <Badge variant="secondary" className="text-xs">Inactive</Badge>
                             )}
                           </div>
                           {author.title && (
-                            <p className="text-sm text-gray-500 truncate">{author.title}</p>
+                            <p className="text-sm text-[var(--text-secondary)] truncate">{author.title}</p>
                           )}
                           <div className="flex items-center gap-2 mt-1">
                             <RoleBadge role={author.role} />
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-[var(--text-muted)]">
                               {author.postCount} posts
                             </span>
                           </div>
@@ -399,22 +399,22 @@ const [authors, setAuthors] = useState<Author[]>([]);
                       </div>
 
                       {author.bio && (
-                        <p className="text-sm text-gray-600 mt-3 line-clamp-2">{author.bio}</p>
+                        <p className="text-sm text-[var(--text-secondary)] mt-3 line-clamp-2">{author.bio}</p>
                       )}
 
                       <div className="flex items-center gap-3 mt-3 pt-3 border-t">
                         {author.linkedinUrl && (
-                          <a href={author.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-600">
+                          <a href={author.linkedinUrl} target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-blue-600">
                             <Linkedin className="w-4 h-4" />
                           </a>
                         )}
                         {author.twitterHandle && (
-                          <a href={`https://twitter.com/${author.twitterHandle}`} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-blue-400">
+                          <a href={`https://twitter.com/${author.twitterHandle}`} target="_blank" rel="noopener noreferrer" className="text-[var(--text-muted)] hover:text-blue-400">
                             <Twitter className="w-4 h-4" />
                           </a>
                         )}
                         {author.email && (
-                          <a href={`mailto:${author.email}`} className="text-gray-400 hover:text-gray-600">
+                          <a href={`mailto:${author.email}`} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
                             <Mail className="w-4 h-4" />
                           </a>
                         )}
@@ -572,7 +572,7 @@ const [authors, setAuthors] = useState<Author[]>([]);
                     type="checkbox"
                     checked={formData.isActive}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                    className="rounded border-gray-300"
+                    className="rounded border-[var(--border-input)]"
                   />
                   <span className="text-sm">Active</span>
                 </label>

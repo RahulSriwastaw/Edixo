@@ -41,12 +41,12 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-50 flex flex-col"
           >
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+            <div className="p-6 border-b border-[var(--divider)] flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center">
                   <Clock className="w-4 h-4" />
                 </div>
-                <h2 className="text-lg font-bold text-slate-900">History</h2>
+                <h2 className="text-lg font-bold text-[var(--text-primary)]">History</h2>
               </div>
               <div className="flex items-center gap-2">
                 {history.length > 0 && (
@@ -56,7 +56,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                         onClearAll();
                       }
                     }}
-                    className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                    className="p-1.5 text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
                     title="Clear All"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -64,7 +64,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                 )}
                 <button 
                   onClick={onClose}
-                  className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"
+                  className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-[var(--text-muted)]"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
@@ -73,7 +73,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
 
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {history.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4">
+                <div className="h-full flex flex-col items-center justify-center text-[var(--text-muted)] space-y-4">
                   <Clock className="w-12 h-12 opacity-20" />
                   <p className="text-sm font-medium">No history yet</p>
                 </div>
@@ -89,21 +89,21 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                     <motion.div
                       layout
                       key={item.id}
-                      className="group p-3 rounded-xl border border-slate-100 bg-white hover:border-slate-300 hover:shadow-md transition-all cursor-pointer relative"
+                      className="group p-3 rounded-xl border border-[var(--divider)] bg-white hover:border-[var(--border-input)] hover:shadow-md transition-all cursor-pointer relative"
                       onClick={() => onSelectItem(item)}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3 overflow-hidden">
-                          <div className="w-8 h-8 rounded-lg bg-slate-50 flex-shrink-0 flex items-center justify-center text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-700 transition-colors">
+                          <div className="w-8 h-8 rounded-lg bg-[var(--bg-main)] flex-shrink-0 flex items-center justify-center text-[var(--text-muted)] group-hover:bg-slate-100 group-hover:text-[var(--text-primary)] transition-colors">
                             <FileText className="w-4 h-4" />
                           </div>
                           <div className="overflow-hidden">
                             <h3 className="font-semibold text-slate-800 line-clamp-1 text-sm">{item.fileName}</h3>
-                            <p className="text-[10px] text-slate-400 mt-0.5">
+                            <p className="text-[10px] text-[var(--text-muted)] mt-0.5">
                               {new Date(item.timestamp).toLocaleDateString()} • {item.pagesCount} pages
                             </p>
                             {previewText && (
-                              <p className="text-[10px] text-slate-500 mt-1 line-clamp-1 italic">
+                              <p className="text-[10px] text-[var(--text-secondary)] mt-1 line-clamp-1 italic">
                                 "{previewText}"
                               </p>
                             )}
@@ -118,7 +118,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                                 .then(() => alert("Text copied to clipboard!"))
                                 .catch(err => console.error("Failed to copy text:", err));
                             }}
-                            className="p-1.5 text-slate-300 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-all"
+                            className="p-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-slate-100 rounded-md transition-all"
                             title="Copy Text"
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -128,7 +128,7 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
                               e.stopPropagation();
                               onDeleteItem(item.id);
                             }}
-                            className="p-1.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all"
+                            className="p-1.5 text-[var(--text-muted)] hover:text-rose-600 hover:bg-rose-50 rounded-md transition-all"
                             title="Delete"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -141,8 +141,8 @@ const HistorySidebar: React.FC<HistorySidebarProps> = ({
               )}
             </div>
 
-            <div className="p-6 border-t border-slate-100 bg-slate-50/50">
-              <p className="text-xs text-slate-400 text-center">
+            <div className="p-6 border-t border-[var(--divider)] bg-[var(--bg-main)]">
+              <p className="text-xs text-[var(--text-muted)] text-center">
                 History is saved locally on your device.
               </p>
             </div>

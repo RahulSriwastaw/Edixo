@@ -7,7 +7,6 @@ import {
   Bell,
   Search,
   User,
-  Coins,
   LogOut,
   LayoutDashboard,
   Settings,
@@ -29,8 +28,8 @@ import { useUser, useAuth, useDoc, useFirestore } from "@/firebase";
 import { signOut } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { navItems } from "./Sidebar";
+import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import { useState } from "react";
 
 export function Navbar() {
@@ -60,19 +59,25 @@ export function Navbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-white border-b border-slate-100 shrink-0 shadow-sm">
-      <div className="flex h-14 items-center justify-between gap-2 px-3 md:px-5 max-w-full">
-        
+    <header
+      className="sticky top-0 z-50 w-full shrink-0"
+      style={{
+        background: "var(--bg-sidebar)",
+        borderBottom: "var(--divider)",
+      }}
+    >
+      <div className="flex h-12 items-center justify-between gap-2 px-3 md:px-4 max-w-full">
+
         {/* Left: Logo */}
         <div className="flex items-center gap-2 shrink-0">
           <Link href="/" className="flex items-center gap-2 group">
             <span
-              className="text-white p-1.5 rounded-lg text-[10px] font-black w-7 h-7 flex items-center justify-center shrink-0 shadow-sm transition-transform group-hover:scale-110"
-              style={{ background: "linear-gradient(135deg, #1a73e8, #0057d9)" }}
+              className="text-white p-1 rounded-md text-[10px] font-black w-6 h-6 flex items-center justify-center shrink-0"
+              style={{ background: "#FF6B2B" }}
             >
               M
             </span>
-            <span className="hidden sm:inline text-[15px] font-black tracking-tight text-[#0f1b2d]">
+            <span className="hidden sm:inline text-[14px] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
               Mockbook
             </span>
           </Link>
@@ -80,115 +85,182 @@ export function Navbar() {
 
         {/* Centre: Search (logged in & desktop only) */}
         {user && (
-          <div className="hidden lg:flex flex-1 max-w-md relative mx-8 group">
+          <div className="hidden lg:flex flex-1 max-w-md relative mx-6 group">
             <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <Search className="h-3.5 w-3.5 text-slate-400 group-focus-within:text-[#1a73e8] transition-colors" />
+              <Search className="h-3.5 w-3.5 transition-colors" style={{ color: "var(--text-muted)" }} />
             </div>
             <input
               type="search"
               placeholder="Search tests, exams, topics..."
-              className="h-9 w-full bg-slate-50 border border-slate-200 pl-9 pr-3 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-[#1a73e8] text-[13px] font-medium placeholder:text-slate-400 transition-all"
+              className="h-8 w-full pl-9 pr-3 rounded-md text-[12px] font-medium transition-all"
+              style={{
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-input)",
+                color: "var(--text-primary)",
+              }}
             />
           </div>
         )}
 
         {/* Right: Actions */}
         <div className="flex items-center gap-1">
+          <ThemeToggle />
+
           {user ? (
             <>
               {/* Mobile Search Toggle */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden h-8 w-8 rounded-lg hover:bg-slate-50"
+                className="lg:hidden h-7 w-7 rounded-md"
+                style={{ color: "var(--text-secondary)" }}
                 onClick={() => setMobileSearchOpen(o => !o)}
               >
-                {mobileSearchOpen ? <X className="h-4 w-4 text-slate-600" /> : <Search className="h-4 w-4 text-slate-600" />}
+                {mobileSearchOpen ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
               </Button>
 
               {/* Points & Streak Chip */}
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-blue-50/50 border border-blue-100/50 rounded-lg group hover:bg-blue-50 transition-colors">
-                <div className="flex items-center gap-1 text-[#1a73e8]">
-                  <Zap className="h-3.5 w-3.5 fill-[#1a73e8]" />
-                  <span className="font-black text-[11px] uppercase tracking-tighter">{points.toLocaleString()}</span>
+              <div
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md group transition-colors"
+                style={{
+                  background: "var(--bg-main)",
+                  border: "var(--border-card)",
+                }}
+              >
+                <div className="flex items-center gap-1" style={{ color: "#FF6B2B" }}>
+                  <Zap className="h-3 w-3" />
+                  <span className="font-bold text-[10px] uppercase tracking-tighter">{points.toLocaleString()}</span>
                 </div>
-                <div className="w-px h-3 bg-blue-200/50 mx-0.5" />
-                <div className="flex items-center gap-1 text-orange-500">
-                  <Flame className="h-3.5 w-3.5 fill-orange-500" />
-                  <span className="font-black text-[11px]">18</span>
+                <div className="w-px h-3 mx-0.5" style={{ background: "var(--divider)" }} />
+                <div className="flex items-center gap-1" style={{ color: "#FF6B2B" }}>
+                  <Flame className="h-3 w-3" />
+                  <span className="font-bold text-[10px]">18</span>
                 </div>
               </div>
 
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative h-8 w-8 rounded-lg hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100">
-                <Bell className="h-4 w-4 text-slate-600" />
-                <span className="absolute top-1.5 right-1.5 flex h-1.5 w-1.5 rounded-full bg-red-500 ring-2 ring-white" />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="relative h-7 w-7 rounded-md transition-all"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                <Bell className="h-4 w-4" />
+                <span
+                  className="absolute top-1 right-1 flex h-1.5 w-1.5 rounded-full"
+                  style={{ background: "#F44336" }}
+                />
               </Button>
 
               {/* User dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon" className="rounded-lg h-8 w-8 p-0 overflow-hidden border border-slate-200 hover:border-[#1a73e8]/30 transition-all bg-slate-50">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-md h-7 w-7 p-0 overflow-hidden transition-all"
+                    style={{
+                      background: "var(--bg-main)",
+                      border: "1px solid var(--border-input)",
+                    }}
+                  >
                     <div className="w-full h-full flex items-center justify-center">
                       {user?.photoURL ? (
                         <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
                       ) : (
-                        <User className="h-4 w-4 text-slate-400" />
+                        <User className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
                       )}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64 p-1.5 rounded-xl shadow-2xl border-slate-100 mt-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                <DropdownMenuContent
+                  align="end"
+                  className="w-60 p-1.5 rounded-lg mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+                  style={{
+                    background: "var(--bg-card)",
+                    border: "var(--border-card)",
+                  }}
+                >
                   {/* User info */}
-                  <div className="p-3 mb-1.5 bg-slate-50 rounded-lg border border-slate-100">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-9 h-9 rounded-full bg-white shadow-sm flex items-center justify-center border border-slate-200 overflow-hidden">
+                  <div
+                    className="p-2.5 mb-1 rounded-md"
+                    style={{
+                      background: "var(--bg-main)",
+                      border: "var(--border-card)",
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div
+                        className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+                        style={{
+                          background: "var(--bg-input)",
+                          border: "1px solid var(--border-input)",
+                        }}
+                      >
                         {user?.photoURL ? (
                           <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
                         ) : (
-                          <User className="h-4 w-4 text-slate-400" />
+                          <User className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-black text-[13px] text-[#0f1b2d] truncate">{user?.displayName || userDoc.data?.name || "Student"}</p>
-                        <p className="text-[11px] font-bold text-slate-400 truncate tracking-tight">{user?.email}</p>
+                        <p className="font-bold text-[12px] truncate" style={{ color: "var(--text-primary)" }}>
+                          {user?.displayName || userDoc.data?.name || "Student"}
+                        </p>
+                        <p className="text-[10px] truncate tracking-tight" style={{ color: "var(--text-muted)" }}>
+                          {user?.email}
+                        </p>
                       </div>
                     </div>
                   </div>
 
                   <div className="space-y-0.5">
                     {[
-                      { href: "/tests", icon: LayoutDashboard, label: "Dashboard", color: "text-[#1a73e8]" },
-                      { href: "/tests/my-series", icon: BookOpen, label: "My Test Series", color: "text-orange-500" },
-                      { href: "/study-plans", icon: Bot, label: "AI Study Plans", color: "text-emerald-500" },
-                      { href: "/analytics", icon: BarChart3, label: "Performance", color: "text-[#1a73e8]" },
-                      { href: "/settings", icon: Settings, label: "Settings", color: "text-slate-400" },
+                      { href: "/tests", icon: LayoutDashboard, label: "Dashboard" },
+                      { href: "/tests/my-series", icon: BookOpen, label: "My Test Series" },
+                      { href: "/study-plans", icon: Bot, label: "AI Study Plans" },
+                      { href: "/analytics", icon: BarChart3, label: "Performance" },
+                      { href: "/settings", icon: Settings, label: "Settings" },
                     ].map(item => (
-                      <DropdownMenuItem key={item.href} asChild className="cursor-pointer text-[13px] font-bold rounded-lg py-2 px-3 focus:bg-slate-50 focus:text-[#1a73e8] transition-colors">
-                        <Link href={item.href} className="flex items-center gap-2.5 w-full">
-                          <item.icon className={cn("h-4 w-4", item.color)} />
+                      <DropdownMenuItem
+                        key={item.href}
+                        asChild
+                        className="cursor-pointer text-[12px] font-medium rounded-md py-1.5 px-2.5 transition-colors"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        <Link href={item.href} className="flex items-center gap-2 w-full">
+                          <item.icon className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
                           {item.label}
                         </Link>
                       </DropdownMenuItem>
                     ))}
                   </div>
 
-                  <div className="h-px bg-slate-50 my-1 mx-1" />
+                  <div className="h-px my-1 mx-1" style={{ background: "var(--divider)" }} />
 
-                  <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-[13px] font-bold rounded-lg py-2 px-3 text-red-500 focus:bg-red-50 focus:text-red-600 transition-colors">
-                    <LogOut className="h-4 w-4 mr-2.5" /> Sign Out
+                  <DropdownMenuItem
+                    onClick={handleLogout}
+                    className="cursor-pointer text-[12px] font-medium rounded-md py-1.5 px-2.5 transition-colors"
+                    style={{ color: "#F44336" }}
+                  >
+                    <LogOut className="h-4 w-4 mr-2" /> Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </>
           ) : (
             <div className="flex items-center gap-1 sm:gap-2">
-              <Button variant="ghost" className="text-[13px] font-bold rounded-lg text-slate-600 h-8 px-3" asChild>
+              <Button
+                variant="ghost"
+                className="text-[12px] font-medium rounded-md h-7 px-3"
+                style={{ color: "var(--text-secondary)" }}
+                asChild
+              >
                 <Link href="/login">Login</Link>
               </Button>
               <Button
-                className="text-[13px] font-black rounded-lg h-8 px-4 text-white border-none shadow-md shadow-blue-500/20 active:scale-95 transition-all"
-                style={{ background: "#1a73e8" }}
+                className="text-[12px] font-bold rounded-md h-7 px-3 text-white border-none active:scale-95 transition-all"
+                style={{ background: "#FF6B2B" }}
                 asChild
               >
                 <Link href="/login">Join Free</Link>
@@ -200,14 +272,19 @@ export function Navbar() {
 
       {/* Mobile Search Bar (expandable) */}
       {user && mobileSearchOpen && (
-        <div className="lg:hidden px-3 pb-3 pt-1 animate-in slide-in-from-top duration-300">
+        <div className="lg:hidden px-3 pb-2.5 pt-0.5 animate-in slide-in-from-top duration-300">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400 group-focus-within:text-[#1a73e8]" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-muted)" }} />
             <input
               type="search"
               placeholder="Search tests, exams, topics..."
               autoFocus
-              className="h-10 w-full bg-slate-50 border border-slate-200 pl-10 pr-4 rounded-lg focus:outline-none focus:ring-4 focus:ring-blue-500/5 focus:border-[#1a73e8] text-sm font-medium"
+              className="h-9 w-full pl-10 pr-4 rounded-md text-[12px] font-medium"
+              style={{
+                background: "var(--bg-input)",
+                border: "1px solid var(--border-input)",
+                color: "var(--text-primary)",
+              }}
             />
           </div>
         </div>

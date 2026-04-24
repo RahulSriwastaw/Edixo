@@ -130,37 +130,56 @@ export default function ExamPage() {
 
       try {
         setLoading(true);
+        setExamError(null);
 
         // 1. Fetch student profile for display name
         try {
           const meRes = await apiFetch("/students/me");
           if (meRes.data?.name) setDisplayName(meRes.data.name);
-        } catch {}
+        } catch { /* silent */ }
 
-        // 2. Fetch questions
+        // 2. Start attempt FIRST (need attemptId for autosave)
+        let attemptIdLocal: string | null = null;
+        try {
+          const attRes = await apiFetch(`/mockbook/tests/${testId}/attempts`, {
+            method: "POST",
+            body: JSON.stringify({ action: "start" }),
+          });
+          if (attRes.data?.id) {
+            attemptIdLocal = attRes.data.id;
+            setAttemptId(attRes.data.id);
+          }
+        } catch (attErr: any) {
+          console.error("Failed to start attempt:", attErr);
+          // If attempt start fails, show error but still try to load questions for preview
+          setExamError(`Failed to start exam: ${attErr.message || "Please try again."}`);
+        }
+
+        // 3. Fetch questions
         const qRes = await apiFetch(`/mockbook/tests/${testId}/questions`);
         const data = qRes.data;
-        if (!data || !data.questions) throw new Error("No questions returned");
+        if (!data || !data.questions || data.questions.length === 0) {
+          throw new Error("No questions found for this test. Please contact support.");
+        }
 
         setTestName(data.name || "Test");
         setDurationMins(data.durationMins || 60);
         setSecondsLeft((data.durationMins || 60) * 60);
         setQuestions(data.questions);
 
-        // 3. Start attempt
-        const attRes = await apiFetch(`/mockbook/tests/${testId}/attempts`, {
-          method: "POST",
-          body: JSON.stringify({ action: "start" }),
-        });
-        if (attRes.data?.id) setAttemptId(attRes.data.id);
-
         // 4. Initialize question state
-        const initial: any = {};
+        const initial: Record<number, { status: string; answer: number | null; optionId: string | null }> = {};
         data.questions.forEach((_: any, i: number) => {
           initial[i] = { status: i === 0 ? "not_answered" : "not_visited", answer: null, optionId: null };
         });
         setQState(initial);
-        setIsReady(true);
+
+        // If attempt failed to start, don't allow taking the test
+        if (!attemptIdLocal) {
+          setIsReady(false);
+        } else {
+          setIsReady(true);
+        }
       } catch (err: any) {
         console.error("Failed to load exam:", err);
         setTestName("Error — Could not load test");
@@ -200,7 +219,7 @@ export default function ExamPage() {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
     const s = seconds % 60;
-    return `${h.toString().padStart(2,'0')} : ${m.toString().padStart(2,'0')} : ${s.toString().padStart(2,'0')}`;
+    return `${h.toString().padStart(2, '0')} : ${m.toString().padStart(2, '0')} : ${s.toString().padStart(2, '0')}`;
   };
 
   const recordQuestionTime = useCallback(() => {
@@ -342,9 +361,10 @@ export default function ExamPage() {
         selectedOptions: qState[i]?.optionId ? [qState[i].optionId!] : [],
       }));
 
+      const totalTimeTaken = Math.max(0, (durationMins * 60) - secondsLeft);
       const res = await apiFetch(`/mockbook/tests/${testId}/attempts`, {
         method: "POST",
-        body: JSON.stringify({ action: "submit", answers }),
+        body: JSON.stringify({ action: "submit", answers, timeTakenSecs: totalTimeTaken }),
       });
 
       if (res.success && res.data) {
@@ -363,11 +383,11 @@ export default function ExamPage() {
   }, [questions, qState, testId, submitting, router, toast]);
 
   const toggleFullscreen = () => {
-    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => { });
     else document.exitFullscreen?.();
   };
 
-  if (loading || !isReady) {
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
         <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
@@ -376,7 +396,7 @@ export default function ExamPage() {
     );
   }
 
-  if (examError || questions.length === 0) {
+  if (examError || questions.length === 0 || !isReady) {
     return (
       <div className="flex flex-col items-center justify-center h-screen bg-[#f0f4f7] space-y-4 p-4 text-center">
         <AlertTriangle className="h-12 w-12 text-amber-500" />
@@ -415,11 +435,11 @@ export default function ExamPage() {
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex flex-col">
-             <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Exam Mode</span>
-             <span className="text-[13px] font-bold truncate max-w-[120px]">{testName}</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider leading-none">Exam Mode</span>
+            <span className="text-[13px] font-bold truncate max-w-[120px]">{testName}</span>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 bg-slate-800 px-2 py-1.5 rounded border border-slate-700">
             <span className="text-[10px] text-slate-400 font-bold">TIMER</span>
@@ -442,26 +462,26 @@ export default function ExamPage() {
         </div>
 
         <div className="flex items-center gap-6">
-           <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2">
             <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Time Left</span>
             <div className="flex items-center gap-1 font-mono text-base font-black text-slate-800">
-               {formatTime(secondsLeft).split(':').map((chunk, i) => (
-                 <div key={i} className="flex items-center">
-                    <span className="bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 min-w-[28px] text-center shadow-sm">{chunk.trim()}</span>
-                    {i < 2 && <span className="mx-0.5 text-slate-300">:</span>}
-                 </div>
-               ))}
+              {formatTime(secondsLeft).split(':').map((chunk, i) => (
+                <div key={i} className="flex items-center">
+                  <span className="bg-slate-50 rounded border border-slate-200 px-1.5 py-0.5 min-w-[28px] text-center shadow-sm">{chunk.trim()}</span>
+                  {i < 2 && <span className="mx-0.5 text-slate-300">:</span>}
+                </div>
+              ))}
             </div>
           </div>
           <div className="flex items-center gap-2">
-             <button
+            <button
               className="h-8 px-3 text-[10px] font-bold text-slate-600 border border-slate-200 rounded-lg hover:bg-slate-50 transition-all flex items-center gap-2"
               onClick={toggleFullscreen}
             >
               <Maximize className="h-3.5 w-3.5" />
               {isFullscreen ? "NORMAL" : "FULL"}
             </button>
-             <button
+            <button
               className="h-8 px-3 text-[10px] font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-lg hover:bg-blue-50 transition-all flex items-center gap-2"
               onClick={handlePause}
             >
@@ -499,25 +519,25 @@ export default function ExamPage() {
         <div className="flex-1 flex flex-col min-w-0 bg-white shadow-sm ring-1 ring-slate-200">
           <div className="flex items-center justify-between px-5 md:px-8 py-2.5 border-b border-slate-100 shrink-0 bg-slate-50/50">
             <div className="flex items-baseline gap-1.5">
-               <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Question</span>
-               <span className="text-lg font-black text-slate-800">{currentQ.number}</span>
+              <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Question</span>
+              <span className="text-lg font-black text-slate-800">{currentQ.number}</span>
             </div>
-            
+
             <div className="flex items-center gap-3">
-               <div className="flex items-center bg-white border border-slate-200 rounded-full px-3 py-1 gap-4 shadow-sm">
-                  <div className="flex items-center gap-1.5 border-r border-slate-100 pr-3">
-                     <div className="w-4 h-4 rounded bg-emerald-100 flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-emerald-700">+{currentQ.marks}</span>
-                     </div>
-                     <div className="w-4 h-4 rounded bg-rose-100 flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-rose-700">{currentQ.negative}</span>
-                     </div>
+              <div className="flex items-center bg-white border border-slate-200 rounded-full px-3 py-1 gap-4 shadow-sm">
+                <div className="flex items-center gap-1.5 border-r border-slate-100 pr-3">
+                  <div className="w-4 h-4 rounded bg-emerald-100 flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-emerald-700">+{currentQ.marks}</span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-slate-500">
-                     <span className="text-[10px] font-bold uppercase tracking-widest">Time</span>
-                     <span className="text-[11px] font-mono font-bold text-slate-800">{formatSecs(currentTime)}</span>
+                  <div className="w-4 h-4 rounded bg-rose-100 flex items-center justify-center">
+                    <span className="text-[10px] font-bold text-rose-700">{currentQ.negative}</span>
                   </div>
-               </div>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-500">
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Time</span>
+                  <span className="text-[11px] font-mono font-bold text-slate-800">{formatSecs(currentTime)}</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -525,11 +545,11 @@ export default function ExamPage() {
             <div className="max-w-4xl mx-auto">
               {currentQ.imageUrl && (
                 <div className="mb-8 p-4 bg-slate-50 rounded-xl border border-slate-200 shadow-sm">
-                   <img src={currentQ.imageUrl} alt="question" className="max-h-72 w-auto mx-auto object-contain rounded-lg" />
+                  <img src={currentQ.imageUrl} alt="question" className="max-h-72 w-auto mx-auto object-contain rounded-lg" />
                 </div>
               )}
-              
-              <div 
+
+              <div
                 className="text-[17px] font-bold text-slate-800 mb-10 leading-[1.6] tracking-tight"
                 dangerouslySetInnerHTML={{ __html: currentQ.text || "" }}
               />
@@ -539,9 +559,9 @@ export default function ExamPage() {
                   const isSelected = currentQState.answer === i;
                   return (
                     <label key={opt.id} className={cn(
-                        "flex items-center gap-3.5 cursor-pointer group p-3.5 rounded-xl border-2 transition-all duration-200",
-                        isSelected ? "border-blue-600 bg-blue-50/30 shadow-sm" : "border-slate-100 hover:border-slate-300 hover:bg-slate-50"
-                      )}
+                      "flex items-center gap-3.5 cursor-pointer group p-3.5 rounded-xl border-2 transition-all duration-200",
+                      isSelected ? "border-blue-600 bg-blue-50/30 shadow-sm" : "border-slate-100 hover:border-slate-300 hover:bg-slate-50"
+                    )}
                       onClick={() => handleSelectOption(i, opt.id)}
                     >
                       <div className={cn(
@@ -568,7 +588,7 @@ export default function ExamPage() {
                 CLEAR
               </button>
             </div>
-            
+
             <button
               className="w-full md:w-auto px-12 py-3 text-[14px] font-black rounded-xl text-white shadow-xl shadow-brand-primary/20 transition-all hover:scale-105 active:scale-95"
               style={{ backgroundColor: brandColor }}
@@ -584,10 +604,10 @@ export default function ExamPage() {
           "bg-white border-l border-slate-200 flex flex-col shrink-0 transition-all duration-300 absolute md:relative h-full z-[100] right-0 shadow-xl md:shadow-none",
           sidebarOpen ? "translate-x-0 w-[300px]" : "translate-x-full w-0 md:w-0"
         )}>
-           {/* Mobile Overlay */}
-           {sidebarOpen && <div className="md:hidden fixed inset-0 -ml-[100vw] w-[100vw] bg-slate-900/50 backdrop-blur-sm -z-10" onClick={() => setSidebarOpen(false)} />}
+          {/* Mobile Overlay */}
+          {sidebarOpen && <div className="md:hidden fixed inset-0 -ml-[100vw] w-[100vw] bg-slate-900/50 backdrop-blur-sm -z-10" onClick={() => setSidebarOpen(false)} />}
 
-           <button
+          <button
             className="hidden md:flex absolute -left-6 top-1/2 -translate-y-1/2 w-6 h-14 bg-slate-800 text-white items-center justify-center rounded-l-lg shadow-xl cursor-pointer hover:bg-brand-primary transition-all group"
             onClick={() => setSidebarOpen(!sidebarOpen)}
           >
@@ -595,44 +615,44 @@ export default function ExamPage() {
           </button>
 
           <div className={cn("flex flex-col h-full", !sidebarOpen && "hidden")}>
-             <div className="flex items-center gap-3 p-3 bg-white border-b border-gray-200">
-                <div className="w-9 h-9 rounded bg-brand-primary/10 flex items-center justify-center"><UserIcon className="h-5 w-5 text-brand-primary" /></div>
-                <span className="text-[13px] font-bold text-gray-800">{displayName}</span>
-             </div>
+            <div className="flex items-center gap-3 p-3 bg-white border-b border-gray-200">
+              <div className="w-9 h-9 rounded bg-brand-primary/10 flex items-center justify-center"><UserIcon className="h-5 w-5 text-brand-primary" /></div>
+              <span className="text-[13px] font-bold text-gray-800">{displayName}</span>
+            </div>
 
-             <div className="p-4 grid grid-cols-2 gap-4 border-b border-slate-100 bg-white">
-                <div className="flex items-center gap-2.5"><PaletteShapes.Answered num={stats.answered} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Answered</span></div>
-                <div className="flex items-center gap-2.5"><PaletteShapes.Marked num={stats.marked} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Marked</span></div>
-                <div className="flex items-center gap-2.5"><PaletteShapes.NotVisited num={stats.not_visited} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Not Visited</span></div>
-                <div className="flex items-center gap-2.5"><PaletteShapes.MarkedAndAnswered num={stats.marked_answered} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-tight">Marked &<br/>Answered</span></div>
-                <div className="flex items-center gap-2.5 col-span-2 pt-2 border-t border-slate-50"><PaletteShapes.NotAnswered num={stats.not_answered} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Not Answered</span></div>
-             </div>
+            <div className="p-4 grid grid-cols-2 gap-4 border-b border-slate-100 bg-white">
+              <div className="flex items-center gap-2.5"><PaletteShapes.Answered num={stats.answered} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Answered</span></div>
+              <div className="flex items-center gap-2.5"><PaletteShapes.Marked num={stats.marked} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Marked</span></div>
+              <div className="flex items-center gap-2.5"><PaletteShapes.NotVisited num={stats.not_visited} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Not Visited</span></div>
+              <div className="flex items-center gap-2.5"><PaletteShapes.MarkedAndAnswered num={stats.marked_answered} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter leading-tight">Marked &<br />Answered</span></div>
+              <div className="flex items-center gap-2.5 col-span-2 pt-2 border-t border-slate-50"><PaletteShapes.NotAnswered num={stats.not_answered} /><span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter">Not Answered</span></div>
+            </div>
 
-             <div className="bg-[#d0dfec] px-3 py-2 border-b border-gray-300 shadow-inner font-mono font-bold text-[11px]">SECTION: {currentQ.section}</div>
+            <div className="bg-[#d0dfec] px-3 py-2 border-b border-gray-300 shadow-inner font-mono font-bold text-[11px]">SECTION: {currentQ.section}</div>
 
-             <div className="flex-1 overflow-y-auto p-4 bg-white custom-scrollbar">
-                <div className="grid grid-cols-5 gap-3">
-                   {questions.map((q, i) => (
-                     <div key={q.id} onClick={() => navigateTo(i)} className={cn("cursor-pointer transition-transform", currentIdx === i && "scale-110")}>
-                        {qState[i]?.status === "not_visited" && <PaletteShapes.NotVisited num={q.number} active={currentIdx === i} />}
-                        {qState[i]?.status === "not_answered" && <PaletteShapes.NotAnswered num={q.number} active={currentIdx === i} />}
-                        {qState[i]?.status === "answered" && <PaletteShapes.Answered num={q.number} active={currentIdx === i} />}
-                        {qState[i]?.status === "marked" && <PaletteShapes.Marked num={q.number} active={currentIdx === i} />}
-                        {qState[i]?.status === "marked_answered" && <PaletteShapes.MarkedAndAnswered num={q.number} active={currentIdx === i} />}
-                     </div>
-                   ))}
-                </div>
-             </div>
+            <div className="flex-1 overflow-y-auto p-4 bg-white custom-scrollbar">
+              <div className="grid grid-cols-5 gap-3">
+                {questions.map((q, i) => (
+                  <div key={q.id} onClick={() => navigateTo(i)} className={cn("cursor-pointer transition-transform", currentIdx === i && "scale-110")}>
+                    {qState[i]?.status === "not_visited" && <PaletteShapes.NotVisited num={q.number} active={currentIdx === i} />}
+                    {qState[i]?.status === "not_answered" && <PaletteShapes.NotAnswered num={q.number} active={currentIdx === i} />}
+                    {qState[i]?.status === "answered" && <PaletteShapes.Answered num={q.number} active={currentIdx === i} />}
+                    {qState[i]?.status === "marked" && <PaletteShapes.Marked num={q.number} active={currentIdx === i} />}
+                    {qState[i]?.status === "marked_answered" && <PaletteShapes.MarkedAndAnswered num={q.number} active={currentIdx === i} />}
+                  </div>
+                ))}
+              </div>
+            </div>
 
-             <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col gap-3">
-                <div className="flex gap-2">
-                   <button onClick={() => setShowQPaperModal(true)} className="flex-1 bg-white border border-slate-200 text-[11px] font-black py-2.5 rounded shadow-sm hover:bg-white transition-all flex items-center justify-center gap-1.5"><FileText className="h-3.5 w-3.5" /> QUESTION PAPER</button>
-                   <button onClick={() => setShowReportModal(true)} className="flex-1 bg-white border border-slate-200 text-[11px] font-black py-2.5 rounded shadow-sm hover:bg-white transition-all flex items-center justify-center gap-1.5"><Flag className="h-3.5 w-3.5" /> REPORT</button>
-                </div>
-                <button onClick={() => setShowSubmitModal(true)} className="w-full text-white text-[13px] font-black py-3.5 rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all" style={{ backgroundColor: brandColor }} disabled={submitting}>
-                  {submitting ? "SUBMITTING..." : "SUBMIT TEST"}
-                </button>
-             </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col gap-3">
+              <div className="flex gap-2">
+                <button onClick={() => setShowQPaperModal(true)} className="flex-1 bg-white border border-slate-200 text-[11px] font-black py-2.5 rounded shadow-sm hover:bg-white transition-all flex items-center justify-center gap-1.5"><FileText className="h-3.5 w-3.5" /> QUESTION PAPER</button>
+                <button onClick={() => setShowReportModal(true)} className="flex-1 bg-white border border-slate-200 text-[11px] font-black py-2.5 rounded shadow-sm hover:bg-white transition-all flex items-center justify-center gap-1.5"><Flag className="h-3.5 w-3.5" /> REPORT</button>
+              </div>
+              <button onClick={() => setShowSubmitModal(true)} className="w-full text-white text-[13px] font-black py-3.5 rounded-xl shadow-lg shadow-brand-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all" style={{ backgroundColor: brandColor }} disabled={submitting}>
+                {submitting ? "SUBMITTING..." : "SUBMIT TEST"}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -648,26 +668,26 @@ export default function ExamPage() {
             </div>
             <div className="p-8">
               <div className="rounded-xl border border-slate-100 overflow-hidden shadow-sm">
-                 <table className="w-full text-sm text-left">
-                    <thead className="bg-[#1e293b] text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                       <tr><th className="px-6 py-4">Section Name</th><th className="px-6 py-4 text-center">Total</th><th className="px-6 py-4 text-center text-emerald-400">Answered</th><th className="px-6 py-4 text-center text-rose-400">Not Answered</th><th className="px-6 py-4 text-center text-violet-400">Marked</th><th className="px-6 py-4 text-center">Not Visited</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 bg-white font-bold">
-                       {/* Simplified mapping for brevity in this rewrite */}
-                       <tr className="hover:bg-slate-50 transition-colors">
-                          <td className="px-6 py-4">{currentQ.section}</td>
-                          <td className="px-6 py-4 text-center">{questions.length}</td>
-                          <td className="px-6 py-4 text-center text-emerald-600 font-black">{stats.answered + stats.marked_answered}</td>
-                          <td className="px-6 py-4 text-center text-rose-500 font-black">{stats.not_answered}</td>
-                          <td className="px-6 py-4 text-center text-violet-600 font-black">{stats.marked}</td>
-                          <td className="px-6 py-4 text-center text-slate-400">{stats.not_visited}</td>
-                       </tr>
-                    </tbody>
-                 </table>
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-[#1e293b] text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                    <tr><th className="px-6 py-4">Section Name</th><th className="px-6 py-4 text-center">Total</th><th className="px-6 py-4 text-center text-emerald-400">Answered</th><th className="px-6 py-4 text-center text-rose-400">Not Answered</th><th className="px-6 py-4 text-center text-violet-400">Marked</th><th className="px-6 py-4 text-center">Not Visited</th></tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 bg-white font-bold">
+                    {/* Simplified mapping for brevity in this rewrite */}
+                    <tr className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">{currentQ.section}</td>
+                      <td className="px-6 py-4 text-center">{questions.length}</td>
+                      <td className="px-6 py-4 text-center text-emerald-600 font-black">{stats.answered + stats.marked_answered}</td>
+                      <td className="px-6 py-4 text-center text-rose-500 font-black">{stats.not_answered}</td>
+                      <td className="px-6 py-4 text-center text-violet-600 font-black">{stats.marked}</td>
+                      <td className="px-6 py-4 text-center text-slate-400">{stats.not_visited}</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               <div className="mt-8 flex justify-end gap-3">
-                 <button onClick={() => setShowSubmitModal(false)} className="px-6 py-2.5 text-[12px] font-black text-slate-400 hover:text-slate-600 transition-all">GO BACK</button>
-                 <button onClick={handleSubmit} className="px-10 py-3 rounded-xl text-white font-black shadow-xl" style={{ backgroundColor: brandColor }} disabled={submitting}>{submitting ? "SUBMITTING..." : "CONFIRM SUBMIT"}</button>
+                <button onClick={() => setShowSubmitModal(false)} className="px-6 py-2.5 text-[12px] font-black text-slate-400 hover:text-slate-600 transition-all">GO BACK</button>
+                <button onClick={handleSubmit} className="px-10 py-3 rounded-xl text-white font-black shadow-xl" style={{ backgroundColor: brandColor }} disabled={submitting}>{submitting ? "SUBMITTING..." : "CONFIRM SUBMIT"}</button>
               </div>
             </div>
           </div>
@@ -678,18 +698,18 @@ export default function ExamPage() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md" onClick={() => setShowQPaperModal(false)} />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col animate-in slide-in-from-bottom-5">
-             <div className="bg-slate-900 p-5 flex items-center justify-between text-white shrink-0">
-                <h3 className="text-lg font-black italic">Question Paper</h3>
-                <button onClick={() => setShowQPaperModal(false)}><X className="h-5 w-5" /></button>
-             </div>
-             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
-                {questions.map((q, i) => (
-                  <div key={q.id} className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm flex gap-4 cursor-pointer hover:border-brand-primary/30" onClick={() => { navigateTo(i); setShowQPaperModal(false); }}>
-                     <div className="shrink-0"><PaletteShapes.NotVisited num={q.number} /></div>
-                     <div className="text-[14px] font-bold text-slate-700 line-clamp-2" dangerouslySetInnerHTML={{ __html: q.text }} />
-                  </div>
-                ))}
-             </div>
+            <div className="bg-slate-900 p-5 flex items-center justify-between text-white shrink-0">
+              <h3 className="text-lg font-black italic">Question Paper</h3>
+              <button onClick={() => setShowQPaperModal(false)}><X className="h-5 w-5" /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-slate-50">
+              {questions.map((q, i) => (
+                <div key={q.id} className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm flex gap-4 cursor-pointer hover:border-brand-primary/30" onClick={() => { navigateTo(i); setShowQPaperModal(false); }}>
+                  <div className="shrink-0"><PaletteShapes.NotVisited num={q.number} /></div>
+                  <div className="text-[14px] font-bold text-slate-700 line-clamp-2" dangerouslySetInnerHTML={{ __html: q.text }} />
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -698,19 +718,19 @@ export default function ExamPage() {
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 text-black">
           <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setShowReportModal(false)} />
           <div className="relative bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md animate-in zoom-in-95">
-             <h3 className="text-xl font-black mb-6">Report Question {currentQ.number}</h3>
-             <div className="space-y-3 mb-8">
-                {['wrong_answer', 'wrong_question', 'image_issue', 'other'].map(type => (
-                  <label key={type} className="flex items-center gap-3 p-3.5 border-2 border-slate-50 rounded-xl cursor-pointer hover:bg-slate-50 transition-all has-[:checked]:border-brand-primary/30 has-[:checked]:bg-brand-primary/5">
-                     <input type="radio" checked={reportType === type} onChange={() => setReportType(type)} className="accent-brand-primary" />
-                     <span className="text-sm font-bold text-slate-700 capitalize">{type.replace('_', ' ')}</span>
-                  </label>
-                ))}
-             </div>
-             <div className="flex gap-4">
-                <button onClick={() => setShowReportModal(false)} className="flex-1 py-3 text-sm font-black text-slate-400">CANCEL</button>
-                <button onClick={handleReport} className="flex-1 py-3 rounded-xl bg-brand-primary text-white text-sm font-black shadow-lg shadow-brand-primary/20" style={{ backgroundColor: brandColor }}>SUBMIT REPORT</button>
-             </div>
+            <h3 className="text-xl font-black mb-6">Report Question {currentQ.number}</h3>
+            <div className="space-y-3 mb-8">
+              {['wrong_answer', 'wrong_question', 'image_issue', 'other'].map(type => (
+                <label key={type} className="flex items-center gap-3 p-3.5 border-2 border-slate-50 rounded-xl cursor-pointer hover:bg-slate-50 transition-all has-[:checked]:border-brand-primary/30 has-[:checked]:bg-brand-primary/5">
+                  <input type="radio" checked={reportType === type} onChange={() => setReportType(type)} className="accent-brand-primary" />
+                  <span className="text-sm font-bold text-slate-700 capitalize">{type.replace('_', ' ')}</span>
+                </label>
+              ))}
+            </div>
+            <div className="flex gap-4">
+              <button onClick={() => setShowReportModal(false)} className="flex-1 py-3 text-sm font-black text-slate-400">CANCEL</button>
+              <button onClick={handleReport} className="flex-1 py-3 rounded-xl bg-brand-primary text-white text-sm font-black shadow-lg shadow-brand-primary/20" style={{ backgroundColor: brandColor }}>SUBMIT REPORT</button>
+            </div>
           </div>
         </div>
       )}

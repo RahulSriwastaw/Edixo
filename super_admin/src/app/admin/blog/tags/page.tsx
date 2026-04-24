@@ -206,17 +206,17 @@ const [tags, setTags] = useState<TagItem[]>([]);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/blog" className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/admin/blog" className="p-2 hover:bg-[var(--bg-main)] rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Tags</h1>
-                  <p className="text-gray-500 text-sm">Manage blog post tags</p>
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Tags</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">Manage blog post tags</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -242,8 +242,8 @@ const [tags, setTags] = useState<TagItem[]>([]);
                       <Tag className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Total Tags</div>
-                      <div className="text-xl font-bold text-gray-900">{totalTags}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Total Tags</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{totalTags}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -255,8 +255,8 @@ const [tags, setTags] = useState<TagItem[]>([]);
                       <CheckCircle className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">In Use</div>
-                      <div className="text-xl font-bold text-gray-900">{usedTags}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">In Use</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{usedTags}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -264,12 +264,12 @@ const [tags, setTags] = useState<TagItem[]>([]);
               <Card className="kpi-card">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <AlertTriangle className="w-5 h-5 text-gray-600" />
+                    <div className="w-10 h-10 rounded-full bg-[var(--bg-main)] flex items-center justify-center">
+                      <AlertTriangle className="w-5 h-5 text-[var(--text-secondary)]" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500">Unused</div>
-                      <div className="text-xl font-bold text-gray-900">{unusedTags}</div>
+                      <div className="text-xs text-[var(--text-secondary)]">Unused</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">{unusedTags}</div>
                     </div>
                   </div>
                 </CardContent>
@@ -280,7 +280,7 @@ const [tags, setTags] = useState<TagItem[]>([]);
             <Card>
               <CardContent className="p-4">
                 <div className="relative max-w-[300px]">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                   <Input
                     placeholder="Search tags..."
                     value={searchQuery}
@@ -295,12 +295,12 @@ const [tags, setTags] = useState<TagItem[]>([]);
             <Card>
               <CardContent className="p-0">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-500">Loading...</div>
+                  <div className="p-8 text-center text-[var(--text-secondary)]">Loading...</div>
                 ) : filteredTags.length === 0 ? (
                   <div className="p-8 text-center">
                     <Tag className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-1">No tags found</h3>
-                    <p className="text-gray-500 text-sm mb-4">
+                    <h3 className="font-medium text-[var(--text-primary)] mb-1">No tags found</h3>
+                    <p className="text-[var(--text-secondary)] text-sm mb-4">
                       {searchQuery ? 'Try a different search' : 'Create your first tag'}
                     </p>
                     <Button onClick={() => handleOpenDialog()}>
@@ -311,12 +311,12 @@ const [tags, setTags] = useState<TagItem[]>([]);
                 ) : (
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Tag</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Slug</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Description</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase">Posts</TableHead>
-                        <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                      <TableRow className="bg-[var(--bg-main)]">
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Tag</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Slug</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Description</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Posts</TableHead>
+                        <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -329,12 +329,12 @@ const [tags, setTags] = useState<TagItem[]>([]);
                               </Badge>
                             </div>
                           </TableCell>
-                          <TableCell className="text-sm text-gray-500 mono">/{tag.slug}</TableCell>
-                          <TableCell className="text-sm text-gray-500 max-w-xs truncate">
+                          <TableCell className="text-sm text-[var(--text-secondary)] mono">/{tag.slug}</TableCell>
+                          <TableCell className="text-sm text-[var(--text-secondary)] max-w-xs truncate">
                             {tag.description || '—'}
                           </TableCell>
                           <TableCell>
-                            <span className={`text-sm font-medium ${tag.postCount > 0 ? 'text-gray-900' : 'text-gray-400'}`}>
+                            <span className={`text-sm font-medium ${tag.postCount > 0 ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                               {tag.postCount}
                             </span>
                           </TableCell>

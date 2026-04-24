@@ -92,7 +92,7 @@ function AutoResizeTextarea({
       placeholder={placeholder}
       rows={minRows}
       style={{ resize: "vertical", overflow: "hidden" }}
-      className={`w-full rounded-md border border-slate-200 bg-white px-3 py-2.5 text-[14px] leading-relaxed text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${className}`}
+      className={`w-full rounded-md border border-[var(--border-input)] bg-white px-3 py-2.5 text-[14px] leading-relaxed text-slate-800 placeholder:text-[var(--text-muted)] focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all ${className}`}
       {...rest}
     />
   );
@@ -230,10 +230,10 @@ function MetaItem({
   return (
     <div className="flex items-start gap-2.5">
       <div className="mt-0.5 w-7 h-7 rounded-md bg-slate-100 flex items-center justify-center shrink-0">
-        <Icon className="w-3.5 h-3.5 text-slate-500" />
+        <Icon className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
       </div>
       <div className="min-w-0">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
           {label}
         </p>
         <div className="text-sm font-medium text-slate-800 mt-0.5 break-words">
@@ -253,7 +253,7 @@ function RichContent({
 }) {
   if (!html)
     return (
-      <p className="text-slate-400 italic text-sm">No content provided</p>
+      <p className="text-[var(--text-muted)] italic text-sm">No content provided</p>
     );
   return (
     <div
@@ -271,7 +271,7 @@ function RichTextToolbar({
   onInsertLatex: (type: "inline" | "display" | "chem") => void;
 }) {
   return (
-    <div className="flex items-center gap-1 p-1.5 bg-slate-50 border-b rounded-t-md">
+    <div className="flex items-center gap-1 p-1.5 bg-[var(--bg-main)] border-b rounded-t-md">
       <Button
         type="button"
         variant="ghost"
@@ -659,7 +659,7 @@ export function QuestionFullDetailView({
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400">
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-[var(--text-muted)]">
         <Loader2 className="w-8 h-8 animate-spin text-[#F4511E]" />
         <p className="text-sm">Loading question...</p>
       </div>
@@ -668,7 +668,7 @@ export function QuestionFullDetailView({
 
   if (!question) {
     return (
-      <div className="flex flex-col items-center justify-center h-full gap-4 text-slate-400">
+      <div className="flex flex-col items-center justify-center h-full gap-4 text-[var(--text-muted)]">
         <AlertCircle className="w-8 h-8" />
         <p className="text-sm">Failed to load question.</p>
       </div>
@@ -688,14 +688,14 @@ export function QuestionFullDetailView({
         <div className="flex items-center gap-6 min-w-0">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-sm font-bold text-slate-900 whitespace-nowrap">
+            <span className="text-sm font-bold text-[var(--text-primary)] whitespace-nowrap">
               Edit Q#{q.questionUniqueId || q.id.slice(0, 8)}
             </span>
           </div>
 
           <div className="flex items-center gap-4 border-l pl-4">
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Status:
               </span>
               <div className="flex items-center gap-1.5">
@@ -720,7 +720,7 @@ export function QuestionFullDetailView({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Subject:
               </span>
               <Select
@@ -729,7 +729,7 @@ export function QuestionFullDetailView({
                   setFormData((f) => ({ ...f, subject: v }))
                 }
               >
-                <SelectTrigger className="h-7 min-w-[120px] text-[11px] bg-slate-50 border-slate-200">
+                <SelectTrigger className="h-7 min-w-[120px] text-[11px] bg-[var(--bg-main)] border-[var(--border-input)]">
                   <SelectValue placeholder="No subjects" />
                 </SelectTrigger>
                 <SelectContent>
@@ -742,7 +742,7 @@ export function QuestionFullDetailView({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Difficulty:
               </span>
               <Select
@@ -751,7 +751,7 @@ export function QuestionFullDetailView({
                   setFormData((f) => ({ ...f, difficulty: v }))
                 }
               >
-                <SelectTrigger className="h-7 min-w-[100px] text-[11px] bg-slate-50 border-slate-200">
+                <SelectTrigger className="h-7 min-w-[100px] text-[11px] bg-[var(--bg-main)] border-[var(--border-input)]">
                   <SelectValue placeholder="Select..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -763,7 +763,7 @@ export function QuestionFullDetailView({
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+              <span className="text-[11px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                 Type:
               </span>
               <Select
@@ -794,7 +794,7 @@ export function QuestionFullDetailView({
             size="sm"
             onClick={handleSave}
             disabled={isSaving}
-            className="h-8 bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-300 font-bold px-4"
+            className="h-8 bg-slate-100 hover:bg-slate-200 text-[var(--text-secondary)] border border-[var(--border-input)] font-bold px-4"
           >
             {isSaving ? (
               <Loader2 className="w-4 h-4 mr-1 animate-spin" />
@@ -806,7 +806,7 @@ export function QuestionFullDetailView({
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 text-slate-400 hover:text-slate-800 hover:bg-slate-100"
+            className="h-8 w-8 text-[var(--text-muted)] hover:text-slate-800 hover:bg-slate-100"
             onClick={onClose}
           >
             <X className="w-5 h-5" />
@@ -817,21 +817,21 @@ export function QuestionFullDetailView({
       {/* ── Body ───────────────────────────────────────────────────────────── */}
       <div className="flex flex-1 overflow-hidden bg-[#F8F9FC]">
         {/* ── Sidebar ─────────────────────────────────────────────────── */}
-        <div className="w-[260px] shrink-0 border-r bg-slate-50/50 flex flex-col p-4 gap-4">
-          <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
+        <div className="w-[260px] shrink-0 border-r bg-[var(--bg-main)] flex flex-col p-4 gap-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-[var(--border-input)]">
             <Sparkles className="w-4 h-4 text-indigo-500" />
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            <span className="text-xs font-bold text-[var(--text-primary)] uppercase tracking-wider">
               AI Assistant
             </span>
           </div>
 
           <div className="flex flex-col gap-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+              <Label className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                 Edit Type
               </Label>
               <Select value={aiEditType} onValueChange={setAiEditType}>
-                <SelectTrigger className="h-9 text-[12px] bg-white border-slate-200 shadow-sm">
+                <SelectTrigger className="h-9 text-[12px] bg-white border-[var(--border-input)] shadow-sm">
                   <SelectValue placeholder="Select category..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -877,16 +877,16 @@ export function QuestionFullDetailView({
           </div>
 
           {/* Question Section */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-visible">
-            <div className="bg-slate-50/50 px-4 py-2 border-b flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-[var(--border-input)] shadow-sm overflow-visible">
+            <div className="bg-[var(--bg-main)] px-4 py-2 border-b flex items-center gap-2">
               <FileText className="w-3.5 h-3.5 text-orange-400" />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
                 Question
               </span>
             </div>
             <div className="p-4 flex flex-col gap-4">
               {/* English Question */}
-              <div className="space-y-0 border border-slate-100 bg-slate-50/30 rounded-lg overflow-hidden">
+              <div className="space-y-0 border border-[var(--divider)] bg-[var(--bg-main)]/30 rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between px-2 pt-2 pb-1">
                   <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
                     English
@@ -905,13 +905,13 @@ export function QuestionFullDetailView({
                     }))
                   }
                   minRows={4}
-                  className="rounded-none border-0 border-t border-slate-100 focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
+                  className="rounded-none border-0 border-t border-[var(--divider)] focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
                   placeholder="Enter question in English..."
                 />
               </div>
 
               {/* Hindi Question */}
-              <div className="space-y-0 border border-slate-100 bg-slate-50/30 rounded-lg overflow-hidden">
+              <div className="space-y-0 border border-[var(--divider)] bg-[var(--bg-main)]/30 rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between px-2 pt-2 pb-1">
                   <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
                     Hindi
@@ -930,7 +930,7 @@ export function QuestionFullDetailView({
                     }))
                   }
                   minRows={4}
-                  className="rounded-none border-0 border-t border-slate-100 focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
+                  className="rounded-none border-0 border-t border-[var(--divider)] focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
                   placeholder="प्रश्न हिन्दी में लिखें..."
                 />
               </div>
@@ -956,7 +956,7 @@ export function QuestionFullDetailView({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 text-[10px] font-bold text-slate-500 hover:text-slate-700 bg-slate-100 px-2"
+                  className="h-6 text-[10px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-slate-100 px-2"
                   onClick={() =>
                     document.getElementById("image-upload")?.click()
                   }
@@ -965,7 +965,7 @@ export function QuestionFullDetailView({
                 </Button>
               </div>
             </div>
-            <div className="p-6 flex justify-center items-center min-h-[150px] bg-slate-50/20">
+            <div className="p-6 flex justify-center items-center min-h-[150px] bg-[var(--bg-main)]/20">
               {formData.image ? (
                 <img
                   src={formData.image}
@@ -973,8 +973,8 @@ export function QuestionFullDetailView({
                   className="max-h-64 object-contain rounded-lg shadow-sm border bg-white"
                 />
               ) : (
-                <div className="flex flex-col items-center gap-2 text-slate-400">
-                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border border-dashed border-slate-300">
+                <div className="flex flex-col items-center gap-2 text-[var(--text-muted)]">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border border-dashed border-[var(--border-input)]">
                     <Plus className="w-5 h-5" />
                   </div>
                   <p className="text-[11px] font-medium uppercase tracking-wider">
@@ -988,15 +988,15 @@ export function QuestionFullDetailView({
           {/* Options Section */}
           {(formData.questionType === "mcq" ||
             formData.questionType === "multi_select") && (
-              <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-visible">
-                <div className="bg-slate-50/50 px-4 py-2 border-b flex items-center justify-between">
+              <div className="bg-white rounded-xl border border-[var(--border-input)] shadow-sm overflow-visible">
+                <div className="bg-[var(--bg-main)] px-4 py-2 border-b flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
                       Options
                     </span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    <span className="text-[11px] font-bold text-[var(--text-secondary)] uppercase tracking-wider">
                       Correct:
                     </span>
                     <Select
@@ -1024,19 +1024,19 @@ export function QuestionFullDetailView({
                       key={opt.id}
                       className={`flex flex-col gap-2 p-3 rounded-xl border transition-all ${formData.answer.includes(opt.id)
                           ? "bg-emerald-50/50 border-emerald-300 shadow-sm"
-                          : "bg-white border-slate-200 shadow-sm hover:border-slate-300"
+                          : "bg-white border-[var(--border-input)] shadow-sm hover:border-[var(--border-input)]"
                         }`}
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <div
                           className={`w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-[11px] font-bold shadow-sm ${formData.answer.includes(opt.id)
                               ? "bg-emerald-500 text-white border-emerald-600"
-                              : "bg-slate-100 text-slate-600 border border-slate-200"
+                              : "bg-slate-100 text-[var(--text-secondary)] border border-[var(--border-input)]"
                             }`}
                         >
                           {opt.id}
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                        <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-wider">
                           Option {opt.id}
                         </span>
                       </div>
@@ -1056,7 +1056,7 @@ export function QuestionFullDetailView({
                           }
                           minRows={2}
                           placeholder={`English Option ${opt.id}...`}
-                          className="border-slate-200 bg-white focus:border-indigo-300"
+                          className="border-[var(--border-input)] bg-white focus:border-indigo-300"
                         />
                         {/* Hindi option — auto-resizes */}
                         <AutoResizeTextarea
@@ -1072,7 +1072,7 @@ export function QuestionFullDetailView({
                           }
                           minRows={2}
                           placeholder={`Hindi Option ${opt.id}...`}
-                          className="border-slate-200 bg-white focus:border-indigo-300"
+                          className="border-[var(--border-input)] bg-white focus:border-indigo-300"
                         />
                       </div>
                     </div>
@@ -1082,16 +1082,16 @@ export function QuestionFullDetailView({
             )}
 
           {/* Solution Section */}
-          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-visible mb-12">
-            <div className="bg-slate-50/50 px-4 py-2 border-b flex items-center gap-2">
+          <div className="bg-white rounded-xl border border-[var(--border-input)] shadow-sm overflow-visible mb-12">
+            <div className="bg-[var(--bg-main)] px-4 py-2 border-b flex items-center gap-2">
               <Lightbulb className="w-3.5 h-3.5 text-blue-400" />
-              <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+              <span className="text-[10px] font-bold text-[var(--text-secondary)] uppercase tracking-widest">
                 Solution / Explanation
               </span>
             </div>
             <div className="p-4 flex flex-col gap-4">
               {/* English Solution */}
-              <div className="space-y-0 border border-slate-100 bg-slate-50/30 rounded-lg overflow-hidden">
+              <div className="space-y-0 border border-[var(--divider)] bg-[var(--bg-main)]/30 rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between px-2 pt-2 pb-1">
                   <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
                     English
@@ -1110,13 +1110,13 @@ export function QuestionFullDetailView({
                     }))
                   }
                   minRows={4}
-                  className="rounded-none border-0 border-t border-slate-100 focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
+                  className="rounded-none border-0 border-t border-[var(--divider)] focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
                   placeholder="Explain the answer in English here..."
                 />
               </div>
 
               {/* Hindi Solution */}
-              <div className="space-y-0 border border-slate-100 bg-slate-50/30 rounded-lg overflow-hidden">
+              <div className="space-y-0 border border-[var(--divider)] bg-[var(--bg-main)]/30 rounded-lg overflow-hidden">
                 <div className="flex items-center justify-between px-2 pt-2 pb-1">
                   <span className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">
                     Hindi
@@ -1135,7 +1135,7 @@ export function QuestionFullDetailView({
                     }))
                   }
                   minRows={4}
-                  className="rounded-none border-0 border-t border-slate-100 focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
+                  className="rounded-none border-0 border-t border-[var(--divider)] focus:ring-0 focus:ring-offset-0 focus:border-indigo-300 bg-white"
                   placeholder="उत्तर की व्याख्या हिन्दी में यहाँ लिखें..."
                 />
               </div>
@@ -1149,7 +1149,7 @@ export function QuestionFullDetailView({
         <Button
           variant="outline"
           size="sm"
-          className="h-9 px-4 text-xs font-bold text-slate-600 bg-white border-slate-200 rounded-lg hover:bg-slate-50 transition-all"
+          className="h-9 px-4 text-xs font-bold text-[var(--text-secondary)] bg-white border-[var(--border-input)] rounded-lg hover:bg-[var(--bg-sidebar)] transition-all"
           disabled={!hasPrev || isSaving}
           onClick={() => hasPrev && onNavigate?.(questionIds[currentIndex - 1])}
         >
@@ -1157,17 +1157,17 @@ export function QuestionFullDetailView({
         </Button>
 
         <div className="flex items-center gap-3">
-          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] select-none">
+          <span className="text-[10px] font-bold text-[var(--text-muted)] uppercase tracking-[0.2em] select-none">
             Question{" "}
-            <span className="text-slate-900 mx-1">{currentIndex + 1}</span> of{" "}
-            <span className="text-slate-900 mx-1">{questionIds.length}</span>
+            <span className="text-[var(--text-primary)] mx-1">{currentIndex + 1}</span> of{" "}
+            <span className="text-[var(--text-primary)] mx-1">{questionIds.length}</span>
           </span>
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          className="h-9 px-4 text-xs font-bold text-slate-600 bg-white border-slate-200 rounded-lg hover:bg-slate-50 transition-all"
+          className="h-9 px-4 text-xs font-bold text-[var(--text-secondary)] bg-white border-[var(--border-input)] rounded-lg hover:bg-[var(--bg-sidebar)] transition-all"
           disabled={!hasNext || isSaving}
           onClick={() =>
             hasNext && onNavigate?.(questionIds[currentIndex + 1])

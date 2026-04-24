@@ -175,20 +175,20 @@ const [dateRange, setDateRange] = useState("last-30-days");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Platform Analytics</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Platform Analytics</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Comprehensive insights across all organizations
                 </p>
               </div>
               <div className="flex items-center gap-3">
                 <Select value={dateRange} onValueChange={setDateRange}>
                   <SelectTrigger className="w-[180px] input-field">
-                    <Calendar className="w-4 h-4 mr-2 text-gray-500" />
+                    <Calendar className="w-4 h-4 mr-2 text-[var(--text-secondary)]" />
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -235,8 +235,8 @@ const [dateRange, setDateRange] = useState("last-30-days");
                       <TrendingUp className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Total Revenue</div>
-                      <div className="text-xl font-bold text-gray-900">₹86.88L</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Total Revenue</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">₹86.88L</div>
                       <div className="text-xs text-green-600">+8.2% vs last year</div>
                     </div>
                   </div>
@@ -249,8 +249,8 @@ const [dateRange, setDateRange] = useState("last-30-days");
                       <Users className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Total Users</div>
-                      <div className="text-xl font-bold text-gray-900">14,524</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Total Users</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">14,524</div>
                       <div className="text-xs text-green-600">+12.4% growth</div>
                     </div>
                   </div>
@@ -263,8 +263,8 @@ const [dateRange, setDateRange] = useState("last-30-days");
                       <Building2 className="w-5 h-5 text-purple-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Active Orgs</div>
-                      <div className="text-xl font-bold text-gray-900">48</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Active Orgs</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">48</div>
                       <div className="text-xs text-green-600">+6 this month</div>
                     </div>
                   </div>
@@ -277,8 +277,8 @@ const [dateRange, setDateRange] = useState("last-30-days");
                       <BookOpen className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
-                      <div className="text-xs text-gray-500 uppercase">Tests Taken</div>
-                      <div className="text-xl font-bold text-gray-900">34,291</div>
+                      <div className="text-xs text-[var(--text-secondary)] uppercase">Tests Taken</div>
+                      <div className="text-xl font-bold text-[var(--text-primary)]">34,291</div>
                       <div className="text-xs text-green-600">+4,120 this month</div>
                     </div>
                   </div>
@@ -402,11 +402,11 @@ const [dateRange, setDateRange] = useState("last-30-days");
                   <div className="flex items-center justify-center gap-4 mt-2">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-blue-500" />
-                      <span className="text-xs text-gray-600">Students</span>
+                      <span className="text-xs text-[var(--text-secondary)]">Students</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-orange-500" />
-                      <span className="text-xs text-gray-600">Teachers</span>
+                      <span className="text-xs text-[var(--text-secondary)]">Teachers</span>
                     </div>
                   </div>
                 </CardContent>
@@ -448,7 +448,7 @@ const [dateRange, setDateRange] = useState("last-30-days");
                     {appDistribution.map((item) => (
                       <div key={item.name} className="flex items-center gap-1.5">
                         <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.color }} />
-                        <span className="text-xs text-gray-600">{item.name}</span>
+                        <span className="text-xs text-[var(--text-secondary)]">{item.name}</span>
                       </div>
                     ))}
                   </div>
@@ -560,8 +560,8 @@ const [dateRange, setDateRange] = useState("last-30-days");
                   <div className="space-y-3">
                     {geographyData.map((item) => (
                       <div key={item.state} className="flex items-center gap-3">
-                        <div className="w-24 text-sm text-gray-600">{item.state}</div>
-                        <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                        <div className="w-24 text-sm text-[var(--text-secondary)]">{item.state}</div>
+                        <div className="flex-1 bg-[var(--bg-main)] rounded-full h-4 overflow-hidden">
                           <div
                             className="h-full rounded-full transition-all duration-500"
                             style={{
@@ -570,7 +570,7 @@ const [dateRange, setDateRange] = useState("last-30-days");
                             }}
                           />
                         </div>
-                        <div className="w-8 text-sm font-semibold text-gray-900 text-right">
+                        <div className="w-8 text-sm font-semibold text-[var(--text-primary)] text-right">
                           {item.orgs}
                         </div>
                       </div>
@@ -589,20 +589,20 @@ const [dateRange, setDateRange] = useState("last-30-days");
                     <table className="w-full text-xs">
                       <thead>
                         <tr>
-                          <th className="p-2 text-left text-gray-500 font-medium">Hour</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Mon</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Tue</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Wed</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Thu</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Fri</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Sat</th>
-                          <th className="p-2 text-center text-gray-500 font-medium">Sun</th>
+                          <th className="p-2 text-left text-[var(--text-secondary)] font-medium">Hour</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Mon</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Tue</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Wed</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Thu</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Fri</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Sat</th>
+                          <th className="p-2 text-center text-[var(--text-secondary)] font-medium">Sun</th>
                         </tr>
                       </thead>
                       <tbody>
                         {sessionsHeatmap.map((row) => (
                           <tr key={row.hour}>
-                            <td className="p-2 text-gray-600 font-medium">{row.hour}</td>
+                            <td className="p-2 text-[var(--text-secondary)] font-medium">{row.hour}</td>
                             {[row.mon, row.tue, row.wed, row.thu, row.fri, row.sat, row.sun].map((val, idx) => {
                               const intensity = Math.min((val / 30) * 100, 100);
                               return (
@@ -638,18 +638,18 @@ const [dateRange, setDateRange] = useState("last-30-days");
                   <table className="w-full text-sm">
                     <thead>
                       <tr>
-                        <th className="p-3 text-left text-gray-500 font-medium">Cohort</th>
-                        <th className="p-3 text-center text-gray-500 font-medium">Month 0</th>
-                        <th className="p-3 text-center text-gray-500 font-medium">Month 1</th>
-                        <th className="p-3 text-center text-gray-500 font-medium">Month 2</th>
-                        <th className="p-3 text-center text-gray-500 font-medium">Month 3</th>
-                        <th className="p-3 text-center text-gray-500 font-medium">Month 4</th>
+                        <th className="p-3 text-left text-[var(--text-secondary)] font-medium">Cohort</th>
+                        <th className="p-3 text-center text-[var(--text-secondary)] font-medium">Month 0</th>
+                        <th className="p-3 text-center text-[var(--text-secondary)] font-medium">Month 1</th>
+                        <th className="p-3 text-center text-[var(--text-secondary)] font-medium">Month 2</th>
+                        <th className="p-3 text-center text-[var(--text-secondary)] font-medium">Month 3</th>
+                        <th className="p-3 text-center text-[var(--text-secondary)] font-medium">Month 4</th>
                       </tr>
                     </thead>
                     <tbody>
                       {retentionCohort.map((row) => (
-                        <tr key={row.month} className="border-b border-gray-100">
-                          <td className="p-3 font-medium text-gray-900">{row.month}</td>
+                        <tr key={row.month} className="border-b border-[var(--divider)]">
+                          <td className="p-3 font-medium text-[var(--text-primary)]">{row.month}</td>
                           {[row.m0, row.m1, row.m2, row.m3, row.m4].map((val, idx) => {
                             if (val === null) {
                               return (
@@ -704,14 +704,14 @@ const [dateRange, setDateRange] = useState("last-30-days");
                     return (
                       <button
                         key={report.name}
-                        className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:border-brand-primary hover:bg-brand-primary-tint transition-all text-left"
+                        className="flex items-center gap-3 p-3 rounded-lg border border-[var(--border-input)] hover:border-brand-primary hover:bg-brand-primary-tint transition-all text-left"
                       >
-                        <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                          <Icon className="w-4 h-4 text-gray-600" />
+                        <div className="w-8 h-8 rounded-full bg-[var(--bg-main)] flex items-center justify-center">
+                          <Icon className="w-4 h-4 text-[var(--text-secondary)]" />
                         </div>
                         <div>
-                          <div className="text-sm font-medium text-gray-900">{report.name}</div>
-                          <div className="text-xs text-gray-500">{report.format}</div>
+                          <div className="text-sm font-medium text-[var(--text-primary)]">{report.name}</div>
+                          <div className="text-xs text-[var(--text-secondary)]">{report.format}</div>
                         </div>
                       </button>
                     );

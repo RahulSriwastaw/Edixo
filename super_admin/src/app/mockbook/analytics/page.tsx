@@ -137,7 +137,7 @@ export default function AnalyticsPage() {
         }
     };
 
-    if (isLoading) return <div className="p-10 text-center text-gray-500">Loading analytics...</div>;
+    if (isLoading) return <div className="p-10 text-center text-[var(--text-secondary)]">Loading analytics...</div>;
     const s = stats || {};
 
     return (
@@ -145,27 +145,27 @@ export default function AnalyticsPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Analytics</span>
+                            <span className="text-[var(--text-primary)] font-medium">Analytics</span>
                         </div>
 
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">MockBook Analytics</h1>
-                                <p className="text-gray-500 text-sm mt-1">Platform-wide performance metrics</p>
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">MockBook Analytics</h1>
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">Platform-wide performance metrics</p>
                             </div>
                                 <div className="flex items-center gap-3">
                                     {categories.length > 0 && (
                                         <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-                                            <SelectTrigger className="w-[180px] bg-white border-slate-200 h-10">
+                                            <SelectTrigger className="w-[180px] bg-white border-[var(--border-input)] h-10">
                                                 <div className="flex items-center gap-2">
-                                                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                                                    <FileText className="w-3.5 h-3.5 text-[var(--text-muted)]" />
                                                     <SelectValue placeholder="All Categories" />
                                                 </div>
                                             </SelectTrigger>
@@ -179,7 +179,7 @@ export default function AnalyticsPage() {
                                     )}
 
                                     <Select value={range} onValueChange={setRange}>
-                                        <SelectTrigger className="w-[140px] bg-white border-slate-200 h-10">
+                                        <SelectTrigger className="w-[140px] bg-white border-[var(--border-input)] h-10">
                                             <SelectValue />
                                         </SelectTrigger>
                                         <SelectContent>
@@ -189,7 +189,7 @@ export default function AnalyticsPage() {
                                         </SelectContent>
                                     </Select>
 
-                                    <Button variant="outline" className="h-10 border-slate-200 font-bold text-slate-600">Export CSV</Button>
+                                    <Button variant="outline" className="h-10 border-[var(--border-input)] font-bold text-[var(--text-secondary)]">Export CSV</Button>
                                 </div>
                             </div>
 
@@ -216,8 +216,8 @@ export default function AnalyticsPage() {
                                                 </div>
                                             </div>
                                             <div className="mt-3">
-                                                <div className="text-2xl font-bold text-gray-900">{kpi.value}</div>
-                                                <div className="text-xs text-gray-500 mt-0.5">{kpi.label}</div>
+                                                <div className="text-2xl font-bold text-[var(--text-primary)]">{kpi.value}</div>
+                                                <div className="text-xs text-[var(--text-secondary)] mt-0.5">{kpi.label}</div>
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -228,28 +228,28 @@ export default function AnalyticsPage() {
                         <div className="relative">
                             <div className="flex flex-col md:flex-row gap-4 items-end">
                                 <div className="flex-1 space-y-1.5 relative">
-                                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Analyze Specific Test</label>
+                                    <label className="text-xs font-bold text-[var(--text-secondary)] uppercase tracking-wider">Analyze Specific Test</label>
                                     <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[var(--text-muted)]" />
                                         <Input 
                                             placeholder="Search by test name or ID..." 
-                                            className="pl-10 h-11 bg-white border-slate-200" 
+                                            className="pl-10 h-11 bg-white border-[var(--border-input)]" 
                                             value={testQuery}
                                             onChange={(e) => handleTestSearch(e.target.value)}
                                         />
                                     </div>
                                     
                                     {matchingTests.length > 0 && (
-                                        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
+                                        <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-[var(--border-input)] rounded-xl shadow-xl overflow-hidden max-h-60 overflow-y-auto">
                                             {matchingTests.map(t => (
                                                 <div 
                                                     key={t.id} 
-                                                    className="p-3 hover:bg-slate-50 cursor-pointer border-b last:border-0 flex items-center justify-between"
+                                                    className="p-3 hover:bg-[var(--bg-sidebar)] cursor-pointer border-b last:border-0 flex items-center justify-between"
                                                     onClick={() => selectTestForAnalysis(t.id)}
                                                 >
                                                     <div>
-                                                        <div className="text-sm font-bold text-slate-900">{t.name}</div>
-                                                        <div className="text-[10px] text-slate-400 capitalize">{t.subCategory?.name || 'Mock Test'}</div>
+                                                        <div className="text-sm font-bold text-[var(--text-primary)]">{t.name}</div>
+                                                        <div className="text-[10px] text-[var(--text-muted)] capitalize">{t.subCategory?.name || 'Mock Test'}</div>
                                                     </div>
                                                     <Badge variant="outline" className="text-[10px]">{t.status}</Badge>
                                                 </div>
@@ -266,7 +266,7 @@ export default function AnalyticsPage() {
                         {selectedTestId && (
                             <div className="space-y-6 animate-in slide-in-from-top-4 duration-500">
                                 {isTestLoading ? (
-                                    <Card className="p-12 text-center text-slate-400 italic font-medium">Loading test performance metrics...</Card>
+                                    <Card className="p-12 text-center text-[var(--text-muted)] italic font-medium">Loading test performance metrics...</Card>
                                 ) : testPerformance ? (
                                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                                         <div className="lg:col-span-8 space-y-6">
@@ -283,8 +283,8 @@ export default function AnalyticsPage() {
                                                             <div className={cn("w-8 h-8 rounded-lg flex items-center justify-center mx-auto mb-2", stat.color.split(' ')[1])}>
                                                                 <stat.icon className={cn("h-4 w-4", stat.color.split(' ')[0])} />
                                                             </div>
-                                                            <div className="text-xl font-black text-slate-900">{stat.value}</div>
-                                                            <div className="text-[10px] font-bold text-slate-400 uppercase mt-0.5">{stat.label}</div>
+                                                            <div className="text-xl font-black text-[var(--text-primary)]">{stat.value}</div>
+                                                            <div className="text-[10px] font-bold text-[var(--text-muted)] uppercase mt-0.5">{stat.label}</div>
                                                         </CardContent>
                                                     </Card>
                                                 ))}
@@ -309,7 +309,7 @@ export default function AnalyticsPage() {
                                                                     className="w-full bg-primary/20 hover:bg-primary transition-all rounded-t-lg relative"
                                                                     style={{ height: `${Math.max(10, (d.students / 20) * 100)}%` }}
                                                                 />
-                                                                <span className="text-[9px] font-bold text-slate-400">{d.marks}</span>
+                                                                <span className="text-[9px] font-bold text-[var(--text-muted)]">{d.marks}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -320,27 +320,27 @@ export default function AnalyticsPage() {
                                         <div className="lg:col-span-4">
                                             {/* Test Leaderboard */}
                                             <Card className="border-none shadow-sm h-full flex flex-col overflow-hidden">
-                                                <CardHeader className="p-4 border-b bg-slate-50/50">
+                                                <CardHeader className="p-4 border-b bg-[var(--bg-main)]">
                                                     <CardTitle className="text-sm font-bold">Top Participants</CardTitle>
                                                 </CardHeader>
                                                 <CardContent className="p-0 flex-1 overflow-y-auto">
                                                     <div className="divide-y">
                                                         {testPerformance.leaderboard?.map((row: any) => (
-                                                            <div key={row.rank} className="p-3.5 flex items-center justify-between hover:bg-slate-50">
+                                                            <div key={row.rank} className="p-3.5 flex items-center justify-between hover:bg-[var(--bg-sidebar)]">
                                                                 <div className="flex items-center gap-3">
-                                                                    <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold", row.rank <= 3 ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-400")}>
+                                                                    <div className={cn("w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold", row.rank <= 3 ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-[var(--text-muted)]")}>
                                                                         {row.rank}
                                                                     </div>
                                                                     <div className="min-w-0">
                                                                         <div className="text-sm font-bold text-slate-800 truncate">{row.studentName}</div>
-                                                                        <div className="text-[10px] text-slate-400 italic">Score: {row.score}</div>
+                                                                        <div className="text-[10px] text-[var(--text-muted)] italic">Score: {row.score}</div>
                                                                     </div>
                                                                 </div>
                                                                 <Badge className="bg-emerald-50 text-emerald-700 border-none font-black text-[10px]">{row.percentile?.toFixed(0)}%ile</Badge>
                                                             </div>
                                                         ))}
                                                         {(!testPerformance.leaderboard || testPerformance.leaderboard.length === 0) && (
-                                                            <div className="p-8 text-center text-slate-400 text-sm font-medium">No submissions yet for this test.</div>
+                                                            <div className="p-8 text-center text-[var(--text-muted)] text-sm font-medium">No submissions yet for this test.</div>
                                                         )}
                                                     </div>
                                                 </CardContent>
@@ -360,12 +360,12 @@ export default function AnalyticsPage() {
                                 <div className="flex items-end gap-3 h-40">
                                     {dailyData.map(d => (
                                         <div key={d.day} className="flex-1 flex flex-col items-center gap-1">
-                                            <div className="text-[10px] text-gray-500 font-mono">{d.tests.toLocaleString()}</div>
+                                            <div className="text-[10px] text-[var(--text-secondary)] font-mono">{d.tests.toLocaleString()}</div>
                                             <div
                                                 className="w-full rounded-t-md bg-gradient-to-t from-orange-500 to-orange-300 transition-all hover:opacity-80"
                                                 style={{ height: `${(d.tests / maxTests) * 100}%`, minHeight: 4 }}
                                             />
-                                            <div className="text-[10px] text-gray-400">{d.day}</div>
+                                            <div className="text-[10px] text-[var(--text-muted)]">{d.day}</div>
                                         </div>
                                     ))}
                                 </div>
@@ -387,14 +387,14 @@ export default function AnalyticsPage() {
                                                 {i + 1}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-sm font-medium text-gray-900 truncate">{ser.name}</div>
-                                                <div className="text-[10px] text-gray-400 capitalize">{ser.category}</div>
+                                                <div className="text-sm font-medium text-[var(--text-primary)] truncate">{ser.name}</div>
+                                                <div className="text-[10px] text-[var(--text-muted)] capitalize">{ser.category}</div>
                                             </div>
-                                            <div className="text-sm font-bold text-gray-900">{ser.count.toLocaleString()}</div>
+                                            <div className="text-sm font-bold text-[var(--text-primary)]">{ser.count.toLocaleString()}</div>
                                         </div>
                                     ))}
                                     {(!s.topSeries || s.topSeries.length === 0) && (
-                                        <div className="py-4 text-center text-xs text-slate-400 font-medium italic">No series data available</div>
+                                        <div className="py-4 text-center text-xs text-[var(--text-muted)] font-medium italic">No series data available</div>
                                     )}
                                 </CardContent>
                             </Card>
@@ -412,9 +412,9 @@ export default function AnalyticsPage() {
                                                 {i + 1}
                                             </div>
                                             <div className="flex-1 min-w-0">
-                                                <div className="text-sm font-medium text-gray-900 truncate">{t.name}</div>
+                                                <div className="text-sm font-medium text-[var(--text-primary)] truncate">{t.name}</div>
                                             </div>
-                                            <div className="text-sm font-semibold text-gray-700 shrink-0">{t.count.toLocaleString()}</div>
+                                            <div className="text-sm font-semibold text-[var(--text-primary)] shrink-0">{t.count.toLocaleString()}</div>
                                         </div>
                                     ))}
                                 </CardContent>
@@ -436,21 +436,21 @@ export default function AnalyticsPage() {
                                         ].map(item => (
                                             <div key={item.label}>
                                                 <div className="flex justify-between text-sm mb-1">
-                                                    <span className="text-gray-700 flex items-center gap-2">
+                                                    <span className="text-[var(--text-primary)] flex items-center gap-2">
                                                         <span className={cn("w-2.5 h-2.5 rounded-full", item.color)} />
                                                         {item.label}
                                                     </span>
                                                     <span className="font-semibold">₹{item.amount.toLocaleString()} ({item.pct}%)</span>
                                                 </div>
-                                                <div className="w-full bg-gray-100 rounded-full h-3">
+                                                <div className="w-full bg-[var(--bg-main)] rounded-full h-3">
                                                     <div className={cn("h-3 rounded-full", item.color)} style={{ width: `${item.pct}%` }} />
                                                 </div>
                                             </div>
                                         ))}
                                     </div>
                                     <div className="shrink-0 text-center p-6 border-l">
-                                        <div className="text-xs text-gray-500 uppercase mb-1">Total Revenue</div>
-                                        <div className="text-3xl font-bold text-gray-900">₹{(s.revenueMTD || 0).toLocaleString()}</div>
+                                        <div className="text-xs text-[var(--text-secondary)] uppercase mb-1">Total Revenue</div>
+                                        <div className="text-3xl font-bold text-[var(--text-primary)]">₹{(s.revenueMTD || 0).toLocaleString()}</div>
                                         <div className="text-xs text-green-600 mt-1">↑ +15% vs last month</div>
                                     </div>
                                 </div>
@@ -479,21 +479,21 @@ export default function AnalyticsPage() {
                                     </TableHeader>
                                     <TableBody>
                                         {students.slice(0, 10).map((student: any) => (
-                                            <TableRow key={student.id} className="cursor-pointer hover:bg-slate-50" onClick={() => openDrilldown(student.id)}>
+                                            <TableRow key={student.id} className="cursor-pointer hover:bg-[var(--bg-sidebar)]" onClick={() => openDrilldown(student.id)}>
                                                 <TableCell>
                                                     <div className="flex items-center gap-3">
                                                         <Avatar className="h-8 w-8 bg-blue-100 text-blue-700">
                                                             <AvatarFallback>{student.name.charAt(0)}</AvatarFallback>
                                                         </Avatar>
                                                         <div>
-                                                            <div className="text-sm font-medium text-slate-900">{student.name}</div>
-                                                            <div className="text-[10px] text-slate-500">{student.email || student.phone || student.studentId}</div>
+                                                            <div className="text-sm font-medium text-[var(--text-primary)]">{student.name}</div>
+                                                            <div className="text-[10px] text-[var(--text-secondary)]">{student.email || student.phone || student.studentId}</div>
                                                         </div>
                                                     </div>
                                                 </TableCell>
-                                                <TableCell className="text-sm text-slate-600">{new Date(student.createdAt).toLocaleDateString()}</TableCell>
-                                                <TableCell className="text-center font-semibold text-slate-900">{student.totalAttempts || 0}</TableCell>
-                                                <TableCell className="text-center text-sm font-mono text-slate-700">{student.avgScore ? Number(student.avgScore).toFixed(1) : '-'}</TableCell>
+                                                <TableCell className="text-sm text-[var(--text-secondary)]">{new Date(student.createdAt).toLocaleDateString()}</TableCell>
+                                                <TableCell className="text-center font-semibold text-[var(--text-primary)]">{student.totalAttempts || 0}</TableCell>
+                                                <TableCell className="text-center text-sm font-mono text-[var(--text-primary)]">{student.avgScore ? Number(student.avgScore).toFixed(1) : '-'}</TableCell>
                                                 <TableCell className="text-right">
                                                     <Button variant="ghost" size="sm" className="h-8 text-blue-600 hover:text-blue-700">View Drilldown</Button>
                                                 </TableCell>
@@ -501,7 +501,7 @@ export default function AnalyticsPage() {
                                         ))}
                                         {students.length === 0 && (
                                             <TableRow>
-                                                <TableCell colSpan={5} className="text-center text-slate-500 py-6">No students found.</TableCell>
+                                                <TableCell colSpan={5} className="text-center text-[var(--text-secondary)] py-6">No students found.</TableCell>
                                             </TableRow>
                                         )}
                                     </TableBody>
@@ -518,22 +518,22 @@ export default function AnalyticsPage() {
                             </DialogHeader>
                             
                             {isDrilldownLoading ? (
-                                <div className="p-10 text-center text-slate-500">Loading drilldown...</div>
+                                <div className="p-10 text-center text-[var(--text-secondary)]">Loading drilldown...</div>
                             ) : drilldownData ? (
                                 <div className="space-y-6">
-                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border">
+                                    <div className="flex items-center gap-4 p-4 rounded-xl bg-[var(--bg-main)] border">
                                         <Avatar className="h-14 w-14 bg-indigo-100 text-indigo-700 border-2 border-white shadow-sm">
                                             <AvatarFallback className="text-lg font-bold">{drilldownData.student?.name.charAt(0)}</AvatarFallback>
                                         </Avatar>
                                         <div className="flex-1">
-                                            <h3 className="text-lg font-bold text-slate-900">{drilldownData.student?.name}</h3>
-                                            <div className="flex gap-4 mt-1 text-xs text-slate-500">
+                                            <h3 className="text-lg font-bold text-[var(--text-primary)]">{drilldownData.student?.name}</h3>
+                                            <div className="flex gap-4 mt-1 text-xs text-[var(--text-secondary)]">
                                                 <span>ID: {drilldownData.student?.studentId}</span>
                                                 {drilldownData.student?.mobile && <span>Ph: {drilldownData.student?.mobile}</span>}
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-sm font-medium text-slate-500">Total Attempts</div>
+                                            <div className="text-sm font-medium text-[var(--text-secondary)]">Total Attempts</div>
                                             <div className="text-2xl font-bold text-indigo-600">{drilldownData.summary?.totalAttempts || 0}</div>
                                         </div>
                                     </div>
@@ -542,7 +542,7 @@ export default function AnalyticsPage() {
                                         <h4 className="text-sm font-bold text-slate-800 mb-3">Attempt History</h4>
                                         <div className="border rounded-xl bg-white overflow-hidden">
                                             <Table>
-                                                <TableHeader className="bg-slate-50">
+                                                <TableHeader className="bg-[var(--bg-main)]">
                                                     <TableRow>
                                                         <TableHead>Test Name</TableHead>
                                                         <TableHead>Date</TableHead>
@@ -555,12 +555,12 @@ export default function AnalyticsPage() {
                                                     {drilldownData.recentAttempts?.map((att: any) => (
                                                         <TableRow key={att.id}>
                                                             <TableCell className="text-sm font-medium text-slate-800">{att.test.name}</TableCell>
-                                                            <TableCell className="text-[11px] text-slate-500">{new Date(att.submittedAt || att.createdAt).toLocaleDateString()}</TableCell>
-                                                            <TableCell className="text-center font-bold text-slate-900">{att.score}</TableCell>
+                                                            <TableCell className="text-[11px] text-[var(--text-secondary)]">{new Date(att.submittedAt || att.createdAt).toLocaleDateString()}</TableCell>
+                                                            <TableCell className="text-center font-bold text-[var(--text-primary)]">{att.score}</TableCell>
                                                             <TableCell className="text-center text-xs font-semibold">{att.rank || '-'}</TableCell>
                                                             <TableCell className="text-center">
                                                                 {att.percentile ? (
-                                                                    <Badge variant="outline" className={cn("text-[10px]", att.percentile >= 90 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-slate-50 text-slate-600")}>
+                                                                    <Badge variant="outline" className={cn("text-[10px]", att.percentile >= 90 ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-[var(--bg-main)] text-[var(--text-secondary)]")}>
                                                                         {att.percentile.toFixed(1)}%ile
                                                                     </Badge>
                                                                 ) : '-'}
@@ -569,7 +569,7 @@ export default function AnalyticsPage() {
                                                     ))}
                                                     {(!drilldownData.recentAttempts || drilldownData.recentAttempts.length === 0) && (
                                                         <TableRow>
-                                                            <TableCell colSpan={5} className="text-center py-6 text-slate-500">No attempts yet.</TableCell>
+                                                            <TableCell colSpan={5} className="text-center py-6 text-[var(--text-secondary)]">No attempts yet.</TableCell>
                                                         </TableRow>
                                                     )}
                                                 </TableBody>

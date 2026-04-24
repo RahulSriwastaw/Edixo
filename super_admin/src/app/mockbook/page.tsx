@@ -84,7 +84,7 @@ function PlanBadge({ plan }: { plan: string }) {
     Large: "badge-large",
     Enterprise: "badge-enterprise",
   };
-  return <span className={`badge ${styles[plan] || "bg-gray-50 text-gray-700"} capitalize`}>{plan?.toLowerCase() || 'Small'}</span>;
+  return <span className={`badge ${styles[plan] || "bg-[var(--bg-main)] text-[var(--text-primary)]"} capitalize`}>{plan?.toLowerCase() || 'Small'}</span>;
 }
 
 function QuotaProgress({ used, limit }: { used: number; limit: number }) {
@@ -96,13 +96,13 @@ function QuotaProgress({ used, limit }: { used: number; limit: number }) {
 
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+      <div className="flex-1 bg-[var(--bg-main)] rounded-full h-2 overflow-hidden">
         <div
           className={`h-full rounded-full transition-all duration-500 ${colorClass}`}
           style={{ width: `${percentage}%` }}
         />
       </div>
-      <span className="text-xs text-gray-600 font-mono w-20 text-right">
+      <span className="text-xs text-[var(--text-secondary)] font-mono w-20 text-right">
         {used} / {limit}
       </span>
     </div>
@@ -128,13 +128,13 @@ function TreeItem({
   return (
     <div>
       <div
-        className="flex items-center gap-2 py-1.5 px-2 hover:bg-gray-50 rounded group"
+        className="flex items-center gap-2 py-1.5 px-2 hover:bg-[var(--bg-main)] rounded group"
         style={{ paddingLeft: `${level * 20 + 8}px` }}
       >
         {hasChildren ? (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="w-5 h-5 flex items-center justify-center text-gray-400 hover:text-gray-600"
+            className="w-5 h-5 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
           >
             {expanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
@@ -143,17 +143,17 @@ function TreeItem({
             <span className="w-1.5 h-1.5 rounded-full bg-gray-300" />
           </span>
         )}
-        <span className={`flex-1 ${type === "subject" ? "font-semibold text-gray-900" : type === "chapter" ? "font-medium text-gray-800" : "text-gray-700"}`}>
+        <span className={`flex-1 ${type === "subject" ? "font-semibold text-[var(--text-primary)]" : type === "chapter" ? "font-medium text-[var(--text-primary)]" : "text-[var(--text-primary)]"}`}>
           {name}
         </span>
         {questionCount !== undefined && (
-          <span className="text-xs text-gray-400">{questionCount} questions</span>
+          <span className="text-xs text-[var(--text-muted)]">{questionCount} questions</span>
         )}
         <div className="opacity-0 group-hover:opacity-100 flex items-center gap-1">
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-brand-primary">
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-[var(--text-muted)] hover:text-brand-primary">
             <Edit className="w-3 h-3" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-6 w-6 text-gray-400 hover:text-red-500">
+          <Button variant="ghost" size="icon" className="h-6 w-6 text-[var(--text-muted)] hover:text-red-500">
             <Trash2 className="w-3 h-3" />
           </Button>
         </div>
@@ -166,7 +166,7 @@ function TreeItem({
 function StatusBadge({ status }: { status: string }) {
   const cfg: Record<string, { label: string; cls: string }> = {
     active: { label: "Active", cls: "bg-green-50 text-green-700 border-green-200" },
-    draft: { label: "Draft", cls: "bg-gray-50 text-gray-600 border-gray-200" },
+    draft: { label: "Draft", cls: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]" },
     scheduled: { label: "Scheduled", cls: "bg-blue-50 text-blue-700 border-blue-200" },
     archived: { label: "Archived", cls: "bg-red-50 text-red-600 border-red-200" },
     live: { label: "Live", cls: "bg-red-50 text-red-700 border-red-200" },
@@ -333,14 +333,14 @@ export default function MockBookPage() {
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
 
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">MockBook</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">MockBook</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Platform-wide test series, live tests, pricing, and analytics
                 </p>
               </div>
@@ -379,8 +379,8 @@ export default function MockBookPage() {
                           <Icon className={`w-4 h-4 ${stat.color.split(" ")[1]}`} />
                         </div>
                         <div>
-                          <div className="text-[10px] text-gray-500 uppercase leading-tight">{stat.label}</div>
-                          <div className="text-lg font-bold text-gray-900">{stat.value}</div>
+                          <div className="text-[10px] text-[var(--text-secondary)] uppercase leading-tight">{stat.label}</div>
+                          <div className="text-lg font-bold text-[var(--text-primary)]">{stat.value}</div>
                         </div>
                       </div>
                     </CardContent>
@@ -391,7 +391,7 @@ export default function MockBookPage() {
 
             {/* Main Tabs */}
             <Tabs defaultValue="test-series" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1 flex-wrap h-auto gap-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1 flex-wrap h-auto gap-1">
                 {[
                   { value: "test-series", label: "Test Series" },
                   { value: "live-tests", label: "Live Tests" },
@@ -411,7 +411,7 @@ export default function MockBookPage() {
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <Input
                           placeholder="Search series..."
                           value={seriesSearch}
@@ -466,10 +466,10 @@ export default function MockBookPage() {
                             </div>
                             <div className="min-w-0">
                               <div className="flex items-center gap-2 flex-wrap">
-                                <span className="font-semibold text-gray-900">{series.name}</span>
+                                <span className="font-semibold text-[var(--text-primary)]">{series.name}</span>
                                 <Badge className={cn(
                                   "text-[10px] px-2 py-0.5",
-                                  series.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-gray-100 text-gray-700 border-gray-200"
+                                  series.isActive ? "bg-green-100 text-green-700 border-green-200" : "bg-[var(--bg-main)] text-[var(--text-primary)] border-[var(--border-input)]"
                                 )}>
                                   {series.isActive ? "ACTIVE" : "INACTIVE"}
                                 </Badge>
@@ -481,7 +481,7 @@ export default function MockBookPage() {
                                 <Badge variant="outline" className="text-[10px]">{series.category?.name || "General"}</Badge>
 
                               </div>
-                              <div className="flex items-center gap-4 mt-1 text-sm text-gray-500 flex-wrap">
+                              <div className="flex items-center gap-4 mt-1 text-sm text-[var(--text-secondary)] flex-wrap">
                                 <span className="flex items-center gap-1">
                                   <FileText className="w-3.5 h-3.5" />
                                   {(series._count?.mockTests || 0).toLocaleString()} tests
@@ -490,12 +490,12 @@ export default function MockBookPage() {
                                   <Users className="w-3.5 h-3.5" />
                                   {(series._count?.attempts || 0).toLocaleString()} enrolled
                                 </span>
-                                <span className={cn("flex items-center gap-1", series.isFree ? "text-green-600 font-medium" : "text-gray-500")}>
-                                  <CheckCircle2 className={cn("w-3.5 h-3.5", series.isFree ? "text-green-500" : "text-gray-400")} />
+                                <span className={cn("flex items-center gap-1", series.isFree ? "text-green-600 font-medium" : "text-[var(--text-secondary)]")}>
+                                  <CheckCircle2 className={cn("w-3.5 h-3.5", series.isFree ? "text-green-500" : "text-[var(--text-muted)]")} />
                                   {series.isFree ? "All Free" : "Premium"}
                                 </span>
 
-                                <span className="text-gray-400">ID: {series.id}</span>
+                                <span className="text-[var(--text-muted)]">ID: {series.id}</span>
                               </div>
                             </div>
                           </div>
@@ -505,7 +505,7 @@ export default function MockBookPage() {
                               {series.price === 0 ? (
                                 <span className="text-green-600 font-semibold text-sm">Free</span>
                               ) : (
-                                <span className="font-semibold text-gray-900">₹{series.price}</span>
+                                <span className="font-semibold text-[var(--text-primary)]">₹{series.price}</span>
                               )}
                             </div>
                             <Button variant="outline" size="sm" asChild>
@@ -558,8 +558,8 @@ export default function MockBookPage() {
                   <Card>
                     <CardContent className="p-12 text-center">
                       <BookOpen className="w-12 h-12 text-gray-300 mx-auto mb-3" />
-                      <div className="text-gray-500 font-medium">No series found</div>
-                      <div className="text-gray-400 text-sm mt-1">Try adjusting your filters or create a new series</div>
+                      <div className="text-[var(--text-secondary)] font-medium">No series found</div>
+                      <div className="text-[var(--text-muted)] text-sm mt-1">Try adjusting your filters or create a new series</div>
                     </CardContent>
                   </Card>
                 )}
@@ -569,8 +569,8 @@ export default function MockBookPage() {
               <TabsContent value="live-tests" className="mt-6 space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Live Tests</h2>
-                    <p className="text-sm text-gray-500">{liveCount} tests currently live</p>
+                    <h2 className="text-lg font-semibold text-[var(--text-primary)]">Live Tests</h2>
+                    <p className="text-sm text-[var(--text-secondary)]">{liveCount} tests currently live</p>
                   </div>
                   <Button className="btn-primary">
                     <Plus className="w-4 h-4 mr-2" />
@@ -594,14 +594,14 @@ export default function MockBookPage() {
                               <div>
                                 <div className="flex items-center gap-2">
                                   <Badge className="bg-red-500 text-white text-[10px] animate-pulse">🔴 LIVE</Badge>
-                                  <span className="font-semibold text-gray-900">{test.name}</span>
+                                  <span className="font-semibold text-[var(--text-primary)]">{test.name}</span>
                                 </div>
-                                <div className="text-sm text-gray-500 mt-1 flex items-center gap-3">
+                                <div className="text-sm text-[var(--text-secondary)] mt-1 flex items-center gap-3">
                                   <span>{test.durationMins} Mins · {test.totalMarks} Marks</span>
                                   <span>·</span>
                                   <span className="text-red-600 font-medium">{(test._count?.attempts || 0).toLocaleString()} attempts</span>
                                 </div>
-                                <div className="text-xs text-gray-400 mt-0.5">
+                                <div className="text-xs text-[var(--text-muted)] mt-0.5">
                                   {test.subCategory?.category?.name || "Series"} · 
                                   {test.scheduledAt ? new Date(test.scheduledAt).toLocaleTimeString() : ""} – 
                                   {test.endsAt ? new Date(test.endsAt).toLocaleTimeString() : ""}
@@ -626,7 +626,7 @@ export default function MockBookPage() {
 
                 {/* Scheduled */}
                 <div>
-                  <div className="space-y-3 p-12 text-center bg-gray-50 rounded-lg border border-dashed text-gray-400">
+                  <div className="space-y-3 p-12 text-center bg-[var(--bg-main)] rounded-lg border border-dashed text-[var(--text-muted)]">
                     <Clock className="w-10 h-10 mx-auto mb-2 opacity-50" />
                     <p>No upcoming live tests scheduled</p>
                   </div>
@@ -657,8 +657,8 @@ export default function MockBookPage() {
                               <StatusBadge status={quiz.status} />
                               <Badge variant="outline" className="text-[10px]">Free</Badge>
                             </div>
-                            <div className="font-medium text-gray-900 text-sm mt-2">{quiz.name}</div>
-                            <div className="text-xs text-gray-500 mt-1">{quiz.questions} questions</div>
+                            <div className="font-medium text-[var(--text-primary)] text-sm mt-2">{quiz.name}</div>
+                            <div className="text-xs text-[var(--text-secondary)] mt-1">{quiz.questions} questions</div>
                             <div className="text-xs text-orange-600 font-medium mt-1">{quiz.attempts.toLocaleString()} attempts</div>
                             <div className="flex gap-2 mt-3">
                               <Button variant="outline" size="sm" className="flex-1 h-7 text-xs">Edit</Button>
@@ -698,7 +698,7 @@ export default function MockBookPage() {
                         <Card key={i} className="border">
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between mb-3">
-                              <div className="font-semibold text-gray-900">{bank.exam}</div>
+                              <div className="font-semibold text-[var(--text-primary)]">{bank.exam}</div>
                               <Badge variant="outline">{bank.papers} papers</Badge>
                             </div>
                             <div className="flex flex-wrap gap-1.5">
@@ -732,20 +732,20 @@ export default function MockBookPage() {
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Series</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Category</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Price</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Validity</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Free Tests</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Series</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Category</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Price</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Validity</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Free Tests</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {realSeries.map((series) => (
                           <TableRow key={series.id} className="hover:bg-orange-50/30">
                             <TableCell>
-                              <div className="font-medium text-gray-900 text-sm">{series.name}</div>
+                              <div className="font-medium text-[var(--text-primary)] text-sm">{series.name}</div>
                             </TableCell>
                             <TableCell>
                               <Badge variant="outline" className="text-[10px]">{series.category?.name || "General"}</Badge>
@@ -754,11 +754,11 @@ export default function MockBookPage() {
                               {series.price === 0 || series.price === null ? (
                                 <span className="text-green-600 font-semibold text-sm">Free</span>
                               ) : (
-                                <span className="font-semibold text-gray-900">₹{series.price}</span>
+                                <span className="font-semibold text-[var(--text-primary)]">₹{series.price}</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">Lifetime</TableCell>
-                            <TableCell className="text-sm text-gray-600">{series.isFree ? "All" : "0"}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">Lifetime</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{series.isFree ? "All" : "0"}</TableCell>
                             <TableCell className="text-right">
 
                               <Button variant="outline" size="sm" className="h-7 text-xs">
@@ -789,11 +789,11 @@ export default function MockBookPage() {
                       ].map((p, i) => (
                         <div key={i} className="flex items-center justify-between p-4 border rounded-lg hover:border-orange-300">
                           <div>
-                            <div className="font-medium text-gray-900">{p.plan}</div>
+                            <div className="font-medium text-[var(--text-primary)]">{p.plan}</div>
                             {p.saves && <div className="text-xs text-green-600 mt-0.5">{p.saves}</div>}
                           </div>
                           <div className="flex items-center gap-3">
-                            <div className="text-lg font-bold">₹{p.price}<span className="text-sm font-normal text-gray-500">/{p.unit}</span></div>
+                            <div className="text-lg font-bold">₹{p.price}<span className="text-sm font-normal text-[var(--text-secondary)]">/{p.unit}</span></div>
                             <Button variant="outline" size="sm" className="h-7 text-xs">
                               <Edit className="w-3 h-3 mr-1" /> Edit
                             </Button>
@@ -820,8 +820,8 @@ export default function MockBookPage() {
                       ].map((coupon, i) => (
                         <div key={i} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
-                            <div className="font-mono font-semibold text-gray-900">{coupon.code}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">{coupon.discount} · {coupon.usage}</div>
+                            <div className="font-mono font-semibold text-[var(--text-primary)]">{coupon.code}</div>
+                            <div className="text-xs text-[var(--text-secondary)] mt-0.5">{coupon.discount} · {coupon.usage}</div>
                           </div>
                           <div className="flex items-center gap-2">
                             <StatusBadge status={coupon.status} />
@@ -843,7 +843,7 @@ export default function MockBookPage() {
               <TabsContent value="analytics" className="mt-6 space-y-6">
                 {/* Date Range */}
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Platform Analytics</h2>
+                  <h2 className="text-lg font-semibold text-[var(--text-primary)]">Platform Analytics</h2>
                   <Select defaultValue="30">
                     <SelectTrigger className="w-[160px] input-field">
                       <SelectValue />
@@ -866,8 +866,8 @@ export default function MockBookPage() {
                   ].map((kpi) => (
                     <Card key={kpi.label} className="kpi-card">
                       <CardContent className="p-4">
-                        <div className="text-xs text-gray-500 uppercase">{kpi.label}</div>
-                        <div className="text-xl font-bold text-gray-900 mt-1">{kpi.value}</div>
+                        <div className="text-xs text-[var(--text-secondary)] uppercase">{kpi.label}</div>
+                        <div className="text-xl font-bold text-[var(--text-primary)] mt-1">{kpi.value}</div>
                         <div className={`text-xs mt-1 ${kpi.positive ? "text-green-500" : "text-red-500"}`}>
                           {kpi.change} vs prev period
                         </div>
@@ -884,7 +884,7 @@ export default function MockBookPage() {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       {realSeries.length === 0 ? (
-                        <div className="text-sm text-gray-400 py-6 text-center italic">No series data available</div>
+                        <div className="text-sm text-[var(--text-muted)] py-6 text-center italic">No series data available</div>
                       ) : (
                         realSeries
                           .slice()
@@ -899,15 +899,15 @@ export default function MockBookPage() {
                                   {i + 1}
                                 </div>
                                 <div className="flex-1 min-w-0">
-                                  <div className="text-sm font-medium text-gray-900 truncate">{s.name}</div>
-                                  <div className="w-full bg-gray-100 rounded-full h-1.5 mt-1">
+                                  <div className="text-sm font-medium text-[var(--text-primary)] truncate">{s.name}</div>
+                                  <div className="w-full bg-[var(--bg-main)] rounded-full h-1.5 mt-1">
                                     <div
                                       className="bg-orange-400 h-1.5 rounded-full"
                                       style={{ width: `${(enrollment / maxEnroll) * 100}%` }}
                                     />
                                   </div>
                                 </div>
-                                <div className="text-sm font-semibold text-gray-700 shrink-0">{enrollment.toLocaleString()}</div>
+                                <div className="text-sm font-semibold text-[var(--text-primary)] shrink-0">{enrollment.toLocaleString()}</div>
                               </div>
                             );
                           })
@@ -929,17 +929,17 @@ export default function MockBookPage() {
                         ].map((item) => (
                           <div key={item.label}>
                             <div className="flex justify-between text-sm mb-1">
-                              <span className="text-gray-700">{item.label}</span>
+                              <span className="text-[var(--text-primary)]">{item.label}</span>
                               <span className="font-semibold">{item.amount} ({item.pct}%)</span>
                             </div>
-                            <div className="w-full bg-gray-100 rounded-full h-3">
+                            <div className="w-full bg-[var(--bg-main)] rounded-full h-3">
                               <div className={`${item.color} h-3 rounded-full`} style={{ width: `${item.pct}%` }} />
                             </div>
                           </div>
                         ))}
                       </div>
                       <div className="border-t pt-3">
-                        <div className="text-sm font-semibold text-gray-900 flex justify-between">
+                        <div className="text-sm font-semibold text-[var(--text-primary)] flex justify-between">
                           <span>Total Revenue</span>
                           <span>₹2,34,500</span>
                         </div>
@@ -947,14 +947,14 @@ export default function MockBookPage() {
 
                       {/* Top Attempted */}
                       <div className="border-t pt-3">
-                        <div className="text-sm font-semibold text-gray-700 mb-2">Top by Attempts</div>
+                        <div className="text-sm font-semibold text-[var(--text-primary)] mb-2">Top by Attempts</div>
                         {[
                           { name: "SSC CGL Full Mock 1", attempts: 45230 },
                           { name: "Daily GK Booster", attempts: 38450 },
                           { name: "CA Booster March", attempts: 29100 },
                         ].map((t, i) => (
                           <div key={i} className="flex justify-between text-sm py-1 border-b border-gray-50">
-                            <span className="text-gray-600 truncate max-w-[200px]">{t.name}</span>
+                            <span className="text-[var(--text-secondary)] truncate max-w-[200px]">{t.name}</span>
                             <span className="font-medium">{t.attempts.toLocaleString()}</span>
                           </div>
                         ))}

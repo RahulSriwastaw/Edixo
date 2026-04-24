@@ -217,7 +217,7 @@ function InvoiceStatusBadge({ status }: { status: string }) {
     Pending: "badge-pending",
     Overdue: "badge-suspended",
     Trial: "badge-trial",
-    Cancelled: "bg-gray-100 text-gray-600",
+    Cancelled: "bg-[var(--bg-main)] text-[var(--text-secondary)]",
   };
   return <span className={`badge ${styles[status] || ""}`}>{status}</span>;
 }
@@ -241,7 +241,7 @@ const getIconBgColor = (color: string) => {
     red: "bg-red-50",
     yellow: "bg-yellow-50",
   };
-  return colors[color] || "bg-gray-50";
+  return colors[color] || "bg-[var(--bg-main)]";
 };
 
 const getIconColor = (color: string) => {
@@ -252,7 +252,7 @@ const getIconColor = (color: string) => {
     red: "text-red-600",
     yellow: "text-yellow-600",
   };
-  return colors[color] || "text-gray-600";
+  return colors[color] || "text-[var(--text-secondary)]";
 };
 
 export default function BillingPage() {
@@ -285,13 +285,13 @@ const [searchQuery, setSearchQuery] = useState("");
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Page Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Billing</h1>
-                <p className="text-gray-500 text-sm mt-1">
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Billing</h1>
+                <p className="text-[var(--text-secondary)] text-sm mt-1">
                   Manage invoices, subscriptions, and revenue
                 </p>
               </div>
@@ -313,10 +313,10 @@ const [searchQuery, setSearchQuery] = useState("");
                           <Icon className={`w-5 h-5 ${getIconColor(kpi.color)}`} />
                         </div>
                         <div className="flex-1">
-                          <div className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
                             {kpi.label}
                           </div>
-                          <div className="text-2xl font-bold text-gray-900 mt-1">
+                          <div className="text-2xl font-bold text-[var(--text-primary)] mt-1">
                             {kpi.value}
                           </div>
                           <div className="flex items-center gap-1 mt-1">
@@ -335,7 +335,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
             {/* Tabs */}
             <Tabs defaultValue="invoices" className="w-full">
-              <TabsList className="bg-white border border-gray-200 rounded-lg p-1">
+              <TabsList className="bg-white border border-[var(--border-input)] rounded-lg p-1">
                 <TabsTrigger value="overview" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">Overview</TabsTrigger>
                 <TabsTrigger value="invoices" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">Invoices</TabsTrigger>
                 <TabsTrigger value="subscriptions" className="data-[state=active]:bg-brand-primary data-[state=active]:text-white">Subscriptions</TabsTrigger>
@@ -395,20 +395,20 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent>
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Teacher Limit</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Monthly</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Annual</TableHead>
+                        <TableRow className="bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Plan</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Teacher Limit</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Monthly</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Annual</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {plans.map((plan) => (
-                          <TableRow key={plan.name} className="hover:bg-gray-50">
+                          <TableRow key={plan.name} className="hover:bg-[var(--bg-main)]">
                             <TableCell>
                               <PlanBadge plan={plan.name} />
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">{plan.limit}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{plan.limit}</TableCell>
                             <TableCell className="text-right font-mono text-sm">{plan.monthly}</TableCell>
                             <TableCell className="text-right font-mono text-sm">{plan.annual}</TableCell>
                           </TableRow>
@@ -425,7 +425,7 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-4">
                     <div className="flex flex-wrap items-center gap-3">
                       <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                         <Input
                           placeholder="Search invoices..."
                           value={searchQuery}
@@ -484,15 +484,15 @@ const [searchQuery, setSearchQuery] = useState("");
                   <CardContent className="p-0">
                     <Table>
                       <TableHeader>
-                        <TableRow className="bg-gray-50 hover:bg-gray-50">
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Invoice #</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Organization</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Plan</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Amount</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Period</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Status</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase">Due Date</TableHead>
-                          <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right">Actions</TableHead>
+                        <TableRow className="bg-[var(--bg-main)] hover:bg-[var(--bg-main)]">
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Invoice #</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Organization</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Plan</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Amount</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Period</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Status</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase">Due Date</TableHead>
+                          <TableHead className="text-xs font-semibold text-[var(--text-secondary)] uppercase text-right">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -505,11 +505,11 @@ const [searchQuery, setSearchQuery] = useState("");
                               <div>
                                 <Link 
                                   href={`/organizations/${invoice.orgId}`}
-                                  className="text-sm font-medium text-gray-900 hover:text-brand-primary"
+                                  className="text-sm font-medium text-[var(--text-primary)] hover:text-brand-primary"
                                 >
                                   {invoice.organization}
                                 </Link>
-                                <div className="text-xs text-gray-500">{invoice.orgId}</div>
+                                <div className="text-xs text-[var(--text-secondary)]">{invoice.orgId}</div>
                               </div>
                             </TableCell>
                             <TableCell>
@@ -518,12 +518,12 @@ const [searchQuery, setSearchQuery] = useState("");
                             <TableCell className="text-right font-mono text-sm">
                               {invoice.amount > 0 ? `₹${invoice.amount.toLocaleString()}` : "—"}
                             </TableCell>
-                            <TableCell className="text-sm text-gray-600">{invoice.period}</TableCell>
+                            <TableCell className="text-sm text-[var(--text-secondary)]">{invoice.period}</TableCell>
                             <TableCell>
                               <InvoiceStatusBadge status={invoice.status} />
                             </TableCell>
                             <TableCell>
-                              <span className={`text-sm ${invoice.status === "Overdue" ? "text-red-600 font-medium" : "text-gray-500"}`}>
+                              <span className={`text-sm ${invoice.status === "Overdue" ? "text-red-600 font-medium" : "text-[var(--text-secondary)]"}`}>
                                 {invoice.dueDate}
                               </span>
                             </TableCell>
@@ -563,7 +563,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
                 {/* Pagination */}
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-[var(--text-secondary)]">
                     Showing 1–{filteredInvoices.length} of {invoices.length}
                   </div>
                   <div className="flex items-center gap-2">
@@ -581,7 +581,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
               <TabsContent value="subscriptions" className="mt-6">
                 <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
+                  <CardContent className="p-8 text-center text-[var(--text-secondary)]">
                     Subscription management coming soon...
                   </CardContent>
                 </Card>
@@ -589,7 +589,7 @@ const [searchQuery, setSearchQuery] = useState("");
 
               <TabsContent value="analytics" className="mt-6">
                 <Card>
-                  <CardContent className="p-8 text-center text-gray-500">
+                  <CardContent className="p-8 text-center text-[var(--text-secondary)]">
                     Revenue analytics coming soon...
                   </CardContent>
                 </Card>

@@ -218,12 +218,12 @@ const [categories, setCategories] = useState<Category[]>([]);
     return (
       <div key={category.id}>
         <div 
-          className={`flex items-center gap-2 p-3 hover:bg-gray-50 border-b ${level > 0 ? 'ml-6' : ''}`}
+          className={`flex items-center gap-2 p-3 hover:bg-[var(--bg-main)] border-b ${level > 0 ? 'ml-6' : ''}`}
           style={{ marginLeft: level * 24 }}
         >
           <button onClick={() => toggleExpand(category.id)} className="p-1">
             {hasChildren ? (
-              isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />
+              isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--text-muted)]" /> : <ChevronRight className="w-4 h-4 text-[var(--text-muted)]" />
             ) : (
               <span className="w-5" />
             )}
@@ -232,12 +232,12 @@ const [categories, setCategories] = useState<Category[]>([]);
           <FolderOpen className="w-5 h-5 text-orange-500" />
           
           <div className="flex-1">
-            <div className="font-medium text-gray-900">{category.name}</div>
-            <div className="text-xs text-gray-500 mono">/{category.slug}</div>
+            <div className="font-medium text-[var(--text-primary)]">{category.name}</div>
+            <div className="text-xs text-[var(--text-secondary)] mono">/{category.slug}</div>
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="text-sm text-gray-500">{category.postCount} posts</span>
+            <span className="text-sm text-[var(--text-secondary)]">{category.postCount} posts</span>
             <Button
               variant="ghost"
               size="sm"
@@ -267,17 +267,17 @@ const [categories, setCategories] = useState<Category[]>([]);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1200px] mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Link href="/admin/blog" className="p-2 hover:bg-gray-100 rounded-lg">
-                  <ArrowLeft className="w-5 h-5 text-gray-500" />
+                <Link href="/admin/blog" className="p-2 hover:bg-[var(--bg-main)] rounded-lg">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
                 </Link>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Categories</h1>
-                  <p className="text-gray-500 text-sm">Manage hierarchical blog categories</p>
+                  <h1 className="text-2xl font-bold text-[var(--text-primary)]">Categories</h1>
+                  <p className="text-[var(--text-secondary)] text-sm">Manage hierarchical blog categories</p>
                 </div>
               </div>
               <Button className="btn-primary" onClick={() => handleOpenDialog()}>
@@ -290,20 +290,20 @@ const [categories, setCategories] = useState<Category[]>([]);
             <div className="grid grid-cols-3 gap-4">
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">Total Categories</div>
-                  <div className="text-2xl font-bold text-gray-900">{flatCategories.length}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Total Categories</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{flatCategories.length}</div>
                 </CardContent>
               </Card>
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">Top Level</div>
-                  <div className="text-2xl font-bold text-gray-900">{categories.length}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">Top Level</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">{categories.length}</div>
                 </CardContent>
               </Card>
               <Card className="kpi-card">
                 <CardContent className="p-4">
-                  <div className="text-sm text-gray-500">With Posts</div>
-                  <div className="text-2xl font-bold text-gray-900">
+                  <div className="text-sm text-[var(--text-secondary)]">With Posts</div>
+                  <div className="text-2xl font-bold text-[var(--text-primary)]">
                     {flatCategories.filter(c => c.postCount > 0).length}
                   </div>
                 </CardContent>
@@ -314,12 +314,12 @@ const [categories, setCategories] = useState<Category[]>([]);
             <Card>
               <CardContent className="p-0">
                 {loading ? (
-                  <div className="p-8 text-center text-gray-500">Loading...</div>
+                  <div className="p-8 text-center text-[var(--text-secondary)]">Loading...</div>
                 ) : categories.length === 0 ? (
                   <div className="p-8 text-center">
                     <FolderOpen className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="font-medium text-gray-900 mb-1">No categories yet</h3>
-                    <p className="text-gray-500 text-sm mb-4">Create your first category</p>
+                    <h3 className="font-medium text-[var(--text-primary)] mb-1">No categories yet</h3>
+                    <p className="text-[var(--text-secondary)] text-sm mb-4">Create your first category</p>
                     <Button onClick={() => handleOpenDialog()}>
                       <Plus className="w-4 h-4 mr-2" />
                       Add Category
@@ -411,7 +411,7 @@ const [categories, setCategories] = useState<Category[]>([]);
                 <div>
                   <div className="flex justify-between mb-1">
                     <Label className="text-sm">SEO Title</Label>
-                    <span className={`text-xs ${formData.seoTitle.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>
+                    <span className={`text-xs ${formData.seoTitle.length > 60 ? 'text-red-500' : 'text-[var(--text-muted)]'}`}>
                       {formData.seoTitle.length}/60
                     </span>
                   </div>

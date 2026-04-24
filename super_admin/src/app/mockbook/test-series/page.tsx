@@ -33,7 +33,7 @@ import { toast } from "sonner";
 function StatusBadge({ status }: { status: string }) {
     const cfg: Record<string, { label: string; cls: string }> = {
         active: { label: "Active", cls: "bg-green-50 text-green-700 border-green-200" },
-        draft: { label: "Draft", cls: "bg-gray-50 text-gray-600 border-gray-200" },
+        draft: { label: "Draft", cls: "bg-[var(--bg-main)] text-[var(--text-secondary)] border-[var(--border-input)]" },
         archived: { label: "Archived", cls: "bg-red-50 text-red-600 border-red-200" },
     };
     const { label, cls } = cfg[status] || cfg.draft;
@@ -184,20 +184,20 @@ export default function TestSeriesPage() {
             <Sidebar />
             <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
                 <TopBar />
-                <main className="flex-1 p-6">
+                <main className="flex-1 p-4 lg:p-5">
                     <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
                         {/* Breadcrumb */}
-                        <div className="flex items-center gap-2 text-sm text-gray-500">
+                        <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                             <Link href="/mockbook" className="hover:text-orange-600">MockBook</Link>
                             <ChevronRight className="w-4 h-4" />
-                            <span className="text-gray-900 font-medium">Test Series</span>
+                            <span className="text-[var(--text-primary)] font-medium">Test Series</span>
                         </div>
 
                         {/* Header */}
                         <div className="flex items-center justify-between">
                             <div>
-                                <h1 className="text-2xl font-bold text-gray-900">Test Series</h1>
-                                <p className="text-gray-500 text-sm mt-1">{allSeries.length} series on platform</p>
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Test Series</h1>
+                                <p className="text-[var(--text-secondary)] text-sm mt-1">{allSeries.length} series on platform</p>
                             </div>
                             <Button className="btn-primary" onClick={() => setShowCreate(true)}>
                                 <Plus className="w-4 h-4 mr-2" /> Create New Series
@@ -214,8 +214,8 @@ export default function TestSeriesPage() {
                             ].map(stat => (
                                 <Card key={stat.label} className="kpi-card">
                                     <CardContent className="p-4">
-                                        <div className="text-xs text-gray-500 uppercase">{stat.label}</div>
-                                        <div className="text-xl font-bold text-gray-900 mt-0.5">{stat.value}</div>
+                                        <div className="text-xs text-[var(--text-secondary)] uppercase">{stat.label}</div>
+                                        <div className="text-xl font-bold text-[var(--text-primary)] mt-0.5">{stat.value}</div>
                                     </CardContent>
                                 </Card>
                             ))}
@@ -226,7 +226,7 @@ export default function TestSeriesPage() {
                             <CardContent className="p-4">
                                 <div className="flex flex-wrap items-center gap-3">
                                     <div className="relative flex-1 min-w-[200px] max-w-[320px]">
-                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                                         <Input placeholder="Search series..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9 input-field" />
                                     </div>
                                     <Select value={categoryFilter} onValueChange={setCategoryFilter}>
@@ -253,7 +253,7 @@ export default function TestSeriesPage() {
                                             Clear
                                         </Button>
                                     )}
-                                    <span className="ml-auto text-sm text-gray-500">{filtered.length} results</span>
+                                    <span className="ml-auto text-sm text-[var(--text-secondary)]">{filtered.length} results</span>
                                 </div>
                             </CardContent>
                         </Card>
@@ -263,7 +263,7 @@ export default function TestSeriesPage() {
                             {isLoading ? (
                                 <div className="p-16 text-center flex flex-col items-center gap-3">
                                     <Loader2 className="w-8 h-8 animate-spin text-orange-500" />
-                                    <p className="text-sm text-gray-400">Loading series...</p>
+                                    <p className="text-sm text-[var(--text-muted)]">Loading series...</p>
                                 </div>
                             ) : filtered.map((series) => (
                                 <Card key={series.id} className="hover:shadow-md transition-all">
@@ -275,7 +275,7 @@ export default function TestSeriesPage() {
                                                 </div>
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-2 flex-wrap mb-1">
-                                                        <span className="font-semibold text-gray-900">{series.name}</span>
+                                                        <span className="font-semibold text-[var(--text-primary)]">{series.name}</span>
                                                         <StatusBadge status={series.isActive ? "active" : "draft"} />
                                                         {series.isFeatured && (
                                                             <Badge className="bg-yellow-50 text-yellow-700 border border-yellow-200 text-[10px]">
@@ -287,13 +287,13 @@ export default function TestSeriesPage() {
                                                         </Badge>
                                                     </div>
                                                     {series.description && (
-                                                        <p className="text-xs text-gray-500 mb-1 truncate max-w-lg">{series.description}</p>
+                                                        <p className="text-xs text-[var(--text-secondary)] mb-1 truncate max-w-lg">{series.description}</p>
                                                     )}
-                                                    <div className="flex items-center gap-5 text-sm text-gray-500 flex-wrap">
+                                                    <div className="flex items-center gap-5 text-sm text-[var(--text-secondary)] flex-wrap">
                                                         <span className="text-green-600">
                                                             {series.isFree ? "Free" : `₹${series.discountPrice || series.price}`}
                                                         </span>
-                                                        <span className="text-gray-400 text-xs">
+                                                        <span className="text-[var(--text-muted)] text-xs">
                                                             Created {series.createdAt ? new Date(series.createdAt).toLocaleDateString() : 'N/A'}
                                                         </span>
                                                     </div>
@@ -341,7 +341,7 @@ export default function TestSeriesPage() {
                                 <Card>
                                     <CardContent className="p-16 text-center">
                                         <BookOpen className="w-14 h-14 text-gray-200 mx-auto mb-4" />
-                                        <div className="text-lg font-medium text-gray-500">No series found</div>
+                                        <div className="text-lg font-medium text-[var(--text-secondary)]">No series found</div>
                                         <Button className="btn-primary mt-4" onClick={() => setShowCreate(true)}>
                                             <Plus className="w-4 h-4 mr-2" /> Create Series
                                         </Button>
@@ -459,7 +459,7 @@ export default function TestSeriesPage() {
                         </DialogTitle>
                         <DialogDescription>This action cannot be undone.</DialogDescription>
                     </DialogHeader>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[var(--text-secondary)]">
                         Are you sure you want to delete <strong>{deleteConfirm?.name}</strong>? This will remove the series and all its subcategories from the platform.
                     </p>
                     <DialogFooter>

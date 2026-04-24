@@ -182,7 +182,7 @@ const roleDefinitions = [
     id: "custom",
     name: "Custom Role",
     icon: Settings,
-    color: "bg-gray-100 text-gray-700 border-gray-300",
+    color: "bg-[var(--bg-main)] text-[var(--text-primary)] border-[var(--border-input)]",
     description: "Custom role with configurable permissions",
     isSystem: false,
     permissions: {
@@ -270,13 +270,13 @@ const [roles, setRoles] = useState(roleDefinitions);
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
             {/* Header */}
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">Roles & Permissions</h1>
-                <p className="text-gray-500 text-sm">Configure role-based access control for the platform</p>
+                <h1 className="text-2xl font-bold text-[var(--text-primary)]">Roles & Permissions</h1>
+                <p className="text-[var(--text-secondary)] text-sm">Configure role-based access control for the platform</p>
               </div>
               <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white gap-2">
                 <Plus className="w-4 h-4" /> Create Custom Role
@@ -332,13 +332,13 @@ const [roles, setRoles] = useState(roleDefinitions);
                       </div>
                     </CardHeader>
                     <CardContent className="p-4">
-                      <p className="text-sm text-gray-500 mb-4">{role.description}</p>
+                      <p className="text-sm text-[var(--text-secondary)] mb-4">{role.description}</p>
                       <div className="space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Permissions</span>
+                          <span className="text-[var(--text-secondary)]">Permissions</span>
                           <span className="font-medium">{permissionCount} / {totalPermissions}</span>
                         </div>
-                        <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="h-2 bg-[var(--bg-main)] rounded-full overflow-hidden">
                           <div
                             className="h-full bg-[#F4511E] rounded-full transition-all"
                             style={{ width: `${(permissionCount / totalPermissions) * 100}%` }}
@@ -376,10 +376,10 @@ const [roles, setRoles] = useState(roleDefinitions);
                   <div className="overflow-x-auto">
                     <table className="w-full">
                       <thead>
-                        <tr className="border-b bg-gray-50">
-                          <th className="text-left p-4 font-medium text-gray-500">Module</th>
+                        <tr className="border-b bg-[var(--bg-main)]">
+                          <th className="text-left p-4 font-medium text-[var(--text-secondary)]">Module</th>
                           {actions.map((action) => (
-                            <th key={action} className="text-center p-4 font-medium text-gray-500 capitalize">
+                            <th key={action} className="text-center p-4 font-medium text-[var(--text-secondary)] capitalize">
                               {action}
                             </th>
                           ))}
@@ -390,8 +390,8 @@ const [roles, setRoles] = useState(roleDefinitions);
                           const role = getSelectedRoleData();
                           const permissions = role?.permissions[module] || [];
                           return (
-                            <tr key={module} className="border-b hover:bg-gray-50">
-                              <td className="p-4 font-medium text-gray-900">{module}</td>
+                            <tr key={module} className="border-b hover:bg-[var(--bg-main)]">
+                              <td className="p-4 font-medium text-[var(--text-primary)]">{module}</td>
                               {actions.map((action) => (
                                 <td key={action} className="p-4 text-center">
                                   {permissions.includes(action) ? (
@@ -399,8 +399,8 @@ const [roles, setRoles] = useState(roleDefinitions);
                                       <Check className="w-4 h-4 text-green-600" />
                                     </div>
                                   ) : (
-                                    <div className="w-6 h-6 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-                                      <X className="w-4 h-4 text-gray-400" />
+                                    <div className="w-6 h-6 bg-[var(--bg-main)] rounded-full flex items-center justify-center mx-auto">
+                                      <X className="w-4 h-4 text-[var(--text-muted)]" />
                                     </div>
                                   )}
                                 </td>
@@ -434,9 +434,9 @@ const [roles, setRoles] = useState(roleDefinitions);
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left p-3 font-medium text-gray-500">Module</th>
+                      <th className="text-left p-3 font-medium text-[var(--text-secondary)]">Module</th>
                       {actions.map((action) => (
-                        <th key={action} className="text-center p-3 font-medium text-gray-500 capitalize text-sm">
+                        <th key={action} className="text-center p-3 font-medium text-[var(--text-secondary)] capitalize text-sm">
                           {action}
                         </th>
                       ))}
@@ -445,7 +445,7 @@ const [roles, setRoles] = useState(roleDefinitions);
                   <tbody>
                     {modules.map((module) => (
                       <tr key={module} className="border-b">
-                        <td className="p-3 font-medium text-gray-900">{module}</td>
+                        <td className="p-3 font-medium text-[var(--text-primary)]">{module}</td>
                         {actions.map((action) => {
                           const hasPermission = editingPermissions[module]?.includes(action);
                           return (
@@ -456,13 +456,13 @@ const [roles, setRoles] = useState(roleDefinitions);
                                   "w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all",
                                   hasPermission
                                     ? "bg-green-100 hover:bg-green-200"
-                                    : "bg-gray-100 hover:bg-gray-200"
+                                    : "bg-[var(--bg-main)] hover:bg-[var(--bg-sidebar)]"
                                 )}
                               >
                                 {hasPermission ? (
                                   <Check className="w-4 h-4 text-green-600" />
                                 ) : (
-                                  <X className="w-4 h-4 text-gray-400" />
+                                  <X className="w-4 h-4 text-[var(--text-muted)]" />
                                 )}
                               </button>
                             </td>

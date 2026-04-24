@@ -281,10 +281,10 @@ const params = useParams();
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
               <Link href="/question-bank" className="hover:text-orange-600">
                 Q-Bank
               </Link>
@@ -293,7 +293,7 @@ const params = useParams();
                 PDF Extract
               </Link>
               <span>/</span>
-              <span className="text-gray-900 font-medium truncate max-w-[300px]">
+              <span className="text-[var(--text-primary)] font-medium truncate max-w-[300px]">
                 {mockDocument.name}
               </span>
             </div>
@@ -307,8 +307,8 @@ const params = useParams();
                       <FileText className="w-8 h-8 text-orange-600" />
                     </div>
                     <div>
-                      <h1 className="text-xl font-bold text-gray-900">{mockDocument.name}</h1>
-                      <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                      <h1 className="text-xl font-bold text-[var(--text-primary)]">{mockDocument.name}</h1>
+                      <div className="flex items-center gap-4 mt-2 text-sm text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1">
                           <FileText className="w-4 h-4" />
                           {mockDocument.id}
@@ -321,7 +321,7 @@ const params = useParams();
                           Completed
                         </Badge>
                       </div>
-                      <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-gray-500">
+                      <div className="flex flex-wrap items-center gap-4 mt-3 text-sm text-[var(--text-secondary)]">
                         <span className="flex items-center gap-1">
                           <FileText className="w-4 h-4" />
                           {mockDocument.totalQuestions} Questions
@@ -352,19 +352,19 @@ const params = useParams();
                 </div>
 
                 {/* Processing Stats */}
-                <div className="mt-6 pt-4 border-t border-gray-100">
+                <div className="mt-6 pt-4 border-t border-[var(--divider)]">
                   <div className="grid grid-cols-3 gap-4 text-sm">
                     <div>
-                      <span className="text-gray-500">Credits Used</span>
-                      <div className="font-semibold text-gray-900">{mockDocument.creditsUsed}</div>
+                      <span className="text-[var(--text-secondary)]">Credits Used</span>
+                      <div className="font-semibold text-[var(--text-primary)]">{mockDocument.creditsUsed}</div>
                     </div>
                     <div>
-                      <span className="text-gray-500">Tokens Used</span>
-                      <div className="font-semibold text-gray-900">{mockDocument.tokensUsed.toLocaleString()}</div>
+                      <span className="text-[var(--text-secondary)]">Tokens Used</span>
+                      <div className="font-semibold text-[var(--text-primary)]">{mockDocument.tokensUsed.toLocaleString()}</div>
                     </div>
                     <div>
-                      <span className="text-gray-500">Questions Extracted</span>
-                      <div className="font-semibold text-gray-900">{mockDocument.totalQuestions}</div>
+                      <span className="text-[var(--text-secondary)]">Questions Extracted</span>
+                      <div className="font-semibold text-[var(--text-primary)]">{mockDocument.totalQuestions}</div>
                     </div>
                   </div>
                 </div>
@@ -377,7 +377,7 @@ const params = useParams();
                 <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                   {/* Search */}
                   <div className="relative flex-1 max-w-md">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <Input
                       placeholder="Search questions..."
                       value={searchQuery}
@@ -398,7 +398,7 @@ const params = useParams();
                       </SelectContent>
                     </Select>
 
-                    <div className="h-6 w-px bg-gray-200 mx-1" />
+                    <div className="h-6 w-px bg-[var(--bg-sidebar)] mx-1" />
 
                     <Button
                       variant="outline"
@@ -410,7 +410,7 @@ const params = useParams();
                       Bulk Tag
                     </Button>
 
-                    <div className="h-6 w-px bg-gray-200 mx-1" />
+                    <div className="h-6 w-px bg-[var(--bg-sidebar)] mx-1" />
 
                     <Button
                       variant={viewMode === "grid" ? "default" : "ghost"}
@@ -430,7 +430,7 @@ const params = useParams();
                     </SelectContent>
                   </Select>
 
-                  <div className="h-6 w-px bg-gray-200 mx-1" />
+                  <div className="h-6 w-px bg-[var(--bg-sidebar)] mx-1" />
 
                   <Button
                     variant={viewMode === "grid" ? "default" : "ghost"}
@@ -464,9 +464,9 @@ const params = useParams();
 
           {/* Questions List */}
             <div className="space-y-3">
-              <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center gap-3 p-3 bg-[var(--bg-main)] rounded-lg">
                 <Checkbox checked={selectAll} onCheckedChange={toggleSelectAll} />
-                <span className="text-sm font-medium text-gray-700">
+                <span className="text-sm font-medium text-[var(--text-primary)]">
                   Document Questions ({filteredQuestions.length})
                 </span>
               </div>
@@ -504,7 +504,7 @@ const params = useParams();
                             Page {question.sourcePage}
                           </Badge>
                           {question.topic && (
-                            <Badge variant="outline" className="text-[10px] bg-gray-50">
+                            <Badge variant="outline" className="text-[10px] bg-[var(--bg-main)]">
                               {question.topic}
                             </Badge>
                           )}
@@ -527,7 +527,7 @@ const params = useParams();
 
                         {/* Question Content */}
                         <div
-                          className="text-sm text-gray-700 prose prose-sm max-w-none"
+                          className="text-sm text-[var(--text-primary)] prose prose-sm max-w-none"
                           dangerouslySetInnerHTML={{ __html: question.questionEng }}
                         />
 
@@ -544,7 +544,7 @@ const params = useParams();
                                   "p-2 rounded text-xs border",
                                   isCorrect
                                     ? "bg-green-50 border-green-200 text-green-800"
-                                    : "bg-gray-50 border-gray-200 text-gray-700"
+                                    : "bg-[var(--bg-main)] border-[var(--border-input)] text-[var(--text-primary)]"
                                 )}
                               >
                                 <span className="font-semibold mr-1">{opt}.</span>
@@ -556,7 +556,7 @@ const params = useParams();
                         </div>
 
                         {/* Actions */}
-                        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-gray-100">
+                        <div className="flex items-center gap-2 mt-4 pt-3 border-t border-[var(--divider)]">
                           <Button
                             variant="outline"
                             size="sm"
@@ -582,7 +582,7 @@ const params = useParams();
             </div>
 
             {/* Bottom Actions */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 flex items-center justify-between">
+            <div className="sticky bottom-0 bg-white border-t border-[var(--border-input)] p-4 flex items-center justify-between">
               <Link href="/question-bank/pdf-extract">
                 <Button variant="outline">
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -760,7 +760,7 @@ const params = useParams();
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-[var(--text-secondary)]">
                   Question {currentQuestion + 1} of {mockQuestions.length}
                 </span>
                 <Button
@@ -840,7 +840,7 @@ const params = useParams();
                 </Label>
               </div>
 
-              <p className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+              <p className="text-xs text-[var(--text-secondary)] bg-[var(--bg-main)] p-3 rounded-lg">
                 This will update {selectedQuestions.length || mockQuestions.length} questions.
                 Questions with existing values will be skipped unless overwrite is enabled.
               </p>
@@ -864,7 +864,7 @@ const params = useParams();
                 </Select>
               </div>
 
-              <div className="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+              <div className="bg-[var(--bg-main)] p-4 rounded-lg text-sm text-[var(--text-secondary)]">
                 <p className="font-medium mb-2">AI Auto Tag Process:</p>
                 <ol className="list-decimal list-inside space-y-1 text-xs">
                   <li>AI analyzes each question content</li>

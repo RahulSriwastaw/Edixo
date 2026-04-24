@@ -7,34 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  LogIn,
-  Mail,
-  Lock,
-  Loader2,
-  Eye,
-  EyeOff,
-  UserPlus,
-  GraduationCap,
-  Shield,
-  Zap,
-  Trophy,
-  Users,
-  Star,
-  ArrowRight,
-  CheckCircle2,
-  TrendingUp,
-  BrainCircuit,
-  Sparkles,
+  LogIn, Mail, Lock, Loader2, Eye, EyeOff,
+  UserPlus, GraduationCap, Shield, Zap,
+  Trophy, Users, Star, ArrowRight, BrainCircuit,
+  TrendingUp
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-
-/* ─── Animated Background Orbs ─────────────────────── */
-const orbs = [
-  { size: 400, x: "-20%", y: "-20%", color: "from-indigo-600/20 to-purple-600/10", animDelay: "0s" },
-  { size: 350, x: "60%", y: "50%", color: "from-cyan-500/15 to-blue-500/10", animDelay: "2s" },
-  { size: 300, x: "20%", y: "70%", color: "from-violet-600/15 to-pink-500/10", animDelay: "4s" },
-];
 
 /* ─── Stats Bar ─────────────────────── */
 const stats = [
@@ -96,7 +75,6 @@ export default function LoginPage() {
           title: isLogin ? "Welcome back! 🎉" : "Account created! 🚀",
           description: isLogin ? "Redirecting to your dashboard..." : "Your learning journey has begun."
         });
-        // Redirect back to where the user came from, or default to /tests
         const redirectTo = searchParams.get('redirect') || '/tests';
         window.location.href = redirectTo;
       } else {
@@ -118,112 +96,110 @@ export default function LoginPage() {
   };
 
   const switchMode = () => {
-    setIsLogin(p => !p);
+    setIsLogin((p) => !p);
     setEmail("");
     setPassword("");
     setName("");
   };
 
   return (
-    <div className="min-h-screen flex bg-slate-950 overflow-hidden relative">
-      {/* Animated Background Orbs */}
-      {orbs.map((orb, i) => (
-        <div
-          key={i}
-          className={cn(
-            "absolute rounded-full blur-3xl animate-pulse pointer-events-none",
-            orb.color
-          )}
-          style={{
-            width: orb.size,
-            height: orb.size,
-            left: orb.x,
-            top: orb.y,
-            animationDelay: orb.animDelay,
-            animationDuration: "8s",
-          }}
-        />
-      ))}
+    <div className="min-h-screen flex overflow-hidden relative" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+      <style jsx global>{`
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .animate-gradient { animation: gradient 4s ease infinite; }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        @keyframes glow-pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+        .animate-glow { animation: glow-pulse 4s ease-in-out infinite; }
+      `}</style>
 
-      {/* Grid Pattern Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.03] pointer-events-none"
-        style={{
-          backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-          backgroundSize: "80px 80px",
-        }}
-      />
+      {/* Background Glow Orbs */}
+      <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-[#FF6B2B]/8 rounded-full blur-[150px] animate-glow pointer-events-none" />
+      <div className="fixed bottom-0 right-0 w-[400px] h-[400px] bg-[#ff4400]/5 rounded-full blur-[120px] animate-glow pointer-events-none" style={{ animationDelay: "2s" }} />
 
       {/* Main Container */}
       <div className="relative z-10 flex w-full min-h-screen">
 
         {/* ══════════ LEFT PANEL - Branding ══════════ */}
-        <div className="hidden lg:flex lg:w-[45%] xl:w-[48%] flex-col justify-between p-8 xl:p-12 relative">
+        <div className="hidden lg:flex lg:w-[45%] xl:w-[48%] flex-col justify-between p-8 xl:p-12 relative overflow-hidden" style={{ background: "var(--bg-sidebar)", borderRight: "var(--divider)" }}>
+          {/* Subtle Grid */}
+          <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`, backgroundSize: "40px 40px" }} />
 
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-xl shadow-blue-500/30 group-hover:scale-105 transition-transform">
+          <Link href="/" className="relative z-10 flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg shrink-0" style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}>
               M
             </div>
-            <span className="text-white font-extrabold text-2xl tracking-tight">Mockbook</span>
+            <span className="font-bold text-xl tracking-tight">Mockbook</span>
           </Link>
 
           {/* Hero Content */}
-          <div className="space-y-8">
+          <div className="relative z-10 space-y-6">
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 border border-blue-500/20 backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full animate-float"
+              style={{ background: "linear-gradient(135deg, rgba(255,107,43,0.1) 0%, rgba(255,107,43,0.04) 100%)", border: "1px solid rgba(255,107,43,0.2)" }}
+            >
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "#FF6B2B" }} />
+                <span className="relative inline-flex rounded-full h-2 w-2" style={{ background: "#FF6B2B" }} />
               </span>
-              <span className="text-blue-300 text-xs font-bold uppercase tracking-wider">India's #1 AI Testing Platform</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "#FF6B2B" }}>India's #1 AI Testing Platform</span>
             </div>
 
             {/* Headline */}
-            <div className="space-y-4">
-              <h1 className="text-4xl xl:text-5xl font-black leading-tight text-white">
+            <div className="space-y-3">
+              <h1 className="text-3xl xl:text-4xl font-bold leading-tight">
                 Ace Your Exams with{" "}
-                <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                  AI Precision
-                </span>
+                <span className="bg-gradient-to-r from-[#FF6B2B] via-[#ff8a5c] to-[#FF6B2B] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">AI Precision</span>
               </h1>
-              <p className="text-slate-400 text-base leading-relaxed max-w-md">
+              <p className="text-sm leading-relaxed max-w-md opacity-60">
                 Join 1.2 Lakh+ aspirants preparing for SSC, JEE, NEET, Railway & Banking with real-time analytics and AI-powered guidance.
               </p>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-3">
               {stats.map((stat) => (
-                <div key={stat.label} className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
-                  <stat.icon className="h-5 w-5 text-blue-400 mb-2" />
-                  <div className="text-2xl font-black text-white">{stat.value}</div>
-                  <div className="text-xs text-slate-500 font-medium">{stat.label}</div>
+                <div
+                  key={stat.label}
+                  className="group relative rounded-2xl p-3 overflow-hidden transition-all duration-500 hover:-translate-y-1"
+                  style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}
+                >
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-[#FF6B2B]/5 rounded-full blur-2xl translate-x-8 -translate-y-8 group-hover:bg-[#FF6B2B]/10 transition-all duration-700" />
+                  <div className="relative z-10">
+                    <stat.icon className="h-4 w-4 mb-1.5" style={{ color: "#FF6B2B" }} />
+                    <div className="text-lg font-bold bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">{stat.value}</div>
+                    <div className="text-[10px] font-medium opacity-50">{stat.label}</div>
+                  </div>
                 </div>
               ))}
             </div>
 
             {/* Features */}
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {features.map((f) => (
-                <div key={f.title} className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
-                  <f.icon className="h-4 w-4 text-indigo-400" />
-                  <span className="text-sm font-semibold text-slate-300">{f.title}</span>
-                  <span className="text-slate-500 text-xs">· {f.desc}</span>
+                <div
+                  key={f.title}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl"
+                  style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  <f.icon className="h-3.5 w-3.5" style={{ color: "#FF6B2B" }} />
+                  <span className="text-[12px] font-semibold">{f.title}</span>
+                  <span className="text-[10px] opacity-50">· {f.desc}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Trust Footer */}
-          <div className="flex items-center gap-2 text-sm text-slate-500">
-            <Shield className="h-4 w-4 text-emerald-500" />
+          <div className="relative z-10 flex items-center gap-2 text-sm opacity-50">
+            <Shield className="h-4 w-4" style={{ color: "#4CAF50" }} />
             <span>Bank-grade security · Your data is encrypted</span>
           </div>
         </div>
 
         {/* ══════════ RIGHT PANEL - Auth Form ══════════ */}
-        <div className="flex-1 flex items-center justify-center p-6 xl:p-12">
+        <div className="flex-1 flex items-center justify-center p-6 xl:p-12 relative">
           <div
             className={cn(
               "w-full max-w-md transition-all duration-700",
@@ -231,37 +207,37 @@ export default function LoginPage() {
             )}
           >
             {/* Form Card */}
-            <div className="bg-white/[0.03] backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+            <div
+              className="rounded-2xl p-6 relative overflow-hidden"
+              style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}
+            >
+              {/* Top Glow Line */}
+              <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#FF6B2B]/30 to-transparent" />
 
               {/* Header */}
-              <div className="text-center mb-8">
-                <div className={cn(
-                  "w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center transition-all duration-500",
-                  isLogin ? "bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30" : "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30"
-                )}>
-                  {isLogin ? <LogIn className="h-7 w-7 text-white" /> : <UserPlus className="h-7 w-7 text-white" />}
+              <div className="text-center mb-6">
+                <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all duration-500 group-hover:scale-110" style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}>
+                  {isLogin ? <LogIn className="h-5 w-5 text-white" /> : <UserPlus className="h-5 w-5 text-white" />}
                 </div>
-                <h2 className="text-2xl font-black text-white mb-1">
-                  {isLogin ? "Welcome Back" : "Create Account"}
-                </h2>
-                <p className="text-slate-400 text-sm">
+                <h2 className="text-xl font-bold mb-1">{isLogin ? "Welcome Back" : "Create Account"}</h2>
+                <p className="text-[12px] opacity-50">
                   {isLogin ? "Sign in to continue your preparation" : "Start your journey to success"}
                 </p>
               </div>
 
               {/* Form */}
-              <form onSubmit={handleAuth} className="space-y-5">
+              <form onSubmit={handleAuth} className="space-y-4">
 
                 {/* Name Field (Signup only) */}
                 {!isLogin && (
-                  <div className="space-y-2 animate-fade-in">
-                    <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Full Name</Label>
+                  <div className="space-y-1.5 animate-fade-in">
+                    <Label className="text-[11px] font-semibold uppercase tracking-wider opacity-50">Full Name</Label>
                     <div className="relative group">
-                      <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                      <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
                       <Input
                         type="text"
                         placeholder="Enter your full name"
-                        className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                        className="pl-10 h-10 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#FF6B2B]/50 focus:ring-[#FF6B2B]/20"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                       />
@@ -270,15 +246,15 @@ export default function LoginPage() {
                 )}
 
                 {/* Email Field */}
-                <div className="space-y-2">
-                  <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Student ID or Email</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-semibold uppercase tracking-wider opacity-50">Student ID or Email</Label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
                     <Input
                       type="text"
                       placeholder="student@email.com or ID123"
                       required
-                      className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="pl-10 h-10 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#FF6B2B]/50 focus:ring-[#FF6B2B]/20"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -286,31 +262,31 @@ export default function LoginPage() {
                 </div>
 
                 {/* Password Field */}
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-bold uppercase text-slate-400 tracking-wider">Password</Label>
+                    <Label className="text-[11px] font-semibold uppercase tracking-wider opacity-50">Password</Label>
                     {isLogin && (
-                      <Link href="#" className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition-colors">
+                      <Link href="#" className="text-[11px] font-semibold transition-colors" style={{ color: "#FF6B2B" }}>
                         Forgot Password?
                       </Link>
                     )}
                   </div>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500 group-focus-within:text-blue-400 transition-colors" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 opacity-50" />
                     <Input
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       required
-                      className="pl-12 pr-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-slate-500 rounded-xl focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                      className="pl-10 pr-10 h-10 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#FF6B2B]/50 focus:ring-[#FF6B2B]/20"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <button
                       type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors opacity-50 hover:opacity-80"
                       onClick={() => setShowPassword(!showPassword)}
                     >
-                      {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
@@ -319,41 +295,41 @@ export default function LoginPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className={cn(
-                    "w-full h-12 rounded-xl font-bold text-sm uppercase tracking-wider shadow-lg transition-all mt-2",
-                    isLogin
-                      ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-blue-500/30 text-white"
-                      : "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-emerald-500/30 text-white"
-                  )}
+                  className="w-full h-10 rounded-xl font-bold text-[13px] uppercase tracking-wider transition-all mt-1 relative overflow-hidden group"
+                  style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}
                 >
-                  {loading ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      {isLogin ? "Signing In..." : "Creating Account..."}
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      {isLogin ? "Sign In" : "Create Account"}
-                      <ArrowRight className="h-4 w-4" />
-                    </span>
-                  )}
+                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-400" />
+                  <span className="relative z-10 flex items-center justify-center gap-2">
+                    {loading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        {isLogin ? "Signing In..." : "Creating Account..."}
+                      </>
+                    ) : (
+                      <>
+                        {isLogin ? "Sign In" : "Create Account"}
+                        <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                      </>
+                    )}
+                  </span>
                 </Button>
               </form>
 
               {/* Divider */}
-              <div className="flex items-center gap-4 my-6">
+              <div className="flex items-center gap-3 my-5">
                 <div className="flex-1 h-px bg-white/10" />
-                <span className="text-xs text-slate-500 font-medium">or</span>
+                <span className="text-[11px] font-medium opacity-50">or</span>
                 <div className="flex-1 h-px bg-white/10" />
               </div>
 
               {/* Toggle Mode */}
               <div className="text-center">
-                <p className="text-slate-400 text-sm">
+                <p className="text-[12px] opacity-70">
                   {isLogin ? "Don't have an account?" : "Already have an account?"}{" "}
                   <button
                     onClick={switchMode}
-                    className="font-bold text-blue-400 hover:text-blue-300 transition-colors"
+                    className="font-bold transition-colors"
+                    style={{ color: "#FF6B2B" }}
                   >
                     {isLogin ? "Sign Up" : "Sign In"}
                   </button>
@@ -362,13 +338,13 @@ export default function LoginPage() {
             </div>
 
             {/* Mobile Logo */}
-            <div className="lg:hidden flex items-center justify-center gap-2 mt-6">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-sm">M</div>
-              <span className="text-white font-bold text-lg">Mockbook</span>
+            <div className="lg:hidden flex items-center justify-center gap-2 mt-5">
+              <div className="w-7 h-7 rounded-md flex items-center justify-center text-white font-black text-sm" style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}>M</div>
+              <span className="font-bold text-base">Mockbook</span>
             </div>
 
             {/* Footer */}
-            <p className="text-center text-xs text-slate-500 mt-6">
+            <p className="text-center text-[11px] mt-5 opacity-40">
               By continuing, you agree to our Terms of Service and Privacy Policy
             </p>
           </div>

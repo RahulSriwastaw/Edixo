@@ -63,22 +63,22 @@ export default function DocumentExtractionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-neutral-bg">
       <Sidebar />
       <div className={cn("flex flex-col min-h-screen transition-all duration-300", isOpen ? "md:ml-60" : "ml-0")}>
         <TopBar />
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-4 lg:p-5">
           <div className="max-w-7xl mx-auto space-y-6 animate-fade-in">
             {/* Tool Header - Native look */}
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <Link href="/question-bank" className="p-2 hover:bg-gray-100 rounded-lg transition-colors group">
-                  <ArrowLeft className="w-5 h-5 text-gray-500 group-hover:text-brand-primary" />
+                <Link href="/question-bank" className="p-2 hover:bg-[var(--bg-main)] rounded-lg transition-colors group">
+                  <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)] group-hover:text-brand-primary" />
                 </Link>
-                <nav className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                <nav className="flex items-center gap-2 text-sm text-[var(--text-secondary)] font-medium">
                   <span>Question Bank</span>
-                  <span className="text-slate-300">/</span>
-                  <span className="text-slate-900 font-bold">AI MCQ Extractor</span>
+                  <span className="text-[var(--text-muted)]">/</span>
+                  <span className="text-[var(--text-primary)] font-bold">AI MCQ Extractor</span>
                 </nav>
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function DocumentExtractionPage() {
                     transition={{ duration: 0.3 }}
                     className="space-y-6"
                   >
-                    <div className="flex items-center justify-between bg-white p-4 rounded-3xl border border-slate-100 shadow-sm">
+                    <div className="flex items-center justify-between bg-white p-4 rounded-3xl border border-[var(--divider)] shadow-sm">
                        <div className="flex items-center gap-4">
                          <button 
                            onClick={() => setActiveTab('dashboard')}
@@ -116,11 +116,11 @@ export default function DocumentExtractionPage() {
                          >
                            ← Dashboard
                          </button>
-                         <h2 className="text-xl font-bold text-slate-900 border-l border-slate-200 pl-4">
+                         <h2 className="text-xl font-bold text-[var(--text-primary)] border-l border-[var(--border-input)] pl-4">
                            {currentDocName}
                          </h2>
                        </div>
-                       <div className="text-sm text-slate-500 font-bold">
+                       <div className="text-sm text-[var(--text-secondary)] font-bold">
                          Total: {currentQuestions.length} Questions
                        </div>
                     </div>
