@@ -250,7 +250,7 @@ router.get('/categories/:idOrSlug', async (req, res, next) => {
 
         const formattedCategory = {
             ...category,
-            subCategories: category.subCategories.map(sc => ({
+            subCategories: (category as any).subCategories.map((sc: any) => ({
                 ...sc,
                 mockTests: sc.mockTests.map((test: any) => ({
                     ...test,
