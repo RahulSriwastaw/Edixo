@@ -232,7 +232,7 @@ router.get('/categories/:idOrSlug', async (req, res, next) => {
                     select: { testId: true, status: true }
                 });
 
-                allAttempts.forEach(a => {
+                allAttempts.forEach((a: any) => {
                     if (a.status === 'SUBMITTED') submittedAttempts.push(a);
                     else if (a.status === 'IN_PROGRESS') inProgressAttempts.push(a);
                 });
@@ -968,7 +968,7 @@ router.get('/analytics/stats', async (req, res, next) => {
             take: 10
         });
 
-        const topTests = await Promise.all(topTestsRaw.map(async (item) => {
+        const topTests = await Promise.all(topTestsRaw.map(async (item: any) => {
             const test = await prisma.mockTest.findUnique({
                 where: { id: item.testId },
                 select: { name: true, subCategory: { select: { name: true, category: { select: { name: true } } } } }
@@ -999,7 +999,7 @@ router.get('/analytics/stats', async (req, res, next) => {
         });
 
         const seriesStatsMap: Record<string, Set<string>> = {};
-        seriesAttemptCounts.forEach(att => {
+        seriesAttemptCounts.forEach((att: any) => {
             const catId = att.test.subCategory?.categoryId;
             if (catId) {
                 if (!seriesStatsMap[catId]) seriesStatsMap[catId] = new Set();
@@ -1032,7 +1032,7 @@ router.get('/analytics/stats', async (req, res, next) => {
                 activeStudents: studentsCount || 0,
                 liveNow: liveNow || 0,
                 revenueMTD,
-                topTests: topTests.sort((a, b) => b.count - a.count),
+                topTests: topTests.sort((a: any, b: any) => b.count - a.count),
                 topSeries
             }
         });
@@ -1061,7 +1061,7 @@ router.get('/admin/tests', async (req, res, next) => {
                 where: { categoryId: categoryId as string },
                 select: { id: true }
             });
-            where.subCategoryId = { in: subCats.map(s => s.id) };
+            where.subCategoryId = { in: subCats.map((s: any) => s.id) };
         }
 
         const tests = await prisma.mockTest.findMany({
@@ -1161,8 +1161,8 @@ router.post('/admin/tests', async (req, res, next) => {
         const body = schema.parse(req.body);
 
         // Generate a unique testId
-        const testIdBase = body.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 30);
-        const testId = `${testIdBase}-${Date.now()}`;
+        const crypto = require('crypto');
+        const testId = crypto.randomBytes(12).toString('hex');
 
         const test = await prisma.mockTest.create({
             data: {
@@ -1245,7 +1245,7 @@ router.delete('/admin/tests/:id', async (req, res, next) => {
             where: { testId: req.params.id },
             select: { id: true }
         });
-        const attemptIds = attempts.map(a => a.id);
+        const attemptIds = attempts.map((a: any) => a.id);
         if (attemptIds.length > 0) {
             await prisma.attemptAnswer.deleteMany({ where: { attemptId: { in: attemptIds } } });
             await prisma.testAttempt.deleteMany({ where: { id: { in: attemptIds } } });
@@ -1462,7 +1462,7 @@ router.get('/analytics/student/:studentId/overall', async (req, res, next) => {
         let totalPossibleMarks = 0;
         let totalTimeSecs = 0;
 
-        const trend = attempts.map(a => {
+        const trend = attempts.map((a: any) => {
             totalScore += (a.score || 0);
             totalPossibleMarks += (a.totalMarks || 0);
             totalTimeSecs += (a.timeTakenSecs || 0);

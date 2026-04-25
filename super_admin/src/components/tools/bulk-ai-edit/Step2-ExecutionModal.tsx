@@ -8,7 +8,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Progress } from '@/components/ui/progress';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { X, Sparkles, CheckCircle2, AlertCircle, Circle } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Badge } from '@/components/ui/badge';
+import { X, Sparkles, CheckCircle2, AlertCircle, Circle, RefreshCw, Zap, Clock } from 'lucide-react';
 import { AI_PROVIDERS, getDefaultModel, getModelsByProvider, EDIT_TYPES, LANGUAGE_VARIATION_ACTIONS, SOLUTION_ACTIONS, LANGUAGES } from '@/lib/ai-providers-config';
 import { useBulkAIEdit, EditLog, BulkEditConfig } from '@/hooks/useBulkAIEdit';
 import { Step1Config } from './Step1-ConfigModal';
@@ -25,9 +27,19 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
     const [provider, setProvider] = React.useState<'gemini' | 'openai' | 'claude' | 'ollama'>('gemini');
     const [model, setModel] = React.useState(getDefaultModel('gemini'));
     const [showCloseConfirm, setShowCloseConfirm] = React.useState(false);
+    const [isMinimized, setIsMinimized] = React.useState(false);
+    const [widgetPos, setWidgetPos] = React.useState({ x: 0, y: 0 });
+    const [hasDragged, setHasDragged] = React.useState(false);
+    const [isDragging, setIsDragging] = React.useState(false);
+    const dragOffset = useRef({ x: 0, y: 0 });
     const logsEndRef = useRef<HTMLDivElement>(null);
+    const widgetRef = useRef<HTMLDivElement>(null);
 
-    const { logs, isProcessing, progress, successCount, errorCount, startProcessing, stopProcessing } = useBulkAIEdit();
+    const {
+        logs, isProcessing, progress, successCount, errorCount,
+        jobId, jobStatus, failedQuestionIds, mode, setMode,
+        startProcessing, stopProcessing, retryFailed, canRetry, isRetrying
+    } = useBulkAIEdit();
 
     // Auto-scroll logs to bottom
     useEffect(() => {
@@ -58,12 +70,72 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
     };
 
     const handleClose = () => {
-        if (isProcessing) {
+        if (isProcessing && mode === 'sse') {
+            // SSE mode: warn before closing since stream will be lost
             setShowCloseConfirm(true);
+        } else if (isProcessing && mode === 'background') {
+            // Background mode: allow minimize instead of close
+            setIsMinimized(true);
         } else {
             onClose();
         }
     };
+
+    const handleMinimizeToggle = () => {
+        setIsMinimized(prev => !prev);
+    };
+
+    const handleForceClose = () => {
+        stopProcessing();
+        setIsMinimized(false);
+        onClose();
+    };
+
+    // Draggable widget handlers
+    const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        setIsDragging(true);
+        const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+        const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+        const rect = widgetRef.current?.getBoundingClientRect();
+        if (rect) {
+            dragOffset.current = {
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+    };
+
+    React.useEffect(() => {
+        if (!isDragging) return;
+        const handleMove = (e: MouseEvent | TouchEvent) => {
+            const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+            const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+            const rect = widgetRef.current?.getBoundingClientRect();
+            const w = rect?.width ?? 288;
+            const h = rect?.height ?? 200;
+            const maxX = window.innerWidth - w;
+            const maxY = window.innerHeight - h;
+            let newX = clientX - dragOffset.current.x;
+            let newY = clientY - dragOffset.current.y;
+            if (newX < 0) newX = 0;
+            if (newX > maxX) newX = maxX;
+            if (newY < 0) newY = 0;
+            if (newY > maxY) newY = maxY;
+            setHasDragged(true);
+            setWidgetPos({ x: newX, y: newY });
+        };
+        const handleEnd = () => setIsDragging(false);
+        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mouseup', handleEnd);
+        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('touchend', handleEnd);
+        return () => {
+            window.removeEventListener('mousemove', handleMove);
+            window.removeEventListener('mouseup', handleEnd);
+            window.removeEventListener('touchmove', handleMove);
+            window.removeEventListener('touchend', handleEnd);
+        };
+    }, [isDragging]);
 
     const getEditTypeLabel = (editTypeId: string) => {
         return EDIT_TYPES.find(t => t.id === editTypeId)?.name || editTypeId;
@@ -81,12 +153,22 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
 
     const statusDotColor = isProcessing ? 'bg-green-500' : logs.length > 0 && (errorCount > 0) ? 'bg-red-500' : 'bg-gray-500';
 
+    const getJobStateBadgeVariant = (state: string) => {
+        switch (state) {
+            case 'completed': return 'success';
+            case 'failed': return 'destructive';
+            case 'processing': return 'default';
+            case 'pending': return 'secondary';
+            default: return 'outline';
+        }
+    };
+
     const models = getModelsByProvider(provider);
 
     return (
         <>
-            <Dialog open={isOpen} onOpenChange={handleClose}>
-                <DialogContent className="max-w-[100vw] sm:max-w-full w-full h-[100dvh] max-h-screen p-0 m-0 rounded-none border-0 flex flex-col overflow-hidden">
+            <Dialog open={isOpen && !isMinimized} onOpenChange={handleClose}>
+                <DialogContent showCloseButton={false} className="max-w-[100vw] sm:max-w-full w-full h-[100dvh] max-h-screen p-0 m-0 rounded-none border-0 flex flex-col overflow-hidden">
                     {/* Header */}
                     <div className="flex items-center justify-between p-3 md:p-4 border-b bg-white shrink-0">
                         <div className="flex items-center gap-3">
@@ -109,7 +191,8 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
                             </Button>
                             <button
                                 onClick={handleClose}
-                                className="p-1 hover:bg-gray-100 rounded"
+                                className="p-1.5 hover:bg-gray-100 rounded-md text-gray-500 transition-colors"
+                                title="Close"
                             >
                                 <X className="w-5 h-5" />
                             </button>
@@ -157,6 +240,29 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
                                             ))}
                                         </SelectContent>
                                     </Select>
+                                </div>
+
+                                {/* Processing Mode Toggle */}
+                                <div className="space-y-2 pt-2 border-t border-gray-100">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="processing-mode" className="cursor-pointer">
+                                            <div className="flex items-center gap-2">
+                                                {mode === 'background' ? <Clock className="w-3.5 h-3.5 text-blue-500" /> : <Zap className="w-3.5 h-3.5 text-amber-500" />}
+                                                <span>{mode === 'background' ? 'Background' : 'Real-time'} Mode</span>
+                                            </div>
+                                        </Label>
+                                        <Switch
+                                            id="processing-mode"
+                                            checked={mode === 'background'}
+                                            onCheckedChange={(checked) => setMode(checked ? 'background' : 'sse')}
+                                            disabled={isProcessing || logs.length > 0}
+                                        />
+                                    </div>
+                                    <p className="text-[11px] text-gray-500">
+                                        {mode === 'background'
+                                            ? 'Runs in background. You can close this window and check progress later.'
+                                            : 'Watch real-time progress with live logs. Window must stay open.'}
+                                    </p>
                                 </div>
                             </div>
 
@@ -207,17 +313,40 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
                             <div className="space-y-3 mb-4">
                                 <h3 className="text-sm font-semibold text-gray-900">EXECUTION STATUS</h3>
                                 <div className="space-y-2">
-                                    <div className="text-sm">
+                                    <div className="text-sm flex items-center gap-2 flex-wrap">
                                         {isProcessing ? (
-                                            <span className="text-green-600 font-medium">Processing...</span>
+                                            <>
+                                                <span className="text-green-600 font-medium">Processing...</span>
+                                                {mode === 'background' && jobStatus && (
+                                                    <Badge variant={getJobStateBadgeVariant(jobStatus.state)}>
+                                                        {jobStatus.state}
+                                                    </Badge>
+                                                )}
+                                            </>
+                                        ) : isRetrying ? (
+                                            <span className="text-amber-600 font-medium">Retrying failed questions...</span>
                                         ) : logs.length === 0 ? (
                                             <span className="text-gray-500">Ready to start</span>
                                         ) : (
                                             <span className="text-gray-700">
                                                 Completed: <span className="text-green-600 font-medium">{successCount} success</span>, <span className="text-red-600 font-medium">{errorCount} failed</span>
+                                                {mode === 'background' && jobStatus?.isRetry && (
+                                                    <Badge variant="outline" className="ml-1 text-[10px]">Retry</Badge>
+                                                )}
                                             </span>
                                         )}
                                     </div>
+
+                                    {/* Background Job Info */}
+                                    {mode === 'background' && jobId && (
+                                        <div className="text-[11px] text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">
+                                            Job ID: {jobId}
+                                            {jobStatus?.originalJobId && (
+                                                <span className="text-gray-400 ml-1">(from {jobStatus.originalJobId})</span>
+                                            )}
+                                        </div>
+                                    )}
+
                                     <div>
                                         <div className="flex justify-between items-center mb-1">
                                             <span className="text-xs text-gray-600">Progress</span>
@@ -264,30 +393,131 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
                         <div className="text-xs md:text-sm text-gray-600">
                             {isProcessing ? (
                                 `Processing ${Math.ceil((progress / 100) * selectedCount)}/${selectedCount}...`
+                            ) : isRetrying ? (
+                                `Retrying ${failedQuestionIds.length} failed questions...`
                             ) : logs.length > 0 ? (
                                 `Completed: ${successCount} success, ${errorCount} failed`
                             ) : (
                                 'Ready to process questions'
                             )}
                         </div>
-                        <Button
-                            variant="outline"
-                            onClick={handleClose}
-                            disabled={isProcessing}
-                            size="sm"
-                        >
-                            Close
-                        </Button>
+                        <div className="flex items-center gap-2">
+                            {/* Minimize Button - Background Mode */}
+                            {isProcessing && mode === 'background' && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleMinimizeToggle}
+                                >
+                                    Minimize to Background
+                                </Button>
+                            )}
+                            {/* Retry Button */}
+                            {canRetry && (
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={retryFailed}
+                                    disabled={isRetrying}
+                                    className="border-amber-200 text-amber-700 hover:bg-amber-50 hover:text-amber-800"
+                                >
+                                    <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isRetrying ? 'animate-spin' : ''}`} />
+                                    Retry Failed ({failedQuestionIds.length})
+                                </Button>
+                            )}
+                        </div>
                     </div>
                 </DialogContent>
             </Dialog>
+
+            {/* Minimized Floating Widget - Background Mode Only */}
+            {isMinimized && (
+                <div
+                    ref={widgetRef}
+                    className="fixed z-50 w-72 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden select-none"
+                    style={{
+                        left: hasDragged ? widgetPos.x : undefined,
+                        top: hasDragged ? widgetPos.y : undefined,
+                        right: hasDragged ? undefined : 16,
+                        bottom: hasDragged ? undefined : 16,
+                        cursor: isDragging ? 'grabbing' : 'default'
+                    }}
+                >
+                    <div
+                        className="flex items-center justify-between p-3 bg-gradient-to-r from-purple-600 to-purple-700 text-white cursor-grab active:cursor-grabbing"
+                        onMouseDown={handleDragStart}
+                        onTouchStart={handleDragStart}
+                    >
+                        <div className="flex items-center gap-2 pointer-events-none">
+                            <Clock className="w-4 h-4" />
+                            <span className="text-sm font-medium">Background Job</span>
+                        </div>
+                        <div className="flex items-center gap-1 pointer-events-auto">
+                            <button
+                                onClick={handleMinimizeToggle}
+                                className="p-1 hover:bg-white/20 rounded"
+                                title="Expand"
+                            >
+                                <span className="text-lg leading-none">□</span>
+                            </button>
+                            <button
+                                onClick={handleForceClose}
+                                className="p-1 hover:bg-white/20 rounded"
+                                title="Stop and close"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                        </div>
+                    </div>
+                    <div className="p-3 space-y-2">
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">Job ID</span>
+                            <span className="font-mono text-gray-800">{jobId || '—'}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-xs">
+                            <span className="text-gray-600">Status</span>
+                            {jobStatus ? (
+                                <Badge variant={getJobStateBadgeVariant(jobStatus.state)} className="text-[10px]">
+                                    {jobStatus.state}
+                                </Badge>
+                            ) : (
+                                <span className="text-gray-500">Pending</span>
+                            )}
+                        </div>
+                        <div className="space-y-1">
+                            <div className="flex justify-between text-xs">
+                                <span className="text-gray-600">Progress</span>
+                                <span className="font-medium">{Math.round(progress)}%</span>
+                            </div>
+                            <Progress value={progress} className="h-1.5" />
+                        </div>
+                        <div className="flex items-center justify-between text-xs text-gray-600 pt-1 border-t border-gray-100">
+                            <span>{successCount} success</span>
+                            <span>{errorCount} failed</span>
+                        </div>
+                        {/* Retry from minimized */}
+                        {canRetry && (
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={retryFailed}
+                                disabled={isRetrying}
+                                className="w-full mt-1 border-amber-200 text-amber-700 hover:bg-amber-50 text-xs"
+                            >
+                                <RefreshCw className={`w-3 h-3 mr-1 ${isRetrying ? 'animate-spin' : ''}`} />
+                                Retry Failed ({failedQuestionIds.length})
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* Close Confirmation Dialog */}
             <AlertDialog open={showCloseConfirm} onOpenChange={setShowCloseConfirm}>
                 <AlertDialogContent>
                     <AlertDialogTitle>Processing in progress</AlertDialogTitle>
                     <AlertDialogDescription>
-                        Processing is ongoing. Are you sure you want to close? Changes already applied will not be reverted.
+                        Real-time processing is ongoing. Closing will stop the current operation. Changes already applied will not be reverted.
                     </AlertDialogDescription>
                     <div className="flex gap-3 justify-end">
                         <AlertDialogCancel>Continue processing</AlertDialogCancel>

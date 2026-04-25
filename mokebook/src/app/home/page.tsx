@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 function SeriesCard({ series, categoryName, isEnrolled, onEnroll }: { series: any; categoryName: string; isEnrolled: boolean; onEnroll: () => void }) {
     return (
         <div
-            className="rounded-lg p-3 transition-all flex flex-col h-full"
+            className="rounded-lg p-3.5 transition-all flex flex-col h-full hover:shadow-[var(--card-hover-shadow)]"
             style={{
                 background: "var(--bg-card)",
                 border: "var(--border-card)",
@@ -29,14 +29,14 @@ function SeriesCard({ series, categoryName, isEnrolled, onEnroll }: { series: an
             {/* Tags Row */}
             <div className="flex gap-1 mb-2 overflow-x-hidden">
                 <span
-                    className="text-[8px] font-bold px-1.5 py-[1px] rounded uppercase tracking-tighter"
+                    className="text-[11px] font-medium px-2 py-0.5 rounded-full uppercase tracking-tighter"
                     style={{ background: "var(--badge-info-bg)", color: "var(--badge-info-text)" }}
                 >
                     {categoryName}
                 </span>
                 {series.isFree && (
                     <span
-                        className="text-[8px] font-bold px-1.5 py-[1px] rounded uppercase tracking-tighter"
+                        className="text-[11px] font-medium px-2 py-0.5 rounded-full uppercase tracking-tighter"
                         style={{ background: "var(--badge-success-bg)", color: "var(--badge-success-text)" }}
                     >
                         Free
@@ -58,7 +58,7 @@ function SeriesCard({ series, categoryName, isEnrolled, onEnroll }: { series: an
                 </div>
                 <div className="min-w-0">
                     <h3
-                        className="text-[12px] font-semibold leading-tight line-clamp-2 min-h-[28px]"
+                        className="text-[13px] font-semibold leading-tight line-clamp-2 min-h-[32px]"
                         style={{ color: "var(--text-primary)" }}
                     >
                         {series.name}
@@ -69,34 +69,34 @@ function SeriesCard({ series, categoryName, isEnrolled, onEnroll }: { series: an
             {/* Stats & Actions */}
             <div className="mt-auto pt-2">
                 <div className="flex justify-between items-center mb-2">
-                    <span className="text-[9px] font-medium" style={{ color: "var(--text-muted)" }}>1.2k+ Aspirants</span>
-                    <span className="text-[9px] font-semibold" style={{ color: "var(--badge-success-text)" }}>{series.freeTestCount || 5} Free</span>
+                    <span className="text-[11px] font-normal" style={{ color: "var(--text-muted)" }}>1.2k+ Aspirants</span>
+                    <span className="text-[11px] font-medium" style={{ color: "var(--badge-success-text)" }}>{series.freeTestCount || 5} Free</span>
                 </div>
 
                 {isEnrolled ? (
                     <Link href={`/${series.slug || series.id}`}>
                         <button
-                            className="w-full h-7 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1"
+                            className="w-full h-8 rounded-md text-[13px] font-medium uppercase tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
                             style={{
-                                background: "rgba(255,107,43,0.08)",
-                                color: "#FF6B2B",
-                                border: "1px solid rgba(255,107,43,0.2)",
+                                background: "transparent",
+                                color: "var(--btn-secondary-text)",
+                                border: "1px solid var(--btn-secondary-border)",
                             }}
                         >
-                            <CheckCircle2 className="h-3 w-3" />
-                            Enrolled
+                            <Play className="h-3.5 w-3.5" />
+                            Go To Test
                         </button>
                     </Link>
                 ) : (
                     <button
                         onClick={onEnroll}
-                        className="w-full h-7 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1"
+                        className="w-full h-8 rounded-md text-[13px] font-medium uppercase tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1.5"
                         style={{
                             background: "#FF6B2B",
                             color: "#fff",
                         }}
                     >
-                        <Plus className="h-3 w-3" />
+                        <Plus className="h-3.5 w-3.5" />
                         Enroll Now
                     </button>
                 )}
@@ -122,8 +122,11 @@ export default function TestHomePage() {
             try {
                 setLoading(true);
                 const [foldersRes, seriesRes, enrollRes] = await Promise.all([
-                    apiFetch("/mockbook/folders"),
-                    apiFetch("/mockbook/categories"),
+                    apiFetch(`/mockbook/folders?t=${Date.now()}`),
+                    apiFetch(`/mockbook/categories?t=${Date.now()}`, {
+                        cache: 'no-store',
+                        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+                    }),
                     apiFetch("/mockbook/enrollments/my").catch(() => ({ data: [] }))
                 ]);
 
@@ -214,13 +217,13 @@ export default function TestHomePage() {
                         </div>
                     </div>
 
-                    <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-10">
+                    <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 space-y-8">
 
                         {/* ALL TEST SERIES SECTION */}
                         <section>
-                            <div className="flex items-center justify-between mb-4">
-                                <h2 className="text-[16px] font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF6B2B" }} />
+                            <div className="flex items-center justify-between mb-3">
+                                <h2 className="text-[11px] font-bold flex items-center gap-2 uppercase tracking-[0.8px]" style={{ color: "var(--text-muted)" }}>
+                                    <div className="w-1 h-1 rounded-full" style={{ background: "#FF6B2B" }} />
                                     Explore All Test Series
                                 </h2>
                                 <span className="text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>

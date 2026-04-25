@@ -77,7 +77,7 @@ export function Navbar() {
             >
               M
             </span>
-            <span className="hidden sm:inline text-[14px] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
+            <span className="hidden sm:inline text-[16px] font-bold tracking-tight" style={{ color: "var(--text-primary)" }}>
               Mockbook
             </span>
           </Link>
@@ -121,7 +121,7 @@ export function Navbar() {
 
               {/* Points & Streak Chip */}
               <div
-                className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md group transition-colors"
+                className="hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-md transition-colors"
                 style={{
                   background: "var(--bg-main)",
                   border: "var(--border-card)",
@@ -142,13 +142,13 @@ export function Navbar() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative h-7 w-7 rounded-md transition-all"
+                className="relative h-7 w-7 rounded-md"
                 style={{ color: "var(--text-secondary)" }}
               >
                 <Bell className="h-4 w-4" />
                 <span
                   className="absolute top-1 right-1 flex h-1.5 w-1.5 rounded-full"
-                  style={{ background: "#F44336" }}
+                  style={{ background: "#C62828" }}
                 />
               </Button>
 
@@ -158,7 +158,7 @@ export function Navbar() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="rounded-md h-7 w-7 p-0 overflow-hidden transition-all"
+                    className="rounded-md h-7 w-7 p-0 overflow-hidden"
                     style={{
                       background: "var(--bg-main)",
                       border: "1px solid var(--border-input)",
@@ -175,7 +175,7 @@ export function Navbar() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-60 p-1.5 rounded-lg mt-2 animate-in fade-in slide-in-from-top-2 duration-200"
+                  className="w-56 p-1 rounded-lg mt-2"
                   style={{
                     background: "var(--bg-card)",
                     border: "var(--border-card)",
@@ -183,7 +183,7 @@ export function Navbar() {
                 >
                   {/* User info */}
                   <div
-                    className="p-2.5 mb-1 rounded-md"
+                    className="p-2 mb-1 rounded-md"
                     style={{
                       background: "var(--bg-main)",
                       border: "var(--border-card)",
@@ -191,7 +191,7 @@ export function Navbar() {
                   >
                     <div className="flex items-center gap-2">
                       <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+                        className="w-7 h-7 rounded-full flex items-center justify-center overflow-hidden"
                         style={{
                           background: "var(--bg-input)",
                           border: "1px solid var(--border-input)",
@@ -200,14 +200,14 @@ export function Navbar() {
                         {user?.photoURL ? (
                           <img src={user.photoURL} alt="User" className="w-full h-full object-cover" />
                         ) : (
-                          <User className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
+                          <User className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
                         )}
                       </div>
                       <div className="min-w-0">
-                        <p className="font-bold text-[12px] truncate" style={{ color: "var(--text-primary)" }}>
+                        <p className="font-bold text-[11px] truncate" style={{ color: "var(--text-primary)" }}>
                           {user?.displayName || userDoc.data?.name || "Student"}
                         </p>
-                        <p className="text-[10px] truncate tracking-tight" style={{ color: "var(--text-muted)" }}>
+                        <p className="text-[9px] truncate tracking-tight" style={{ color: "var(--text-muted)" }}>
                           {user?.email}
                         </p>
                       </div>
@@ -225,11 +225,11 @@ export function Navbar() {
                       <DropdownMenuItem
                         key={item.href}
                         asChild
-                        className="cursor-pointer text-[12px] font-medium rounded-md py-1.5 px-2.5 transition-colors"
+                        className="cursor-pointer text-[11px] font-medium rounded-md py-1 px-2"
                         style={{ color: "var(--text-primary)" }}
                       >
                         <Link href={item.href} className="flex items-center gap-2 w-full">
-                          <item.icon className="h-4 w-4" style={{ color: "var(--text-secondary)" }} />
+                          <item.icon className="h-3.5 w-3.5" style={{ color: "var(--text-secondary)" }} />
                           {item.label}
                         </Link>
                       </DropdownMenuItem>
@@ -240,10 +240,10 @@ export function Navbar() {
 
                   <DropdownMenuItem
                     onClick={handleLogout}
-                    className="cursor-pointer text-[12px] font-medium rounded-md py-1.5 px-2.5 transition-colors"
-                    style={{ color: "#F44336" }}
+                    className="cursor-pointer text-[11px] font-medium rounded-md py-1 px-2"
+                    style={{ color: "var(--badge-error-text)" }}
                   >
-                    <LogOut className="h-4 w-4 mr-2" /> Sign Out
+                    <LogOut className="h-3.5 w-3.5 mr-2" /> Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -252,14 +252,14 @@ export function Navbar() {
             <div className="flex items-center gap-1 sm:gap-2">
               <Button
                 variant="ghost"
-                className="text-[12px] font-medium rounded-md h-7 px-3"
+                className="text-[11px] font-medium rounded-md h-7 px-2.5"
                 style={{ color: "var(--text-secondary)" }}
                 asChild
               >
                 <Link href="/login">Login</Link>
               </Button>
               <Button
-                className="text-[12px] font-bold rounded-md h-7 px-3 text-white border-none active:scale-95 transition-all"
+                className="text-[11px] font-bold rounded-md h-7 px-2.5 text-white border-none transition-all"
                 style={{ background: "#FF6B2B" }}
                 asChild
               >
@@ -272,14 +272,14 @@ export function Navbar() {
 
       {/* Mobile Search Bar (expandable) */}
       {user && mobileSearchOpen && (
-        <div className="lg:hidden px-3 pb-2.5 pt-0.5 animate-in slide-in-from-top duration-300">
+        <div className="lg:hidden px-3 pb-2 pt-0.5">
           <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4" style={{ color: "var(--text-muted)" }} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />
             <input
               type="search"
               placeholder="Search tests, exams, topics..."
               autoFocus
-              className="h-9 w-full pl-10 pr-4 rounded-md text-[12px] font-medium"
+              className="h-8 w-full pl-9 pr-3 rounded-md text-[11px] font-medium"
               style={{
                 background: "var(--bg-input)",
                 border: "1px solid var(--border-input)",

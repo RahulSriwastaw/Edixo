@@ -4,19 +4,19 @@
 import { useState } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { 
-  Gift, 
-  Share2, 
-  Copy, 
-  CheckCircle2, 
-  Users, 
-  Coins, 
-  TrendingUp, 
-  MessageCircle, 
+import {
+  Gift,
+  Share2,
+  Copy,
+  CheckCircle2,
+  Users,
+  Coins,
+  TrendingUp,
+  MessageCircle,
   Send,
   Zap
 } from "lucide-react";
@@ -45,38 +45,38 @@ export default function ReferAndEarnPage() {
   };
 
   const shareStats = [
-    { label: "Friends Joined", value: "12", icon: Users, color: "text-blue-600" },
-    { label: "Coins Earned", value: "6,000", icon: Coins, color: "text-yellow-600" },
-    { label: "Milestone", value: "Silver", icon: Zap, color: "text-primary" },
+    { label: "Friends Joined", value: "12", icon: Users, color: "text-[var(--badge-info-text)]" },
+    { label: "Coins Earned", value: "6,000", icon: Coins, color: "text-[#FF6B2B]" },
+    { label: "Milestone", value: "Silver", icon: Zap, color: "text-[#FF6B2B]" },
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#F0F2F8]">
+    <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-main)", color: "var(--text-primary)" }}>
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
         <main className="flex-1 p-3 md:p-6 space-y-6 overflow-y-auto pb-16 md:pb-0">
           <div className="max-w-5xl mx-auto space-y-6">
             <header className="space-y-0.5">
-              <h1 className="text-xl font-headline font-bold">Refer & Earn</h1>
-              <p className="text-[11px] text-muted-foreground">Invite fellow students and unlock rewards.</p>
+              <h1 className="text-[18px] font-bold">Refer & Earn</h1>
+              <p className="text-[11px]" style={{ color: "var(--text-muted)" }}>Invite fellow students and unlock rewards.</p>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <Card className="bg-gradient-to-br from-[#1a73e8] to-[#0047cc] text-white border-none shadow-xl overflow-hidden relative">
+                <Card className="overflow-hidden rounded-lg card-hover" style={{ background: "#FF6B2B" }}>
                   <CardContent className="p-6 space-y-4 relative z-10">
                     <div className="flex items-center gap-2">
-                      <div className="p-1.5 bg-white/20 rounded-xl backdrop-blur-sm">
-                        <Gift className="h-5 w-5" />
+                      <div className="p-1.5 rounded-xl" style={{ background: "rgba(255,255,255,0.2)" }}>
+                        <Gift className="h-5 w-5 text-white" />
                       </div>
-                      <Badge variant="secondary" className="bg-white/20 text-white border-none text-[8px] font-bold">
+                      <Badge variant="secondary" className="text-[8px] font-bold" style={{ background: "rgba(255,255,255,0.2)", color: "#fff", border: "none" }}>
                         LIMITED TIME OFFER
                       </Badge>
                     </div>
-                    
+
                     <div className="space-y-1">
-                      <h2 className="text-2xl font-headline font-bold leading-tight">
+                      <h2 className="text-2xl font-bold text-white leading-tight">
                         Give 500 Coins,<br />Get 500 Coins!
                       </h2>
                       <p className="text-white/80 text-[11px] max-w-sm">
@@ -84,14 +84,15 @@ export default function ReferAndEarnPage() {
                       </p>
                     </div>
 
-                    <div className="p-1 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 flex flex-col sm:flex-row items-center gap-2">
+                    <div className="p-1 rounded-xl flex flex-col sm:flex-row items-center gap-2" style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)" }}>
                       <div className="flex-1 px-3 py-1 text-center sm:text-left">
-                        <p className="text-[8px] font-bold uppercase opacity-60">Referral Code</p>
-                        <p className="text-lg font-mono font-bold tracking-widest">{referralCode}</p>
+                        <p className="text-[8px] font-bold uppercase opacity-60 text-white">Referral Code</p>
+                        <p className="text-lg font-mono font-bold tracking-widest text-white">{referralCode}</p>
                       </div>
-                      <Button 
+                      <Button
                         onClick={handleCopy}
-                        className="w-full sm:w-auto bg-white text-primary hover:bg-white/90 font-bold h-10 px-4 text-xs"
+                        className="w-full sm:w-auto font-bold h-10 px-4 text-[11px] rounded-lg"
+                        style={{ background: "#fff", color: "#FF6B2B" }}
                       >
                         {copied ? <CheckCircle2 className="h-3 w-3 mr-2" /> : <Copy className="h-3 w-3 mr-2" />}
                         {copied ? "Copied" : "Copy"}
@@ -101,18 +102,18 @@ export default function ReferAndEarnPage() {
                 </Card>
 
                 <section className="space-y-3">
-                  <h3 className="text-sm font-headline font-bold">Quick Share</h3>
+                  <h3 className="text-[13px] font-bold">Quick Share</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[
-                      { name: "WhatsApp", icon: MessageCircle, color: "bg-green-500", hover: "hover:bg-green-600" },
-                      { name: "Telegram", icon: Send, color: "bg-blue-400", hover: "hover:bg-blue-500" },
-                      { name: "Twitter", icon: Share2, color: "bg-slate-900", hover: "hover:bg-slate-800" },
-                      { name: "Others", icon: Share2, color: "bg-primary", hover: "hover:bg-primary/90" },
+                      { name: "WhatsApp", icon: MessageCircle, color: "bg-emerald-500" },
+                      { name: "Telegram", icon: Send, color: "bg-blue-500" },
+                      { name: "Twitter", icon: Share2, color: "bg-slate-700" },
+                      { name: "Others", icon: Share2, color: "bg-[#FF6B2B]" },
                     ].map((social) => (
-                      <Button 
+                      <Button
                         key={social.name}
-                        variant="outline" 
-                        className={cn("h-10 flex flex-col items-center justify-center gap-0.5 border-none text-white", social.color, social.hover)}
+                        variant="outline"
+                        className={cn("h-10 flex flex-col items-center justify-center gap-0.5 border-none text-white rounded-lg", social.color)}
                       >
                         <social.icon className="h-3 w-3" />
                         <span className="text-[9px] font-bold">{social.name}</span>
@@ -122,19 +123,19 @@ export default function ReferAndEarnPage() {
                 </section>
 
                 <section className="space-y-3">
-                  <h3 className="text-sm font-headline font-bold">How it Works?</h3>
+                  <h3 className="text-[13px] font-bold">How it Works?</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     {[
                       { step: "01", title: "Share Code", desc: "Send it to your study group." },
                       { step: "02", title: "Friend Joins", desc: "They sign up with your code." },
                       { step: "03", title: "Get Rewarded", desc: "Both get 500 coins instantly." },
                     ].map((item) => (
-                      <div key={item.step} className="p-4 rounded-xl bg-white border shadow-sm space-y-2 relative overflow-hidden group">
-                        <span className="text-3xl font-headline font-bold text-primary/10 absolute -right-1 -top-1">
+                      <div key={item.step} className="p-4 rounded-lg space-y-2 relative overflow-hidden group" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                        <span className="text-[28px] font-bold absolute -right-1 -top-1" style={{ color: "var(--text-muted)", opacity: 0.1 }}>
                           {item.step}
                         </span>
-                        <h4 className="font-bold text-[11px] relative z-10">{item.title}</h4>
-                        <p className="text-[10px] text-muted-foreground leading-snug relative z-10">{item.desc}</p>
+                        <h4 className="text-[11px] font-bold relative z-10" style={{ color: "var(--text-primary)" }}>{item.title}</h4>
+                        <p className="text-[10px] leading-snug relative z-10" style={{ color: "var(--text-muted)" }}>{item.desc}</p>
                       </div>
                     ))}
                   </div>
@@ -142,33 +143,33 @@ export default function ReferAndEarnPage() {
               </div>
 
               <div className="space-y-4">
-                <Card className="shadow-sm border-none bg-white">
+                <Card className="card-hover">
                   <CardHeader className="p-4 pb-1">
-                    <CardTitle className="text-sm font-bold flex items-center gap-2">
-                      <TrendingUp className="h-3.5 w-3.5 text-primary" /> Referral Stats
+                    <CardTitle className="text-[13px] font-bold flex items-center gap-2">
+                      <TrendingUp className="h-3.5 w-3.5" style={{ color: "#FF6B2B" }} /> Referral Stats
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 space-y-3">
                     {shareStats.map((stat, i) => (
-                      <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100">
+                      <div key={i} className="flex items-center justify-between p-2 rounded-lg" style={{ background: "var(--bg-main)", border: "var(--border-card)" }}>
                         <div className="flex items-center gap-2">
-                          <div className={cn("p-1.5 rounded-lg bg-white shadow-sm", stat.color)}>
-                            <stat.icon className="h-3.5 w-3.5" />
+                          <div className="p-1.5 rounded-lg" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                            <stat.icon className={cn("h-3.5 w-3.5", stat.color)} />
                           </div>
-                          <span className="text-[10px] font-bold text-muted-foreground">{stat.label}</span>
+                          <span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>{stat.label}</span>
                         </div>
-                        <span className="text-sm font-headline font-bold">{stat.value}</span>
+                        <span className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>{stat.value}</span>
                       </div>
                     ))}
-                    
-                    <div className="pt-3 border-t space-y-2">
-                      <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider text-muted-foreground">
+
+                    <div className="pt-3 space-y-2" style={{ borderTop: "var(--divider)" }}>
+                      <div className="flex justify-between text-[8px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>
                         <span>Gold Milestone</span>
-                        <span className="text-primary">8/20 Friends</span>
+                        <span style={{ color: "#FF6B2B" }}>8/20 Friends</span>
                       </div>
                       <Progress value={40} className="h-1" />
-                      <p className="text-[9px] text-center text-muted-foreground">
-                        Invite <span className="font-bold text-foreground">12 more</span> for <span className="text-primary font-bold">Gold Badge</span>!
+                      <p className="text-[9px] text-center" style={{ color: "var(--text-muted)" }}>
+                        Invite <span className="font-bold" style={{ color: "var(--text-primary)" }}>12 more</span> for <span className="font-bold" style={{ color: "#FF6B2B" }}>Gold Badge</span>!
                       </p>
                     </div>
                   </CardContent>

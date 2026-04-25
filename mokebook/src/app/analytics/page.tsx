@@ -19,7 +19,7 @@ export default function OverallAnalyticsPage() {
         setLoading(true);
         const userRes = await apiFetch("/auth/me");
         const studentId = userRes.data?.user?.studentId;
-        
+
         if (studentId) {
           const analyticsRes = await apiFetch(`/mockbook/analytics/student/${studentId}/overall`);
           setAnalytics(analyticsRes.data);
@@ -64,21 +64,21 @@ export default function OverallAnalyticsPage() {
                 <p className="text-[12px] font-semibold" style={{ color: "var(--text-muted)" }}>Generating Your Analytics...</p>
               </div>
             ) : !analytics || analytics.totalTests === 0 ? (
-               <Card className="py-10 text-center">
-                 <div className="w-14 h-14 rounded-xl flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bg-main)" }}>
-                   <Target className="h-7 w-7" style={{ color: "var(--text-muted)" }} />
-                 </div>
-                 <h3 className="text-[14px] font-bold" style={{ color: "var(--text-primary)" }}>Not Enough Data</h3>
-                 <p className="text-[12px] max-w-sm mx-auto mt-2" style={{ color: "var(--text-muted)" }}>
-                   You need to attempt at least one mock test to see your overall 30-day analytics. Let's get started!
-                 </p>
-               </Card>
+              <Card className="py-10 text-center">
+                <div className="w-14 h-14 rounded-lg flex items-center justify-center mx-auto mb-4" style={{ background: "var(--bg-main)" }}>
+                  <Target className="h-7 w-7" style={{ color: "var(--text-muted)" }} />
+                </div>
+                <h3 className="text-[14px] font-bold" style={{ color: "var(--text-primary)" }}>Not Enough Data</h3>
+                <p className="text-[12px] max-w-sm mx-auto mt-2" style={{ color: "var(--text-muted)" }}>
+                  You need to attempt at least one mock test to see your overall 30-day analytics. Let's get started!
+                </p>
+              </Card>
             ) : (
               <div className="space-y-5">
                 {/* KPIs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                   {kpis.map((kpi) => (
-                    <Card key={kpi.label}>
+                    <Card key={kpi.label} className="card-hover">
                       <CardContent className="p-3 flex items-center gap-3">
                         <div className="p-2 rounded-lg shrink-0" style={{ background: "var(--bg-main)" }}>
                           <kpi.icon className={cn("h-4 w-4", kpi.color)} />
@@ -93,7 +93,7 @@ export default function OverallAnalyticsPage() {
                 </div>
 
                 {/* Performance Trend Chart */}
-                <Card>
+                <Card className="card-hover">
                   <CardHeader className="p-3 pb-1">
                     <CardTitle className="flex items-center gap-2">
                       <TrendingUp className="h-4 w-4" style={{ color: "#FF6B2B" }} /> Performance Trend
@@ -103,13 +103,13 @@ export default function OverallAnalyticsPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <LineChart data={analytics?.trend || []}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} strokeOpacity={0.1} />
-                        <XAxis dataKey="date" tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                        <YAxis tick={{fontSize: 10}} axisLine={false} tickLine={false} />
-                        <Tooltip 
+                        <XAxis dataKey="date" tickFormatter={(val) => new Date(val).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                        <Tooltip
                           labelFormatter={(val) => new Date(val).toLocaleDateString()}
                           contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-card)', color: 'var(--text-primary)' }}
                         />
-                        <Line type="monotone" dataKey="score" name="Score" stroke="#FF6B2B" strokeWidth={2} dot={{r: 3, fill: '#FF6B2B'}} />
+                        <Line type="monotone" dataKey="score" name="Score" stroke="#FF6B2B" strokeWidth={2} dot={{ r: 3, fill: '#FF6B2B' }} />
                       </LineChart>
                     </ResponsiveContainer>
                   </CardContent>
@@ -117,8 +117,8 @@ export default function OverallAnalyticsPage() {
 
                 {/* AI Insights & Weaknesses Placeholder */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <Card>
-                    <CardHeader className="p-3 pb-1 border-b" style={{ borderColor: "var(--divider)" }}>
+                  <Card className="card-hover">
+                    <CardHeader className="p-3 pb-1" style={{ borderBottom: "var(--divider)" }}>
                       <CardTitle className="flex items-center gap-2" style={{ color: "var(--badge-error-text)" }}>
                         <AlertCircle className="h-4 w-4" /> Focus Areas
                       </CardTitle>
@@ -128,11 +128,11 @@ export default function OverallAnalyticsPage() {
                       <p className="text-[11px] mt-1">Attempt more sectional tests for detailed insights.</p>
                     </CardContent>
                   </Card>
-                  
-                  <Card>
+
+                  <Card className="card-hover">
                     <CardHeader className="p-3 pb-1">
                       <CardTitle className="flex items-center gap-2" style={{ color: "#FF6B2B" }}>
-                        AI Recommendation
+                        <Zap className="h-4 w-4" /> AI Recommendation
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="p-3 space-y-2">

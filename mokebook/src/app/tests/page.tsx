@@ -24,7 +24,7 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
   return (
     <Link href={`/${series.slug || series.id}`} className="block group shrink-0 w-[220px] md:w-[260px]">
       <div
-        className="rounded-lg p-3 transition-all h-full flex flex-col"
+        className="rounded-lg p-3.5 transition-all h-full flex flex-col hover:shadow-[var(--card-hover-shadow)]"
         style={{
           background: "var(--bg-card)",
           border: "var(--border-card)",
@@ -33,13 +33,13 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
         {/* Tags Row - Compact */}
         <div className="flex gap-1 mb-2 overflow-x-hidden">
           <span
-            className="text-[8px] font-bold px-1.5 py-[1px] rounded uppercase tracking-tighter"
+            className="text-[11px] font-medium px-2 py-0.5 rounded-full uppercase tracking-tighter"
             style={{ background: "var(--badge-info-bg)", color: "var(--badge-info-text)" }}
           >
             {categoryName}
           </span>
           <span
-            className="text-[8px] font-bold px-1.5 py-[1px] rounded uppercase tracking-tighter"
+            className="text-[11px] font-medium px-2 py-0.5 rounded-full uppercase tracking-tighter"
             style={{ background: "var(--badge-error-bg)", color: "var(--badge-error-text)" }}
           >
             Live
@@ -60,7 +60,7 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
           </div>
           <div className="min-w-0">
             <h3
-              className="text-[12px] font-semibold leading-tight line-clamp-2 min-h-[28px] transition-colors"
+              className="text-[13px] font-semibold leading-tight line-clamp-2 min-h-[32px] transition-colors"
               style={{ color: "var(--text-primary)" }}
             >
               {series.name}
@@ -71,8 +71,8 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
         {/* Stats Row */}
         <div className="mt-auto pt-2">
           <div className="flex justify-between items-center mb-1.5">
-            <span className="text-[9px] font-medium" style={{ color: "var(--text-muted)" }}>1.2k+ Aspirants</span>
-            <span className="text-[9px] font-semibold" style={{ color: "var(--badge-success-text)" }}>{series.freeTestCount || 5} Free</span>
+            <span className="text-[11px] font-normal" style={{ color: "var(--text-muted)" }}>1.2k+ Aspirants</span>
+            <span className="text-[11px] font-medium" style={{ color: "var(--badge-success-text)" }}>{series.freeTestCount || 5} Free</span>
           </div>
 
           {/* Progress Bar - Slimmer */}
@@ -81,11 +81,11 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
           </div>
 
           <button
-            className="w-full h-7 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.98]"
+            className="w-full h-8 rounded-md text-[13px] font-medium uppercase tracking-wider transition-all active:scale-[0.98]"
             style={{
-              background: "var(--bg-main)",
-              color: "#FF6B2B",
-              border: "var(--border-card)",
+              background: "transparent",
+              color: "var(--btn-secondary-text)",
+              border: "1px solid var(--btn-secondary-border)",
             }}
           >
             Practice Now
@@ -130,7 +130,7 @@ function EnrolledSeriesItem({ series }: { series: any }) {
 function LiveQuizCard({ quiz }: { quiz: any }) {
   return (
     <div
-      className="rounded-lg p-3 transition-all flex flex-col h-full min-w-[220px] md:min-w-[260px]"
+      className="rounded-lg p-3.5 transition-all flex flex-col h-full min-w-[220px] md:min-w-[260px] hover:shadow-[var(--card-hover-shadow)]"
       style={{
         background: "var(--bg-card)",
         border: "var(--border-card)",
@@ -138,37 +138,37 @@ function LiveQuizCard({ quiz }: { quiz: any }) {
     >
       <div className="flex gap-1.5 mb-2">
         <span
-          className="text-[8px] font-bold px-1.5 py-[1px] rounded flex items-center gap-1 uppercase tracking-tighter"
+          className="text-[11px] font-medium px-2 py-0.5 rounded-full flex items-center gap-1 uppercase tracking-tighter"
           style={{ background: "var(--badge-error-bg)", color: "var(--badge-error-text)" }}
         >
           <div className="w-1 h-1 rounded-full animate-pulse" style={{ background: "var(--badge-error-text)" }} />
           Live Now
         </span>
         <span
-          className="text-[8px] font-bold px-1.5 py-[1px] rounded uppercase tracking-tighter"
+          className="text-[11px] font-medium px-2 py-0.5 rounded-full uppercase tracking-tighter"
           style={{ background: "var(--badge-success-bg)", color: "var(--badge-success-text)" }}
         >
           Free
         </span>
       </div>
 
-      <h3 className="text-[12px] font-semibold leading-tight mb-3 flex-1 line-clamp-2" style={{ color: "var(--text-primary)" }}>
+      <h3 className="text-[13px] font-semibold leading-tight mb-3 flex-1 line-clamp-2" style={{ color: "var(--text-primary)" }}>
         RRB NTPC 2024 Phase 1 Special Live Mock Test
       </h3>
 
-      <div className="flex items-center justify-between text-[9px] font-medium mb-3" style={{ color: "var(--text-secondary)" }}>
+      <div className="flex items-center justify-between text-[11px] font-normal mb-3" style={{ color: "var(--text-secondary)" }}>
         <div className="flex items-center gap-1">
-          <Clock className="h-3 w-3" />
+          <Clock className="h-3.5 w-3.5" />
           <span>2h Left</span>
         </div>
         <div className="flex items-center gap-1" style={{ color: "var(--text-muted)" }}>
-          <Users className="h-3 w-3" />
+          <Users className="h-3.5 w-3.5" />
           <span>1,240</span>
         </div>
       </div>
 
       <button
-        className="w-full h-7 text-white rounded-lg text-[10px] font-semibold uppercase tracking-widest active:scale-95 transition-all"
+        className="w-full h-8 text-white rounded-md text-[13px] font-medium uppercase tracking-widest active:scale-95 transition-all"
         style={{ background: "#FF6B2B" }}
       >
         Join Now
@@ -182,7 +182,7 @@ function CategoryGridItem({ series, categoryName }: { series: any; categoryName:
   return (
     <Link
       href={`/${series.slug || series.id}`}
-      className="rounded-lg p-3 flex items-center gap-3 transition-all group active:scale-[0.99]"
+      className="rounded-lg p-3.5 flex items-center gap-3 transition-all group hover:shadow-[var(--card-hover-shadow)]"
       style={{
         background: "var(--bg-card)",
         border: "var(--border-card)",
@@ -199,19 +199,20 @@ function CategoryGridItem({ series, categoryName }: { series: any; categoryName:
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="text-[12px] font-semibold leading-tight truncate transition-colors mb-0.5 line-clamp-1" style={{ color: "var(--text-primary)" }}>
+        <h3 className="text-[13px] font-semibold leading-tight truncate transition-colors mb-0.5 line-clamp-1" style={{ color: "var(--text-primary)" }}>
           {series.name}
         </h3>
-        <div className="flex items-center gap-2 text-[10px] font-medium">
+        <div className="flex items-center gap-2 text-[11px] font-normal">
           <span style={{ color: "var(--text-muted)" }}>{series.testsCount} Tests</span>
           <span style={{ color: "var(--badge-success-text)" }}>{series.freeTestCount || 0} Free</span>
         </div>
       </div>
       <div
-        className="h-7 px-2.5 rounded-md text-[10px] font-semibold uppercase tracking-wider flex items-center justify-center transition-all"
+        className="h-8 px-3 rounded-md text-[13px] font-medium uppercase tracking-wider flex items-center justify-center transition-all"
         style={{
-          background: "rgba(255,107,43,0.08)",
-          color: "#FF6B2B",
+          background: "transparent",
+          color: "var(--btn-secondary-text)",
+          border: "1px solid var(--btn-secondary-border)",
         }}
       >
         Start
@@ -238,8 +239,11 @@ export default function TestSeriesPage() {
       try {
         setLoading(true);
         const [foldersRes, seriesRes, enrollRes, profileRes] = await Promise.all([
-          apiFetch("/mockbook/folders"),
-          apiFetch("/mockbook/categories"),
+          apiFetch(`/mockbook/folders?t=${Date.now()}`),
+          apiFetch(`/mockbook/categories?t=${Date.now()}`, {
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
+          }),
           apiFetch("/mockbook/enrollments/my").catch(() => ({ data: [] })),
           apiFetch("/students/me").catch(() => null)
         ]);
@@ -349,16 +353,16 @@ export default function TestSeriesPage() {
             </div>
           </div>
 
-          <div className="max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-10">
+          <div className="max-w-7xl mx-auto px-3 md:px-4 py-4 space-y-8">
 
             {isEnrolled && (
               <section>
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-[16px] font-bold flex items-center gap-2" style={{ color: "var(--text-primary)" }}>
-                    <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#FF6B2B" }} />
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-[11px] font-bold flex items-center gap-2 uppercase tracking-[0.8px]" style={{ color: "var(--text-muted)" }}>
+                    <div className="w-1 h-1 rounded-full" style={{ background: "#FF6B2B" }} />
                     Your Recent Test Series
                   </h2>
-                  <Link href="/analytics" className="text-[11px] font-semibold hover:underline flex items-center gap-1" style={{ color: "#FF6B2B" }}>
+                  <Link href="/analytics" className="text-[11px] font-medium hover:underline flex items-center gap-1" style={{ color: "#FF6B2B" }}>
                     View all Attempted Tests <ChevronRight className="h-3 w-3" />
                   </Link>
                 </div>

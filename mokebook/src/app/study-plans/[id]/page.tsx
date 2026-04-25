@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useMemo } from "react";
@@ -29,13 +28,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { 
-  ArrowLeft, 
+import {
+  ArrowLeft,
   ArrowRight,
-  PlayCircle, 
-  BookOpen, 
-  HelpCircle, 
-  Clock, 
+  PlayCircle,
+  BookOpen,
+  HelpCircle,
+  Clock,
   CheckCircle2,
   Loader2,
   ChevronRight,
@@ -62,7 +61,7 @@ export default function StudyPlanDetailPage() {
   const { user } = useUser();
   const db = useFirestore();
   const { toast } = useToast();
-  
+
   const [selectedDayIdx, setSelectedDayIdx] = useState(0);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [isManaging, setIsManaging] = useState(false);
@@ -81,8 +80,7 @@ export default function StudyPlanDetailPage() {
     const task = newDailyTasks[dayIdx].tasks[taskIdx];
     task.status = task.status === 'completed' ? 'pending' : 'completed';
 
-    // Calculate completed days
-    const completedDaysCount = newDailyTasks.filter((d: any) => 
+    const completedDaysCount = newDailyTasks.filter((d: any) =>
       d.tasks.every((t: any) => t.status === 'completed')
     ).length;
 
@@ -102,7 +100,7 @@ export default function StudyPlanDetailPage() {
   const handleResetProgress = async () => {
     if (!plan || !planRef) return;
     setIsManaging(true);
-    
+
     const resetTasks = plan.dailyTasks.map((day: any) => ({
       ...day,
       tasks: day.tasks.map((task: any) => ({ ...task, status: 'pending' }))
@@ -156,16 +154,16 @@ export default function StudyPlanDetailPage() {
 
   const getIcon = (type: string) => {
     switch (type) {
-      case "Watch": return <PlayCircle className="h-4 w-4 text-red-500" />;
-      case "Read": return <BookOpen className="h-4 w-4 text-blue-500" />;
-      case "Practice": return <HelpCircle className="h-4 w-4 text-green-500" />;
-      case "Quiz": return <CheckCircle2 className="h-4 w-4 text-purple-500" />;
-      default: return <Clock className="h-4 w-4 text-slate-400" />;
+      case "Watch": return <PlayCircle className="h-4 w-4" style={{ color: "var(--badge-error-text)" }} />;
+      case "Read": return <BookOpen className="h-4 w-4" style={{ color: "var(--badge-info-text)" }} />;
+      case "Practice": return <HelpCircle className="h-4 w-4" style={{ color: "var(--badge-success-text)" }} />;
+      case "Quiz": return <CheckCircle2 className="h-4 w-4" style={{ color: "#FF6B2B" }} />;
+      default: return <Clock className="h-4 w-4" style={{ color: "var(--text-muted)" }} />;
     }
   };
 
   const currentDay = useMemo(() => plan?.dailyTasks?.[selectedDayIdx], [plan, selectedDayIdx]);
-  
+
   const stats = useMemo(() => {
     if (!plan) return { total: 0, completed: 0, percent: 0 };
     const allTasks = plan.dailyTasks.flatMap((d: any) => d.tasks);
@@ -177,7 +175,6 @@ export default function StudyPlanDetailPage() {
     };
   }, [plan]);
 
-  // Date Logic for Calendar
   const planDates = useMemo(() => {
     if (!plan?.createdAt) return [];
     const startDate = plan.createdAt.toDate ? plan.createdAt.toDate() : new Date(plan.createdAt);
@@ -186,10 +183,10 @@ export default function StudyPlanDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#f8fafc]">
+      <div className="flex flex-col min-h-screen" style={{ background: "var(--bg-body)" }}>
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary" />
+          <Loader2 className="h-10 w-10 animate-spin" style={{ color: "#FF6B2B" }} />
         </div>
       </div>
     );
@@ -197,41 +194,41 @@ export default function StudyPlanDetailPage() {
 
   if (!plan || !currentDay) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#f8fafc]">
+      <div className="flex flex-col min-h-screen" style={{ background: "var(--bg-body)" }}>
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center gap-4">
-          <Badge variant="outline" className="text-slate-400 border-slate-200">PLAN NOT FOUND</Badge>
-          <Button className="rounded-xl h-10 px-6 font-bold bg-primary shadow-lg shadow-primary/20" onClick={() => router.push("/study-plans")}>Back to My Plans</Button>
+          <Badge variant="outline" style={{ color: "var(--text-muted)", borderColor: "var(--border-card)" }}>PLAN NOT FOUND</Badge>
+          <Button className="rounded-xl h-10 px-6 font-bold" onClick={() => router.push("/study-plans")}>Back to My Plans</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8fafc]">
+    <div className="flex flex-col min-h-screen" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
       <Navbar />
       <div className="flex-1 flex overflow-hidden">
         <Sidebar />
-        <main className="flex-1 md:ml-0 p-3 md:p-6 space-y-6 overflow-y-auto pb-16 md:pb-0">
-          <div className="max-w-5xl mx-auto space-y-6">
+        <main className="flex-1 md:ml-0 p-3 md:p-5 space-y-4 overflow-y-auto pb-16 md:pb-0">
+          <div className="max-w-5xl mx-auto space-y-4">
             <div className="flex items-center justify-between">
-              <Button variant="ghost" onClick={() => router.back()} className="h-8 px-2 text-xs font-bold text-slate-500 hover:text-primary transition-colors">
+              <Button variant="ghost" onClick={() => router.back()} className="h-8 px-2 text-xs font-bold transition-colors" style={{ color: "var(--text-muted)" }}>
                 <ArrowLeft className="h-4 w-4 mr-2" /> All Study Plans
               </Button>
               <div className="flex items-center gap-2">
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-slate-200">
-                      <CalendarIcon className="h-4 w-4" />
+                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" style={{ borderColor: "var(--btn-secondary-border)" }}>
+                      <CalendarIcon className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0 rounded-2xl" align="end">
+                  <PopoverContent className="w-auto p-0 rounded-xl" align="end" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
                     <Calendar
                       mode="multiple"
                       selected={planDates}
-                      className="rounded-2xl border-none"
+                      className="rounded-xl border-none"
                     />
-                    <div className="p-3 border-t bg-slate-50 text-[10px] font-bold text-muted-foreground uppercase text-center rounded-b-2xl">
+                    <div className="p-3 text-[10px] font-bold uppercase text-center rounded-b-xl" style={{ background: "var(--bg-main)", color: "var(--text-muted)", borderTop: "var(--divider)" }}>
                       Plan Schedule: {format(planDates[0], "MMM d")} - {format(planDates[planDates.length - 1], "MMM d")}
                     </div>
                   </PopoverContent>
@@ -239,19 +236,19 @@ export default function StudyPlanDetailPage() {
 
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg border-slate-200" disabled={isManaging}>
-                      {isManaging ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" />}
+                    <Button variant="outline" size="icon" className="h-8 w-8 rounded-lg" style={{ borderColor: "var(--btn-secondary-border)" }} disabled={isManaging}>
+                      {isManaging ? <Loader2 className="h-4 w-4 animate-spin" /> : <MoreVertical className="h-4 w-4" style={{ color: "var(--text-muted)" }} />}
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5">
-                    <DropdownMenuItem onClick={handleResetProgress} className="text-xs font-medium rounded-lg cursor-pointer">
-                      <RotateCcw className="h-3.5 w-3.5 mr-2 text-blue-500" /> Reset Progress
+                  <DropdownMenuContent align="end" className="w-48 rounded-xl p-1.5" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                    <DropdownMenuItem onClick={handleResetProgress} className="text-xs font-medium rounded-lg cursor-pointer" style={{ color: "var(--text-primary)" }}>
+                      <RotateCcw className="h-3.5 w-3.5 mr-2" style={{ color: "var(--badge-info-text)" }} /> Reset Progress
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleArchive} className="text-xs font-medium rounded-lg cursor-pointer">
-                      <Archive className="h-3.5 w-3.5 mr-2 text-slate-500" /> Archive Plan
+                    <DropdownMenuItem onClick={handleArchive} className="text-xs font-medium rounded-lg cursor-pointer" style={{ color: "var(--text-primary)" }}>
+                      <Archive className="h-3.5 w-3.5 mr-2" style={{ color: "var(--text-muted)" }} /> Archive Plan
                     </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-xs font-bold text-destructive rounded-lg cursor-pointer">
+                    <DropdownMenuSeparator style={{ background: "var(--divider)" }} />
+                    <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)} className="text-xs font-bold rounded-lg cursor-pointer" style={{ color: "var(--badge-error-text)" }}>
                       <Trash2 className="h-3.5 w-3.5 mr-2" /> Delete Plan
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -262,70 +259,74 @@ export default function StudyPlanDetailPage() {
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div className="space-y-2">
                 <div className="flex items-center gap-3">
-                  <h1 className="text-2xl md:text-3xl font-headline font-bold text-slate-900">{plan.topic}</h1>
-                  <Badge className="bg-primary text-white text-[10px] font-bold px-2.5 h-6 rounded-lg uppercase tracking-wider">{plan.status?.toUpperCase()}</Badge>
+                  <h1 className="text-[20px] md:text-2xl font-bold">{plan.topic}</h1>
+                  <Badge className="text-[10px] font-bold h-6 px-2.5 rounded-lg uppercase tracking-wider" style={{ background: "#FF6B2B", color: "#fff" }}>{plan.status?.toUpperCase()}</Badge>
                 </div>
-                <p className="text-sm text-muted-foreground font-medium max-w-2xl leading-relaxed">
+                <p className="text-sm font-medium max-w-2xl leading-relaxed" style={{ color: "var(--text-muted)" }}>
                   {plan.summary}
                 </p>
               </div>
 
               <div className="flex items-center gap-4 shrink-0">
-                <div className="flex flex-col items-center bg-white p-3 rounded-2xl shadow-sm border border-slate-100 min-w-[90px]">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase">Current</p>
-                  <p className="text-xl font-bold text-slate-700">{plan.currentLevelPercentage}%</p>
+                <div className="flex flex-col items-center p-3 rounded-xl min-w-[90px]" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                  <p className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>Current</p>
+                  <p className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>{plan.currentLevelPercentage}%</p>
                 </div>
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                  <ChevronRight className="h-5 w-5 text-primary" />
+                <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ background: "rgba(255,107,43,0.08)" }}>
+                  <ChevronRight className="h-5 w-5" style={{ color: "#FF6B2B" }} />
                 </div>
-                <div className="flex flex-col items-center bg-primary text-white p-3 rounded-2xl shadow-lg shadow-primary/20 min-w-[90px]">
-                  <p className="text-[10px] font-bold text-white/70 uppercase">Target</p>
+                <div className="flex flex-col items-center p-3 rounded-xl min-w-[90px]" style={{ background: "#FF6B2B", color: "#fff" }}>
+                  <p className="text-[10px] font-bold uppercase opacity-70">Target</p>
                   <p className="text-xl font-bold">{plan.targetLevelPercentage}%</p>
                 </div>
               </div>
             </div>
 
-            <div className="p-1 bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-              <div className="flex items-center justify-between px-4 py-2 border-b border-slate-50">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">Mastery Progress</span>
-                <span className="text-xs font-bold text-primary">{stats.percent}% Achieved</span>
+            <div className="p-1 rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+              <div className="flex items-center justify-between px-4 py-2" style={{ borderBottom: "var(--divider)" }}>
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Mastery Progress</span>
+                <span className="text-xs font-bold" style={{ color: "#FF6B2B" }}>{stats.percent}% Achieved</span>
               </div>
               <div className="p-1">
-                <div className="h-3 w-full bg-slate-50 rounded-full overflow-hidden">
-                  <div className="h-full bg-gradient-to-r from-primary to-accent transition-all duration-1000" style={{ width: `${stats.percent}%` }} />
+                <div className="h-3 w-full rounded-full overflow-hidden" style={{ background: "var(--bg-main)" }}>
+                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${stats.percent}%`, background: "#FF6B2B" }} />
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
               {/* Timeline Sidebar */}
               <div className="lg:col-span-1 space-y-3">
-                <h3 className="font-bold text-xs uppercase tracking-widest text-slate-400 px-1 flex items-center gap-2">
-                  <Zap className="h-3.5 w-3.5 text-primary fill-primary" /> Timeline
+                <h3 className="font-bold text-xs uppercase tracking-widest px-1 flex items-center gap-2" style={{ color: "var(--text-muted)" }}>
+                  <Zap className="h-3.5 w-3.5" style={{ color: "#FF6B2B" }} /> Timeline
                 </h3>
                 <div className="space-y-2">
                   {plan.dailyTasks.map((day: any, idx: number) => {
                     const isCompleted = day.tasks.every((t: any) => t.status === 'completed');
                     const isActive = selectedDayIdx === idx;
-                    
+
                     return (
                       <button
                         key={idx}
                         onClick={() => setSelectedDayIdx(idx)}
                         className={cn(
-                          "w-full flex items-center justify-between p-4 rounded-[1.25rem] transition-all text-left group relative border-2",
-                          isActive 
-                            ? "bg-white border-primary shadow-md ring-4 ring-primary/5" 
-                            : "bg-white border-transparent hover:border-slate-200"
+                          "w-full flex items-center justify-between p-3 rounded-lg transition-all text-left group relative border",
+                          isActive
+                            ? "shadow-sm"
+                            : "hover:opacity-80"
                         )}
+                        style={{
+                          background: isActive ? "var(--bg-card)" : "transparent",
+                          borderColor: isActive ? "#FF6B2B" : "transparent",
+                        }}
                       >
                         <div className="space-y-0.5">
-                          <p className={cn("text-[10px] font-bold uppercase tracking-tight", isActive ? "text-primary" : "text-slate-400")}>Day {day.day}</p>
-                          <p className="font-bold text-[13px] text-slate-700">Learning Block</p>
+                          <p className={cn("text-[10px] font-bold uppercase tracking-tight", isActive ? "" : "")} style={{ color: isActive ? "#FF6B2B" : "var(--text-muted)" }}>Day {day.day}</p>
+                          <p className="font-bold text-[13px]" style={{ color: "var(--text-primary)" }}>Learning Block</p>
                         </div>
                         {isCompleted && (
-                          <div className="bg-green-100 text-green-600 p-1 rounded-lg">
-                            <CheckCircle2 className="h-4 w-4" />
+                          <div className="p-1 rounded-lg" style={{ background: "var(--badge-success-bg)" }}>
+                            <CheckCircle2 className="h-4 w-4" style={{ color: "var(--badge-success-text)" }} />
                           </div>
                         )}
                       </button>
@@ -336,49 +337,53 @@ export default function StudyPlanDetailPage() {
 
               {/* Day Tasks Main View */}
               <div className="lg:col-span-3 space-y-4">
-                <Card className="shadow-sm border-none rounded-[2rem] overflow-hidden bg-white">
-                  <CardHeader className="p-6 border-b border-slate-50 flex flex-row items-center justify-between bg-slate-50/30">
+                <Card className="rounded-xl overflow-hidden" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                  <CardHeader className="p-4 flex flex-row items-center justify-between" style={{ borderBottom: "var(--divider)" }}>
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
-                        <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                        <CardTitle className="text-lg font-bold text-slate-800">Day {currentDay.day} Focus</CardTitle>
+                        <Sparkles className="h-4 w-4 animate-pulse" style={{ color: "#FF6B2B" }} />
+                        <CardTitle className="text-base font-bold" style={{ color: "var(--text-primary)" }}>Day {currentDay.day} Focus</CardTitle>
                       </div>
-                      <CardDescription className="text-xs font-medium">
+                      <CardDescription className="text-xs font-medium" style={{ color: "var(--text-muted)" }}>
                         Complete these {currentDay.tasks.length} specific tasks to stay on track.
                       </CardDescription>
                     </div>
                     <div className="text-right">
-                      <div className="text-xl font-bold text-primary">{currentDay.tasks.filter((t: any) => t.status === 'completed').length}/{currentDay.tasks.length}</div>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase">Tasks Done</p>
+                      <div className="text-xl font-bold" style={{ color: "#FF6B2B" }}>{currentDay.tasks.filter((t: any) => t.status === 'completed').length}/{currentDay.tasks.length}</div>
+                      <p className="text-[10px] font-bold uppercase" style={{ color: "var(--text-muted)" }}>Tasks Done</p>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 space-y-3">
+                  <CardContent className="p-4 space-y-3">
                     {currentDay.tasks.map((task: any, idx: number) => {
                       const isDone = task.status === 'completed';
                       return (
-                        <div 
-                          key={idx} 
+                        <div
+                          key={idx}
                           className={cn(
-                            "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all cursor-pointer group",
-                            isDone ? "bg-slate-50/50 border-transparent opacity-75" : "bg-white border-slate-100 hover:border-primary/20 hover:shadow-sm"
+                            "flex items-center gap-4 p-4 rounded-xl border-2 transition-all cursor-pointer group",
+                            isDone ? "opacity-75" : ""
                           )}
+                          style={{
+                            background: isDone ? "var(--bg-main)" : "var(--bg-card)",
+                            borderColor: isDone ? "transparent" : "var(--border-card)",
+                          }}
                           onClick={() => toggleTask(selectedDayIdx, idx)}
                         >
-                          <Checkbox 
-                            checked={isDone} 
-                            className="h-5 w-5 rounded-lg border-slate-300"
+                          <Checkbox
+                            checked={isDone}
+                            className="h-5 w-5 rounded-lg"
                           />
                           <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="space-y-1">
                               <div className="flex items-center gap-2">
                                 {getIcon(task.type)}
-                                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">{task.type}</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--text-muted)" }}>{task.type}</span>
                               </div>
-                              <p className={cn("text-sm md:text-base font-bold text-slate-700 transition-all", isDone && "line-through text-slate-400")}>
+                              <p className={cn("text-sm md:text-base font-bold transition-all", isDone && "line-through")} style={{ color: isDone ? "var(--text-muted)" : "var(--text-primary)" }}>
                                 {task.title}
                               </p>
                             </div>
-                            <div className="flex items-center gap-2 text-[11px] font-bold text-slate-500 bg-slate-100 px-3 py-1.5 rounded-xl self-start sm:self-center">
+                            <div className="flex items-center gap-2 text-[11px] font-bold px-3 py-1.5 rounded-xl self-start sm:self-center" style={{ background: "var(--bg-main)", color: "var(--text-muted)" }}>
                               <Clock className="h-3.5 w-3.5" /> {task.duration}
                             </div>
                           </div>
@@ -389,20 +394,18 @@ export default function StudyPlanDetailPage() {
                 </Card>
 
                 {/* Day Summary Action */}
-                <div className="p-6 bg-slate-900 rounded-[2rem] text-white flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden group">
+                <div className="p-6 rounded-xl text-white flex flex-col sm:flex-row items-center justify-between gap-6 relative overflow-hidden group" style={{ background: "#FF6B2B" }}>
                   <div className="space-y-2 relative z-10 text-center sm:text-left">
-                    <h3 className="text-xl font-headline font-bold">Ready for the Quiz?</h3>
+                    <h3 className="text-xl font-bold">Ready for the Quiz?</h3>
                     <p className="text-white/60 text-sm max-w-[340px] leading-relaxed">
                       Verify your learning for Day {currentDay.day} with a focused 10-minute assessment.
                     </p>
                   </div>
-                  <Button className="bg-primary hover:bg-primary/90 text-white font-bold h-12 px-10 text-sm rounded-2xl shadow-xl shadow-primary/30 relative z-10 group-hover:scale-105 transition-all">
+                  <Button className="font-bold h-12 px-10 text-sm rounded-xl relative z-10 transition-all" style={{ background: "var(--bg-card)", color: "#FF6B2B" }}>
                     Start Assessment <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                   </Button>
-                  
-                  {/* Decorative Elements */}
-                  <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl" />
-                  <div className="absolute -left-10 -top-10 w-24 h-24 bg-accent/10 rounded-full blur-2xl" />
+
+                  <div className="absolute -right-10 -bottom-10 w-40 h-40 rounded-full blur-3xl" style={{ background: "rgba(255,255,255,0.1)" }} />
                 </div>
               </div>
             </div>
@@ -411,16 +414,16 @@ export default function StudyPlanDetailPage() {
       </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="rounded-[2.5rem] max-w-sm">
+        <AlertDialogContent className="rounded-xl max-w-sm" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Study Plan?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle style={{ color: "var(--text-primary)" }}>Delete Study Plan?</AlertDialogTitle>
+            <AlertDialogDescription style={{ color: "var(--text-muted)" }}>
               This action cannot be undone. All progress and tasks for this plan will be permanently deleted.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter className="gap-2">
-            <AlertDialogCancel className="rounded-2xl border-slate-100 bg-slate-50 text-slate-600 font-bold h-11">Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="rounded-2xl bg-destructive hover:bg-destructive/90 text-white font-bold h-11">
+            <AlertDialogCancel className="rounded-xl font-bold h-10" style={{ background: "var(--bg-main)", color: "var(--text-secondary)", border: "var(--border-card)" }}>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="rounded-xl font-bold h-10 text-white" style={{ background: "var(--badge-error-text)" }}>
               Delete Forever
             </AlertDialogAction>
           </AlertDialogFooter>

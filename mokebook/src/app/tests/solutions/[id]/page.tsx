@@ -48,17 +48,17 @@ function SpeedBadge({ timeSecs, avgSecs }: { timeSecs: number; avgSecs: number }
   if (timeSecs === 0) return null;
   const ratio = timeSecs / Math.max(avgSecs, 10);
   if (ratio <= 0.5) return (
-    <span className="flex items-center gap-1 text-[10px] font-bold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full">
+    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--badge-success-bg)", color: "var(--badge-success-text)" }}>
       <Zap className="h-2.5 w-2.5" /> Superfast
     </span>
   );
   if (ratio <= 1.3) return (
-    <span className="flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--badge-info-bg)", color: "var(--badge-info-text)" }}>
       <Clock className="h-2.5 w-2.5" /> On Time
     </span>
   );
   return (
-    <span className="flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">
+    <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full" style={{ background: "var(--badge-error-bg)", color: "var(--badge-error-text)" }}>
       <Clock className="h-2.5 w-2.5" /> Slow
     </span>
   );
@@ -84,11 +84,9 @@ export default function SolutionDetailPage() {
   const [reportType, setReportType] = useState("wrong_answer");
   const [thumbVotes, setThumbVotes] = useState<Record<string, "up" | "down" | null>>({});
 
-  // Read initial q from URL search params
   const qParam = searchParams?.get("q");
   const initializedRef = useRef(false);
 
-  // Auth guard
   useEffect(() => {
     if (!isAuthenticated()) {
       router.replace(`/login?redirect=/tests/solutions/${attemptId}`);
@@ -116,19 +114,21 @@ export default function SolutionDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col h-screen bg-white items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-[#1a73e8] mb-3" />
-        <p className="text-sm text-gray-500 font-medium">Loading solutions...</p>
+      <div className="flex flex-col h-screen items-center justify-center" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+        <Loader2 className="h-8 w-8 animate-spin mb-3" style={{ color: "#FF6B2B" }} />
+        <p className="text-[12px] font-medium" style={{ color: "var(--text-muted)" }}>Loading solutions...</p>
       </div>
     );
   }
 
   if (error || !reviewData) {
     return (
-      <div className="flex flex-col h-screen bg-white items-center justify-center gap-4 p-8">
-        <AlertTriangle className="h-10 w-10 text-amber-400" />
-        <p className="text-sm font-bold text-gray-700 text-center">{error || "No data found"}</p>
-        <button onClick={() => router.back()} className="px-5 py-2 bg-[#1a73e8] text-white text-sm font-bold rounded">
+      <div className="flex flex-col h-screen items-center justify-center gap-4 p-8" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+        <AlertTriangle className="h-10 w-10" style={{ color: "var(--badge-error-text)" }} />
+        <p className="text-[12px] font-bold text-center" style={{ color: "var(--text-primary)" }}>{error || "No data found"}</p>
+        <button onClick={() => router.back()} className="px-5 py-2 text-[12px] font-bold rounded-lg text-white"
+          style={{ background: "#FF6B2B" }}
+        >
           Go Back
         </button>
       </div>
@@ -137,12 +137,10 @@ export default function SolutionDetailPage() {
 
   const { questions, summary, testName, testId } = reviewData;
 
-  // Apply filter
   const filteredQs = filter === "all"
     ? questions
     : questions.filter((q) => q.status.toLowerCase() === filter);
 
-  // Clamp currentIdx to filtered list
   const safeIdx = Math.min(currentIdx, Math.max(0, filteredQs.length - 1));
   const q = filteredQs[safeIdx];
   const globalIdx = q ? questions.indexOf(q) : 0;
@@ -177,53 +175,54 @@ export default function SolutionDetailPage() {
   };
 
   const statusColor = (status: string) => {
-    if (status === "CORRECT") return "text-emerald-600";
-    if (status === "INCORRECT") return "text-red-500";
-    return "text-gray-400";
+    if (status === "CORRECT") return "var(--badge-success-text)";
+    if (status === "INCORRECT") return "var(--badge-error-text)";
+    return "var(--text-muted)";
   };
   const statusIcon = (status: string) => {
-    if (status === "CORRECT") return <CheckCircle2 className="h-3.5 w-3.5 text-emerald-500" />;
-    if (status === "INCORRECT") return <XCircle className="h-3.5 w-3.5 text-red-400" />;
-    return <MinusCircle className="h-3.5 w-3.5 text-gray-300" />;
+    if (status === "CORRECT") return <CheckCircle2 className="h-3.5 w-3.5" style={{ color: "var(--badge-success-text)" }} />;
+    if (status === "INCORRECT") return <XCircle className="h-3.5 w-3.5" style={{ color: "var(--badge-error-text)" }} />;
+    return <MinusCircle className="h-3.5 w-3.5" style={{ color: "var(--text-muted)" }} />;
   };
 
   return (
-    <div className="flex flex-col h-screen bg-white overflow-hidden font-sans text-[13px]">
+    <div className="flex flex-col h-screen overflow-hidden font-sans text-[13px]" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
       {/* ── HEADER ── */}
-      <header className="h-12 bg-slate-900 text-white px-4 flex items-center justify-between shrink-0 gap-3">
+      <header className="h-12 px-4 flex items-center justify-between shrink-0 gap-3" style={{ background: "var(--bg-sidebar)", borderBottom: "var(--divider)" }}>
         <div className="flex items-center gap-3 min-w-0">
-          <button onClick={() => router.back()} className="p-1 hover:bg-white/10 rounded transition-colors">
+          <button onClick={() => router.back()} className="p-1 rounded transition-colors hover:opacity-80">
             <ChevronLeft className="h-5 w-5" />
           </button>
           <div className="min-w-0">
             <p className="font-bold text-xs truncate leading-tight">{testName}</p>
-            <p className="text-[10px] text-slate-400 leading-tight">
+            <p className="text-[10px] leading-tight" style={{ color: "var(--text-muted)" }}>
               {summary.correct}✓ · {summary.incorrect}✗ · {summary.skipped}–
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3 shrink-0">
-          {/* Language toggle */}
           <button
             onClick={() => setLang(l => l === "en" ? "hi" : "en")}
-            className="text-[10px] font-bold border border-white/20 px-2 py-1 rounded hover:bg-white/10 transition-colors"
+            className="text-[10px] font-bold px-2 py-1 rounded transition-colors"
+            style={{ border: "1px solid var(--border-input)", color: "var(--text-secondary)" }}
           >
             {lang === "en" ? "EN" : "HI"}
           </button>
-          {/* Filter */}
           <button
             onClick={() => setShowFilterPanel(!showFilterPanel)}
             className={cn(
               "flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded transition-colors",
-              showFilterPanel ? "bg-white text-slate-900" : "border border-white/20 hover:bg-white/10"
+              showFilterPanel ? "" : ""
             )}
+            style={showFilterPanel ? { background: "var(--bg-main)", color: "var(--text-primary)" } : { border: "1px solid var(--border-input)", color: "var(--text-secondary)" }}
           >
             <Filter className="h-3 w-3" />
             {filter === "all" ? "All" : filter.charAt(0).toUpperCase() + filter.slice(1)}
           </button>
           <button
             onClick={() => router.push(`/tests/instructions/${testId}`)}
-            className="hidden sm:flex text-[10px] font-black text-emerald-400 border border-emerald-400/30 px-3 py-1 rounded hover:bg-emerald-400/10 transition-colors"
+            className="hidden sm:flex text-[10px] font-black px-3 py-1 rounded transition-colors"
+            style={{ color: "var(--badge-success-text)", border: "1px solid rgba(46,125,50,0.3)" }}
           >
             Reattempt
           </button>
@@ -232,27 +231,28 @@ export default function SolutionDetailPage() {
 
       {/* ── FILTER PANEL ── */}
       {showFilterPanel && (
-        <div className="bg-slate-800 px-4 py-2 flex items-center gap-2 shrink-0 border-b border-slate-700">
+        <div className="px-4 py-2 flex items-center gap-2 shrink-0" style={{ background: "var(--bg-main)", borderBottom: "var(--divider)" }}>
           {(["all", "correct", "incorrect", "skipped"] as FilterType[]).map(f => (
             <button
               key={f}
               onClick={() => { setFilter(f); setCurrentIdx(0); setShowFilterPanel(false); }}
               className={cn(
                 "px-3 py-1 rounded text-[11px] font-bold transition-colors",
-                filter === f ? "bg-white text-slate-900" : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                filter === f ? "" : "hover:opacity-80"
               )}
+              style={filter === f ? { background: "var(--text-primary)", color: "var(--bg-body)" } : { background: "var(--bg-card)", color: "var(--text-secondary)", border: "var(--border-card)" }}
             >
               {f === "all" ? `All (${summary.total})` :
                 f === "correct" ? `Correct (${summary.correct})` :
-                f === "incorrect" ? `Incorrect (${summary.incorrect})` :
-                `Skipped (${summary.skipped})`}
+                  f === "incorrect" ? `Incorrect (${summary.incorrect})` :
+                    `Skipped (${summary.skipped})`}
             </button>
           ))}
         </div>
       )}
 
       {/* ── Q-PALETTE BAR ── */}
-      <div className="h-11 border-b flex items-center px-3 gap-1.5 overflow-x-auto no-scrollbar bg-slate-50 shrink-0">
+      <div className="h-11 border-b flex items-center px-3 gap-1.5 overflow-x-auto no-scrollbar shrink-0" style={{ background: "var(--bg-main)", borderColor: "var(--divider)" }}>
         {filteredQs.map((qItem, idx) => (
           <button
             key={qItem.id}
@@ -260,13 +260,14 @@ export default function SolutionDetailPage() {
             className={cn(
               "w-7 h-7 rounded-full border flex-shrink-0 flex items-center justify-center text-[11px] font-bold transition-all",
               safeIdx === idx
-                ? "ring-2 ring-offset-1 ring-[#1a73e8] bg-[#1a73e8] text-white border-transparent"
+                ? "ring-2 ring-offset-1 text-white border-transparent"
                 : qItem.status === "CORRECT"
-                  ? "bg-emerald-100 text-emerald-700 border-emerald-300"
+                  ? "border-[var(--badge-success-text)]"
                   : qItem.status === "INCORRECT"
-                    ? "bg-red-100 text-red-600 border-red-300"
-                    : "bg-gray-100 text-gray-400 border-gray-300"
+                    ? "border-[var(--badge-error-text)]"
+                    : ""
             )}
+            style={safeIdx === idx ? { background: "#FF6B2B" } : qItem.status === "CORRECT" ? { background: "var(--badge-success-bg)", color: "var(--badge-success-text)" } : qItem.status === "INCORRECT" ? { background: "var(--badge-error-bg)", color: "var(--badge-error-text)" } : { background: "var(--bg-card)", color: "var(--text-muted)", borderColor: "var(--border-card)" }}
           >
             {qItem.number}
           </button>
@@ -274,23 +275,23 @@ export default function SolutionDetailPage() {
       </div>
 
       {filteredQs.length === 0 ? (
-        <div className="flex-1 flex items-center justify-center text-gray-400 text-sm">
+        <div className="flex-1 flex items-center justify-center text-sm" style={{ color: "var(--text-muted)" }}>
           No questions match this filter.
         </div>
       ) : (
         <>
           {/* ── MAIN CONTENT ── */}
-          <main className="flex-1 overflow-y-auto bg-white">
+          <main className="flex-1 overflow-y-auto" style={{ background: "var(--bg-body)" }}>
             {/* Question header meta */}
-            <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 bg-white">
+            <div className="px-4 py-2.5 flex items-center justify-between border-b" style={{ background: "var(--bg-card)", borderColor: "var(--divider)" }}>
               <div className="flex items-center gap-3">
                 {statusIcon(q.status)}
-                <span className={cn("text-[11px] font-bold uppercase tracking-widest", statusColor(q.status))}>
+                <span className="text-[11px] font-bold uppercase tracking-widest" style={{ color: statusColor(q.status) }}>
                   {q.status === "CORRECT" ? `+${q.marksAwarded} Marks` :
                     q.status === "INCORRECT" ? `${q.marksAwarded.toFixed(2)} Marks` : "Not Answered"}
                 </span>
                 {q.timeTakenSecs > 0 && (
-                  <span className="text-[10px] text-gray-400 font-medium">
+                  <span className="text-[10px] font-medium" style={{ color: "var(--text-muted)" }}>
                     {q.timeTakenSecs}s
                   </span>
                 )}
@@ -300,28 +301,28 @@ export default function SolutionDetailPage() {
                 <button
                   onClick={handleSave}
                   disabled={savingId === q.id}
-                  className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+                  className="p-1.5 rounded transition-colors hover:opacity-80"
                   title={savedIds.has(q.id) ? "Remove bookmark" : "Save question"}
                 >
                   {savedIds.has(q.id)
-                    ? <BookmarkCheck className="h-4 w-4 text-[#1a73e8]" />
-                    : <BookmarkPlus className="h-4 w-4 text-gray-400" />}
+                    ? <BookmarkCheck className="h-4 w-4" style={{ color: "#FF6B2B" }} />
+                    : <BookmarkPlus className="h-4 w-4" style={{ color: "var(--text-muted)" }} />}
                 </button>
                 <button
                   onClick={() => setShowReportModal(true)}
-                  className="p-1.5 rounded hover:bg-gray-100 transition-colors"
+                  className="p-1.5 rounded transition-colors hover:opacity-80"
                   title="Report question"
                 >
-                  <Flag className="h-4 w-4 text-gray-400" />
+                  <Flag className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
                 </button>
               </div>
             </div>
 
             {/* Topic/Chapter */}
             {(q.chapter || q.topic) && (
-              <div className="px-4 py-2 bg-blue-50/60 border-b border-blue-100 flex items-center gap-2 text-[11px] font-medium text-blue-700">
-                {q.chapter && <span className="bg-blue-100 px-2 py-0.5 rounded">{q.chapter}</span>}
-                {q.topic && <span className="text-blue-500">{q.topic}</span>}
+              <div className="px-4 py-2 border-b flex items-center gap-2 text-[11px] font-medium" style={{ background: "var(--badge-info-bg)", borderColor: "var(--divider)", color: "var(--badge-info-text)" }}>
+                {q.chapter && <span className="px-2 py-0.5 rounded" style={{ background: "rgba(33,150,243,0.1)" }}>{q.chapter}</span>}
+                {q.topic && <span>{q.topic}</span>}
               </div>
             )}
 
@@ -331,7 +332,8 @@ export default function SolutionDetailPage() {
                 <img src={q.imageUrl} alt="question" className="max-h-48 object-contain rounded border mb-2" />
               )}
               <div
-                className="text-[15px] md:text-base text-slate-800 leading-relaxed font-medium"
+                className="text-[15px] md:text-base leading-relaxed font-medium"
+                style={{ color: "var(--text-primary)" }}
                 dangerouslySetInnerHTML={{ __html: (lang === "hi" && q.textHi) ? q.textHi : (q.textEn || "") }}
               />
 
@@ -348,19 +350,27 @@ export default function SolutionDetailPage() {
                       className={cn(
                         "flex items-center gap-4 p-3.5 rounded-xl border-2 transition-all relative",
                         isCorrect
-                          ? "border-emerald-500 bg-emerald-50/40"
+                          ? ""
                           : isWrong
-                            ? "border-red-400 bg-red-50/40"
-                            : "border-slate-100 bg-white"
+                            ? ""
+                            : ""
                       )}
+                      style={
+                        isCorrect
+                          ? { borderColor: "var(--badge-success-text)", background: "var(--badge-success-bg)" }
+                          : isWrong
+                            ? { borderColor: "var(--badge-error-text)", background: "var(--badge-error-bg)" }
+                            : { borderColor: "var(--border-card)", background: "var(--bg-card)" }
+                      }
                     >
-                      <span className="text-xs font-bold text-slate-400">{i + 1}.</span>
+                      <span className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>{i + 1}.</span>
                       <span
-                        className="flex-1 text-[14px] font-medium text-slate-700"
+                        className="flex-1 text-[14px] font-medium"
+                        style={{ color: "var(--text-secondary)" }}
                         dangerouslySetInnerHTML={{ __html: (lang === "hi" && opt.textHi) ? opt.textHi : (opt.textEn || "") }}
                       />
-                      {isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />}
-                      {isWrong && <XCircle className="h-4 w-4 text-red-500 shrink-0" />}
+                      {isCorrect && <CheckCircle2 className="h-4 w-4 shrink-0" style={{ color: "var(--badge-success-text)" }} />}
+                      {isWrong && <XCircle className="h-4 w-4 shrink-0" style={{ color: "var(--badge-error-text)" }} />}
                     </div>
                   );
                 })}
@@ -368,13 +378,13 @@ export default function SolutionDetailPage() {
 
               {/* Accuracy band */}
               {q.correctPercentage > 0 && (
-                <div className="flex items-center gap-3 text-[11px] text-gray-500 font-medium">
-                  <span className="font-bold text-gray-700">{q.correctPercentage}%</span>
+                <div className="flex items-center gap-3 text-[11px] font-medium" style={{ color: "var(--text-muted)" }}>
+                  <span className="font-bold" style={{ color: "var(--text-primary)" }}>{q.correctPercentage}%</span>
                   students got this right
-                  <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "var(--bg-main)" }}>
                     <div
-                      className="h-full bg-emerald-400 rounded-full"
-                      style={{ width: `${q.correctPercentage}%` }}
+                      className="h-full rounded-full"
+                      style={{ width: `${q.correctPercentage}%`, background: "var(--badge-success-text)" }}
                     />
                   </div>
                 </div>
@@ -383,33 +393,36 @@ export default function SolutionDetailPage() {
               {/* Solution / Explanation */}
               {q.explanation ? (
                 <div className="space-y-3">
-                  <div className="bg-slate-50 py-2.5 px-4 border-y border-slate-100">
-                    <h3 className="text-xs font-bold text-slate-600 tracking-wider uppercase">Solution</h3>
+                  <div className="py-2.5 px-4 border-y" style={{ background: "var(--bg-main)", borderColor: "var(--divider)" }}>
+                    <h3 className="text-xs font-bold tracking-wider uppercase" style={{ color: "var(--text-secondary)" }}>Solution</h3>
                   </div>
                   <div
-                    className="px-1 text-[14px] text-slate-700 leading-relaxed whitespace-pre-line"
+                    className="px-1 text-[14px] leading-relaxed whitespace-pre-line"
+                    style={{ color: "var(--text-secondary)" }}
                     dangerouslySetInnerHTML={{ __html: q.explanation }}
                   />
                 </div>
               ) : (
-                <div className="bg-slate-50 px-4 py-3 rounded-lg border border-slate-100 text-[12px] text-slate-400 font-medium italic">
+                <div className="px-4 py-3 rounded-lg border text-[12px] font-medium italic" style={{ background: "var(--bg-main)", borderColor: "var(--border-card)", color: "var(--text-muted)" }}>
                   No detailed explanation available for this question.
                 </div>
               )}
 
               {/* Helpful? */}
               {q.explanation && (
-                <div className="flex items-center gap-4 pt-2 border-t border-slate-50">
-                  <span className="text-[11px] font-bold text-slate-400">Was this solution helpful?</span>
+                <div className="flex items-center gap-4 pt-2" style={{ borderTop: "var(--divider)" }}>
+                  <span className="text-[11px] font-bold" style={{ color: "var(--text-muted)" }}>Was this solution helpful?</span>
                   <button
                     onClick={() => setThumbVotes(v => ({ ...v, [q.id]: v[q.id] === "up" ? null : "up" }))}
-                    className={cn("p-1.5 rounded transition-colors", thumbVotes[q.id] === "up" ? "text-emerald-600" : "text-slate-300 hover:text-slate-500")}
+                    className={cn("p-1.5 rounded transition-colors", thumbVotes[q.id] === "up" ? "" : "")}
+                    style={{ color: thumbVotes[q.id] === "up" ? "var(--badge-success-text)" : "var(--text-muted)" }}
                   >
                     <ThumbsUp className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setThumbVotes(v => ({ ...v, [q.id]: v[q.id] === "down" ? null : "down" }))}
-                    className={cn("p-1.5 rounded transition-colors", thumbVotes[q.id] === "down" ? "text-red-500" : "text-slate-300 hover:text-slate-500")}
+                    className={cn("p-1.5 rounded transition-colors", thumbVotes[q.id] === "down" ? "" : "")}
+                    style={{ color: thumbVotes[q.id] === "down" ? "var(--badge-error-text)" : "var(--text-muted)" }}
                   >
                     <ThumbsDown className="h-4 w-4" />
                   </button>
@@ -419,23 +432,25 @@ export default function SolutionDetailPage() {
           </main>
 
           {/* ── FOOTER NAVIGATION ── */}
-          <footer className="h-14 border-t px-4 flex items-center justify-between bg-white shrink-0">
+          <footer className="h-14 border-t px-4 flex items-center justify-between shrink-0" style={{ background: "var(--bg-card)", borderColor: "var(--divider)" }}>
             <button
               onClick={() => goTo(safeIdx - 1)}
               disabled={safeIdx === 0}
-              className="flex items-center gap-1 text-sm font-semibold text-gray-600 disabled:text-gray-300 hover:text-[#1a73e8] transition-colors"
+              className="flex items-center gap-1 text-sm font-semibold transition-colors disabled:opacity-30"
+              style={{ color: safeIdx === 0 ? "var(--text-muted)" : "var(--text-secondary)" }}
             >
               <ChevronLeft className="h-4 w-4" /> Prev
             </button>
 
-            <span className="text-xs font-bold text-gray-500">
+            <span className="text-xs font-bold" style={{ color: "var(--text-muted)" }}>
               {safeIdx + 1} / {filteredQs.length}
             </span>
 
             <button
               onClick={() => goTo(safeIdx + 1)}
               disabled={safeIdx >= filteredQs.length - 1}
-              className="flex items-center gap-1 text-sm font-semibold text-[#1a73e8] disabled:text-gray-300 hover:text-[#1557b0] transition-colors"
+              className="flex items-center gap-1 text-sm font-semibold transition-colors disabled:opacity-30"
+              style={{ color: safeIdx >= filteredQs.length - 1 ? "var(--text-muted)" : "#FF6B2B" }}
             >
               Next <ChevronRight className="h-4 w-4" />
             </button>
@@ -445,12 +460,12 @@ export default function SolutionDetailPage() {
 
       {/* ── REPORT MODAL ── */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.5)" }}>
+          <div className="rounded-xl shadow-xl w-full max-w-sm p-6 space-y-4" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-gray-900">Report Question</h3>
+              <h3 className="font-bold" style={{ color: "var(--text-primary)" }}>Report Question</h3>
               <button onClick={() => setShowReportModal(false)}>
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-4 w-4" style={{ color: "var(--text-muted)" }} />
               </button>
             </div>
             <div className="space-y-2">
@@ -467,22 +482,24 @@ export default function SolutionDetailPage() {
                     value={opt.value}
                     checked={reportType === opt.value}
                     onChange={e => setReportType(e.target.value)}
-                    className="accent-[#1a73e8]"
+                    className="accent-[#FF6B2B]"
                   />
-                  <span className="text-sm text-gray-700">{opt.label}</span>
+                  <span className="text-sm" style={{ color: "var(--text-secondary)" }}>{opt.label}</span>
                 </label>
               ))}
             </div>
             <div className="flex gap-2 pt-2">
               <button
                 onClick={() => setShowReportModal(false)}
-                className="flex-1 px-4 py-2 text-sm font-semibold border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-50"
+                className="flex-1 px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+                style={{ border: "1px solid var(--btn-secondary-border)", color: "var(--btn-secondary-text)" }}
               >
                 Cancel
               </button>
               <button
                 onClick={handleReport}
-                className="flex-1 px-4 py-2 text-sm font-semibold bg-[#1a73e8] text-white rounded-lg hover:bg-[#1557b0]"
+                className="flex-1 px-4 py-2 text-sm font-semibold text-white rounded-lg transition-colors"
+                style={{ background: "#FF6B2B" }}
               >
                 Submit Report
               </button>

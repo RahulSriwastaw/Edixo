@@ -119,11 +119,11 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               {/* Left: Avatar + Info */}
               <div className="lg:col-span-1 space-y-4">
-                <Card>
+                <Card className="card-hover">
                   <div className="h-14 rounded-t-lg" style={{ background: "rgba(255,107,43,0.08)" }} />
                   <CardContent className="px-4 pb-4 -mt-9">
                     <div className="flex flex-col items-center text-center space-y-2.5">
-                      <div className="ring-4 rounded-full shadow-lg" style={{ borderColor: "var(--bg-card)" }}>
+                      <div className="ring-4 rounded-full" style={{ borderColor: "var(--bg-card)" }}>
                         <ProfilePictureUpload
                           currentPhotoURL={null}
                           displayName={profileData.name}
@@ -163,7 +163,7 @@ export default function ProfilePage() {
                 </Card>
 
                 {/* Achievements */}
-                <Card>
+                <Card className="card-hover">
                   <CardHeader className="p-3 pb-1">
                     <CardTitle>Achievements</CardTitle>
                   </CardHeader>
@@ -179,7 +179,7 @@ export default function ProfilePage() {
               </div>
 
               {/* Right: Form */}
-              <Card className="lg:col-span-2">
+              <Card className="lg:col-span-2 card-hover">
                 <CardHeader className="p-4 pb-0">
                   <CardTitle className="flex items-center gap-2">
                     <ShieldCheck className="h-4 w-4" style={{ color: "var(--badge-success-text)" }} /> Account Settings

@@ -114,8 +114,8 @@ export default function LoginPage() {
       `}</style>
 
       {/* Background Glow Orbs */}
-      <div className="fixed top-0 left-0 w-[500px] h-[500px] bg-[#FF6B2B]/8 rounded-full blur-[150px] animate-glow pointer-events-none" />
-      <div className="fixed bottom-0 right-0 w-[400px] h-[400px] bg-[#ff4400]/5 rounded-full blur-[120px] animate-glow pointer-events-none" style={{ animationDelay: "2s" }} />
+      <div className="fixed top-0 left-0 w-[500px] h-[500px] rounded-full blur-[150px] animate-glow pointer-events-none" style={{ background: "rgba(255,107,43,0.08)" }} />
+      <div className="fixed bottom-0 right-0 w-[400px] h-[400px] rounded-full blur-[120px] animate-glow pointer-events-none" style={{ background: "rgba(255,68,0,0.05)", animationDelay: "2s" }} />
 
       {/* Main Container */}
       <div className="relative z-10 flex w-full min-h-screen">
@@ -127,7 +127,7 @@ export default function LoginPage() {
 
           {/* Logo */}
           <Link href="/" className="relative z-10 flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg shrink-0" style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-black text-lg shrink-0" style={{ background: "#FF6B2B" }}>
               M
             </div>
             <span className="font-bold text-xl tracking-tight">Mockbook</span>
@@ -137,7 +137,7 @@ export default function LoginPage() {
           <div className="relative z-10 space-y-6">
             {/* Badge */}
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full animate-float"
-              style={{ background: "linear-gradient(135deg, rgba(255,107,43,0.1) 0%, rgba(255,107,43,0.04) 100%)", border: "1px solid rgba(255,107,43,0.2)" }}
+              style={{ background: "rgba(255,107,43,0.08)", border: "1px solid rgba(255,107,43,0.15)" }}
             >
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75" style={{ background: "#FF6B2B" }} />
@@ -150,9 +150,9 @@ export default function LoginPage() {
             <div className="space-y-3">
               <h1 className="text-3xl xl:text-4xl font-bold leading-tight">
                 Ace Your Exams with{" "}
-                <span className="bg-gradient-to-r from-[#FF6B2B] via-[#ff8a5c] to-[#FF6B2B] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">AI Precision</span>
+                <span style={{ color: "#FF6B2B" }}>AI Precision</span>
               </h1>
-              <p className="text-sm leading-relaxed max-w-md opacity-60">
+              <p className="text-[13px] leading-relaxed max-w-md opacity-60">
                 Join 1.2 Lakh+ aspirants preparing for SSC, JEE, NEET, Railway & Banking with real-time analytics and AI-powered guidance.
               </p>
             </div>
@@ -162,13 +162,12 @@ export default function LoginPage() {
               {stats.map((stat) => (
                 <div
                   key={stat.label}
-                  className="group relative rounded-2xl p-3 overflow-hidden transition-all duration-500 hover:-translate-y-1"
-                  style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}
+                  className="group relative rounded-lg p-3 overflow-hidden transition-all duration-500 hover:-translate-y-1"
+                  style={{ background: "var(--bg-card)", border: "var(--border-card)" }}
                 >
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-[#FF6B2B]/5 rounded-full blur-2xl translate-x-8 -translate-y-8 group-hover:bg-[#FF6B2B]/10 transition-all duration-700" />
                   <div className="relative z-10">
                     <stat.icon className="h-4 w-4 mb-1.5" style={{ color: "#FF6B2B" }} />
-                    <div className="text-lg font-bold bg-gradient-to-br from-white to-white/70 bg-clip-text text-transparent">{stat.value}</div>
+                    <div className="text-lg font-bold">{stat.value}</div>
                     <div className="text-[10px] font-medium opacity-50">{stat.label}</div>
                   </div>
                 </div>
@@ -180,8 +179,8 @@ export default function LoginPage() {
               {features.map((f) => (
                 <div
                   key={f.title}
-                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl"
-                  style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.06)" }}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg"
+                  style={{ background: "var(--bg-card)", border: "var(--border-card)" }}
                 >
                   <f.icon className="h-3.5 w-3.5" style={{ color: "#FF6B2B" }} />
                   <span className="text-[12px] font-semibold">{f.title}</span>
@@ -193,7 +192,7 @@ export default function LoginPage() {
 
           {/* Trust Footer */}
           <div className="relative z-10 flex items-center gap-2 text-sm opacity-50">
-            <Shield className="h-4 w-4" style={{ color: "#4CAF50" }} />
+            <Shield className="h-4 w-4" style={{ color: "var(--badge-success-text)" }} />
             <span>Bank-grade security · Your data is encrypted</span>
           </div>
         </div>
@@ -209,14 +208,14 @@ export default function LoginPage() {
             {/* Form Card */}
             <div
               className="rounded-2xl p-6 relative overflow-hidden"
-              style={{ background: "linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}
+              style={{ background: "var(--bg-card)", border: "var(--border-card)" }}
             >
               {/* Top Glow Line */}
-              <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#FF6B2B]/30 to-transparent" />
+              <div className="absolute top-0 left-0 w-full h-px" style={{ background: "linear-gradient(to right, transparent, rgba(255,107,43,0.3), transparent)" }} />
 
               {/* Header */}
               <div className="text-center mb-6">
-                <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center transition-all duration-500 group-hover:scale-110" style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}>
+                <div className="w-12 h-12 rounded-xl mx-auto mb-3 flex items-center justify-center" style={{ background: "#FF6B2B" }}>
                   {isLogin ? <LogIn className="h-5 w-5 text-white" /> : <UserPlus className="h-5 w-5 text-white" />}
                 </div>
                 <h2 className="text-xl font-bold mb-1">{isLogin ? "Welcome Back" : "Create Account"}</h2>
@@ -237,7 +236,7 @@ export default function LoginPage() {
                       <Input
                         type="text"
                         placeholder="Enter your full name"
-                        className="pl-10 h-10 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#FF6B2B]/50 focus:ring-[#FF6B2B]/20"
+                        className="pl-10 h-10 rounded-xl"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                       />
@@ -254,7 +253,7 @@ export default function LoginPage() {
                       type="text"
                       placeholder="student@email.com or ID123"
                       required
-                      className="pl-10 h-10 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#FF6B2B]/50 focus:ring-[#FF6B2B]/20"
+                      className="pl-10 h-10 rounded-xl"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
@@ -277,7 +276,7 @@ export default function LoginPage() {
                       type={showPassword ? "text" : "password"}
                       placeholder="••••••••"
                       required
-                      className="pl-10 pr-10 h-10 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-[#FF6B2B]/50 focus:ring-[#FF6B2B]/20"
+                      className="pl-10 pr-10 h-10 rounded-xl"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
@@ -296,9 +295,8 @@ export default function LoginPage() {
                   type="submit"
                   disabled={loading}
                   className="w-full h-10 rounded-xl font-bold text-[13px] uppercase tracking-wider transition-all mt-1 relative overflow-hidden group"
-                  style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}
+                  style={{ background: "#FF6B2B" }}
                 >
-                  <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-400" />
                   <span className="relative z-10 flex items-center justify-center gap-2">
                     {loading ? (
                       <>
@@ -317,9 +315,9 @@ export default function LoginPage() {
 
               {/* Divider */}
               <div className="flex items-center gap-3 my-5">
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px" style={{ background: "var(--divider)" }} />
                 <span className="text-[11px] font-medium opacity-50">or</span>
-                <div className="flex-1 h-px bg-white/10" />
+                <div className="flex-1 h-px" style={{ background: "var(--divider)" }} />
               </div>
 
               {/* Toggle Mode */}
@@ -339,7 +337,7 @@ export default function LoginPage() {
 
             {/* Mobile Logo */}
             <div className="lg:hidden flex items-center justify-center gap-2 mt-5">
-              <div className="w-7 h-7 rounded-md flex items-center justify-center text-white font-black text-sm" style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #ff8533 100%)" }}>M</div>
+              <div className="w-7 h-7 rounded-md flex items-center justify-center text-white font-black text-sm" style={{ background: "#FF6B2B" }}>M</div>
               <span className="font-bold text-base">Mockbook</span>
             </div>
 

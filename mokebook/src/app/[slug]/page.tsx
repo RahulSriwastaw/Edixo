@@ -13,31 +13,6 @@ import {
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
-const CATEGORY_META: Record<string, { gradient: string; icon: string }> = {
-  default:     { gradient: "from-[#0f1b2d] to-[#1a73e8]",   icon: "📚" },
-  railways:    { gradient: "from-[#1e2a3b] to-[#1a73e8]",   icon: "🚂" },
-  rrb:         { gradient: "from-[#1e2a3b] to-[#1a73e8]",   icon: "🚂" },
-  ssc:         { gradient: "from-[#0f1b2d] to-[#1a73e8]",   icon: "📋" },
-  banking:     { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🏦" },
-  insurance:   { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🏦" },
-  defence:     { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🎖️" },
-  police:      { gradient: "from-[#064e3b] to-[#1a73e8]",   icon: "🛡️" },
-  state:       { gradient: "from-[#92400e] to-[#1a73e8]",   icon: "🏛️" },
-  teaching:    { gradient: "from-[#831843] to-[#1a73e8]",   icon: "🎓" },
-  civil:       { gradient: "from-[#3730a3] to-[#1a73e8]",   icon: "⚖️" },
-  upsc:        { gradient: "from-[#3730a3] to-[#1a73e8]",   icon: "⚖️" },
-  engineering: { gradient: "from-[#0f172a] to-[#1a73e8]",   icon: "🔧" },
-  gate:        { gradient: "from-[#0f172a] to-[#1a73e8]",   icon: "🔧" },
-};
-
-function getCatMeta(name: string) {
-  const lower = name?.toLowerCase() || "";
-  for (const [k, v] of Object.entries(CATEGORY_META)) {
-    if (lower.includes(k)) return v;
-  }
-  return CATEGORY_META.default;
-}
-
 const TABS = ["All Tests", "Free", "Mock Tests", "Chapter Tests", "Sectional"] as const;
 
 const DEFAULT_FAQS = [
@@ -51,23 +26,24 @@ const DEFAULT_FAQS = [
 function FaqItem({ q, a }: { q: string; a: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-gray-100 last:border-b-0">
+    <div className="last:border-b-0" style={{ borderBottom: "var(--divider)" }}>
       <button
-        className="w-full flex items-center justify-between py-3.5 text-left hover:text-[#1a73e8] transition-colors gap-4"
+        className="w-full flex items-center justify-between py-3.5 text-left transition-colors gap-4"
+        style={{ color: "var(--text-primary)" }}
         onClick={() => setOpen(o => !o)}
       >
-        <span className="text-sm font-semibold text-gray-800 flex items-center gap-2">
-          <span className="text-[#1a73e8] font-black">?</span>
+        <span className="text-sm font-semibold flex items-center gap-2">
+          <span style={{ color: "#FF6B2B" }} className="font-black">?</span>
           {q}
         </span>
         {open
-          ? <ChevronUp className="h-4 w-4 text-gray-400 shrink-0" />
-          : <ChevronDown className="h-4 w-4 text-gray-400 shrink-0" />
+          ? <ChevronUp className="h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
+          : <ChevronDown className="h-4 w-4 shrink-0" style={{ color: "var(--text-muted)" }} />
         }
       </button>
       {open && (
-        <div className="pb-4 px-5 bg-[#F8FAFC] rounded-lg mb-2">
-          <p className="text-sm text-gray-600 leading-relaxed pt-2">{a}</p>
+        <div className="pb-4 px-5 rounded-lg mb-2" style={{ background: "var(--bg-main)" }}>
+          <p className="text-sm leading-relaxed pt-2" style={{ color: "var(--text-secondary)" }}>{a}</p>
         </div>
       )}
     </div>
@@ -76,17 +52,16 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 function PaywallModal({ onClose, seriesName }: { onClose: () => void; seriesName: string }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
-        <div className="bg-gradient-to-br from-[#0f1b2d] to-[#1a73e8] p-8 text-white relative">
-          <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 p-1.5 rounded-full transition-colors">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+      <div className="relative rounded-2xl shadow-2xl w-full max-w-md overflow-hidden" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+        <div className="p-8 relative" style={{ background: "#FF6B2B" }}>
+          <button onClick={onClose} className="absolute top-4 right-4 text-white/70 hover:text-white p-1.5 rounded-full transition-colors" style={{ background: "rgba(255,255,255,0.1)" }}>
             <X className="h-4 w-4" />
           </button>
-          <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center mb-4 backdrop-blur-md border border-white/10">
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: "rgba(255,255,255,0.2)" }}>
             <Shield className="h-7 w-7 text-white" />
           </div>
-          <h2 className="text-2xl font-black mb-1">Unlock Full Access</h2>
+          <h2 className="text-2xl font-black mb-1 text-white">Unlock Full Access</h2>
           <p className="text-white/80 text-sm font-medium">Get access to all premium tests in {seriesName}</p>
         </div>
 
@@ -98,21 +73,22 @@ function PaywallModal({ onClose, seriesName }: { onClose: () => void; seriesName
               "Rank predictor & leaderboard",
               "Compare with toppers",
             ].map((item, i) => (
-              <div key={i} className="flex items-center gap-3 text-sm font-bold text-slate-700">
-                <div className="p-1 bg-blue-50 rounded-full">
-                   <CheckCircle2 className="h-3.5 w-3.5 text-[#1a73e8] shrink-0" />
+              <div key={i} className="flex items-center gap-3 text-sm font-bold" style={{ color: "var(--text-primary)" }}>
+                <div className="p-1 rounded-full" style={{ background: "var(--badge-success-bg)" }}>
+                  <CheckCircle2 className="h-3.5 w-3.5 shrink-0" style={{ color: "var(--badge-success-text)" }} />
                 </div>
                 {item}
               </div>
             ))}
           </div>
 
-          <button className="w-full h-12 bg-[#1a73e8] text-white rounded-xl text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 active:scale-95 transition-all mb-4">
+          <button className="w-full h-12 text-white rounded-xl text-sm font-black uppercase tracking-widest transition-all mb-4" style={{ background: "#FF6B2B" }}>
             Purchase Pass
           </button>
           <button
             onClick={onClose}
-            className="w-full h-11 border-2 border-slate-100 text-slate-500 text-xs font-black uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all"
+            className="w-full h-11 text-xs font-black uppercase tracking-widest rounded-xl transition-all"
+            style={{ border: "1px solid var(--btn-secondary-border)", color: "var(--btn-secondary-text)" }}
           >
             Start with free tests first
           </button>
@@ -124,13 +100,11 @@ function PaywallModal({ onClose, seriesName }: { onClose: () => void; seriesName
 
 function TestCard({
   test,
-  index,
   isAccessible,
   onLockedClick,
   seriesSlug
 }: {
   test: any;
-  index: number;
   isAccessible: boolean;
   onLockedClick: () => void;
   seriesSlug: string;
@@ -142,35 +116,37 @@ function TestCard({
   const isLive = test.status === "LIVE";
 
   return (
-    <div className="bg-white border border-slate-100 rounded-xl overflow-hidden hover:shadow-md hover:border-blue-100 transition-all group">
+    <div className="rounded-xl overflow-hidden transition-all group card-hover"
+      style={{ background: "var(--bg-card)", border: "var(--border-card)" }}
+    >
       <div className="p-3 md:p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
-        
+
         {/* Left: Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5 mb-1.5">
             {isLive && (
-              <span className="bg-rose-500 text-white text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase">
+              <span className="text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase text-white" style={{ background: "var(--badge-error-text)" }}>
                 <span className="w-1 h-1 bg-white rounded-full animate-pulse" />
                 Live
               </span>
             )}
             {isFree ? (
-              <span className="bg-emerald-50 text-emerald-600 border border-emerald-100 text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded uppercase">Free</span>
+              <span className="text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded uppercase" style={{ background: "var(--badge-success-bg)", color: "var(--badge-success-text)", border: "1px solid rgba(46,125,50,0.15)" }}>Free</span>
             ) : !isAccessible ? (
-              <span className="bg-slate-50 text-slate-400 text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase">
+              <span className="text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase" style={{ background: "var(--bg-main)", color: "var(--text-muted)" }}>
                 <Lock className="h-2 w-2" /> Locked
               </span>
             ) : null}
             {hasAttempt && isAccessible && (
-              <span className="bg-blue-50 text-blue-600 text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase">
+              <span className="text-[8px] font-bold tracking-widest px-1.5 py-0.5 rounded flex items-center gap-1 uppercase" style={{ background: "var(--badge-info-bg)", color: "var(--badge-info-text)" }}>
                 <CheckCircle2 className="h-2 w-2" /> Completed
               </span>
             )}
           </div>
 
-          <h3 className="font-bold text-[13px] text-slate-800 leading-tight group-hover:text-blue-600 transition-colors mb-1.5 line-clamp-1">{test.name}</h3>
+          <h3 className="font-bold text-[13px] leading-tight transition-colors mb-1.5 line-clamp-1" style={{ color: "var(--text-primary)" }}>{test.name}</h3>
 
-          <div className="flex items-center gap-3.5 text-[10px] font-semibold text-slate-400">
+          <div className="flex items-center gap-3.5 text-[10px] font-semibold" style={{ color: "var(--text-muted)" }}>
             <span className="flex items-center gap-1"><Clock className="h-3 w-3" /> {test.durationMins}m</span>
             <span className="flex items-center gap-1"><BarChart3 className="h-3 w-3" /> {test.totalMarks} Marks</span>
             <span className="flex items-center gap-1"><Globe2 className="h-3 w-3" /> EN/HI</span>
@@ -178,14 +154,16 @@ function TestCard({
 
           {hasAttempt && isAccessible && (
             <div className="mt-3 flex items-center gap-3 text-[10px] font-black uppercase tracking-tighter">
-               <span className="text-slate-400">Last Score:</span>
-               <span className={cn(
-                  "px-2 py-0.5 rounded",
-                  test.lastScore >= (test.totalMarks * 0.6) ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"
-               )}>
-                  {test.lastScore}/{test.totalMarks}
-               </span>
-               <span className="bg-slate-50 text-slate-400 px-2 py-0.5 rounded">Rank #{test.lastRank || "-"}</span>
+              <span style={{ color: "var(--text-muted)" }}>Last Score:</span>
+              <span className={cn(
+                "px-2 py-0.5 rounded",
+                test.lastScore >= (test.totalMarks * 0.6) ? "" : ""
+              )}
+                style={test.lastScore >= (test.totalMarks * 0.6) ? { background: "var(--badge-success-bg)", color: "var(--badge-success-text)" } : { background: "rgba(255,107,43,0.08)", color: "#FF6B2B" }}
+              >
+                {test.lastScore}/{test.totalMarks}
+              </span>
+              <span className="px-2 py-0.5 rounded" style={{ background: "var(--bg-main)", color: "var(--text-muted)" }}>Rank #{test.lastRank || "-"}</span>
             </div>
           )}
         </div>
@@ -197,7 +175,8 @@ function TestCard({
               {inProgress ? (
                 <button
                   onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
-                  className="flex-1 md:w-28 h-8.5 bg-amber-500 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-amber-600 active:scale-95 flex items-center justify-center gap-1"
+                  className="flex-1 md:w-28 h-8.5 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1"
+                  style={{ background: "#FF6B2B" }}
                 >
                   Resume <PlayCircle className="h-3 w-3" />
                 </button>
@@ -205,13 +184,15 @@ function TestCard({
                 <div className="flex gap-2 w-full md:w-auto">
                   <button
                     onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
-                    className="flex-1 md:w-28 h-8.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/10"
+                    className="flex-1 md:w-28 h-8.5 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-sm"
+                    style={{ background: "#FF6B2B" }}
                   >
                     Attempt
                   </button>
                   <button
                     onClick={() => router.push(`/tests/solutions/latest?testId=${test.testId}`)}
-                    className="h-8.5 px-3 border border-slate-200 text-slate-500 font-bold text-[10px] uppercase tracking-wider rounded-lg hover:border-blue-500 hover:text-blue-600 transition-all bg-slate-50/50"
+                    className="h-8.5 px-3 font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all"
+                    style={{ background: "var(--bg-main)", color: "var(--text-secondary)", border: "1px solid var(--btn-secondary-border)" }}
                   >
                     Solutions
                   </button>
@@ -219,7 +200,8 @@ function TestCard({
               ) : (
                 <button
                   onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
-                  className="flex-1 md:w-32 h-8.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5"
+                  className="flex-1 md:w-32 h-8.5 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-sm flex items-center justify-center gap-1.5"
+                  style={{ background: "#FF6B2B" }}
                 >
                   Start Test <ArrowRight className="h-3 w-3" />
                 </button>
@@ -228,7 +210,8 @@ function TestCard({
           ) : (
             <button
               onClick={onLockedClick}
-              className="flex-1 md:w-40 h-8.5 bg-slate-50 text-slate-400 font-bold text-[10px] uppercase tracking-wider rounded-lg flex items-center justify-center gap-1.5 hover:bg-slate-100 transition-all border border-slate-200"
+              className="flex-1 md:w-40 h-8.5 font-bold text-[10px] uppercase tracking-wider rounded-lg flex items-center justify-center gap-1.5 transition-all"
+              style={{ background: "var(--bg-main)", color: "var(--text-muted)", border: "1px solid var(--border-card)" }}
             >
               <Lock className="h-3 w-3" /> Unlock Test
             </button>
@@ -290,12 +273,10 @@ export default function SeriesDetailPage() {
 
   const filteredTests = activeTab === "All Tests" ? allTests
     : activeTab === "Free" ? freeTests
-    : allTests.filter(t => t.subCategoryName?.toLowerCase().includes(activeTab.toLowerCase()));
-
-  const catMeta = getCatMeta(data?.name || "");
+      : allTests.filter(t => t.subCategoryName?.toLowerCase().includes(activeTab.toLowerCase()));
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F0F2F8] text-[#0f1b2d] font-sans antialiased">
+    <div className="flex flex-col min-h-screen font-sans antialiased" style={{ background: "var(--bg-main)", color: "var(--text-primary)" }}>
       <Navbar />
       <div className="flex-1 flex overflow-hidden w-full">
         <Sidebar />
@@ -303,57 +284,59 @@ export default function SeriesDetailPage() {
 
           {loading ? (
             <div className="py-40 flex flex-col items-center justify-center space-y-4">
-              <Loader2 className="h-10 w-10 animate-spin text-[#1a73e8] opacity-20" />
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Initialising Test Series...</p>
+              <Loader2 className="h-10 w-10 animate-spin opacity-20" style={{ color: "#FF6B2B" }} />
+              <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Initialising Test Series...</p>
             </div>
           ) : !data ? (
             <div className="py-24 text-center px-6">
-              <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100">
-                <FileText className="h-8 w-8 text-slate-200" />
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                <FileText className="h-8 w-8" style={{ color: "var(--text-muted)" }} />
               </div>
-              <h1 className="text-xl font-black text-slate-800 mb-2">Series not found</h1>
-              <p className="text-sm text-slate-400 mb-8 max-w-xs mx-auto">This test series might have been moved or doesn't exist anymore.</p>
-              <Link href="/tests" className="inline-flex h-11 px-8 bg-[#1a73e8] text-white rounded-xl items-center justify-center text-sm font-black uppercase tracking-widest shadow-lg shadow-blue-500/20 hover:opacity-90 transition-all">
+              <h1 className="text-xl font-black mb-2" style={{ color: "var(--text-primary)" }}>Series not found</h1>
+              <p className="text-sm mb-8 max-w-xs mx-auto" style={{ color: "var(--text-muted)" }}>This test series might have been moved or doesn't exist anymore.</p>
+              <Link href="/tests" className="inline-flex h-11 px-8 text-white rounded-xl items-center justify-center text-sm font-black uppercase tracking-widest transition-all"
+                style={{ background: "#FF6B2B" }}
+              >
                 Browse All Exams
               </Link>
             </div>
           ) : (
             <>
               {/* Breadcrumb - Compact */}
-              <div className="bg-white border-b border-slate-100 px-6 py-2 flex items-center gap-2 text-[9px] font-bold text-slate-400 uppercase tracking-widest sticky top-0 z-20">
-                <Link href="/tests" className="hover:text-blue-600 transition-colors">Test Series</Link>
+              <div className="px-6 py-2 flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest sticky top-0 z-20"
+                style={{ background: "var(--bg-sidebar)", borderBottom: "var(--divider)", color: "var(--text-muted)" }}
+              >
+                <Link href="/tests" className="hover:text-[#FF6B2B] transition-colors">Test Series</Link>
                 <ChevronRight className="h-2.5 w-2.5" />
-                <span className="text-slate-500 truncate">{data.name}</span>
+                <span className="truncate">{data.name}</span>
               </div>
 
               {/* HERO SECTION - Compact & Premium */}
-              <div className={cn("w-full bg-gradient-to-br relative overflow-hidden", catMeta.gradient)} style={{ minHeight: 180 }}>
-                {/* Decorative circles */}
-                <div className="absolute right-0 top-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/4" />
-                <div className="absolute left-1/4 bottom-[-100px] w-48 h-48 bg-white/5 rounded-full blur-3xl" />
+              <div className="w-full relative overflow-hidden" style={{ minHeight: 180, background: "#FF6B2B" }}>
+                <div className="absolute right-0 top-0 w-80 h-80 rounded-full -translate-y-1/2 translate-x-1/4" style={{ background: "rgba(255,255,255,0.05)" }} />
+                <div className="absolute left-1/4 bottom-[-100px] w-48 h-48 rounded-full blur-3xl" style={{ background: "rgba(255,255,255,0.05)" }} />
 
                 <div className="relative px-6 py-8 md:px-10 flex flex-col md:flex-row items-center md:items-center justify-between gap-6 max-w-6xl mx-auto">
                   <div className="flex flex-col md:flex-row items-center gap-5 text-center md:text-left">
-                    {/* Logo - Refined */}
-                    <div className="w-20 h-20 rounded-2xl bg-white shadow-2xl flex items-center justify-center shrink-0 text-4xl">
-                      {catMeta.icon}
+                    <div className="w-20 h-20 rounded-2xl shadow-2xl flex items-center justify-center shrink-0 text-4xl" style={{ background: "var(--bg-card)" }}>
+                      📚
                     </div>
                     <div>
                       <div className="flex flex-wrap justify-center md:justify-start items-center gap-1.5 mb-2">
                         {data.isFree ? (
-                          <span className="text-[8px] font-bold tracking-widest bg-emerald-500 text-white px-2 py-0.5 rounded uppercase">Free Series</span>
+                          <span className="text-[8px] font-bold tracking-widest text-white px-2 py-0.5 rounded uppercase" style={{ background: "var(--badge-success-text)" }}>Free Series</span>
                         ) : (
-                          <span className="text-[8px] font-bold tracking-widest bg-white/10 text-white px-2 py-0.5 rounded flex items-center gap-1 uppercase border border-white/10 backdrop-blur-md">
+                          <span className="text-[8px] font-bold tracking-widest text-white px-2 py-0.5 rounded flex items-center gap-1 uppercase border border-white/10" style={{ background: "rgba(255,255,255,0.1)" }}>
                             <Lock className="h-2 w-2" /> Premium
                           </span>
                         )}
-                        <span className="text-[8px] font-bold tracking-widest bg-white text-blue-600 px-2 py-0.5 rounded uppercase flex items-center gap-1 shadow-sm">
-                           <Shield className="h-2.5 w-2.5" /> Verified
+                        <span className="text-[8px] font-bold tracking-widest px-2 py-0.5 rounded uppercase flex items-center gap-1 shadow-sm" style={{ background: "var(--bg-card)", color: "#FF6B2B" }}>
+                          <Shield className="h-2.5 w-2.5" /> Verified
                         </span>
                       </div>
                       <h1 className="text-2xl md:text-3xl font-extrabold text-white leading-tight tracking-tight">{data.name}</h1>
                       <div className="flex items-center justify-center md:justify-start gap-4 mt-2 text-white/70 text-[10px] font-bold uppercase tracking-widest">
-                        <span className="flex items-center gap-1"><Star className="h-3 w-3 fill-amber-300 text-amber-300" /> 4.8</span>
+                        <span className="flex items-center gap-1"><Star className="h-3 w-3" style={{ color: "#FFD700" }} /> 4.8</span>
                         <span className="opacity-30">|</span>
                         <span className="flex items-center gap-1"><Users className="h-3 w-3" /> 12.5k Enrolled</span>
                       </div>
@@ -363,17 +346,20 @@ export default function SeriesDetailPage() {
                   {!data.isFree && (
                     <button
                       onClick={() => setPaywallOpen(true)}
-                      className="shrink-0 h-10 px-6 bg-white text-blue-600 font-bold text-[11px] uppercase tracking-widest rounded-xl hover:bg-slate-50 active:scale-95 transition-all shadow-xl shadow-black/10 flex items-center gap-2"
+                      className="shrink-0 h-10 px-6 font-bold text-[11px] uppercase tracking-widest rounded-xl active:scale-95 transition-all shadow-xl flex items-center gap-2"
+                      style={{ background: "var(--bg-card)", color: "#FF6B2B" }}
                     >
                       Unlock Full Access
                     </button>
                   )}
                 </div>
 
-                {/* Quick stats bar - Slimmer */}
-                <div className="relative bg-[#000]/20 backdrop-blur-md px-6 py-2.5 flex items-center justify-center md:justify-start gap-8 text-white text-[9px] font-bold uppercase tracking-widest border-t border-white/5 overflow-x-auto no-scrollbar">
+                {/* Quick stats bar */}
+                <div className="relative px-6 py-2.5 flex items-center justify-center md:justify-start gap-8 text-white text-[9px] font-bold uppercase tracking-widest border-t border-white/5 overflow-x-auto no-scrollbar"
+                  style={{ background: "rgba(0,0,0,0.2)" }}
+                >
                   <span className="flex items-center gap-1.5 whitespace-nowrap opacity-90"><FileText className="h-3.5 w-3.5 opacity-50" /> <span>{totalTests}</span> Tests</span>
-                  <span className="flex items-center gap-1.5 whitespace-nowrap text-emerald-300"><Zap className="h-3.5 w-3.5 opacity-50" /> <span>{freeCount}</span> Free</span>
+                  <span className="flex items-center gap-1.5 whitespace-nowrap" style={{ color: "#90EE90" }}><Zap className="h-3.5 w-3.5 opacity-50" /> <span>{freeCount}</span> Free</span>
                   <span className="flex items-center gap-1.5 whitespace-nowrap opacity-90"><Globe2 className="h-3.5 w-3.5 opacity-50" /> EN/HI Mixed</span>
                 </div>
               </div>
@@ -382,37 +368,33 @@ export default function SeriesDetailPage() {
               <div className="p-4 md:p-8 flex flex-col lg:flex-row gap-8 items-start max-w-7xl mx-auto">
                 <div className="w-full lg:flex-1 min-w-0 space-y-6">
 
-                  {/* TAB NAV - Slimmer */}
-                  <div className="bg-white border border-slate-100 rounded-xl overflow-x-auto no-scrollbar shadow-sm sticky top-14 z-10">
+                  {/* TAB NAV */}
+                  <div className="rounded-xl overflow-x-auto no-scrollbar shadow-sm sticky top-14 z-10" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
                     <div className="flex items-center px-2">
                       {TABS.map(tab => {
                         const count = tab === "All Tests" ? totalTests
                           : tab === "Free" ? freeCount
-                          : allTests.filter(t => t.subCategoryName?.toLowerCase().includes(tab.toLowerCase())).length;
+                            : allTests.filter(t => t.subCategoryName?.toLowerCase().includes(tab.toLowerCase())).length;
                         return (
                           <button
                             key={tab}
                             onClick={() => setActiveTab(tab)}
                             className={cn(
                               "px-5 py-3.5 text-[11px] font-bold uppercase tracking-wider transition-all relative whitespace-nowrap",
-                              activeTab === tab
-                                ? "text-blue-600"
-                                : "text-slate-400 hover:text-slate-600"
+                              activeTab === tab ? "" : "hover:opacity-80"
                             )}
+                            style={{ color: activeTab === tab ? "#FF6B2B" : "var(--text-muted)" }}
                           >
                             <span className="flex items-center gap-1.5">
                               {tab}
                               {count > 0 && (
-                                <span className={cn(
-                                  "text-[9px] px-1 py-0.5 rounded font-bold",
-                                  activeTab === tab ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-400"
-                                )}>
+                                <span className="text-[9px] px-1 py-0.5 rounded font-bold" style={activeTab === tab ? { background: "rgba(255,107,43,0.08)", color: "#FF6B2B" } : { background: "var(--bg-main)", color: "var(--text-muted)" }}>
                                   {count}
                                 </span>
                               )}
                             </span>
                             {activeTab === tab && (
-                               <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-blue-600 rounded-full" />
+                              <span className="absolute bottom-0 left-0 right-0 h-[2.5px] rounded-full" style={{ background: "#FF6B2B" }} />
                             )}
                           </button>
                         );
@@ -422,19 +404,16 @@ export default function SeriesDetailPage() {
 
                   {/* TEST LIST */}
                   {filteredTests.length === 0 ? (
-                    <div className="bg-white border border-slate-100 rounded-2xl py-20 text-center shadow-sm">
-                      <div className="w-16 h-16 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-50">
-                        <FileText className="h-8 w-8 text-slate-200" />
-                      </div>
-                      <p className="text-sm font-black text-slate-400 uppercase tracking-widest">No tests available in this section</p>
+                    <div className="rounded-2xl py-20 text-center border-2 border-dashed" style={{ background: "var(--bg-card)", borderColor: "var(--border-input)" }}>
+                      <p className="font-semibold mb-3" style={{ color: "var(--text-muted)" }}>No tests available in this section</p>
+                      <button onClick={() => setActiveTab("all")} className="font-bold hover:underline" style={{ color: "#FF6B2B" }}>Explore All Exams →</button>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {filteredTests.map((test, i) => (
+                      {filteredTests.map((test) => (
                         <TestCard
                           key={test.id}
                           test={test}
-                          index={i}
                           isAccessible={data.isFree || test.isPublic}
                           onLockedClick={() => setPaywallOpen(true)}
                           seriesSlug={data.slug || slug}
@@ -444,31 +423,32 @@ export default function SeriesDetailPage() {
                   )}
 
                   {/* ABOUT & FAQ ACCORDION */}
-                  <div className="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+                  <div className="rounded-2xl overflow-hidden shadow-sm" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
                     <button
                       onClick={() => setAboutOpen(o => !o)}
-                      className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-slate-50 transition-colors"
+                      className="w-full flex items-center justify-between px-6 py-5 text-left transition-colors"
+                      style={{ color: "var(--text-primary)" }}
                     >
-                      <span className="font-black text-sm text-slate-800 flex items-center gap-3 uppercase tracking-widest">
-                        <div className="p-1.5 bg-blue-50 rounded-lg">
-                           <BookOpen className="h-4 w-4 text-[#1a73e8]" />
+                      <span className="font-black text-sm flex items-center gap-3 uppercase tracking-widest">
+                        <div className="p-1.5 rounded-lg" style={{ background: "rgba(255,107,43,0.08)" }}>
+                          <BookOpen className="h-4 w-4" style={{ color: "#FF6B2B" }} />
                         </div>
                         About This Test Series
                       </span>
-                      {aboutOpen ? <ChevronUp className="h-5 w-5 text-slate-400" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                      {aboutOpen ? <ChevronUp className="h-5 w-5" style={{ color: "var(--text-muted)" }} /> : <ChevronDown className="h-5 w-5" style={{ color: "var(--text-muted)" }} />}
                     </button>
 
                     {aboutOpen && (
-                      <div className="px-6 pb-8 border-t border-slate-50">
-                        <div className="prose prose-slate prose-sm max-w-none pt-6 mb-8 text-slate-600 font-medium">
+                      <div className="px-6 pb-8" style={{ borderTop: "var(--divider)" }}>
+                        <div className="prose prose-slate prose-sm max-w-none pt-6 mb-8 font-medium" style={{ color: "var(--text-secondary)" }}>
                           <p className="leading-relaxed">
                             {data.description || "Prepare for your exam with our comprehensive mock test series. Each test is carefully crafted by subject matter experts to match the exact pattern and difficulty of the actual examination. Detailed performance analytics and solutions are provided to help you improve your score with every attempt."}
                           </p>
                         </div>
 
                         <div className="flex items-center gap-3 mb-6">
-                           <div className="h-[2px] w-8 bg-[#1a73e8]" />
-                           <h4 className="text-[12px] font-black text-slate-800 uppercase tracking-[2px]">Frequently Asked Questions</h4>
+                          <div className="h-[2px] w-8" style={{ background: "#FF6B2B" }} />
+                          <h4 className="text-[12px] font-black uppercase tracking-[2px]" style={{ color: "var(--text-primary)" }}>Frequently Asked Questions</h4>
                         </div>
                         <div className="space-y-1">
                           {DEFAULT_FAQS.map((faq, i) => <FaqItem key={i} q={faq.q} a={faq.a} />)}
@@ -481,8 +461,8 @@ export default function SeriesDetailPage() {
 
                 {/* Right sidebar */}
                 <aside className="w-full lg:w-[350px] shrink-0 space-y-6">
-                  <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm">
-                    <p className="text-[11px] font-black uppercase tracking-[2px] text-[#1a73e8] flex items-center gap-2 mb-6">
+                  <div className="rounded-2xl p-6 shadow-sm" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                    <p className="text-[11px] font-black uppercase tracking-[2px] flex items-center gap-2 mb-6" style={{ color: "#FF6B2B" }}>
                       <Zap className="h-4 w-4" /> Why Study With Us?
                     </p>
                     <div className="space-y-6">
@@ -492,12 +472,12 @@ export default function SeriesDetailPage() {
                         { icon: BarChart3, label: "Detailed Analytics", desc: "Rank predictor and subject-wise score analytics." },
                       ].map((item, i) => (
                         <div key={i} className="flex items-start gap-4">
-                          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0 border border-blue-50">
-                            <item.icon className="h-5 w-5 text-[#1a73e8]" />
+                          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(255,107,43,0.08)" }}>
+                            <item.icon className="h-5 w-5" style={{ color: "#FF6B2B" }} />
                           </div>
                           <div>
-                            <p className="text-[13px] font-black text-slate-800 leading-tight mb-1">{item.label}</p>
-                            <p className="text-[11px] text-slate-400 font-bold leading-normal">{item.desc}</p>
+                            <p className="text-[13px] font-black leading-tight mb-1" style={{ color: "var(--text-primary)" }}>{item.label}</p>
+                            <p className="text-[11px] font-bold leading-normal" style={{ color: "var(--text-muted)" }}>{item.desc}</p>
                           </div>
                         </div>
                       ))}
@@ -505,15 +485,16 @@ export default function SeriesDetailPage() {
                   </div>
 
                   {!data.isFree && (
-                    <div className="bg-gradient-to-br from-[#0f1b2d] to-[#1a73e8] rounded-2xl p-6 text-white shadow-xl shadow-blue-500/10 relative overflow-hidden group">
-                       <div className="absolute right-[-20%] top-[-20%] w-32 h-32 bg-white/5 rounded-full blur-2xl group-hover:scale-125 transition-transform" />
+                    <div className="rounded-2xl p-6 text-white shadow-xl relative overflow-hidden group" style={{ background: "#FF6B2B" }}>
+                      <div className="absolute right-[-20%] top-[-20%] w-32 h-32 rounded-full blur-2xl group-hover:scale-125 transition-transform" style={{ background: "rgba(255,255,255,0.05)" }} />
                       <div className="relative z-10">
                         <Shield className="h-8 w-8 mb-4 opacity-50" />
                         <h4 className="text-lg font-black leading-tight mb-2">Get Full Pro Access</h4>
                         <p className="text-[11px] text-white/70 font-bold mb-6">Unlock all {totalTests} premium tests and detailed chapter-wise analytics.</p>
                         <button
                           onClick={() => setPaywallOpen(true)}
-                          className="w-full h-11 bg-white text-[#1a73e8] font-black text-[11px] uppercase tracking-widest rounded-xl hover:bg-slate-50 transition-all shadow-lg active:scale-95"
+                          className="w-full h-11 font-black text-[11px] uppercase tracking-widest rounded-xl transition-all shadow-lg active:scale-95"
+                          style={{ background: "var(--bg-card)", color: "#FF6B2B" }}
                         >
                           Unlock All Now
                         </button>
@@ -521,15 +502,15 @@ export default function SeriesDetailPage() {
                     </div>
                   )}
 
-                  <div className="bg-emerald-50 rounded-2xl p-6 border border-emerald-100">
-                     <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-3">Community Choice</p>
-                     <p className="text-[12px] text-slate-700 font-bold leading-relaxed mb-4">"The best mock tests I've found so far. The interface is exactly like the real SSC exam."</p>
-                     <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 bg-white rounded-full flex items-center justify-center border border-emerald-100">
-                           <Users className="h-3.5 w-3.5 text-emerald-500" />
-                        </div>
-                        <p className="text-[11px] font-black text-slate-500 uppercase tracking-tighter">— Rahul S., SSC Topper 2024</p>
-                     </div>
+                  <div className="rounded-2xl p-6" style={{ background: "var(--badge-success-bg)", border: "1px solid rgba(46,125,50,0.15)" }}>
+                    <p className="text-[10px] font-black uppercase tracking-widest mb-3" style={{ color: "var(--badge-success-text)" }}>Community Choice</p>
+                    <p className="text-[12px] font-bold leading-relaxed mb-4" style={{ color: "var(--text-secondary)" }}>"The best mock tests I've found so far. The interface is exactly like the real SSC exam."</p>
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                        <Users className="h-3.5 w-3.5" style={{ color: "var(--badge-success-text)" }} />
+                      </div>
+                      <p className="text-[11px] font-black uppercase tracking-tighter" style={{ color: "var(--text-muted)" }}>— Rahul S., SSC Topper 2024</p>
+                    </div>
                   </div>
                 </aside>
               </div>

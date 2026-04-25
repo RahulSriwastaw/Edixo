@@ -74,6 +74,7 @@ export function useBulkAIEdit(): UseBulkAIEditReturn {
     const [lastConfig, setLastConfig] = useState<BulkEditConfig | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
     const pollIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const isStartingRef = useRef(false);
 
     const clearLogs = useCallback(() => {
         setLogs([]);
@@ -96,15 +97,17 @@ export function useBulkAIEdit(): UseBulkAIEditReturn {
             pollIntervalRef.current = null;
         }
         setIsProcessing(false);
+        isStartingRef.current = false;
     }, []);
 
-    const pollJobStatus = useCallback(async (jid: string) => {
+    const pollJobStatus = useCallback(async (jid: string, signal?: AbortSignal) => {
         try {
             const apiUrl = getApiUrl();
             const token = getToken();
 
             const response = await fetch(`${apiUrl}/questions/bulk-ai-edit/jobs/${jid}/status`, {
-                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+                signal
             });
 
             if (!response.ok) return;
@@ -129,20 +132,29 @@ export function useBulkAIEdit(): UseBulkAIEditReturn {
 
             if (status.state === 'completed' || status.state === 'failed') {
                 setIsProcessing(false);
+                isStartingRef.current = false;
                 if (pollIntervalRef.current) {
                     clearInterval(pollIntervalRef.current);
                     pollIntervalRef.current = null;
                 }
             }
-        } catch (err) {
-            console.error('Error polling job status:', err);
+        } catch (err: any) {
+            if (err.name !== 'AbortError') {
+                console.error('Error polling job status:', err);
+            }
         }
     }, []);
 
     const startBackgroundJob = useCallback(async (config: BulkEditConfig) => {
+        if (isStartingRef.current) return;
+        isStartingRef.current = true;
+
         clearLogs();
         setIsProcessing(true);
         setLastConfig(config);
+
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
 
         try {
             const apiUrl = getApiUrl();
@@ -154,7 +166,8 @@ export function useBulkAIEdit(): UseBulkAIEditReturn {
                     'Content-Type': 'application/json',
                     ...(token ? { 'Authorization': `Bearer ${token}` } : {})
                 },
-                body: JSON.stringify(config)
+                body: JSON.stringify(config),
+                signal: controller.signal
             });
 
             if (!response.ok) {
@@ -176,25 +189,37 @@ export function useBulkAIEdit(): UseBulkAIEditReturn {
                 message: `Job queued (${data.jobId}). Processing ${config.question_ids.length} questions in background...`
             }]);
 
-            // Start polling
+            // Start polling with abort signal
             pollIntervalRef.current = setInterval(() => {
-                pollJobStatus(data.jobId);
+                pollJobStatus(data.jobId, controller.signal);
             }, 2000);
 
             // Immediate first poll
-            pollJobStatus(data.jobId);
+            pollJobStatus(data.jobId, controller.signal);
 
         } catch (error: any) {
-            console.error('Error starting background job:', error);
-            setLogs(prev => [...prev, {
-                status: 'error',
-                question_id: '',
-                index: 0,
-                total: config.question_ids.length,
-                message: 'Failed to start background job',
-                error: error.message
-            }]);
+            if (error.name === 'AbortError') {
+                setLogs(prev => [...prev, {
+                    status: 'error',
+                    question_id: '',
+                    index: 0,
+                    total: config.question_ids.length,
+                    message: 'Background job was cancelled'
+                }]);
+            } else {
+                console.error('Error starting background job:', error);
+                const isNetworkError = error.message?.includes('fetch') || error.message?.includes('closed') || error.message?.includes('Failed to fetch') || error.message?.includes('NetworkError');
+                setLogs(prev => [...prev, {
+                    status: 'error',
+                    question_id: '',
+                    index: 0,
+                    total: config.question_ids.length,
+                    message: isNetworkError ? 'Cannot connect to server. Please check if backend is running.' : 'Failed to start background job',
+                    error: error.message
+                }]);
+            }
             setIsProcessing(false);
+            isStartingRef.current = false;
         }
     }, [clearLogs, pollJobStatus]);
 

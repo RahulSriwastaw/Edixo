@@ -11,64 +11,68 @@ import { cn } from "@/lib/utils";
 import { apiFetch, isAuthenticated } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
 
-// ═══════════════════════════════════════════════
-// TYPES & CONSTANTS
-// ═══════════════════════════════════════════════
-
 const PaletteShapes = {
   NotVisited: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "w-8 h-7 md:w-[34px] md:h-[30px] bg-slate-50 text-slate-500 text-[10px] font-bold flex items-center justify-center border border-slate-200 rounded shadow-sm hover:border-slate-400 transition-all",
-      active && "ring-2 ring-blue-500 ring-offset-1 border-blue-500 text-blue-600 font-extrabold"
-    )}>
+      "w-8 h-7 md:w-[34px] md:h-[30px] text-[10px] font-bold flex items-center justify-center border rounded shadow-sm transition-all",
+      active && "ring-2 ring-offset-1 font-extrabold"
+    )}
+      style={active ? { background: "var(--bg-card)", borderColor: "#FF6B2B", color: "#FF6B2B" } : { background: "var(--bg-main)", borderColor: "var(--border-card)", color: "var(--text-muted)" }}
+    >
       {num}
     </div>
   ),
   NotAnswered: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "relative w-8 h-7 md:w-[34px] md:h-[30px] flex items-center justify-center hover:opacity-90 transition-opacity",
-      active && "ring-2 ring-blue-500 ring-offset-1"
-    )}>
+      "relative w-8 h-7 md:w-[34px] md:h-[30px] flex items-center justify-center transition-opacity",
+      active && "ring-2 ring-offset-1"
+    )}
+    >
       <svg viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
-        <path d="M0 0H38V22C38 22 25 34 19 34C13 34 0 22 0 22V0Z" fill="#f43f5e" />
+        <path d="M0 0H38V22C38 22 25 34 19 34C13 34 0 22 0 22V0Z" fill="var(--badge-error-text)" />
       </svg>
       <span className="relative text-white text-[10px] font-bold -mt-0.5">{num}</span>
     </div>
   ),
   Answered: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "relative w-8 h-7 md:w-[34px] md:h-[30px] flex items-center justify-center hover:opacity-90 transition-opacity",
-      active && "ring-2 ring-blue-600 ring-offset-1"
-    )}>
+      "relative w-8 h-7 md:w-[34px] md:h-[30px] flex items-center justify-center transition-opacity",
+      active && "ring-2 ring-offset-1"
+    )}
+    >
       <svg viewBox="0 0 38 34" fill="none" xmlns="http://www.w3.org/2000/svg" className="absolute inset-0 w-full h-full">
-        <path d="M0 12C0 12 13 0 19 0C25 0 38 12 38 12V34H0V12Z" fill="#10b981" />
+        <path d="M0 12C0 12 13 0 19 0C25 0 38 12 38 12V34H0V12Z" fill="var(--badge-success-text)" />
       </svg>
       <span className="relative text-white text-[10px] font-bold mt-0.5">{num}</span>
     </div>
   ),
   Marked: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "w-7 h-7 md:w-[32px] md:h-[32px] bg-violet-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm hover:opacity-90 transition-opacity mx-auto",
-      active && "ring-2 ring-blue-500 ring-offset-1"
-    )}>
+      "w-7 h-7 md:w-[32px] md:h-[32px] text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm transition-opacity mx-auto",
+      active && "ring-2 ring-offset-1"
+    )}
+      style={{ background: "#8b5cf6" }}
+    >
       {num}
     </div>
   ),
   MarkedAndAnswered: ({ num, active }: { num: number; active?: boolean }) => (
     <div className={cn(
-      "relative w-7 h-7 md:w-[32px] md:h-[32px] bg-violet-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm hover:opacity-90 transition-opacity mx-auto",
-      active && "ring-2 ring-blue-500 ring-offset-1"
-    )}>
+      "relative w-7 h-7 md:w-[32px] md:h-[32px] text-white text-[10px] font-bold flex items-center justify-center rounded-full shadow-sm transition-opacity mx-auto",
+      active && "ring-2 ring-offset-1"
+    )}
+      style={{ background: "#7c3aed" }}
+    >
       {num}
-      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
+      <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 shadow-sm" style={{ background: "var(--badge-success-text)", borderColor: "var(--bg-card)" }} />
     </div>
   ),
 };
 
 const PaletteKey = [
-  { color: "#f0f0f0", border: "#ccc", textColor: "#333", label: "You have not visited the question yet" },
-  { color: "#f43f5e", border: "transparent", textColor: "#fff", label: "You have not answered the question." },
-  { color: "#10b981", border: "transparent", textColor: "#fff", label: "You have answered the question." },
+  { color: "var(--bg-main)", border: "var(--border-card)", textColor: "var(--text-primary)", label: "You have not visited the question yet" },
+  { color: "var(--badge-error-text)", border: "transparent", textColor: "#fff", label: "You have not answered the question." },
+  { color: "var(--badge-success-text)", border: "transparent", textColor: "#fff", label: "You have answered the question." },
   { color: "#8b5cf6", border: "transparent", textColor: "#fff", label: "You have NOT answered the question, but have marked the question for review." },
   { color: "#7c3aed", border: "transparent", textColor: "#fff", label: "You have answered the question, marked it for review." },
 ];
@@ -86,25 +90,19 @@ interface Question {
   imageUrl?: string;
 }
 
-// ═══════════════════════════════════════════════
-// MAIN COMPONENT
-// ═══════════════════════════════════════════════
-
 export default function IntegratedTestPage() {
   const router = useRouter();
   const { toast } = useToast();
   const params = useParams();
   const searchParams = useSearchParams();
-  
+
   const testId = params?.id ? String(params.id) : "";
   const seriesSlug = params?.slug ? String(params.slug) : "";
-  
-  // VIEW STATE: 'instructions' | 'exam'
+
   const [view, setView] = useState<'instructions' | 'exam'>('instructions');
   const [instrStep, setInstrStep] = useState(1);
   const [declared, setDeclared] = useState(false);
-  
-  // SHARED STATE
+
   const [questions, setQuestions] = useState<Question[]>([]);
   const [testName, setTestName] = useState("Loading...");
   const [durationMins, setDurationMins] = useState(60);
@@ -114,8 +112,8 @@ export default function IntegratedTestPage() {
   const [examError, setExamError] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState("Student");
   const [lang, setLang] = useState<"english" | "hindi">("english");
+  const [initialSyncDone, setInitialSyncDone] = useState(false);
 
-  // EXAM SPECIFIC STATE
   const [currentIdx, setCurrentIdx] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [qState, setQState] = useState<Record<number, { status: string; answer: number | null; optionId: string | null }>>({});
@@ -129,7 +127,6 @@ export default function IntegratedTestPage() {
   const qStartTimeRef = useRef<number>(Date.now());
   const qTimeSpent = useRef<Record<number, number>>({});
 
-  // 1. Auth & Initial Profile Load
   useEffect(() => {
     if (!isAuthenticated()) {
       router.replace(`/login?redirect=/${seriesSlug}/tests/${testId}`);
@@ -138,16 +135,23 @@ export default function IntegratedTestPage() {
     apiFetch("/students/me").then(res => {
       if (res.data?.name) setDisplayName(res.data.name);
     }).catch(() => { });
+
+    const handleHash = () => {
+      const hash = window.location.hash;
+      if (hash === '#/lt-test') setView('exam');
+      else if (hash === '#/lt-instructions') setView('instructions');
+    };
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
   }, [router, seriesSlug, testId]);
 
-  // 2. Initial Data Load (Check for existing attempts)
   useEffect(() => {
     if (!testId || !isAuthenticated()) return;
 
     const init = async () => {
       try {
         setLoading(true);
-        // Fetch test meta & questions
         const qRes = await apiFetch(`/mockbook/tests/${testId}/questions`);
         const data = qRes.data;
         if (!data || !data.questions) throw new Error("Test not found");
@@ -155,30 +159,30 @@ export default function IntegratedTestPage() {
         setTestName(data.name || "Test");
         setDurationMins(data.durationMins || 60);
         setQuestions(data.questions);
-        
-        // Initialize state
+
         const initial: Record<number, { status: string; answer: number | null; optionId: string | null }> = {};
         data.questions.forEach((_: any, i: number) => {
           initial[i] = { status: i === 0 ? "not_answered" : "not_visited", answer: null, optionId: null };
         });
         setQState(initial);
 
-        // Check if an attempt is already in progress
         const attRes = await apiFetch(`/mockbook/tests/${testId}/attempts`, {
           method: "POST",
-          body: JSON.stringify({ action: "start" }), // This resumes if exists
+          body: JSON.stringify({ action: "start" }),
         });
-        
+
         if (attRes.data?.id) {
           setAttemptId(attRes.data.id);
-          // If it was already in progress (resumed), jump to exam
           if (attRes.data.status === 'IN_PROGRESS' && attRes.status !== 201) {
-             setSecondsLeft(attRes.data.timeRemainingSeconds || data.durationMins * 60);
-             setView('exam');
+            setSecondsLeft(attRes.data.timeRemainingSeconds || data.durationMins * 60);
+            setView('exam');
+            window.location.hash = '#/lt-test';
           } else {
-             setSecondsLeft(data.durationMins * 60);
+            setSecondsLeft(data.durationMins * 60);
+            if (!window.location.hash) window.location.hash = '#/lt-instructions';
           }
         }
+        setInitialSyncDone(true);
       } catch (err: any) {
         setExamError(err.message || "Failed to load test");
       } finally {
@@ -187,10 +191,6 @@ export default function IntegratedTestPage() {
     };
     init();
   }, [testId]);
-
-  // ═══════════════════════════════════════════════
-  // EXAM LOGIC
-  // ═══════════════════════════════════════════════
 
   useEffect(() => {
     if (view !== 'exam') return;
@@ -255,8 +255,7 @@ export default function IntegratedTestPage() {
   const saveAndNext = () => {
     const current = qState[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
     recordQuestionTime();
-    
-    // Autosave logic...
+
     setQState(prev => {
       const cur = prev[currentIdx] ?? { status: "not_answered", answer: null, optionId: null };
       return {
@@ -294,29 +293,25 @@ export default function IntegratedTestPage() {
   };
 
   const handlePause = async () => {
-     router.push(`/${seriesSlug}`);
+    router.push(`/${seriesSlug}`);
   };
-
-  // ═══════════════════════════════════════════════
-  // RENDER HELPERS
-  // ═══════════════════════════════════════════════
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen bg-slate-50">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600 mb-4" />
-        <p className="text-slate-500 font-bold text-xs uppercase tracking-widest">Loading Test...</p>
+      <div className="flex flex-col items-center justify-center h-screen" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+        <Loader2 className="h-10 w-10 animate-spin mb-4" style={{ color: "#FF6B2B" }} />
+        <p className="font-bold text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Loading Test...</p>
       </div>
     );
   }
 
   if (examError || questions.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-screen p-4 text-center">
-        <AlertTriangle className="h-12 w-12 text-amber-500 mb-4" />
+      <div className="flex flex-col items-center justify-center h-screen p-4 text-center" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+        <AlertTriangle className="h-12 w-12 mb-4" style={{ color: "var(--badge-error-text)" }} />
         <h2 className="text-xl font-bold mb-2">Test Unavailable</h2>
-        <p className="text-slate-500 mb-6">{examError || "Could not load test questions."}</p>
-        <button onClick={() => router.push(`/${seriesSlug}`)} className="px-6 py-2 bg-blue-600 text-white rounded-lg">Go Back</button>
+        <p className="mb-6" style={{ color: "var(--text-muted)" }}>{examError || "Could not load test questions."}</p>
+        <button onClick={() => router.push(`/${seriesSlug}`)} className="px-6 py-2 rounded-lg font-bold text-white" style={{ background: "#FF6B2B" }}>Go Back</button>
       </div>
     );
   }
@@ -324,86 +319,93 @@ export default function IntegratedTestPage() {
   // ─── INSTRUCTIONS VIEW ───────────────────────────────────────
   if (view === 'instructions') {
     return (
-      <div className="flex flex-col h-screen bg-white font-sans overflow-hidden">
-        <header className="bg-white border-b border-gray-200 flex items-center justify-between px-4 h-11 shrink-0">
+      <div className="flex flex-col h-screen overflow-hidden" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+        <header className="flex items-center justify-between px-4 h-11 shrink-0" style={{ background: "var(--bg-sidebar)", borderBottom: "var(--divider)" }}>
           <div className="flex items-center gap-3">
-             <div className="w-7 h-7 bg-blue-600 rounded flex items-center justify-center text-white font-black text-xs">M</div>
-             <span className="font-bold text-sm text-gray-800">{testName}</span>
+            <div className="w-7 h-7 rounded flex items-center justify-center text-white font-black text-xs" style={{ background: "#FF6B2B" }}>M</div>
+            <span className="font-bold text-sm">{testName}</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xs">
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-white font-bold text-xs" style={{ background: "#FF6B2B" }}>
               {displayName.charAt(0).toUpperCase()}
             </div>
-            <span className="text-xs font-semibold text-gray-700">{displayName}</span>
+            <span className="text-xs font-semibold">{displayName}</span>
           </div>
         </header>
 
         <div className="flex-1 overflow-y-auto">
           {instrStep === 1 ? (
             <div className="p-6 max-w-4xl mx-auto" style={{ fontSize: 13, lineHeight: 1.6 }}>
-               <h2 className="font-bold text-lg mb-4 border-b pb-2">General Instructions</h2>
-               <ol className="list-decimal pl-5 space-y-3 text-gray-700">
-                  <li>The clock will be set at the server. The countdown timer at the top right corner will show the remaining time.</li>
-                  <li>Question Palette status symbols:
-                     <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        {PaletteKey.map((p, i) => (
-                           <div key={i} className="flex items-center gap-3">
-                              <div className="w-7 h-7 rounded border flex items-center justify-center text-white font-bold" style={{ backgroundColor: p.color }}>{i+1}</div>
-                              <span className="text-[11px] leading-tight">{p.label}</span>
-                           </div>
-                        ))}
-                     </div>
-                  </li>
-                  <li>Navigating: Use <strong>Save & Next</strong> to save answers. Navigation via palette does NOT save answers.</li>
-               </ol>
+              <h2 className="font-bold text-lg mb-4 pb-2" style={{ borderBottom: "var(--divider)" }}>General Instructions</h2>
+              <ol className="list-decimal pl-5 space-y-3" style={{ color: "var(--text-secondary)" }}>
+                <li>The clock will be set at the server. The countdown timer at the top right corner will show the remaining time.</li>
+                <li>Question Palette status symbols:
+                  <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {PaletteKey.map((p, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <div className="w-7 h-7 rounded border flex items-center justify-center text-white font-bold" style={{ backgroundColor: p.color, borderColor: p.border }}>{i + 1}</div>
+                        <span className="text-[11px] leading-tight">{p.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </li>
+                <li>Navigating: Use <strong>Save & Next</strong> to save answers. Navigation via palette does NOT save answers.</li>
+              </ol>
             </div>
           ) : (
             <div className="p-6 max-w-4xl mx-auto" style={{ fontSize: 13, lineHeight: 1.6 }}>
-               <h2 className="font-bold text-lg mb-4 border-b pb-2">Test Specific Instructions</h2>
-               <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex flex-col items-center">
-                     <Clock className="h-5 w-5 text-blue-600 mb-1" />
-                     <span className="font-bold">{durationMins} Mins</span>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex flex-col items-center">
-                     <FileText className="h-5 w-5 text-blue-600 mb-1" />
-                     <span className="font-bold">{questions.length} Qs</span>
-                  </div>
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-100 flex flex-col items-center">
-                     <BarChart3 className="h-5 w-5 text-blue-600 mb-1" />
-                     <span className="font-bold">{questions.reduce((acc, q) => acc + q.marks, 0)} Marks</span>
-                  </div>
-               </div>
-               
-               <div className="space-y-4">
-                  <div>
-                    <label className="block font-bold mb-2">Default Language:</label>
-                    <select className="border p-2 rounded w-48" value={lang} onChange={(e: any) => setLang(e.target.value)}>
-                       <option value="english">English</option>
-                       <option value="hindi">Hindi</option>
-                    </select>
-                  </div>
-                  
-                  <label className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl cursor-pointer">
-                     <input type="checkbox" checked={declared} onChange={e => setDeclared(e.target.checked)} className="mt-1 w-4 h-4 accent-blue-600" />
-                     <span className="text-gray-600">I have read and understood all instructions. I agree to abide by the rules.</span>
-                  </label>
-               </div>
+              <h2 className="font-bold text-lg mb-4 pb-2" style={{ borderBottom: "var(--divider)" }}>Test Specific Instructions</h2>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="p-4 rounded-xl flex flex-col items-center" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                  <Clock className="h-5 w-5 mb-1" style={{ color: "#FF6B2B" }} />
+                  <span className="font-bold">{durationMins} Mins</span>
+                </div>
+                <div className="p-4 rounded-xl flex flex-col items-center" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                  <FileText className="h-5 w-5 mb-1" style={{ color: "#FF6B2B" }} />
+                  <span className="font-bold">{questions.length} Qs</span>
+                </div>
+                <div className="p-4 rounded-xl flex flex-col items-center" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                  <BarChart3 className="h-5 w-5 mb-1" style={{ color: "#FF6B2B" }} />
+                  <span className="font-bold">{questions.reduce((acc, q) => acc + q.marks, 0)} Marks</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block font-bold mb-2">Default Language:</label>
+                  <select className="border p-2 rounded w-48 text-sm" style={{ background: "var(--bg-input)", borderColor: "var(--border-input)", color: "var(--text-primary)" }} value={lang} onChange={(e: any) => setLang(e.target.value)}>
+                    <option value="english">English</option>
+                    <option value="hindi">Hindi</option>
+                  </select>
+                </div>
+
+                <label className="flex items-start gap-3 p-4 rounded-xl cursor-pointer" style={{ background: "var(--bg-main)" }}>
+                  <input type="checkbox" checked={declared} onChange={e => setDeclared(e.target.checked)} className="mt-1 w-4 h-4" style={{ accentColor: "#FF6B2B" }} />
+                  <span style={{ color: "var(--text-secondary)" }}>I have read and understood all instructions. I agree to abide by the rules.</span>
+                </label>
+              </div>
             </div>
           )}
         </div>
 
-        <footer className="p-4 border-t flex justify-between">
-           <button onClick={() => instrStep === 2 ? setInstrStep(1) : router.back()} className="px-6 py-2 text-gray-500 font-bold uppercase text-xs">
-              {instrStep === 1 ? "Cancel" : "Back"}
-           </button>
-           <button 
-              disabled={instrStep === 2 && !declared}
-              onClick={() => instrStep === 1 ? setInstrStep(2) : setView('exam')}
-              className={cn("px-8 py-2 rounded font-bold uppercase text-xs text-white", (instrStep === 2 && !declared) ? "bg-slate-300" : "bg-blue-600 shadow-lg")}
-           >
-              {instrStep === 1 ? "Next" : "I am ready to begin"}
-           </button>
+        <footer className="p-4 flex justify-between shrink-0" style={{ borderTop: "var(--divider)", background: "var(--bg-sidebar)" }}>
+          <button onClick={() => instrStep === 2 ? setInstrStep(1) : router.back()} className="px-6 py-2 font-bold uppercase text-xs" style={{ color: "var(--text-muted)" }}>
+            {instrStep === 1 ? "Cancel" : "Back"}
+          </button>
+          <button
+            disabled={instrStep === 2 && !declared}
+            onClick={() => {
+              if (instrStep === 1) setInstrStep(2);
+              else {
+                setView('exam');
+                window.location.hash = '#/lt-test';
+              }
+            }}
+            className={cn("px-8 py-2 rounded-lg font-bold uppercase text-xs text-white transition-all", (instrStep === 2 && !declared) ? "opacity-50" : "")}
+            style={{ background: (instrStep === 2 && !declared) ? "var(--text-muted)" : "#FF6B2B" }}
+          >
+            {instrStep === 1 ? "Next" : "I am ready to begin"}
+          </button>
         </footer>
       </div>
     );
@@ -428,111 +430,113 @@ export default function IntegratedTestPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-slate-50 font-sans overflow-hidden select-none">
-      <header className="flex bg-white border-b border-slate-200 items-center justify-between px-6 shrink-0 h-14 z-30">
+    <div className="flex flex-col h-screen overflow-hidden select-none" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+      <header className="flex items-center justify-between px-6 shrink-0 h-14 z-30" style={{ background: "var(--bg-sidebar)", borderBottom: "var(--divider)" }}>
         <div className="flex items-center gap-4">
-          <div className="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">M</div>
-          <h1 className="text-sm font-extrabold text-slate-800 truncate max-w-sm">{testName}</h1>
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-black italic" style={{ background: "#FF6B2B" }}>M</div>
+          <h1 className="text-sm font-extrabold truncate max-w-sm">{testName}</h1>
         </div>
 
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">Time Left</span>
-            <div className="font-mono text-base font-black text-slate-800">{formatTime(secondsLeft)}</div>
+            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Time Left</span>
+            <div className="font-mono text-base font-black">{formatTime(secondsLeft)}</div>
           </div>
-          <button className="h-8 px-3 text-[10px] font-bold text-blue-600 border border-blue-200 bg-blue-50 rounded-lg" onClick={handlePause}>PAUSE</button>
+          <button className="h-8 px-3 text-[10px] font-bold rounded-lg" style={{ color: "#FF6B2B", border: "1px solid rgba(255,107,43,0.2)", background: "rgba(255,107,43,0.05)" }} onClick={handlePause}>PAUSE</button>
         </div>
       </header>
 
       <div className="flex flex-1 overflow-hidden relative">
         {/* QUESTION PANEL */}
-        <div className="flex-1 flex flex-col min-w-0 bg-white">
-          <div className="flex items-center justify-between px-8 py-3 border-b bg-slate-50/50">
+        <div className="flex-1 flex flex-col min-w-0" style={{ background: "var(--bg-card)" }}>
+          <div className="flex items-center justify-between px-8 py-3" style={{ borderBottom: "var(--divider)", background: "var(--bg-main)" }}>
             <div className="flex items-baseline gap-2">
-              <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Question</span>
-              <span className="text-xl font-black text-slate-800">{currentQ.number}</span>
+              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Question</span>
+              <span className="text-xl font-black">{currentQ.number}</span>
             </div>
-            <div className="flex items-center gap-3 bg-white px-3 py-1 rounded-full border text-[10px] font-bold">
-               <span className="text-emerald-600">+{currentQ.marks}</span>
-               <span className="text-rose-600">{currentQ.negative}</span>
+            <div className="flex items-center gap-3 px-3 py-1 rounded-full border text-[10px] font-bold" style={{ background: "var(--bg-card)", borderColor: "var(--border-card)" }}>
+              <span style={{ color: "var(--badge-success-text)" }}>+{currentQ.marks}</span>
+              <span style={{ color: "var(--badge-error-text)" }}>{currentQ.negative}</span>
             </div>
           </div>
 
           <div className="flex-1 overflow-y-auto p-10">
             <div className="max-w-4xl mx-auto">
-              <div className="text-lg font-bold text-slate-800 mb-10 leading-relaxed" dangerouslySetInnerHTML={{ __html: currentQ.text }} />
+              <div className="text-lg font-bold mb-10 leading-relaxed" style={{ color: "var(--text-primary)" }} dangerouslySetInnerHTML={{ __html: currentQ.text }} />
               <div className="grid gap-3">
                 {currentQ.options.map((opt, i) => (
                   <label key={opt.id} className={cn(
                     "flex items-center gap-4 cursor-pointer p-4 rounded-xl border-2 transition-all",
-                    currentQState.answer === i ? "border-blue-600 bg-blue-50/30" : "border-slate-100 hover:border-slate-200"
-                  )} onClick={() => handleSelectOption(i, opt.id)}>
-                    <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center", currentQState.answer === i ? "border-blue-600 bg-blue-600" : "border-slate-300")}>
+                    currentQState.answer === i ? "border-[#FF6B2B]" : "border-transparent hover:opacity-80"
+                  )}
+                    style={currentQState.answer === i ? { background: "rgba(255,107,43,0.03)" } : { background: "var(--bg-main)", borderColor: currentQState.answer === i ? "#FF6B2B" : "var(--border-card)" }}
+                    onClick={() => handleSelectOption(i, opt.id)}>
+                    <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center", currentQState.answer === i ? "border-[#FF6B2B]" : "border-[var(--border-input)]")} style={currentQState.answer === i ? { background: "#FF6B2B" } : {}}>
                       {currentQState.answer === i && <div className="w-2 h-2 bg-white rounded-full" />}
                     </div>
-                    <div className="text-sm font-bold text-slate-700" dangerouslySetInnerHTML={{ __html: opt.text }} />
+                    <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }} dangerouslySetInnerHTML={{ __html: opt.text }} />
                   </label>
                 ))}
               </div>
             </div>
           </div>
 
-          <div className="border-t p-4 flex items-center justify-between bg-white z-30">
+          <div className="p-4 flex items-center justify-between z-30 shrink-0" style={{ borderTop: "var(--divider)", background: "var(--bg-card)" }}>
             <div className="flex gap-2">
-              <button className="px-6 py-2.5 text-xs font-black border text-slate-500 rounded-lg" onClick={markForReviewAndNext}>MARK FOR REVIEW</button>
-              <button className="px-6 py-2.5 text-xs font-black border text-slate-500 rounded-lg" onClick={clearResponse}>CLEAR</button>
+              <button className="px-6 py-2.5 text-xs font-black rounded-lg" style={{ border: "1px solid var(--btn-secondary-border)", color: "var(--btn-secondary-text)", background: "var(--bg-main)" }} onClick={markForReviewAndNext}>MARK FOR REVIEW</button>
+              <button className="px-6 py-2.5 text-xs font-black rounded-lg" style={{ border: "1px solid var(--btn-secondary-border)", color: "var(--btn-secondary-text)", background: "var(--bg-main)" }} onClick={clearResponse}>CLEAR</button>
             </div>
-            <button className="px-12 py-3 bg-blue-600 text-white rounded-xl font-black shadow-lg" onClick={saveAndNext}>SAVE & NEXT</button>
+            <button className="px-12 py-3 text-white rounded-xl font-black shadow-lg" style={{ background: "#FF6B2B" }} onClick={saveAndNext}>SAVE & NEXT</button>
           </div>
         </div>
 
         {/* SIDEBAR */}
-        <div className={cn("w-[300px] bg-white border-l flex flex-col shrink-0 transition-all", sidebarOpen ? "translate-x-0" : "translate-x-full w-0")}>
-           <div className="p-4 bg-slate-50 border-b flex items-center gap-3">
-              <div className="w-9 h-9 rounded bg-blue-100 flex items-center justify-center text-blue-600 font-bold">{displayName.charAt(0)}</div>
-              <span className="text-sm font-bold">{displayName}</span>
-           </div>
-           
-           <div className="p-4 grid grid-cols-2 gap-3 border-b">
-              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-emerald-500 rounded" /><span className="text-[10px] font-bold text-slate-400">Answered ({stats.answered})</span></div>
-              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-rose-500 rounded" /><span className="text-[10px] font-bold text-slate-400">Not Ans ({stats.not_answered})</span></div>
-           </div>
+        <div className={cn("w-[300px] flex flex-col shrink-0 transition-all", sidebarOpen ? "translate-x-0" : "translate-x-full w-0")} style={{ background: "var(--bg-sidebar)", borderLeft: "var(--divider)" }}>
+          <div className="p-4 flex items-center gap-3 shrink-0" style={{ borderBottom: "var(--divider)", background: "var(--bg-main)" }}>
+            <div className="w-9 h-9 rounded flex items-center justify-center font-bold text-white" style={{ background: "#FF6B2B" }}>{displayName.charAt(0)}</div>
+            <span className="text-sm font-bold">{displayName}</span>
+          </div>
 
-           <div className="flex-1 overflow-y-auto p-4">
-              <div className="grid grid-cols-5 gap-2">
-                 {questions.map((q, i) => (
-                    <div key={q.id} onClick={() => navigateTo(i)} className="cursor-pointer">
-                       {qState[i]?.status === "not_visited" && <PaletteShapes.NotVisited num={q.number} active={currentIdx === i} />}
-                       {qState[i]?.status === "not_answered" && <PaletteShapes.NotAnswered num={q.number} active={currentIdx === i} />}
-                       {qState[i]?.status === "answered" && <PaletteShapes.Answered num={q.number} active={currentIdx === i} />}
-                       {qState[i]?.status === "marked" && <PaletteShapes.Marked num={q.number} active={currentIdx === i} />}
-                       {qState[i]?.status === "marked_answered" && <PaletteShapes.MarkedAndAnswered num={q.number} active={currentIdx === i} />}
-                    </div>
-                 ))}
-              </div>
-           </div>
+          <div className="p-4 grid grid-cols-2 gap-3 shrink-0" style={{ borderBottom: "var(--divider)" }}>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{ background: "var(--badge-success-text)" }} /><span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>Answered ({stats.answered})</span></div>
+            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{ background: "var(--badge-error-text)" }} /><span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>Not Ans ({stats.not_answered})</span></div>
+          </div>
 
-           <div className="p-4 border-t bg-slate-50">
-              <button className="w-full bg-blue-600 text-white font-black py-4 rounded-xl shadow-xl" onClick={() => setShowSubmitModal(true)}>SUBMIT TEST</button>
-           </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="grid grid-cols-5 gap-2">
+              {questions.map((q, i) => (
+                <div key={q.id} onClick={() => navigateTo(i)} className="cursor-pointer">
+                  {qState[i]?.status === "not_visited" && <PaletteShapes.NotVisited num={q.number} active={currentIdx === i} />}
+                  {qState[i]?.status === "not_answered" && <PaletteShapes.NotAnswered num={q.number} active={currentIdx === i} />}
+                  {qState[i]?.status === "answered" && <PaletteShapes.Answered num={q.number} active={currentIdx === i} />}
+                  {qState[i]?.status === "marked" && <PaletteShapes.Marked num={q.number} active={currentIdx === i} />}
+                  {qState[i]?.status === "marked_answered" && <PaletteShapes.MarkedAndAnswered num={q.number} active={currentIdx === i} />}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-4 shrink-0" style={{ borderTop: "var(--divider)", background: "var(--bg-main)" }}>
+            <button className="w-full text-white font-black py-4 rounded-xl shadow-xl" style={{ background: "#FF6B2B" }} onClick={() => setShowSubmitModal(true)}>SUBMIT TEST</button>
+          </div>
         </div>
       </div>
 
       {/* SUBMIT MODAL */}
       {showSubmitModal && (
-         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl w-full max-w-lg p-8">
-               <h2 className="text-2xl font-black mb-6">Submit Test?</h2>
-               <div className="space-y-4 mb-8">
-                  <div className="flex justify-between border-b pb-2"><span className="font-bold text-slate-500">Answered</span><span className="font-black text-emerald-600">{stats.answered}</span></div>
-                  <div className="flex justify-between border-b pb-2"><span className="font-bold text-slate-500">Not Answered</span><span className="font-black text-rose-500">{stats.not_answered}</span></div>
-               </div>
-               <div className="flex gap-4">
-                  <button className="flex-1 py-3 font-bold text-slate-400" onClick={() => setShowSubmitModal(false)}>BACK</button>
-                  <button className="flex-1 py-3 bg-blue-600 text-white rounded-xl font-black shadow-lg" onClick={handleSubmit}>SUBMIT</button>
-               </div>
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
+          <div className="rounded-2xl w-full max-w-lg p-8" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+            <h2 className="text-2xl font-black mb-6" style={{ color: "var(--text-primary)" }}>Submit Test?</h2>
+            <div className="space-y-4 mb-8">
+              <div className="flex justify-between pb-2" style={{ borderBottom: "var(--divider)" }}><span className="font-bold" style={{ color: "var(--text-muted)" }}>Answered</span><span className="font-black" style={{ color: "var(--badge-success-text)" }}>{stats.answered}</span></div>
+              <div className="flex justify-between pb-2" style={{ borderBottom: "var(--divider)" }}><span className="font-bold" style={{ color: "var(--text-muted)" }}>Not Answered</span><span className="font-black" style={{ color: "var(--badge-error-text)" }}>{stats.not_answered}</span></div>
             </div>
-         </div>
+            <div className="flex gap-4">
+              <button className="flex-1 py-3 font-bold" style={{ color: "var(--text-muted)" }} onClick={() => setShowSubmitModal(false)}>BACK</button>
+              <button className="flex-1 py-3 text-white rounded-xl font-black shadow-lg" style={{ background: "#FF6B2B" }} onClick={handleSubmit}>SUBMIT</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

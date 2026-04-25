@@ -9,150 +9,79 @@
    THEME SYSTEM — Dual Light/Dark via CSS Custom Properties
    ═══════════════════════════════════════════════ */
 
-:root,
-.light {
-  --bg-body: #F5F5F5;
-  --bg-sidebar: #FFFFFF;
-  --bg-main: #F0F0F0;
-  --bg-card: #FFFFFF;
-  --border-card: 1px solid #E0E0E0;
-  --text-primary: #111111;
-  --text-secondary: #555555;
-  --text-muted: #999999;
-  --bg-input: #FFFFFF;
-  --border-input: #D0D0D0;
-  --divider: 1px solid #E8E8E8;
-  --scrollbar-track: #E0E0E0;
-  --btn-secondary-border: #D0D0D0;
-  --btn-secondary-text: #111111;
-  --card-hover-shadow: 0 2px 8px rgba(0,0,0,0.12);
-  --badge-success-bg: #E8F5E9;
-  --badge-success-text: #2E7D32;
-  --badge-error-bg: #FFEBEE;
-  --badge-error-text: #C62828;
-  --badge-info-bg: #E3F2FD;
-  --badge-info-text: #1565C0;
-
-  /* Shadcn compatibility */
-  --background: 0 0% 96%;
-  --foreground: 0 0% 7%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 7%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 7%;
-  --primary: 18 100% 58%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 94%;
-  --secondary-foreground: 0 0% 7%;
-  --muted: 0 0% 94%;
-  --muted-foreground: 0 0% 33%;
-  --accent: 0 0% 94%;
-  --accent-foreground: 0 0% 7%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 88%;
-  --input: 0 0% 88%;
-  --ring: 18 100% 58%;
-  --radius: 0.5rem;
+:root, .light {
+--bg-body: #F5F5F5;
+--bg-sidebar: #FFFFFF;
+--bg-main: #F0F0F0;
+--bg-card: #FFFFFF;
+--border-card: 1px solid #E0E0E0;
+--text-primary: #111111;
+--text-secondary: #555555;
+--text-muted: #999999;
+--bg-input: #FFFFFF;
+--border-input: #D0D0D0;
+--divider: 1px solid #E8E8E8;
+--scrollbar-track: #E0E0E0;
+--btn-secondary-border: #D0D0D0;
+--btn-secondary-text: #111111;
+--card-hover-shadow: 0 2px 8px rgba(0,0,0,0.12);
+--badge-success-bg: #E8F5E9;
+--badge-success-text: #2E7D32;
+--badge-error-bg: #FFEBEE;
+--badge-error-text: #C62828;
+--badge-info-bg: #E3F2FD;
+--badge-info-text: #1565C0;
 }
-
 .dark {
-  --bg-body: #0F0F0F;
-  --bg-sidebar: #141414;
-  --bg-main: #111111;
-  --bg-card: #1A1A1A;
-  --border-card: 1px solid #252525;
-  --text-primary: #EFEFEF;
-  --text-secondary: #888888;
-  --text-muted: #555555;
-  --bg-input: #1A1A1A;
-  --border-input: #2A2A2A;
-  --divider: 1px solid #1E1E1E;
-  --scrollbar-track: #2A2A2A;
-  --btn-secondary-border: #2A2A2A;
-  --btn-secondary-text: #EFEFEF;
-  --card-hover-shadow: 0 2px 8px rgba(0,0,0,0.35);
-  --badge-success-bg: #1A3A1A;
-  --badge-success-text: #4CAF50;
-  --badge-error-bg: #3A1A1A;
-  --badge-error-text: #F44336;
-  --badge-info-bg: #1A2A3A;
-  --badge-info-text: #2196F3;
-
-  /* Shadcn compatibility */
-  --background: 0 0% 6%;
-  --foreground: 0 0% 94%;
-  --card: 0 0% 10%;
-  --card-foreground: 0 0% 94%;
-  --popover: 0 0% 10%;
-  --popover-foreground: 0 0% 94%;
-  --primary: 18 100% 58%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 14%;
-  --secondary-foreground: 0 0% 94%;
-  --muted: 0 0% 14%;
-  --muted-foreground: 0 0% 53%;
-  --accent: 0 0% 14%;
-  --accent-foreground: 0 0% 94%;
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 14%;
-  --input: 0 0% 14%;
-  --ring: 18 100% 58%;
+--bg-body: #0F0F0F;
+--bg-sidebar: #141414;
+--bg-main: #111111;
+--bg-card: #1A1A1A;
+--border-card: 1px solid #252525;
+--text-primary: #EFEFEF;
+--text-secondary: #888888;
+--text-muted: #555555;
+--bg-input: #1A1A1A;
+--border-input: #2A2A2A;
+--divider: 1px solid #1E1E1E;
+--scrollbar-track: #2A2A2A;
+--btn-secondary-border: #2A2A2A;
+--btn-secondary-text: #EFEFEF;
+--card-hover-shadow: 0 2px 8px rgba(0,0,0,0.35);
+--badge-success-bg: #1A3A1A;
+--badge-success-text: #4CAF50;
+--badge-error-bg: #3A1A1A;
+--badge-error-text: #F44336;
+--badge-info-bg: #1A2A3A;
+--badge-info-text: #2196F3;
 }
-
 @media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    --bg-body: #0F0F0F;
-    --bg-sidebar: #141414;
-    --bg-main: #111111;
-    --bg-card: #1A1A1A;
-    --border-card: 1px solid #252525;
-    --text-primary: #EFEFEF;
-    --text-secondary: #888888;
-    --text-muted: #555555;
-    --bg-input: #1A1A1A;
-    --border-input: #2A2A2A;
-    --divider: 1px solid #1E1E1E;
-    --scrollbar-track: #2A2A2A;
-    --btn-secondary-border: #2A2A2A;
-    --btn-secondary-text: #EFEFEF;
-    --card-hover-shadow: 0 2px 8px rgba(0,0,0,0.35);
-    --badge-success-bg: #1A3A1A;
-    --badge-success-text: #4CAF50;
-    --badge-error-bg: #3A1A1A;
-    --badge-error-text: #F44336;
-    --badge-info-bg: #1A2A3A;
-    --badge-info-text: #2196F3;
-
-    /* Shadcn compatibility */
-    --background: 0 0% 6%;
-    --foreground: 0 0% 94%;
-    --card: 0 0% 10%;
-    --card-foreground: 0 0% 94%;
-    --popover: 0 0% 10%;
-    --popover-foreground: 0 0% 94%;
-    --primary: 18 100% 58%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 14%;
-    --secondary-foreground: 0 0% 94%;
-    --muted: 0 0% 14%;
-    --muted-foreground: 0 0% 53%;
-    --accent: 0 0% 14%;
-    --accent-foreground: 0 0% 94%;
-    --destructive: 0 62% 30%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14%;
-    --input: 0 0% 14%;
-    --ring: 18 100% 58%;
-  }
+:root:not(.light) {
+--bg-body: #0F0F0F;
+--bg-sidebar: #141414;
+--bg-main: #111111;
+--bg-card: #1A1A1A;
+--border-card: 1px solid #252525;
+--text-primary: #EFEFEF;
+--text-secondary: #888888;
+--text-muted: #555555;
+--bg-input: #1A1A1A;
+--border-input: #2A2A2A;
+--divider: 1px solid #1E1E1E;
+--scrollbar-track: #2A2A2A;
+--btn-secondary-border: #2A2A2A;
+--btn-secondary-text: #EFEFEF;
+--card-hover-shadow: 0 2px 8px rgba(0,0,0,0.35);
+--badge-success-bg: #1A3A1A;
+--badge-success-text: #4CAF50;
+--badge-error-bg: #3A1A1A;
+--badge-error-text: #F44336;
+--badge-info-bg: #1A2A3A;
+--badge-info-text: #2196F3;
+}
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   html {
     font-family: "Inter", system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
@@ -163,9 +92,22 @@
     background-color: var(--bg-body);
     color: var(--text-primary);
     font-family: "Inter", system-ui, sans-serif;
-    font-feature-settings: "rlig" 1, "calt" 1;
     line-height: 1.5;
     min-height: 100vh;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--scrollbar-track);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #FF6B2B;
+    border-radius: 3px;
   }
 
   :focus-visible {
@@ -188,16 +130,7 @@
     background: rgba(255, 107, 43, 0.2);
     color: var(--text-primary);
   }
-
-  ::-moz-selection {
-    background: rgba(255, 107, 43, 0.2);
-    color: var(--text-primary);
-  }
 }
-
-/* ═══════════════════════════════════════════════
-   SCROLLBAR
-   ═══════════════════════════════════════════════ */
 
 .thin-scrollbar::-webkit-scrollbar {
   width: 6px;

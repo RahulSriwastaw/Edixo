@@ -69,7 +69,7 @@ router.post('/', async (req, res, next) => {
 
         const passwordHash = await bcrypt.hash(body.password, 12);
 
-        const student = await prisma.$transaction(async (tx) => {
+        const student = await prisma.$transaction(async (tx: any) => {
             const user = await tx.user.create({
                 data: {
                     email: body.email,
