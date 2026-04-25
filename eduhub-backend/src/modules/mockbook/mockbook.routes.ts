@@ -207,6 +207,7 @@ router.get('/categories/:idOrSlug', async (req, res, next) => {
     try {
         const idOrSlug = req.params.idOrSlug;
         const category = await prisma.examCategory.findFirst({
+            // @ts-ignore - Prisma client typing might be stale in IDE despite regeneration
             where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
             include: {
                 subCategories: {
