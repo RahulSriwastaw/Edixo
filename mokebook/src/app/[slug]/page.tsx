@@ -3,13 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import {
   ChevronRight, Clock, Lock, PlayCircle, BarChart3, CheckCircle2,
   BookOpen, Loader2, Star, Zap, FileText, ArrowRight, Globe2,
-  Users, ChevronDown, ChevronUp, Bell, X, Shield, Award
+  Users, ChevronDown, ChevronUp, X, Shield, Award
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -128,11 +127,13 @@ function TestCard({
   index,
   isAccessible,
   onLockedClick,
+  seriesSlug
 }: {
   test: any;
   index: number;
   isAccessible: boolean;
   onLockedClick: () => void;
+  seriesSlug: string;
 }) {
   const router = useRouter();
   const hasAttempt = test.attempts && test.attempts > 0;
@@ -195,7 +196,7 @@ function TestCard({
             <>
               {inProgress ? (
                 <button
-                  onClick={() => router.push(`/tests/instructions/${test.testId}`)}
+                  onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
                   className="flex-1 md:w-28 h-8.5 bg-amber-500 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-amber-600 active:scale-95 flex items-center justify-center gap-1"
                 >
                   Resume <PlayCircle className="h-3 w-3" />
@@ -203,7 +204,7 @@ function TestCard({
               ) : hasAttempt ? (
                 <div className="flex gap-2 w-full md:w-auto">
                   <button
-                    onClick={() => router.push(`/tests/instructions/${test.testId}`)}
+                    onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
                     className="flex-1 md:w-28 h-8.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/10"
                   >
                     Attempt
@@ -217,7 +218,7 @@ function TestCard({
                 </div>
               ) : (
                 <button
-                  onClick={() => router.push(`/tests/instructions/${test.testId}`)}
+                  onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
                   className="flex-1 md:w-32 h-8.5 bg-blue-600 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all hover:bg-blue-700 active:scale-95 shadow-md shadow-blue-500/10 flex items-center justify-center gap-1.5"
                 >
                   Start Test <ArrowRight className="h-3 w-3" />
@@ -239,7 +240,8 @@ function TestCard({
 }
 
 export default function SeriesDetailPage() {
-  const { id } = useParams();
+  const params = useParams();
+  const slug = params?.slug as string;
   const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -248,13 +250,13 @@ export default function SeriesDetailPage() {
   const [aboutOpen, setAboutOpen] = useState(false);
 
   useEffect(() => {
-    if (!id) return;
+    if (!slug) return;
     let isMounted = true;
 
     const fetchData = async (showLoader = false) => {
       try {
         if (showLoader) setLoading(true);
-        const res = await apiFetch(`/mockbook/categories/${id}?t=${Date.now()}`, {
+        const res = await apiFetch(`/mockbook/categories/${slug}?t=${Date.now()}`, {
           cache: 'no-store',
           headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
         });
@@ -276,7 +278,7 @@ export default function SeriesDetailPage() {
       window.removeEventListener('focus', onFocus);
       clearInterval(interval);
     };
-  }, [id]);
+  }, [slug]);
 
   const allTests: any[] = data?.subCategories?.flatMap((sc: any) =>
     sc.mockTests.map((t: any) => ({ ...t, subCategoryName: sc.name }))
@@ -435,6 +437,7 @@ export default function SeriesDetailPage() {
                           index={i}
                           isAccessible={data.isFree || test.isPublic}
                           onLockedClick={() => setPaywallOpen(true)}
+                          seriesSlug={data.slug || slug}
                         />
                       ))}
                     </div>

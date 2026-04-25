@@ -22,7 +22,7 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
   const progress = series.attemptedCount ? Math.round((series.attemptedCount / series.testsCount) * 100) : 0;
 
   return (
-    <Link href={`/tests/series/${series.id}`} className="block group shrink-0 w-[220px] md:w-[260px]">
+    <Link href={`/${series.slug || series.id}`} className="block group shrink-0 w-[220px] md:w-[260px]">
       <div
         className="rounded-lg p-3 transition-all h-full flex flex-col"
         style={{
@@ -100,7 +100,7 @@ function RecentSeriesCard({ series, categoryName }: { series: any; categoryName:
 function EnrolledSeriesItem({ series }: { series: any }) {
   return (
     <Link
-      href={`/tests/series/${series.id}`}
+      href={`/${series.slug || series.id}`}
       className="rounded-lg p-2.5 flex items-center gap-3 transition-all group active:scale-[0.99]"
       style={{
         background: "var(--bg-card)",
@@ -181,7 +181,7 @@ function LiveQuizCard({ quiz }: { quiz: any }) {
 function CategoryGridItem({ series, categoryName }: { series: any; categoryName: string }) {
   return (
     <Link
-      href={`/tests/series/${series.id}`}
+      href={`/${series.slug || series.id}`}
       className="rounded-lg p-3 flex items-center gap-3 transition-all group active:scale-[0.99]"
       style={{
         background: "var(--bg-card)",

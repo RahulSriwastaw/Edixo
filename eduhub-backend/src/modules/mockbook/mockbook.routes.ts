@@ -203,10 +203,11 @@ router.get('/categories', async (req, res, next) => {
     } catch (err: any) { next(err); }
 });
 
-router.get('/categories/:id', async (req, res, next) => {
+router.get('/categories/:idOrSlug', async (req, res, next) => {
     try {
-        const category = await prisma.examCategory.findUnique({
-            where: { id: req.params.id },
+        const idOrSlug = req.params.idOrSlug;
+        const category = await prisma.examCategory.findFirst({
+            where: { OR: [{ id: idOrSlug }, { slug: idOrSlug }] },
             include: {
                 subCategories: {
                     include: {

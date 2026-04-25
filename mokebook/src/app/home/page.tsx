@@ -74,7 +74,7 @@ function SeriesCard({ series, categoryName, isEnrolled, onEnroll }: { series: an
                 </div>
 
                 {isEnrolled ? (
-                    <Link href={`/tests/series/${series.id}`}>
+                    <Link href={`/${series.slug || series.id}`}>
                         <button
                             className="w-full h-7 rounded-md text-[10px] font-semibold uppercase tracking-wider transition-all active:scale-[0.98] flex items-center justify-center gap-1"
                             style={{
