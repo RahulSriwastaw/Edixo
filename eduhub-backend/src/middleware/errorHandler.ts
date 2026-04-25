@@ -23,6 +23,8 @@ export const errorHandler = (
 ) => {
     // Zod validation errors
     if (err instanceof ZodError) {
+        require('fs').appendFileSync('scratch/zod-errors.txt', JSON.stringify(err.errors, null, 2) + '\\n');
+        logger.error('Zod Validation Error:', JSON.stringify(err.errors, null, 2));
         return res.status(400).json({
             success: false,
             message: 'Validation error',

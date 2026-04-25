@@ -101,11 +101,42 @@ router.get('/me', async (req, res, next) => {
     try {
         if (!req.user) throw new AppError('Unauthorized', 401);
 
-        const student = await prisma.student.findFirst({
+        let student = await prisma.student.findFirst({
             where: { userId: (req.user as any).userId },
+            select: {
+                id: true, studentId: true, userId: true, name: true, 
+                email: true, mobile: true, isActive: true, 
+                targetExamId: true,
+                createdAt: true, updatedAt: true
+            }
         });
 
-        if (!student) throw new AppError('Student profile not found', 404);
+        if (!student) {
+            // Auto-create student profile if missing
+            const user = await prisma.user.findUnique({ where: { id: (req.user as any).userId } });
+            if (!user) throw new AppError('User not found', 404);
+
+            const globalCount = await prisma.student.count();
+            const timestamp = Date.now().toString().slice(-3);
+            const studentId = `GK-STU-${String(globalCount + 1).padStart(5, '0')}-${timestamp}`;
+
+            student = await prisma.student.create({
+                data: {
+                    studentId,
+                    userId: user.id,
+                    name: user.email?.split('@')[0] || 'Student',
+                    email: user.email,
+                    mobile: user.mobile,
+                    isActive: true,
+                },
+                select: {
+                    id: true, studentId: true, userId: true, name: true, 
+                    email: true, mobile: true, isActive: true, 
+                    targetExamId: true,
+                    createdAt: true, updatedAt: true
+                }
+            });
+        }
 
         res.json({ success: true, data: student });
     } catch (err) { next(err); }
@@ -132,6 +163,7 @@ router.patch('/me', async (req, res, next) => {
             data: {
                 name: body.name !== undefined ? body.name : undefined,
                 mobile: body.phone !== undefined ? body.phone : undefined,
+                targetExamId: body.primaryExam !== undefined ? body.primaryExam : undefined,
             },
         });
 

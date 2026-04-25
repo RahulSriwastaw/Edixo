@@ -7,6 +7,35 @@ import { randomBytes } from 'crypto';
 const router = Router();
 router.use(optionalAuthenticate);
 
+/**
+ * Helper to ensure a student profile exists for the user.
+ * This is useful for teachers/admins testing the student flow or when a profile was somehow missed.
+ */
+async function getOrCreateStudent(userId: string) {
+    let student = await prisma.student.findFirst({ where: { userId } });
+    if (!student) {
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) return null;
+
+        const globalCount = await prisma.student.count();
+        const timestamp = Date.now().toString().slice(-3);
+        const studentId = `GK-STU-${String(globalCount + 1).padStart(5, '0')}-${timestamp}`;
+
+        student = await prisma.student.create({
+            data: {
+                studentId,
+                userId: user.id,
+                name: user.email?.split('@')[0] || 'Student',
+                email: user.email,
+                mobile: user.mobile,
+                isActive: true,
+            }
+        });
+    }
+    return student;
+}
+
+
 
 // ─── Exam Folders (Categories: SSC, Railway, etc.) ────────────
 
@@ -17,9 +46,9 @@ router.get('/folders', async (req, res, next) => {
             orderBy: { sortOrder: 'asc' },
         });
         res.json({ success: true, data: folders });
-    } catch (err) { 
+    } catch (err) {
         console.error("Error in /folders:", err);
-        next(err); 
+        next(err);
     }
 });
 
@@ -35,10 +64,10 @@ router.post('/folders', async (req, res, next) => {
         });
         const body = schema.parse(req.body);
 
-        const folder = await prisma.examFolder.create({ 
-            data: { 
-                ...body, 
-            } 
+        const folder = await prisma.examFolder.create({
+            data: {
+                ...body,
+            }
         });
         res.status(201).json({ success: true, data: folder });
     } catch (err: any) { next(err); }
@@ -146,7 +175,31 @@ router.get('/categories', async (req, res, next) => {
             where,
             orderBy: { sortOrder: 'asc' },
         });
-        res.json({ success: true, data: categories });
+
+        // Check enrollment status for logged-in student
+        const user = (req as any).user;
+        let enrolledSeriesIds: Set<string> = new Set();
+        if (user?.id || user?.userId) {
+            const userId = user.id || user.userId;
+            const student = await prisma.student.findFirst({ 
+                where: { userId: userId as string },
+                select: { id: true, name: true, email: true, mobile: true } 
+            });
+            if (student) {
+                const enrollments = await (prisma as any).studentSeriesEnrollment.findMany({
+                    where: { studentId: student.id, status: 'ACTIVE' },
+                    select: { seriesId: true }
+                });
+                enrolledSeriesIds = new Set((enrollments || []).map((e: any) => e.seriesId));
+            }
+        }
+
+        const enriched = categories.map((c: any) => ({
+            ...c,
+            isEnrolled: enrolledSeriesIds.has(c.id)
+        }));
+
+        res.json({ success: true, data: enriched });
     } catch (err: any) { next(err); }
 });
 
@@ -176,7 +229,7 @@ router.get('/categories/:id', async (req, res, next) => {
                     where: { studentId: student.id, status: { in: ['SUBMITTED', 'IN_PROGRESS'] } },
                     select: { testId: true, status: true }
                 });
-                
+
                 allAttempts.forEach(a => {
                     if (a.status === 'SUBMITTED') submittedAttempts.push(a);
                     else if (a.status === 'IN_PROGRESS') inProgressAttempts.push(a);
@@ -225,10 +278,10 @@ router.post('/categories', async (req, res, next) => {
         });
         const body = schema.parse(req.body);
 
-        const category = await prisma.examCategory.create({ 
-            data: { 
-                ...body, 
-            } 
+        const category = await prisma.examCategory.create({
+            data: {
+                ...body,
+            }
         });
         res.status(201).json({ success: true, data: category });
     } catch (err: any) { next(err); }
@@ -248,6 +301,59 @@ router.delete('/categories/:id', async (req, res, next) => {
     try {
         await prisma.examCategory.delete({ where: { id: req.params.id } });
         res.json({ success: true, message: 'Series deleted' });
+    } catch (err: any) { next(err); }
+});
+
+// ─── Student Series Enrollment ───────────────────────────────
+
+// POST /mockbook/enrollments — enroll in a series
+router.post('/enrollments', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const { seriesId } = req.body;
+        if (!seriesId) return res.status(400).json({ success: false, message: 'seriesId required' });
+
+        const userId = String(user.userId || user.id);
+        const student = await getOrCreateStudent(userId);
+        if (!student) return res.status(403).json({ success: false, message: 'Student profile not found' });
+
+        const enrollment = await (prisma as any).studentSeriesEnrollment.upsert({
+            where: { studentId_seriesId: { studentId: student.id, seriesId } },
+            update: { status: 'ACTIVE' },
+            create: { studentId: student.id, seriesId, status: 'ACTIVE' }
+        });
+        res.json({ success: true, data: enrollment });
+    } catch (err: any) { next(err); }
+});
+
+// DELETE /mockbook/enrollments/:seriesId — unenroll from a series
+router.delete('/enrollments/:seriesId', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const userId = user.userId || user.id;
+        const student = await prisma.student.findFirst({ where: { userId: userId as string } });
+        if (!student) return res.status(403).json({ success: false, message: 'Student profile not found' });
+
+        await (prisma as any).studentSeriesEnrollment.deleteMany({
+            where: { studentId: student.id, seriesId: String(req.params.seriesId) }
+        });
+        res.json({ success: true, message: 'Unenrolled successfully' });
+    } catch (err: any) { next(err); }
+});
+
+// GET /mockbook/enrollments/my — list enrolled series for current student
+router.get('/enrollments/my', authenticate, async (req, res, next) => {
+    try {
+        const user = (req as any).user;
+        const userId = user.userId || user.id;
+        const student = await prisma.student.findFirst({ where: { userId: userId as string } });
+        if (!student) return res.json({ success: true, data: [] });
+
+        const enrollments = await (prisma as any).studentSeriesEnrollment.findMany({
+            where: { studentId: student.id, status: 'ACTIVE' },
+            select: { seriesId: true, enrolledAt: true }
+        });
+        res.json({ success: true, data: enrollments });
     } catch (err: any) { next(err); }
 });
 
@@ -279,10 +385,10 @@ router.post('/subcategories', async (req, res, next) => {
         });
         const body = schema.parse(req.body);
 
-        const subCategory = await prisma.examSubCategory.create({ 
-            data: { 
-                ...body, 
-            } 
+        const subCategory = await prisma.examSubCategory.create({
+            data: {
+                ...body,
+            }
         });
         res.status(201).json({ success: true, data: subCategory });
     } catch (err: any) { next(err); }
@@ -335,9 +441,9 @@ router.get('/public', async (req, res, next) => {
             take: 50,
         });
         res.json({ success: true, data: tests });
-    } catch (err) { 
+    } catch (err) {
         console.error("Error in /public route:", err);
-        next(err); 
+        next(err);
     }
 });
 
@@ -463,8 +569,8 @@ router.get('/tests/:testId/my-attempts', authenticate, async (req, res, next) =>
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
 
         const userId = user.userId || user.id;
-        const student = await prisma.student.findFirst({ where: { userId: userId as string } });
-        if (!student) return res.status(403).json({ success: false, message: 'Not a student' });
+        const student = await getOrCreateStudent(userId as string);
+        if (!student) return res.json({ success: true, data: [] });
 
         const attempts = await prisma.testAttempt.findMany({
             where: { testId: test.id, studentId: student.id },
@@ -488,7 +594,7 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
         if (!test) return res.status(404).json({ success: false, message: 'Test not found' });
 
         const userId = user.userId || user.id;
-        const student = await prisma.student.findFirst({ where: { userId: userId as string } });
+        const student = await getOrCreateStudent(userId as string);
         if (!student) return res.status(403).json({ success: false, message: 'Student profile not found. Please register as a student.' });
 
         if (action === 'start') {
@@ -596,7 +702,7 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
                         data: { rank: i + 1, percentile: parseFloat(((i / totalNow) * 100).toFixed(1)) }
                     });
                 }
-            }).catch(() => {});
+            }).catch(() => { });
 
             return res.json({ success: true, data: updatedAttempt });
         }
@@ -609,7 +715,7 @@ router.post('/tests/:testId/attempts', authenticate, async (req, res, next) => {
 router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
     try {
         const user = (req as any).user;
-        const student = await prisma.student.findFirst({ where: { userId: user.userId } });
+        const student = await getOrCreateStudent(user.userId);
         if (!student) return res.status(403).json({ success: false, message: 'Not a student profile found' });
 
         const attemptIdParam = req.params.attemptId as string;
@@ -628,7 +734,7 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
         const attempt = await prisma.testAttempt.findUnique({
             where: { id: attemptId },
             include: {
-                test: { 
+                test: {
                     include: {
                         sections: {
                             include: { set: { include: { question_set_items: { select: { question_id: true } } } } }
@@ -710,7 +816,7 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
         // Topper & average
         const scores = allSubmitted.map((a: any) => a.score || 0).sort((x: number, y: number) => y - x);
         const avgScore = scores.length > 0 ? parseFloat((scores.reduce((a: number, b: number) => a + b, 0) / scores.length).toFixed(1)) : 0;
-        
+
         const topperAttempt = await prisma.testAttempt.findFirst({
             where: { testId: attempt.testId, status: 'SUBMITTED' },
             orderBy: { score: 'desc' },
@@ -724,7 +830,7 @@ router.get('/attempts/:attemptId', authenticate, async (req, res, next) => {
             topperScore = topperAttempt.score || 0;
             topperName = topperAttempt.student?.name || 'Topper';
             topperTimeTakenSecs = topperAttempt.timeTakenSecs || 0;
-            
+
             const tAttempted = topperAttempt.answers.filter((a: any) => a.selectedOptions.length > 0).length;
             topperCorrect = topperAttempt.answers.filter((a: any) => a.isCorrect).length;
             topperIncorrect = topperAttempt.answers.filter((a: any) => !a.isCorrect && a.selectedOptions.length > 0).length;
@@ -795,14 +901,14 @@ router.get('/attempts/:attemptId/analytics/chapters', authenticate, async (req, 
         (attempt as any).answers.forEach((ans: any) => {
             const q = ans.questions as any;
             const chapterName = q.chapter_name || q.chapterName || 'Uncategorized';
-            
+
             if (!chapterStats[chapterName]) {
                 chapterStats[chapterName] = { name: chapterName, total: 0, correct: 0, incorrect: 0, timeSpentSecs: 0 };
             }
-            
+
             chapterStats[chapterName].total += 1;
             chapterStats[chapterName].timeSpentSecs += (ans.timeTakenSecs || 0);
-            
+
             if (ans.selectedOptions && ans.selectedOptions.length > 0) {
                 if (ans.isCorrect) {
                     chapterStats[chapterName].correct += 1;
@@ -838,8 +944,8 @@ router.get('/analytics/stats', async (req, res, next) => {
         }
 
         const [platformTests, totalSeries, attemptsCount, studentsCount, liveNow] = await Promise.all([
-            prisma.mockTest.count({ }),
-            prisma.examCategory.count({ }),
+            prisma.mockTest.count({}),
+            prisma.examCategory.count({}),
             prisma.testAttempt.count({
                 where: {
                     ...dateFilter
@@ -861,7 +967,7 @@ router.get('/analytics/stats', async (req, res, next) => {
         });
 
         const topTests = await Promise.all(topTestsRaw.map(async (item) => {
-            const test = await prisma.mockTest.findUnique({ 
+            const test = await prisma.mockTest.findUnique({
                 where: { id: item.testId },
                 select: { name: true, subCategory: { select: { name: true, category: { select: { name: true } } } } }
             });
@@ -913,7 +1019,7 @@ router.get('/analytics/stats', async (req, res, next) => {
         }));
 
         // Mock revenue for now
-        const revenueMTD = 0; 
+        const revenueMTD = 0;
 
         res.json({
             success: true,
@@ -1082,9 +1188,9 @@ router.post('/admin/tests', async (req, res, next) => {
 // PATCH /mockbook/admin/tests/:id — update mock test
 router.patch('/admin/tests/:id', async (req, res, next) => {
     try {
-        const { name, description, durationMins, totalMarks, passingMarks, 
-                shuffleQuestions, showResult, maxAttempts, isPublic, 
-                scheduledAt, endsAt, subCategoryId } = req.body;
+        const { name, description, durationMins, totalMarks, passingMarks,
+            shuffleQuestions, showResult, maxAttempts, isPublic,
+            scheduledAt, endsAt, subCategoryId } = req.body;
 
         const test = await prisma.mockTest.update({
             where: { id: req.params.id },
@@ -1466,7 +1572,7 @@ router.get('/attempts/:attemptId/report', authenticate, async (req, res, next) =
                 solutions
             }
         });
-    } catch(err) { next(err); }
+    } catch (err) { next(err); }
 });
 
 // POST /mockbook/analytics/student/:studentId/study-plan — generate dynamic plan
@@ -1479,19 +1585,19 @@ router.post('/analytics/student/:studentId/study-plan', async (req, res, next) =
         // Note: For MVP mock data generation mimicking real analysis
         const plan = [];
         const date = new Date();
-        
+
         const subjects = ['Quantitative Aptitude', 'Logical Reasoning', 'English Language', 'General Awareness'];
         const taskTypes = ['Review Concepts', 'Sectional Mock', 'Full Length Mock', 'Previous Year Questions'];
 
-        for(let i=1; i<=days; i++) {
+        for (let i = 1; i <= days; i++) {
             const currentDate = new Date(date);
             currentDate.setDate(currentDate.getDate() + i);
-            
+
             const isFullMockDay = i % 5 === 0; // Every 5 days is a full mock
-            
+
             let taskType = isFullMockDay ? 'Full Length Mock' : taskTypes[Math.floor(Math.random() * 3)];
             let subject = subjects[Math.floor(Math.random() * subjects.length)];
-            
+
             plan.push({
                 day: i,
                 date: currentDate.toISOString().split('T')[0],
@@ -1503,7 +1609,7 @@ router.post('/analytics/student/:studentId/study-plan', async (req, res, next) =
         }
 
         res.json({ success: true, data: { duration: days, plan } });
-    } catch(err) { next(err); }
+    } catch (err) { next(err); }
 });
 
 // ─── Save individual question response (autosave during test) ──────────────────
@@ -1642,12 +1748,14 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
                             include: {
                                 set: {
                                     include: {
-                                question_set_items: {
-                                    orderBy: { sort_order: 'asc' },
-                                    include: {
-                                        questions: {
+                                        question_set_items: {
+                                            orderBy: { sort_order: 'asc' },
                                             include: {
-                                                question_options: { orderBy: { sort_order: 'asc' } }
+                                                questions: {
+                                                    include: {
+                                                        question_options: { orderBy: { sort_order: 'asc' } }
+                                                    }
+                                                }
                                             }
                                         }
                                     }
@@ -1655,9 +1763,7 @@ router.get('/attempts/:attemptId/review', authenticate, async (req, res, next) =
                             }
                         }
                     }
-                }
-            }
-        },
+                },
                 answers: true
             }
         }) as any;
@@ -1927,14 +2033,14 @@ router.get('/attempts/:id/analytics/chapters', authenticate, async (req, res, ne
         // Group by topic (fallback to chapterName, subjectName, or Section name)
         const chapterStats: Record<string, any> = {};
         const attemptAnswers = (attempt as any).answers || [];
-        
+
         for (const q of testQuestions) {
             const chap = q.chapterName || q.subjectName || q._sectionName || 'General';
             if (!chapterStats[chap]) {
                 chapterStats[chap] = { name: chap, total: 0, correct: 0, incorrect: 0, unattempted: 0, timeSpentSecs: 0 };
             }
             chapterStats[chap].total++;
-            
+
             const ans = attemptAnswers.find((a: any) => a.questionId === q.id);
             if (!ans) {
                 chapterStats[chap].unattempted++;

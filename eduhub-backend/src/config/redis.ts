@@ -10,7 +10,7 @@ export async function connectRedis(): Promise<void> {
 
         const client = new Redis(env.REDIS_URL, {
             retryStrategy: () => null, // don't retry — fail fast
-            maxRetriesPerRequest: 1,
+            maxRetriesPerRequest: null,
             lazyConnect: true,
             connectTimeout: 10000, // 10s for remote connections
             ...(isTls && {

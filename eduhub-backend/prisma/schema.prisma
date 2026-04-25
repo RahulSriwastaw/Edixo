@@ -271,17 +271,19 @@ model MockTestBatch {
 }
 
 model Student {
-  id            String                @id @default(uuid())
-  studentId     String                @unique @default(uuid())
-  userId        String                @unique
+  id            String                    @id @default(uuid())
+  studentId     String                    @unique @default(uuid())
+  userId        String                    @unique
   name          String
   email         String?
   mobile        String?
-  isActive      Boolean               @default(true)
-  createdAt     DateTime              @default(now())
-  updatedAt     DateTime              @updatedAt
+  isActive      Boolean                   @default(true)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  targetExamId  String?
   subscriptions StudentSubscription[]
   attempts      TestAttempt[]
+  enrollments   StudentSeriesEnrollment[]
 
   @@map("students")
 }
@@ -370,4 +372,16 @@ model StudentSubscription {
   student       Student      @relation(fields: [studentId], references: [id])
 
   @@map("student_subscriptions")
+}
+
+model StudentSeriesEnrollment {
+  id           String       @id @default(uuid())
+  studentId    String
+  seriesId     String
+  enrolledAt   DateTime     @default(now())
+  status       String       @default("ACTIVE")
+  student      Student      @relation(fields: [studentId], references: [id])
+
+  @@unique([studentId, seriesId])
+  @@map("student_series_enrollments")
 }

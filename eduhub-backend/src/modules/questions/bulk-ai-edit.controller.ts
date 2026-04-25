@@ -271,9 +271,10 @@ export const bulkAIEditController = async (req: Request, res: Response, next: Ne
 
         // Set SSE headers
         res.setHeader('Content-Type', 'text/event-stream');
-        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Cache-Control', 'no-cache, no-transform');
         res.setHeader('Connection', 'keep-alive');
         res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('X-Accel-Buffering', 'no');
 
         const total = body.question_ids.length;
         let successCount = 0;
@@ -282,6 +283,10 @@ export const bulkAIEditController = async (req: Request, res: Response, next: Ne
         // Send initial status
         const sendLog = (log: EditLog) => {
             res.write(`data: ${JSON.stringify(log)}\n\n`);
+            // Flush to bypass any compression/middleware buffering
+            if (typeof (res as any).flush === 'function') {
+                (res as any).flush();
+            }
         };
 
         sendLog({

@@ -102,6 +102,7 @@ function ParticleField() {
     }
 
     function animate() {
+      if (!ctx) return;
       ctx.clearRect(0, 0, w, h);
       particles.forEach((p, i) => {
         p.x += p.vx;

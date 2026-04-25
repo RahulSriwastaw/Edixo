@@ -28,45 +28,53 @@ const GROUPS: NavGroup[] = [
   {
     label: null,
     items: [
-      { icon: Home,          label: "Home",         href: "/" },
+      { icon: Home, label: "Home", href: "/home" },
     ],
   },
   {
     label: "TESTS",
     items: [
-      { icon: ClipboardList, label: "Test Series",  href: "/tests" },
-      { icon: Zap,           label: "Practice",     href: "/practice" },
+      { icon: ClipboardList, label: "Test Series", href: "/tests" },
+      { icon: Zap, label: "Practice", href: "/practice" },
     ],
   },
   {
     label: "LEARNING",
     items: [
-      { icon: Bot,           label: "AI Planner",   href: "/study-plans", badge: "NEW", badgeColor: "bg-[#FF6B2B]" },
-      { icon: Library,       label: "My Library",   href: "/library" },
-      { icon: BarChart3,     label: "Analytics",    href: "/analytics" },
+      { icon: Bot, label: "AI Planner", href: "/study-plans", badge: "NEW", badgeColor: "bg-[#FF6B2B]" },
+      { icon: Library, label: "My Library", href: "/library" },
+      { icon: BarChart3, label: "Analytics", href: "/analytics" },
     ],
   },
   {
     label: "ACCOUNT",
     items: [
-      { icon: Star,          label: "Refer & Earn", href: "/refer" },
-      { icon: User,          label: "Profile",      href: "/profile" },
-      { icon: Settings,      label: "Settings",     href: "/settings" },
+      { icon: Star, label: "Refer & Earn", href: "/refer" },
+      { icon: User, label: "Profile", href: "/profile" },
+      { icon: Settings, label: "Settings", href: "/settings" },
     ],
   },
 ];
 
 const MOBILE_TABS = [
-  { icon: Home,          label: "Home",    href: "/" },
-  { icon: ClipboardList, label: "Tests",   href: "/tests" },
-  { icon: Zap,           label: "Practice",href: "/practice" },
-  { icon: Bot,           label: "AI",      href: "/study-plans" },
-  { icon: User,          label: "Profile", href: "/profile" },
+  { icon: Home, label: "Home", href: "/home" },
+  { icon: ClipboardList, label: "Tests", href: "/tests" },
+  { icon: Zap, label: "Practice", href: "/practice" },
+  { icon: Bot, label: "AI", href: "/study-plans" },
+  { icon: User, label: "Profile", href: "/profile" },
 ];
 
 function isActive(href: string, pathname: string) {
   if (href === "/") return pathname === "/";
-  return pathname === href.split("?")[0] || pathname.startsWith(href.split("?")[0] + "/");
+  const baseHref = href.split("?")[0];
+  if (pathname === baseHref) return true;
+  
+  // Special handling for Test Series vs Home overlap
+  if (baseHref === "/tests" && pathname === "/home") {
+    return false;
+  }
+  
+  return pathname.startsWith(baseHref + "/");
 }
 
 export function Sidebar() {
@@ -151,37 +159,37 @@ export function Sidebar() {
 
         {/* Bottom decorative section or PRO upgrade */}
         <div className="p-3 mt-auto">
-           <Link
-             href="/premium"
-             className="block rounded-lg p-2.5 group transition-all cursor-pointer"
-             style={{
-               background: "var(--bg-main)",
-               border: "var(--border-card)",
-             }}
-           >
-              <p
-                className="mb-0.5"
-                style={{
-                  fontSize: "10px",
-                  fontWeight: 800,
-                  color: "#FF6B2B",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.8px",
-                }}
-              >
-                Mockbook Pro
-              </p>
-              <p
-                className="leading-tight"
-                style={{
-                  fontSize: "11px",
-                  fontWeight: 600,
-                  color: "var(--text-secondary)",
-                }}
-              >
-                Unlock 5000+ Premium Mock Tests
-              </p>
-           </Link>
+          <Link
+            href="/premium"
+            className="block rounded-lg p-2.5 group transition-all cursor-pointer"
+            style={{
+              background: "var(--bg-main)",
+              border: "var(--border-card)",
+            }}
+          >
+            <p
+              className="mb-0.5"
+              style={{
+                fontSize: "10px",
+                fontWeight: 800,
+                color: "#FF6B2B",
+                textTransform: "uppercase",
+                letterSpacing: "0.8px",
+              }}
+            >
+              Mockbook Pro
+            </p>
+            <p
+              className="leading-tight"
+              style={{
+                fontSize: "11px",
+                fontWeight: 600,
+                color: "var(--text-secondary)",
+              }}
+            >
+              Unlock 5000+ Premium Mock Tests
+            </p>
+          </Link>
         </div>
       </aside>
 

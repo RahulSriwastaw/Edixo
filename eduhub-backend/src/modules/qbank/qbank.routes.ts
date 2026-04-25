@@ -730,7 +730,11 @@ router.get('/sets', async (req, res, next) => {
                 where,
                 include: {
                     _count: {
-                        select: { question_set_items: true }
+                        select: { question_set_items: true, mockTestSections: true }
+                    },
+                    mockTestSections: {
+                        select: { test: { select: { name: true } } },
+                        distinct: ['testId']
                     }
                 },
                 orderBy: { created_at: 'desc' },
@@ -752,7 +756,9 @@ router.get('/sets', async (req, res, next) => {
             isGlobal: s.is_global,
             pdf_notes: s.pdf_notes,
             createdAt: s.created_at,
-            _count: { items: s._count.question_set_items }
+            _count: { items: s._count?.question_set_items || 0 },
+            usedInMockTestsCount: s._count?.mockTestSections || 0,
+            usedInMockTests: [...new Set(s.mockTestSections?.map((mts: any) => mts.test?.name).filter(Boolean) || [])]
         }));
 
         res.json({ success: true, data: { sets, total } });
@@ -815,13 +821,20 @@ router.get('/sets/:id', async (req, res, next) => {
 router.post('/sets', async (req, res, next) => {
     try {
         const schema = z.object({
-            name: z.string().min(1),
-            description: z.string().optional(),
-            questionIds: z.array(z.string()).min(1),
-            folderId: z.string().optional().nullable(),
-            durationMins: z.number().optional().nullable(),
+            name: z.string().min(1, "Name is required"),
+            description: z.any().optional(),
+            questionIds: z.any().transform((val) => {
+                if (!Array.isArray(val)) return [];
+                return val.filter(Boolean).map(String);
+            }),
+            folderId: z.any().optional(),
+            durationMins: z.any().optional(),
         });
         const body = schema.parse(req.body);
+        
+        if (!body.questionIds || body.questionIds.length === 0) {
+            throw new AppError('At least one question must be selected', 400);
+        }
 
         // Generate unique 6-digit setId
         let setId = '';
@@ -873,6 +886,17 @@ router.delete('/sets', async (req, res, next) => {
         const { ids } = z.object({ ids: z.array(z.string()) }).parse(req.body);
         if (ids.length === 0) return res.json({ success: true, message: '0 sets deleted' });
         
+        // Check if any set is used in a MockTest
+        const usedSets = await prisma.mockTestSection.findMany({
+            where: { setId: { in: ids } },
+            select: { setId: true, set: { select: { name: true } }, test: { select: { name: true } } }
+        });
+
+        if (usedSets.length > 0) {
+            const usedNames = [...new Set(usedSets.map(s => `"${s.set?.name || s.setId}" (in "${s.test?.name}")`))];
+            throw new AppError(`Cannot delete sets. The following are used in Mock Tests: ${usedNames.join(', ')}`, 400);
+        }
+
         const deleteResult = await prisma.question_sets.deleteMany({
             where: { id: { in: ids } }
         });
@@ -902,6 +926,16 @@ router.delete('/sets/:id', async (req, res, next) => {
 
         if (!existing) throw new AppError('Question set not found', 404);
         
+        // Check if used in MockTest
+        const usedSet = await prisma.mockTestSection.findFirst({
+            where: { setId: existing.id },
+            select: { test: { select: { name: true } } }
+        });
+
+        if (usedSet) {
+            throw new AppError(`Cannot delete set. It is currently used in the Mock Test: "${usedSet.test?.name}"`, 400);
+        }
+
         await prisma.question_sets.delete({
             where: { id: existing.id }
         });

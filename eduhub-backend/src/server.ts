@@ -383,6 +383,17 @@ async function startServer() {
             logger.warn('Redis not available - running without cache/queues (dev mode only)');
         }
 
+        // Initialize BullMQ queues (separate try-catch so queue errors don't block server start)
+        try {
+            const { redis } = await import('./config/redis');
+            if (redis) {
+                const { initQueues } = await import('./jobs/queues');
+                initQueues(redis);
+            }
+        } catch (queueErr) {
+            logger.warn('BullMQ queue init failed (non-critical in dev):', queueErr);
+        }
+
         try {
             await prisma.$connect();
             logger.info('PostgreSQL connected');

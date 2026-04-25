@@ -246,6 +246,7 @@ export default function QuestionSetsPage() {
                           <th className="text-left p-4 font-medium">ID / Password</th>
                           <th className="text-center p-4 font-medium">Notes / PDF</th>
                           <th className="text-center p-4 font-medium">Questions</th>
+                          <th className="text-center p-4 font-medium">Mock Test Usage</th>
                           <th className="text-center p-4 font-medium">Actions</th>
                         </tr>
                       </thead>
@@ -281,6 +282,31 @@ export default function QuestionSetsPage() {
                               )}
                             </td>
                             <td className="p-4 text-center"><Badge variant="outline">{set._count?.items || set.totalQuestions || 0}</Badge></td>
+                            <td className="p-4 text-center">
+                              {set.usedInMockTestsCount > 0 ? (
+                                <div className="group relative inline-flex items-center justify-center">
+                                  <Badge className="bg-blue-50 text-blue-700 hover:bg-blue-100 cursor-help gap-1">
+                                    <Layers className="w-3 h-3" /> {set.usedInMockTestsCount} Uses
+                                  </Badge>
+                                  <div className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max max-w-[200px] opacity-0 transition-opacity group-hover:opacity-100 z-50">
+                                    <div className="bg-slate-800 text-white text-xs rounded py-1 px-2 text-left">
+                                      <span className="font-semibold block mb-1">Used In:</span>
+                                      <ul className="list-disc pl-3">
+                                        {(set.usedInMockTests || []).slice(0, 5).map((testName: string, idx: number) => (
+                                          <li key={idx} className="truncate">{testName}</li>
+                                        ))}
+                                        {(set.usedInMockTests?.length || 0) > 5 && (
+                                          <li className="text-slate-300 italic">+{set.usedInMockTests.length - 5} more</li>
+                                        )}
+                                      </ul>
+                                    </div>
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+                                  </div>
+                                </div>
+                              ) : (
+                                <span className="text-[var(--text-muted)] text-xs">Unused</span>
+                              )}
+                            </td>
                             <td className="p-4 text-center">
                               <div className="flex justify-center gap-1">
                                 <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => router.push(`/question-bank/sets/${set.id}`)}><Eye className="w-4 h-4" /></Button>
