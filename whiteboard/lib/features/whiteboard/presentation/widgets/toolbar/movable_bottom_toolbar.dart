@@ -2,52 +2,11 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async' show unawaited;
+import '../../../../../core/theme/app_theme_colors.dart';
+import '../../../../../core/theme/app_theme_text_styles.dart';
+import '../../../../../core/theme/app_theme_dimensions.dart';
 import '../../providers/toolbar_state_provider.dart';
 import 'bottom_main_toolbar.dart';
-
-// ─── Design Tokens ────────────────────────────────────────────────────────────
-class _DS {
-  // Colors
-  static const bgCard        = Color(0xFF1A1A1A);
-  static const borderCard    = Color(0xFF252525);
-  static const borderDivider = Color(0xFF1E1E1E);
-  static const accent        = Color(0xFFFF6B2B);
-  static const textPrimary   = Color(0xFFEFEFEF);
-  static const textSecondary = Color(0xFF888888);
-  static const textMuted     = Color(0xFF555555);
-
-  // Radii
-  static const radiusCard   = 8.0;
-  static const radiusButton = 6.0;
-
-  // Typography
-  static const fontFamily = 'Inter';
-
-  static const styleNavLabel = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 13,
-    fontWeight: FontWeight.w400,
-    color: textPrimary,
-    height: 1.5,
-  );
-
-  static const styleCardTitle = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 13,
-    fontWeight: FontWeight.w600,
-    color: textPrimary,
-    height: 1.5,
-  );
-
-  static const styleMeta = TextStyle(
-    fontFamily: fontFamily,
-    fontSize: 11,
-    fontWeight: FontWeight.w400,
-    color: textMuted,
-    height: 1.5,
-  );
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 class MovableBottomToolbar extends ConsumerStatefulWidget {
   const MovableBottomToolbar({super.key});
@@ -60,16 +19,6 @@ class MovableBottomToolbar extends ConsumerStatefulWidget {
 class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
   Offset? _toolbarPosition;
   late Size _screenSize;
-
-  // ── BUG FIX ────────────────────────────────────────────────────────────────
-  // Old code:  _toolbarPosition = _dragStartPosition + details.delta
-  //            This only added a single tiny frame-delta to the drag-START
-  //            position instead of accumulating deltas, so the toolbar barely
-  //            moved and then snapped back.
-  //
-  // Fix:       Accumulate delta directly onto the CURRENT position each frame.
-  //            No need for _dragStartPosition at all.
-  // ──────────────────────────────────────────────────────────────────────────
 
   @override
   void dispose() {
@@ -121,7 +70,8 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
 
   @override
   Widget build(BuildContext context) {
-    _screenSize = MediaQuery.of(context).size;
+    final theme = AppThemeColors.of(context);
+        _screenSize = MediaQuery.of(context).size;
     final toolbarState = ref.watch(toolbarPositionNotifierProvider);
 
     // Initialise position once
@@ -155,7 +105,6 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
       left: _toolbarPosition!.dx,
       top: _toolbarPosition!.dy,
       child: GestureDetector(
-        // ── FIXED: accumulate delta onto current position each frame ──────
         onPanUpdate: (details) {
           setState(() {
             final next = _toolbarPosition! + details.delta;
@@ -170,35 +119,34 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
           _snapToNearestEdge(_screenSize);
         },
         onPanStart: (_) => _isDragging = true,
-        // ─────────────────────────────────────────────────────────────────
         child: MouseRegion(
           cursor: SystemMouseCursors.grab,
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 250),
             curve: Curves.easeInOut,
-            width: isCollapsed ? 44 : null,
-            height: isCollapsed ? 44 : null,
+            width: isCollapsed ? 40 : null,
+            height: isCollapsed ? 40 : null,
             decoration: BoxDecoration(
               // Flat matte — no gradient, no white
-              color: _DS.bgCard,
-              borderRadius: BorderRadius.circular(_DS.radiusCard),
-              border: Border.all(color: _DS.borderCard, width: 1),
+              color: theme.bgCard,
+              borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusCard),
+              border: Border.all(color: theme.borderCard, width: 1),
               // Shadow only on the widget itself (simulates card-hover rule)
-              boxShadow: const [
+              boxShadow: [
                 BoxShadow(
-                  color: Color(0x59000000), // rgba(0,0,0,0.35)
+                  color: theme.cardHoverShadow,
                   blurRadius: 8,
-                  offset: Offset(0, 2),
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(_DS.radiusCard),
+              borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusCard),
               child: isCollapsed
                   ? SizedBox(
-                      width: 44,
-                      height: 44,
-                      child: _buildCollapsedButton(),
+                      width: 40,
+                      height: 40,
+                      child: _buildCollapsedButton(theme),
                     )
                   : SizedBox(
                       width: 500,
@@ -208,24 +156,23 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
                           // ── Drag Handle Header ─────────────────────────
                           Container(
                             width: double.infinity,
-                            // Padding reduced ~30 %: was 8px v / 12px h → 6px / 8px
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 6),
-                            decoration: const BoxDecoration(
+                                horizontal: AppThemeDimensions.paddingM, vertical: AppThemeDimensions.paddingS),
+                            decoration: BoxDecoration(
                               border: Border(
                                 bottom: BorderSide(
-                                    color: _DS.borderDivider, width: 1),
+                                    color: theme.divider, width: 1),
                               ),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.drag_handle,
-                                    color: _DS.textMuted, size: 16),
+                                Icon(Icons.drag_handle,
+                                    color: theme.textMuted, size: 16),
                                 const SizedBox(width: 6),
-                                const Expanded(
+                                Expanded(
                                   child: Text(
                                     'Toolbar',
-                                    style: _DS.styleCardTitle,
+                                    style: AppThemeTextStyles.cardTitle(context),
                                   ),
                                 ),
                                 GestureDetector(
@@ -241,13 +188,13 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
                                       decoration: BoxDecoration(
                                         color: Colors.transparent,
                                         borderRadius: BorderRadius.circular(
-                                            _DS.radiusButton),
+                                            AppThemeDimensions.borderRadiusButton),
                                         border: Border.all(
-                                            color: _DS.borderCard, width: 1),
+                                            color: theme.borderCard, width: 1),
                                       ),
-                                      child: const Icon(
+                                      child: Icon(
                                         Icons.expand_more,
-                                        color: _DS.textSecondary,
+                                        color: theme.textSecondary,
                                         size: 16,
                                       ),
                                     ),
@@ -270,7 +217,7 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
 
   bool _isDragging = false;
 
-  Widget _buildCollapsedButton() {
+  Widget _buildCollapsedButton(AppThemeColors theme) {
     return GestureDetector(
       onTap: () => ref
           .read(toolbarPositionNotifierProvider.notifier)
@@ -279,14 +226,14 @@ class _MovableBottomToolbarState extends ConsumerState<MovableBottomToolbar> {
         message: 'Expand toolbar',
         child: Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(_DS.radiusCard),
+            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusCard),
           ),
-          child: const Column(
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.expand_less, color: _DS.accent, size: 20),
-              SizedBox(height: 2),
-              Icon(Icons.drag_handle, color: _DS.textMuted, size: 14),
+              Icon(Icons.expand_less, color: AppThemeColors.primaryAccent, size: 20),
+              const SizedBox(height: 2),
+              Icon(Icons.drag_handle, color: theme.textMuted, size: 14),
             ],
           ),
         ),

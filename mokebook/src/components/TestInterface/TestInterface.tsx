@@ -9,6 +9,7 @@ import { JEELayout } from "./layouts/JEELayout";
 import { DefaultLayout } from "./layouts/DefaultLayout";
 import { TestbookLayout } from "./layouts/TestbookLayout";
 import { TestRankKINGLayout } from "./layouts/TestRankKINGLayout";
+import { EduquityLayout } from "./layouts/EduquityLayout";
 
 interface TestInterfaceProps {
     test: {
@@ -109,6 +110,8 @@ export function TestInterface({ test, onSubmit }: TestInterfaceProps) {
             return <TestbookLayout {...commonProps} />;
         case "testrankking":
             return <TestRankKINGLayout {...commonProps} />;
+        case "eduquity":
+            return <EduquityLayout {...commonProps} />;
         default:
             return <DefaultLayout {...commonProps} />;
     }

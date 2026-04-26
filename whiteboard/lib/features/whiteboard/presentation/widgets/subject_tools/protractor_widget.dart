@@ -160,7 +160,7 @@ class ProtractorPainter extends CustomPainter {
         final textPainter = TextPainter(
           text: TextSpan(
             text: '$degrees°',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 8,
             ),

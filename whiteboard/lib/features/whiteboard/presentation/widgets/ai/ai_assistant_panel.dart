@@ -4,9 +4,9 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:async';
-import '../../../../../core/constants/app_colors.dart';
-import '../../../../../core/constants/app_text_styles.dart';
-import '../../../../../core/constants/app_dimensions.dart';
+import '../../../../../core/theme/app_theme_colors.dart';
+import '../../../../../core/theme/app_theme_text_styles.dart';
+import '../../../../../core/theme/app_theme_dimensions.dart';
 
 /// AI Assistant Panel - Claude API integration for teaching assistance
 class AiAssistantPanel extends ConsumerStatefulWidget {
@@ -54,7 +54,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
     try {
       // Call Claude API
       final response = await _callClaudeApi(message);
-      
+
       setState(() {
         _messages.add(_ChatMessage(role: 'assistant', content: response));
         _isLoading = false;
@@ -85,7 +85,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
     // TODO: Replace with actual Claude API endpoint and API key
     // This is a placeholder implementation
     await Future.delayed(const Duration(seconds: 2));
-    
+
     // Simulated response
     return 'This is a simulated AI response. In production, this would call the Claude API with your question: "$message"';
   }
@@ -94,7 +94,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
   Widget build(BuildContext context) {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: _isExpanded ? 320 : 48,
+      width: _isExpanded ? 300 : 40,
       height: double.infinity,
       child: _isExpanded ? _buildExpandedPanel() : _buildCollapsedButton(),
     );
@@ -105,24 +105,24 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
       onTap: () => setState(() => _isExpanded = true),
       child: Container(
         decoration: const BoxDecoration(
-          color: AppColors.accentOrange,
+          color: AppThemeColors.primaryAccent,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(12),
-            bottomLeft: Radius.circular(12),
+            topLeft: Radius.circular(8),
+            bottomLeft: Radius.circular(8),
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.smart_toy, color: Colors.white, size: 24),
-            const SizedBox(height: 8),
+            const Icon(Icons.smart_toy, color: Colors.white, size: 20),
+            const SizedBox(height: 6),
             Transform.rotate(
               angle: -pi / 2,
               child: const Text(
                 'AI Assistant',
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 12,
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -134,36 +134,40 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
   }
 
   Widget _buildExpandedPanel() {
+    final theme = AppThemeColors.of(context);
+    
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.bgSecondary,
+        color: theme.bgSidebar,
         border: Border(
-          left: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
+          left: BorderSide(color: theme.divider),
         ),
       ),
       child: Column(
         children: [
           // Header
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
-              color: AppColors.bgPrimary,
+              color: theme.bgBody,
               border: Border(
-                bottom: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                bottom: BorderSide(color: theme.divider),
               ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.smart_toy, color: AppColors.accentOrange, size: 24),
-                const SizedBox(width: 12),
+                const Icon(Icons.smart_toy, color: AppThemeColors.primaryAccent, size: 20),
+                const SizedBox(width: 10),
                 Text(
                   'AI Assistant',
-                  style: AppTextStyles.heading2,
+                  style: AppThemeTextStyles.cardTitle(context),
                 ),
                 const Spacer(),
                 IconButton(
-                  icon: const Icon(Icons.close, color: AppColors.textSecondary),
+                  icon: Icon(Icons.close, color: theme.textSecondary, size: 18),
                   onPressed: () => setState(() => _isExpanded = false),
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 ),
               ],
             ),
@@ -173,7 +177,7 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(10),
               itemCount: _messages.length,
               itemBuilder: (context, index) {
                 final message = _messages[index];
@@ -185,21 +189,21 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
           // Loading indicator
           if (_isLoading)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               child: Row(
                 children: [
                   const SizedBox(
-                    width: 16,
-                    height: 16,
+                    width: 14,
+                    height: 14,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(AppColors.accentOrange),
+                      valueColor: AlwaysStoppedAnimation<Color>(AppThemeColors.primaryAccent),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     'AI is thinking...',
-                    style: AppTextStyles.bodySmall.copyWith(color: AppColors.textDisabled),
+                    style: AppThemeTextStyles.caption(context),
                   ),
                 ],
               ),
@@ -207,11 +211,11 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
 
           // Input field
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.bgPrimary,
+              color: theme.bgBody,
               border: Border(
-                top: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.2)),
+                top: BorderSide(color: theme.divider),
               ),
             ),
             child: Row(
@@ -221,16 +225,26 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
                     controller: _controller,
                     maxLines: 3,
                     minLines: 1,
-                    style: AppTextStyles.body.copyWith(color: AppColors.textPrimary),
+                    style: AppThemeTextStyles.body(context),
                     decoration: InputDecoration(
                       hintText: 'Ask AI for help...',
-                      hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.textDisabled),
+                      hintStyle: AppThemeTextStyles.caption(context),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.textDisabled.withValues(alpha: 0.3)),
+                        borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                        borderSide: BorderSide(color: theme.borderInput),
                       ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                        borderSide: BorderSide(color: theme.borderInput),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                        borderSide: const BorderSide(color: AppThemeColors.primaryAccent, width: 2),
+                      ),
+                      filled: true,
+                      fillColor: theme.bgInput,
                       contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 10,
                         vertical: 8,
                       ),
                     ),
@@ -241,13 +255,16 @@ class _AiAssistantPanelState extends ConsumerState<AiAssistantPanel> {
                 ElevatedButton(
                   onPressed: _isLoading ? null : _sendMessage,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.accentOrange,
-                    padding: const EdgeInsets.all(12),
+                    backgroundColor: AppThemeColors.primaryAccent,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.all(10),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
                     ),
+                    elevation: 0,
+                    minimumSize: const Size(36, 36),
                   ),
-                  child: const Icon(Icons.send, color: Colors.white),
+                  child: const Icon(Icons.send, color: Colors.white, size: 18),
                 ),
               ],
             ),
@@ -272,58 +289,57 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = AppThemeColors.of(context);
     final isUser = message.role == 'user';
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: AppDimensions.borderRadiusM),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Row(
         mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (!isUser) ...[
             Container(
-              width: 32,
-              height: 32,
+              width: 28,
+              height: 28,
               decoration: const BoxDecoration(
-                color: AppColors.accentOrange,
+                color: AppThemeColors.primaryAccent,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.smart_toy, size: 18, color: Colors.white),
+              child: const Icon(Icons.smart_toy, size: 16, color: Colors.white),
             ),
-            const SizedBox(width: AppDimensions.borderRadiusS),
+            const SizedBox(width: 6),
           ],
           Flexible(
             child: Container(
-              padding: const EdgeInsets.all(AppDimensions.borderRadiusM),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
                 color: isUser
-                    ? AppColors.accentOrange.withValues(alpha: 0.2)
-                    : AppColors.bgPrimary,
-                borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                    ? AppThemeColors.primaryAccent.withValues(alpha: 0.15)
+                    : theme.bgCard,
+                borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusM),
                 border: Border.all(
                   color: isUser
-                      ? AppColors.accentOrange.withValues(alpha: 0.3)
-                      : AppColors.textTertiary.withValues(alpha: 0.2),
+                      ? AppThemeColors.primaryAccent.withValues(alpha: 0.3)
+                      : theme.borderCard,
                 ),
               ),
               child: Text(
                 message.content,
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.textPrimary,
-                ),
+                style: AppThemeTextStyles.body(context),
               ),
             ),
           ),
           if (isUser) ...[
-            const SizedBox(width: AppDimensions.borderRadiusS),
+            const SizedBox(width: 6),
             Container(
-              width: 32,
-              height: 32,
-              decoration: const BoxDecoration(
-                color: AppColors.textTertiary,
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                color: theme.textMuted,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.person, size: 18, color: Colors.white),
+              child: const Icon(Icons.person, size: 16, color: Colors.white),
             ),
           ],
         ],

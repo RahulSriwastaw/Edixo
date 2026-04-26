@@ -125,7 +125,7 @@ class RulerPainter extends CustomPainter {
         final textPainter = TextPainter(
           text: TextSpan(
             text: '${i ~/ 10}',
-            style: const TextStyle(
+            style: TextStyle(
               color: AppColors.textPrimary,
               fontSize: 10,
             ),

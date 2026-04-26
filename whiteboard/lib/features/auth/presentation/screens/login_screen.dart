@@ -1,10 +1,9 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants/app_dimensions.dart';
-import '../../../../core/constants/app_text_styles.dart';
+import '../../../../core/theme/app_theme_colors.dart';
+import '../../../../core/theme/app_theme_text_styles.dart';
+import '../../../../core/theme/app_theme_dimensions.dart';
 import '../providers/login_provider.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -61,10 +60,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   void _showError(String message) {
+    final theme = AppThemeColors.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
-        backgroundColor: AppColors.error,
+        backgroundColor: theme.error,
         duration: const Duration(seconds: 3),
       ),
     );
@@ -74,9 +74,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final loginState = ref.watch(loginNotifierProvider);
     final isLoading  = loginState.state == LoginState.loading;
-
+    final theme = AppThemeColors.of(context);
+    
     return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
+      backgroundColor: theme.bgBody,
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: SingleChildScrollView(
@@ -94,16 +95,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       // Header
                       Text(
                         'Welcome to EduBoard Pro',
-                        style: AppTextStyles.heading1,
+                        style: AppThemeTextStyles.heading1(context),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: AppDimensions.borderRadiusL),
+                      const SizedBox(height: 12),
                       Text(
                         'Sign in to your coaching account',
-                        style: AppTextStyles.body.copyWith(color: AppColors.textSecondary),
+                        style: AppThemeTextStyles.body(context).copyWith(color: theme.textSecondary),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: AppDimensions.topBarHeight),
+                      const SizedBox(height: 40),
 
                       // Login ID Field
                       TextField(
@@ -113,23 +114,28 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         keyboardType: TextInputType.text,
                         textInputAction: TextInputAction.next,
                         onSubmitted: (_) => _passwordFocus.requestFocus(),
+                        style: AppThemeTextStyles.body(context),
                         decoration: InputDecoration(
                           labelText: 'Whiteboard ID',
-                          prefixIcon: const Icon(Icons.person),
+                          labelStyle: AppThemeTextStyles.bodySmall(context),
+                          prefixIcon: Icon(Icons.person, color: theme.textMuted, size: 20),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                            borderSide: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                            borderSide: BorderSide(color: theme.borderInput),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                            borderSide: const BorderSide(color: AppColors.accentOrange, width: 2),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                            borderSide: const BorderSide(color: AppThemeColors.primaryAccent, width: 2),
                           ),
+                          filled: true,
+                          fillColor: theme.bgInput,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         ),
                       ),
-                      const SizedBox(height: AppDimensions.borderRadiusL),
+                      const SizedBox(height: 16),
 
                       // Password Field
                       TextField(
@@ -139,41 +145,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         obscureText: true,
                         textInputAction: TextInputAction.done,
                         onSubmitted: isLoading ? null : (_) => _handleLogin(),
+                        style: AppThemeTextStyles.body(context),
                         decoration: InputDecoration(
                           labelText: 'Password',
-                          prefixIcon: const Icon(Icons.lock),
+                          labelStyle: AppThemeTextStyles.bodySmall(context),
+                          prefixIcon: Icon(Icons.lock, color: theme.textMuted, size: 20),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                            borderSide: BorderSide(color: AppColors.textTertiary.withValues(alpha: 0.3)),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                            borderSide: BorderSide(color: theme.borderInput),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                            borderSide: const BorderSide(color: AppColors.accentOrange, width: 2),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
+                            borderSide: const BorderSide(color: AppThemeColors.primaryAccent, width: 2),
                           ),
+                          filled: true,
+                          fillColor: theme.bgInput,
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
                         ),
                       ),
-                      const SizedBox(height: AppDimensions.topBarHeight),
+                      const SizedBox(height: 32),
 
                       // Error Message
                       if (loginState.state == LoginState.failure && loginState.error != null)
                         Padding(
-                          padding: const EdgeInsets.only(bottom: AppDimensions.borderRadiusL),
+                          padding: const EdgeInsets.only(bottom: 16),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: AppDimensions.borderRadiusL,
-                              vertical: AppDimensions.borderRadiusM,
+                              horizontal: 16,
+                              vertical: 10,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.error.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
-                              border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                              color: theme.badgeErrorBg,
+                              borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusM),
+                              border: Border.all(color: theme.error.withValues(alpha: 0.3)),
                             ),
                             child: Text(
                               loginState.error!.message,
-                              style: AppTextStyles.body.copyWith(color: AppColors.error),
+                              style: AppThemeTextStyles.body(context).copyWith(color: theme.error),
                               textAlign: TextAlign.center,
                             ),
                           ),
@@ -183,17 +194,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       ElevatedButton(
                         onPressed: isLoading ? null : _handleLogin,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.accentOrange,
-                          disabledBackgroundColor: AppColors.accentOrange.withValues(alpha: 0.5),
-                          padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusL),
+                          backgroundColor: AppThemeColors.primaryAccent,
+                          foregroundColor: Colors.white,
+                          disabledBackgroundColor: AppThemeColors.primaryAccent.withValues(alpha: 0.5),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
                           ),
+                          elevation: 0,
+                          minimumSize: const Size(double.infinity, 40),
                         ),
                         child: isLoading
                             ? const SizedBox(
-                                height: 20,
-                                width: 20,
+                                height: 18,
+                                width: 18,
                                 child: CircularProgressIndicator(
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                   strokeWidth: 2,
@@ -201,13 +215,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               )
                             : Text(
                                 'Sign In',
-                                style: AppTextStyles.body.copyWith(
-                                  color: AppColors.bgPrimary,
+                                style: AppThemeTextStyles.button(context).copyWith(
+                                  color: Colors.white,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                       ),
-                      const SizedBox(height: AppDimensions.borderRadiusL),
+                      const SizedBox(height: 12),
 
                       // Development Bypass Button
                       OutlinedButton(
@@ -215,36 +229,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             ? null
                             : () => ref.read(loginNotifierProvider.notifier).devLogin(),
                         style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: AppColors.accentOrange.withValues(alpha: 0.5)),
-                          padding: const EdgeInsets.symmetric(vertical: AppDimensions.borderRadiusL),
+                          side: BorderSide(color: theme.btnSecondaryBorder),
+                          foregroundColor: theme.btnSecondaryText,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(AppDimensions.borderRadiusM),
+                            borderRadius: BorderRadius.circular(AppThemeDimensions.borderRadiusButton),
                           ),
                         ),
                         child: Text(
                           'Quick Dev Login',
-                          style: AppTextStyles.body.copyWith(
-                            color: AppColors.accentOrange,
+                          style: AppThemeTextStyles.button(context).copyWith(
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      const SizedBox(height: AppDimensions.borderRadiusL * 2),
+                      const SizedBox(height: 32),
 
                       // Demo Credentials
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.info,
-                            size: 16,
-                            color: AppColors.textTertiary,
+                            size: 14,
+                            color: theme.textMuted,
                           ),
-                          const SizedBox(width: AppDimensions.borderRadiusS),
+                          const SizedBox(width: 6),
                           Flexible(
                             child: Text(
                               'Contact Super Admin for your credentials',
-                              style: AppTextStyles.caption.copyWith(color: AppColors.textTertiary),
+                              style: AppThemeTextStyles.caption(context),
                               textAlign: TextAlign.center,
                             ),
                           ),

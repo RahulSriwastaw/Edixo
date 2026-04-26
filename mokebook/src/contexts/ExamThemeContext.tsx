@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useCallback } from "react";
 
 export interface ExamThemeConfig {
-    layoutVariant: "ssc" | "railway" | "upsc" | "jee" | "testbook" | "testrankking" | "default";
+    layoutVariant: "ssc" | "railway" | "upsc" | "jee" | "testbook" | "testrankking" | "eduquity" | "default";
     paletteColorScheme: Record<string, string>;
     paletteStyle: "grid" | "list";
     timerPosition: "header-right" | "header-center" | "floating";

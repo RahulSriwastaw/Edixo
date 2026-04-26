@@ -6,12 +6,9 @@ import { AppError } from '../../middleware/errorHandler';
 
 const router = Router();
 
-// All routes require super admin
-router.use(authenticate, requireSuperAdmin);
-
 // Zod schema for theme config
 const themeConfigSchema = z.object({
-    layoutVariant: z.enum(['ssc', 'railway', 'upsc', 'jee', 'testbook', 'testrankking', 'default']).default('default'),
+    layoutVariant: z.enum(['ssc', 'railway', 'upsc', 'jee', 'testbook', 'testrankking', 'eduquity', 'default']).default('default'),
     paletteColorScheme: z.record(z.string()).default({}),
     paletteStyle: z.enum(['grid', 'list']).default('grid'),
     timerPosition: z.enum(['header-right', 'header-center', 'floating']).default('header-right'),
@@ -36,7 +33,7 @@ const themeConfigSchema = z.object({
 const createThemeSchema = z.object({
     name: z.string().min(1, 'Name is required'),
     description: z.string().optional(),
-    layoutVariant: z.enum(['ssc', 'railway', 'upsc', 'jee', 'testbook', 'testrankking', 'default']).default('default'),
+    layoutVariant: z.enum(['ssc', 'railway', 'upsc', 'jee', 'testbook', 'testrankking', 'eduquity', 'default']).default('default'),
     config: themeConfigSchema.default({}),
     screenshotUrl: z.string().optional().nullable(),
     isDefault: z.boolean().default(false),
@@ -45,106 +42,13 @@ const createThemeSchema = z.object({
 
 const updateThemeSchema = createThemeSchema.partial();
 
-// ─── GET /exam-interface-themes ───────────────────────────────
-router.get('/', async (_req, res, next) => {
-    try {
-        const themes = await prisma.examInterfaceTheme.findMany({
-            orderBy: { createdAt: 'desc' },
-        });
-        res.json({ success: true, data: themes });
-    } catch (err) {
-        next(err);
-    }
-});
+// Authentication required for all routes
+router.use(authenticate);
 
-// ─── GET /exam-interface-themes/:id ───────────────────────────
-router.get('/:id', async (req, res, next) => {
-    try {
-        const theme = await prisma.examInterfaceTheme.findUnique({
-            where: { id: req.params.id },
-        });
-        if (!theme) throw new AppError('Theme not found', 404);
-        res.json({ success: true, data: theme });
-    } catch (err) {
-        next(err);
-    }
-});
+// ─── STUDENT / PUBLIC ACCESSIBLE ROUTES ───────────────────────
+// (Must come before generic /:id route)
 
-// ─── POST /exam-interface-themes ──────────────────────────────
-router.post('/', async (req, res, next) => {
-    try {
-        const body = createThemeSchema.parse(req.body);
-
-        // If setting as default, unset any existing default
-        if (body.isDefault) {
-            await prisma.examInterfaceTheme.updateMany({
-                where: { isDefault: true },
-                data: { isDefault: false },
-            });
-        }
-
-        const theme = await prisma.examInterfaceTheme.create({ data: body });
-        res.status(201).json({ success: true, data: theme });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// ─── PATCH /exam-interface-themes/:id ─────────────────────────
-router.patch('/:id', async (req, res, next) => {
-    try {
-        const body = updateThemeSchema.parse(req.body);
-
-        // If setting as default, unset any existing default
-        if (body.isDefault) {
-            await prisma.examInterfaceTheme.updateMany({
-                where: { isDefault: true, id: { not: req.params.id } },
-                data: { isDefault: false },
-            });
-        }
-
-        const theme = await prisma.examInterfaceTheme.update({
-            where: { id: req.params.id },
-            data: body,
-        });
-        res.json({ success: true, data: theme });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// ─── DELETE /exam-interface-themes/:id ────────────────────────
-router.delete('/:id', async (req, res, next) => {
-    try {
-        // Check if theme is in use
-        const [testsUsingTheme, foldersUsingTheme, categoriesUsingTheme] = await Promise.all([
-            prisma.mockTest.count({
-                where: { interfaceThemeId: req.params.id },
-            }),
-            prisma.examFolder.count({
-                where: { interfaceThemeId: req.params.id },
-            }),
-            prisma.examCategory.count({
-                where: { interfaceThemeId: req.params.id },
-            }),
-        ]);
-
-        const totalUsing = testsUsingTheme + foldersUsingTheme + categoriesUsingTheme;
-        if (totalUsing > 0) {
-            throw new AppError(
-                `Cannot delete: theme is assigned to ${testsUsingTheme} test(s), ${foldersUsingTheme} folder(s), ${categoriesUsingTheme} category(s). Reassign them first.`,
-                400
-            );
-        }
-
-        await prisma.examInterfaceTheme.delete({ where: { id: req.params.id } });
-        res.json({ success: true, message: 'Theme deleted' });
-    } catch (err) {
-        next(err);
-    }
-});
-
-// ─── GET /exam-interface-themes/default ───────────────────────
+// GET /exam-interface-themes/default
 router.get('/default', async (_req, res, next) => {
     try {
         const theme = await prisma.examInterfaceTheme.findFirst({
@@ -156,7 +60,7 @@ router.get('/default', async (_req, res, next) => {
     }
 });
 
-// ─── GET /exam-interface-themes/for-exam/:examId ──────────────
+// GET /exam-interface-themes/for-exam/:examId
 router.get('/for-exam/:examId', async (req, res, next) => {
     try {
         const { examId } = req.params;
@@ -214,6 +118,108 @@ router.get('/for-exam/:examId', async (req, res, next) => {
         }
 
         res.json({ success: true, data: theme });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// ─── ADMIN ONLY ROUTES ────────────────────────────────────────
+router.use(requireSuperAdmin);
+
+// GET /exam-interface-themes (list all)
+router.get('/', async (_req, res, next) => {
+    try {
+        const themes = await prisma.examInterfaceTheme.findMany({
+            orderBy: { createdAt: 'desc' },
+        });
+        res.json({ success: true, data: themes });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// GET /exam-interface-themes/:id
+router.get('/:id', async (req, res, next) => {
+    try {
+        const theme = await prisma.examInterfaceTheme.findUnique({
+            where: { id: req.params.id },
+        });
+        if (!theme) throw new AppError('Theme not found', 404);
+        res.json({ success: true, data: theme });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// POST /exam-interface-themes
+router.post('/', async (req, res, next) => {
+    try {
+        const body = createThemeSchema.parse(req.body);
+
+        // If setting as default, unset any existing default
+        if (body.isDefault) {
+            await prisma.examInterfaceTheme.updateMany({
+                where: { isDefault: true },
+                data: { isDefault: false },
+            });
+        }
+
+        const theme = await prisma.examInterfaceTheme.create({ data: body });
+        res.status(201).json({ success: true, data: theme });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// PATCH /exam-interface-themes/:id
+router.patch('/:id', async (req, res, next) => {
+    try {
+        const body = updateThemeSchema.parse(req.body);
+
+        // If setting as default, unset any existing default
+        if (body.isDefault) {
+            await prisma.examInterfaceTheme.updateMany({
+                where: { isDefault: true, id: { not: req.params.id } },
+                data: { isDefault: false },
+            });
+        }
+
+        const theme = await prisma.examInterfaceTheme.update({
+            where: { id: req.params.id },
+            data: body,
+        });
+        res.json({ success: true, data: theme });
+    } catch (err) {
+        next(err);
+    }
+});
+
+// DELETE /exam-interface-themes/:id
+router.delete('/:id', async (req, res, next) => {
+    try {
+        // Check if theme is in use
+        const [testsUsingTheme, foldersUsingTheme, categoriesUsingTheme] = await Promise.all([
+            prisma.mockTest.count({
+                where: { interfaceThemeId: req.params.id },
+            }),
+            prisma.examFolder.count({
+                where: { interfaceThemeId: req.params.id },
+            }),
+            prisma.examCategory.count({
+                where: { interfaceThemeId: req.params.id },
+            }),
+        ]);
+
+        const totalUsing = testsUsingTheme + foldersUsingTheme + categoriesUsingTheme;
+        if (totalUsing > 0) {
+            throw new AppError(
+                `Cannot delete: theme is assigned to ${testsUsingTheme} test(s), ${foldersUsingTheme} folder(s), ${categoriesUsingTheme} category(s). Reassign them first.`,
+                400
+            );
+        }
+
+        await prisma.examInterfaceTheme.delete({ where: { id: req.params.id } });
+        res.json({ success: true, message: 'Theme deleted' });
     } catch (err) {
         next(err);
     }

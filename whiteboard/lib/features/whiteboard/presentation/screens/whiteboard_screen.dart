@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/theme/app_theme_colors.dart';
 import '../widgets/canvas/whiteboard_canvas.dart';
 import '../widgets/tools/lasso_selection_overlay.dart';
 import '../widgets/toolbar/movable_bottom_toolbar.dart';
@@ -50,9 +51,10 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
   @override
   Widget build(BuildContext context) {
     final teachingState = ref.watch(teachingToolsNotifierProvider);
+    final theme = AppThemeColors.of(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: theme.bgBody,
       drawer: const SlidePanelDrawer(),
       body: Stack(
         children: [
@@ -87,7 +89,7 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
           // 6. Timer panel (teacher-controlled)
           if (_showTimer)
             Positioned(
-              top: 70,
+              top: 58,
               right: _showAiAssistant ? 340 : 20,
               child: ClassTimer(
                 onClose: () => setState(() => _showTimer = false),
@@ -113,4 +115,3 @@ class _WhiteboardScreenState extends ConsumerState<WhiteboardScreen> {
     );
   }
 }
-
