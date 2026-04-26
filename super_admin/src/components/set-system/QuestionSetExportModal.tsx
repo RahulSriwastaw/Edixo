@@ -250,7 +250,7 @@ export function QuestionSetExportModal({
         explanationHtml = `<div class="explanation"><strong>Explanation:</strong> ${q.explanation}</div>`;
       }
 
-      const metaItems = [];
+      const metaItems: string[] = [];
       if (includeMarks && q.marks) {
         metaItems.push(`<span class="meta-item marks">[${q.marks} marks]</span>`);
       }

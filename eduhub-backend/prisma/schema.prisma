@@ -172,37 +172,41 @@ model qBankFolder {
 }
 
 model ExamFolder {
-  id          String         @id @default(uuid())
-  name        String
-  slug        String?        @unique
-  description String?
-  icon        String?
-  color       String?
-  isFeatured  Boolean        @default(false)
-  sortOrder   Int            @default(0)
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  categories  ExamCategory[]
+  id               String         @id @default(uuid())
+  name             String
+  slug             String?        @unique
+  description      String?
+  icon             String?
+  color            String?
+  isFeatured       Boolean        @default(false)
+  sortOrder        Int            @default(0)
+  interfaceThemeId String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  categories       ExamCategory[]
+  interfaceTheme   ExamInterfaceTheme? @relation(fields: [interfaceThemeId], references: [id])
 
   @@map("exam_folders")
 }
 
 model ExamCategory {
-  id            String            @id @default(uuid())
-  folderId      String
-  name          String
-  slug          String?           @unique
-  description   String?
-  icon          String?
-  isFeatured    Boolean           @default(false)
-  isFree        Boolean           @default(true)
-  price         Float?
-  discountPrice Float?
-  sortOrder     Int               @default(0)
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  folder        ExamFolder        @relation(fields: [folderId], references: [id], onDelete: Cascade)
-  subCategories ExamSubCategory[]
+  id               String            @id @default(uuid())
+  folderId         String
+  name             String
+  slug             String?           @unique
+  description      String?
+  icon             String?
+  isFeatured       Boolean           @default(false)
+  isFree           Boolean           @default(true)
+  price            Float?
+  discountPrice    Float?
+  sortOrder        Int               @default(0)
+  interfaceThemeId String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  folder           ExamFolder        @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  subCategories    ExamSubCategory[]
+  interfaceTheme   ExamInterfaceTheme? @relation(fields: [interfaceThemeId], references: [id])
 
   @@map("exam_categories")
 }
@@ -222,6 +226,24 @@ model ExamSubCategory {
   @@map("exam_subcategories")
 }
 
+model ExamInterfaceTheme {
+  id              String         @id @default(uuid())
+  name            String
+  description     String?
+  layoutVariant   String         @default("default")
+  config          Json           @default("{}")
+  screenshotUrl   String?
+  isDefault       Boolean        @default(false)
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  mockTests       MockTest[]
+  categories      ExamCategory[]
+  folders         ExamFolder[]
+
+  @@map("exam_interface_themes")
+}
+
 model MockTest {
   id               String            @id @default(uuid())
   testId           String            @unique
@@ -239,11 +261,13 @@ model MockTest {
   scheduledAt      DateTime?
   endsAt           DateTime?
   subCategoryId    String?
+  interfaceThemeId String?
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   batches          MockTestBatch[]
   sections         MockTestSection[]
   subCategory      ExamSubCategory?  @relation(fields: [subCategoryId], references: [id])
+  interfaceTheme   ExamInterfaceTheme? @relation(fields: [interfaceThemeId], references: [id])
   attempts         TestAttempt[]
 
   @@map("mock_tests")

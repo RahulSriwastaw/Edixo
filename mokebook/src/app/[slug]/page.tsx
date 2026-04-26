@@ -175,35 +175,47 @@ function TestCard({
               {inProgress ? (
                 <button
                   onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
-                  className="flex-1 md:w-28 h-8.5 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 flex items-center justify-center gap-1"
-                  style={{ background: "#FF6B2B" }}
+                  className="group flex-1 md:w-32 h-9 text-white font-extrabold text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 flex items-center justify-center gap-1.5 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5"
+                  style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #E85A1F 100%)" }}
                 >
-                  Resume <PlayCircle className="h-3 w-3" />
+                  Resume
+                  <PlayCircle className="h-3.5 w-3.5 transition-transform duration-300 group-hover:scale-110" />
                 </button>
               ) : hasAttempt ? (
-                <div className="flex gap-2 w-full md:w-auto">
+                <div className="flex gap-2.5 w-full md:w-auto">
                   <button
                     onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
-                    className="flex-1 md:w-28 h-8.5 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-sm"
-                    style={{ background: "#FF6B2B" }}
+                    className="group flex-1 md:w-32 h-9 text-white font-extrabold text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 relative overflow-hidden"
+                    style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #E85A1F 100%)" }}
                   >
-                    Attempt
+                    <span className="relative z-10 flex items-center justify-center gap-1.5">
+                      Attempt
+                      <Zap className="h-3.5 w-3.5 transition-transform duration-300 group-hover:scale-110" />
+                    </span>
+                    <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                   </button>
                   <button
                     onClick={() => router.push(`/tests/solutions/latest?testId=${test.testId}`)}
-                    className="h-8.5 px-3 font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all"
-                    style={{ background: "var(--bg-main)", color: "var(--text-secondary)", border: "1px solid var(--btn-secondary-border)" }}
+                    className="group h-9 px-4 font-extrabold text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 hover:-translate-y-0.5"
+                    style={{ background: "var(--bg-main)", color: "var(--text-secondary)", border: "1.5px solid var(--btn-secondary-border)" }}
                   >
-                    Solutions
+                    <span className="flex items-center gap-1.5">
+                      Solutions
+                      <FileText className="h-3.5 w-3.5 transition-all duration-300 group-hover:scale-110" />
+                    </span>
                   </button>
                 </div>
               ) : (
                 <button
                   onClick={() => router.push(`/${seriesSlug}/tests/${test.testId}`)}
-                  className="flex-1 md:w-32 h-8.5 text-white font-bold text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 shadow-sm flex items-center justify-center gap-1.5"
-                  style={{ background: "#FF6B2B" }}
+                  className="group flex-1 md:w-36 h-9 text-white font-extrabold text-[11px] uppercase tracking-widest rounded-xl transition-all duration-300 active:scale-95 shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40 hover:-translate-y-0.5 flex items-center justify-center gap-2 relative overflow-hidden"
+                  style={{ background: "linear-gradient(135deg, #FF6B2B 0%, #E85A1F 100%)" }}
                 >
-                  Start Test <ArrowRight className="h-3 w-3" />
+                  <span className="relative z-10 flex items-center gap-2">
+                    Start Test
+                    <ArrowRight className="h-3.5 w-3.5 transition-transform duration-300 group-hover:translate-x-0.5" />
+                  </span>
+                  <span className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </button>
               )}
             </>

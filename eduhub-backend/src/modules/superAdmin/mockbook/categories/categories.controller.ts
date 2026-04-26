@@ -38,8 +38,8 @@ export const getCategories = async (req: Request, res: Response, next: NextFunct
 
 export const createCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { name, description, icon, color, isFeatured, isActive, sortOrder } = req.body;
-        
+        const { name, description, icon, color, isFeatured, isActive, sortOrder, interfaceThemeId } = req.body;
+
         if (!name) {
             return res.status(400).json({ success: false, message: 'Name is required' });
         }
@@ -51,7 +51,8 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
                 icon,
                 color,
                 isFeatured: isFeatured || false,
-                sortOrder: sortOrder || 0
+                sortOrder: sortOrder || 0,
+                interfaceThemeId: interfaceThemeId || null,
             }
         });
 
@@ -64,7 +65,7 @@ export const createCategory = async (req: Request, res: Response, next: NextFunc
 export const updateCategory = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const id = req.params.id as string;
-        const data = {
+        const data: any = {
             name: req.body.name,
             description: req.body.description,
             icon: req.body.icon,
@@ -72,6 +73,9 @@ export const updateCategory = async (req: Request, res: Response, next: NextFunc
             isFeatured: req.body.isFeatured,
             sortOrder: req.body.sortOrder,
         };
+        if (req.body.interfaceThemeId !== undefined) {
+            data.interfaceThemeId = req.body.interfaceThemeId || null;
+        }
 
         const updatedCategory = await prisma.examFolder.update({
             where: { id },

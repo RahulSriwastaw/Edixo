@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 
 import { useState, useEffect } from "react";
@@ -418,40 +418,20 @@ const params = useParams();
                       onClick={() => setViewMode("grid")}
                       className={viewMode === "grid" ? "bg-orange-500 hover:bg-orange-600" : ""}
                     >
-                <div className="flex items-center gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[130px] input-field">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="draft">Draft</SelectItem>
-                      <SelectItem value="published">Published</SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <div className="h-6 w-px bg-[var(--bg-sidebar)] mx-1" />
-
-                  <Button
-                    variant={viewMode === "grid" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("grid")}
-                    className={viewMode === "grid" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                  >
-                    <Grid className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === "list" ? "default" : "ghost"}
-                    size="sm"
-                    onClick={() => setViewMode("list")}
-                    className={viewMode === "list" ? "bg-orange-500 hover:bg-orange-600" : ""}
-                  >
-                    <List className="w-4 h-4" />
-                  </Button>
+                      <Grid className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant={viewMode === "list" ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setViewMode("list")}
+                      className={viewMode === "list" ? "bg-orange-500 hover:bg-orange-600" : ""}
+                    >
+                      <List className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
 
           <BulkAIEditManager 
             selectedQuestions={selectedQuestions} 
@@ -896,7 +876,6 @@ const params = useParams();
             </Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
       </Dialog>
     </div>
   );

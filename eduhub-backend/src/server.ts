@@ -22,6 +22,7 @@ import mockbookRoutes from './modules/mockbook/mockbook.routes';
 import studentsRoutes from './modules/students/students.routes';
 import qbankRoutes from './modules/qbank/qbank.routes';
 import questionsRoutes from './modules/questions/bulk-ai-edit.routes';
+import examInterfaceThemeRoutes from './modules/examInterfaceTheme/examInterfaceTheme.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -333,7 +334,7 @@ const limiter = rateLimit({
 app.use('/api/', limiter);
 
 // Body Parsing
-app.use(express.json({ 
+app.use(express.json({
     limit: '10mb',
     verify: (req: any, _res, buf) => {
         req.rawBody = buf.toString();
@@ -367,6 +368,7 @@ app.use('/api/mockbook', mockbookRoutes);
 app.use('/api/students', studentsRoutes);
 app.use('/api/qbank', qbankRoutes);
 app.use('/api/questions', questionsRoutes);
+app.use('/api/exam-interface-themes', examInterfaceThemeRoutes);
 
 // Error Handling
 app.use(notFound);
@@ -397,7 +399,7 @@ async function startServer() {
         try {
             await prisma.$connect();
             logger.info('PostgreSQL connected');
-            
+
             // Run compatibility tasks in background to prevent blocking server start
             (async () => {
                 try {

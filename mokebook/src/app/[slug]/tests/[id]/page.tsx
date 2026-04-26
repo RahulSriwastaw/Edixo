@@ -10,6 +10,9 @@ import {
 import { cn } from "@/lib/utils";
 import { apiFetch, isAuthenticated } from "@/lib/api";
 import { useToast } from "@/hooks/use-toast";
+import { ExamThemeProvider } from "@/contexts/ExamThemeContext";
+import { useExamThemeByExamId } from "@/hooks/useExamTheme";
+import { TestInterface } from "@/components/TestInterface/TestInterface";
 
 const PaletteShapes = {
   NotVisited: ({ num, active }: { num: number; active?: boolean }) => (
@@ -116,6 +119,9 @@ export default function IntegratedTestPage() {
 
   const [currentIdx, setCurrentIdx] = useState(0);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Theme hook MUST be called before any early returns
+  const { theme, loading: themeLoading } = useExamThemeByExamId(testId);
   const [qState, setQState] = useState<Record<number, { status: string; answer: number | null; optionId: string | null }>>({});
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -411,133 +417,48 @@ export default function IntegratedTestPage() {
     );
   }
 
-  // ─── EXAM VIEW ──────────────────────────────────────────────
-  const currentQ = questions[currentIdx];
-  const currentQState = qState[currentIdx] || { status: "not_visited", answer: null, optionId: null };
-  const stats = {
-    answered: Object.values(qState).filter(s => s.status === "answered").length,
-    not_answered: Object.values(qState).filter(s => s.status === "not_answered").length,
-    not_visited: Object.values(qState).filter(s => s.status === "not_visited").length,
-    marked: Object.values(qState).filter(s => s.status === "marked").length,
-    marked_answered: Object.values(qState).filter(s => s.status === "marked_answered").length,
+  // ─── EXAM VIEW with Theme ───────────────────────────────────
+  // theme and themeLoading are already declared above (before early returns)
+
+  const handleTestSubmit = async (answers: Record<string, string[]>, integerAnswers: Record<string, string>) => {
+    if (submitting) return;
+    setSubmitting(true);
+    try {
+      const answerPayload = questions.map((q) => ({
+        questionId: q.id,
+        selectedOptions: answers[q.id] || [],
+        integerValue: integerAnswers[q.id] || null,
+      }));
+      const totalTimeTaken = Math.max(0, (durationMins * 60) - secondsLeft);
+      const res = await apiFetch(`/mockbook/tests/${testId}/attempts`, {
+        method: "POST",
+        body: JSON.stringify({ action: "submit", answers: answerPayload, timeTakenSecs: totalTimeTaken }),
+      });
+      if (res.success) {
+        router.push(`/${seriesSlug}/tests/${testId}/analysis`);
+      }
+    } catch (err: any) {
+      toast({ variant: "destructive", title: "Submission Failed" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
+  if (themeLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
+        <Loader2 className="h-10 w-10 animate-spin mb-4" style={{ color: "#FF6B2B" }} />
+        <p className="font-bold text-xs uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Loading Theme...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden select-none" style={{ background: "var(--bg-body)", color: "var(--text-primary)" }}>
-      <header className="flex items-center justify-between px-6 shrink-0 h-14 z-30" style={{ background: "var(--bg-sidebar)", borderBottom: "var(--divider)" }}>
-        <div className="flex items-center gap-4">
-          <div className="h-8 w-8 rounded-lg flex items-center justify-center text-white font-black italic" style={{ background: "#FF6B2B" }}>M</div>
-          <h1 className="text-sm font-extrabold truncate max-w-sm">{testName}</h1>
-        </div>
-
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Time Left</span>
-            <div className="font-mono text-base font-black">{formatTime(secondsLeft)}</div>
-          </div>
-          <button className="h-8 px-3 text-[10px] font-bold rounded-lg" style={{ color: "#FF6B2B", border: "1px solid rgba(255,107,43,0.2)", background: "rgba(255,107,43,0.05)" }} onClick={handlePause}>PAUSE</button>
-        </div>
-      </header>
-
-      <div className="flex flex-1 overflow-hidden relative">
-        {/* QUESTION PANEL */}
-        <div className="flex-1 flex flex-col min-w-0" style={{ background: "var(--bg-card)" }}>
-          <div className="flex items-center justify-between px-8 py-3" style={{ borderBottom: "var(--divider)", background: "var(--bg-main)" }}>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--text-muted)" }}>Question</span>
-              <span className="text-xl font-black">{currentQ.number}</span>
-            </div>
-            <div className="flex items-center gap-3 px-3 py-1 rounded-full border text-[10px] font-bold" style={{ background: "var(--bg-card)", borderColor: "var(--border-card)" }}>
-              <span style={{ color: "var(--badge-success-text)" }}>+{currentQ.marks}</span>
-              <span style={{ color: "var(--badge-error-text)" }}>{currentQ.negative}</span>
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-10">
-            <div className="max-w-4xl mx-auto">
-              <div className="text-lg font-bold mb-10 leading-relaxed" style={{ color: "var(--text-primary)" }} dangerouslySetInnerHTML={{ __html: currentQ.text }} />
-              <div className="grid gap-3">
-                {currentQ.options.map((opt, i) => (
-                  <label key={opt.id} className={cn(
-                    "flex items-center gap-4 cursor-pointer p-4 rounded-xl border-2 transition-all",
-                    currentQState.answer === i ? "border-[#FF6B2B]" : "border-transparent hover:opacity-80"
-                  )}
-                    style={currentQState.answer === i ? { background: "rgba(255,107,43,0.03)" } : { background: "var(--bg-main)", borderColor: currentQState.answer === i ? "#FF6B2B" : "var(--border-card)" }}
-                    onClick={() => handleSelectOption(i, opt.id)}>
-                    <div className={cn("w-5 h-5 rounded-full border-2 flex items-center justify-center", currentQState.answer === i ? "border-[#FF6B2B]" : "border-[var(--border-input)]")} style={currentQState.answer === i ? { background: "#FF6B2B" } : {}}>
-                      {currentQState.answer === i && <div className="w-2 h-2 bg-white rounded-full" />}
-                    </div>
-                    <div className="text-sm font-bold" style={{ color: "var(--text-primary)" }} dangerouslySetInnerHTML={{ __html: opt.text }} />
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="p-4 flex items-center justify-between z-30 shrink-0" style={{ borderTop: "var(--divider)", background: "var(--bg-card)" }}>
-            <div className="flex gap-2">
-              <button className="px-6 py-2.5 text-xs font-black rounded-lg" style={{ border: "1px solid var(--btn-secondary-border)", color: "var(--btn-secondary-text)", background: "var(--bg-main)" }} onClick={markForReviewAndNext}>MARK FOR REVIEW</button>
-              <button className="px-6 py-2.5 text-xs font-black rounded-lg" style={{ border: "1px solid var(--btn-secondary-border)", color: "var(--btn-secondary-text)", background: "var(--bg-main)" }} onClick={clearResponse}>CLEAR</button>
-            </div>
-            <button className="px-12 py-3 text-white rounded-xl font-black shadow-lg" style={{ background: "#FF6B2B" }} onClick={saveAndNext}>SAVE & NEXT</button>
-          </div>
-        </div>
-
-        {/* SIDEBAR */}
-        <div className={cn("w-[300px] flex flex-col shrink-0 transition-all", sidebarOpen ? "translate-x-0" : "translate-x-full w-0")} style={{ background: "var(--bg-sidebar)", borderLeft: "var(--divider)" }}>
-          <div className="p-4 flex items-center gap-3 shrink-0" style={{ borderBottom: "var(--divider)", background: "var(--bg-main)" }}>
-            <div className="w-9 h-9 rounded flex items-center justify-center font-bold text-white" style={{ background: "#FF6B2B" }}>{displayName.charAt(0)}</div>
-            <span className="text-sm font-bold">{displayName}</span>
-          </div>
-
-          <div className="p-4 grid grid-cols-2 gap-3 shrink-0" style={{ borderBottom: "var(--divider)" }}>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{ background: "var(--badge-success-text)" }} /><span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>Answered ({stats.answered})</span></div>
-            <div className="flex items-center gap-2"><div className="w-4 h-4 rounded" style={{ background: "var(--badge-error-text)" }} /><span className="text-[10px] font-bold" style={{ color: "var(--text-muted)" }}>Not Ans ({stats.not_answered})</span></div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto p-4">
-            <div className="grid grid-cols-5 gap-2">
-              {questions.map((q, i) => (
-                <div key={q.id} onClick={() => navigateTo(i)} className="cursor-pointer">
-                  {qState[i]?.status === "not_visited" && <PaletteShapes.NotVisited num={q.number} active={currentIdx === i} />}
-                  {qState[i]?.status === "not_answered" && <PaletteShapes.NotAnswered num={q.number} active={currentIdx === i} />}
-                  {qState[i]?.status === "answered" && <PaletteShapes.Answered num={q.number} active={currentIdx === i} />}
-                  {qState[i]?.status === "marked" && <PaletteShapes.Marked num={q.number} active={currentIdx === i} />}
-                  {qState[i]?.status === "marked_answered" && <PaletteShapes.MarkedAndAnswered num={q.number} active={currentIdx === i} />}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-4 shrink-0" style={{ borderTop: "var(--divider)", background: "var(--bg-main)" }}>
-            <button className="w-full text-white font-black py-4 rounded-xl shadow-xl" style={{ background: "#FF6B2B" }} onClick={() => setShowSubmitModal(true)}>SUBMIT TEST</button>
-          </div>
-        </div>
-      </div>
-
-      {/* SUBMIT MODAL */}
-      {showSubmitModal && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}>
-          <div className="rounded-2xl w-full max-w-lg p-8" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
-            <h2 className="text-2xl font-black mb-6" style={{ color: "var(--text-primary)" }}>Submit Test?</h2>
-            <div className="space-y-4 mb-8">
-              <div className="flex justify-between pb-2" style={{ borderBottom: "var(--divider)" }}><span className="font-bold" style={{ color: "var(--text-muted)" }}>Answered</span><span className="font-black" style={{ color: "var(--badge-success-text)" }}>{stats.answered}</span></div>
-              <div className="flex justify-between pb-2" style={{ borderBottom: "var(--divider)" }}><span className="font-bold" style={{ color: "var(--text-muted)" }}>Not Answered</span><span className="font-black" style={{ color: "var(--badge-error-text)" }}>{stats.not_answered}</span></div>
-            </div>
-            <div className="flex gap-4">
-              <button className="flex-1 py-3 font-bold" style={{ color: "var(--text-muted)" }} onClick={() => setShowSubmitModal(false)}>BACK</button>
-              <button className="flex-1 py-3 text-white rounded-xl font-black shadow-lg" style={{ background: "#FF6B2B" }} onClick={handleSubmit}>SUBMIT</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    <ExamThemeProvider theme={theme}>
+      <TestInterface
+        test={{ id: testId, name: testName, durationMins, questions }}
+        onSubmit={handleTestSubmit}
+      />
+    </ExamThemeProvider>
   );
 }

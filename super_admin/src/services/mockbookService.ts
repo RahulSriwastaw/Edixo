@@ -20,6 +20,7 @@ export interface ExamFolder {
     isFeatured: boolean;
     isActive: boolean;
     sortOrder: number;
+    interfaceThemeId: string | null;
     createdAt: string;
 }
 
@@ -52,6 +53,7 @@ export interface MockTest {
     id: string;
     testId: string;
     subCategoryId: string | null;
+    interfaceThemeId: string | null;
     name: string;
     description: string | null;
     status: "DRAFT" | "LIVE" | "ENDED";

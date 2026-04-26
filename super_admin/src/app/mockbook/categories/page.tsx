@@ -8,6 +8,7 @@ import {
   Users, Package, X, Loader2, FolderOpen,
 } from "lucide-react";
 import { mockbookService, ExamFolder } from "@/services/mockbookService";
+import { ExamInterfacePicker } from "@/components/examInterface/ExamInterfacePicker";
 import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -35,7 +36,7 @@ const COLOR_OPTIONS = [
   { label: "Yellow", value: "bg-yellow-100 border-yellow-300 text-yellow-700" },
 ];
 
-const EMPTY_FORM = { name: "", description: "", icon: "📚", color: COLOR_OPTIONS[0].value, isFeatured: false };
+const EMPTY_FORM = { name: "", description: "", icon: "📚", color: COLOR_OPTIONS[0].value, isFeatured: false, interfaceThemeId: null as string | null };
 
 export default function CategoriesPage() {
   const { isOpen } = useSidebarStore();
@@ -82,6 +83,7 @@ export default function CategoriesPage() {
       icon: cat.icon || "📚",
       color: cat.color || COLOR_OPTIONS[0].value,
       isFeatured: cat.isFeatured,
+      interfaceThemeId: cat.interfaceThemeId,
     });
     setModalOpen(true);
   };
@@ -223,7 +225,7 @@ export default function CategoriesPage() {
                           <div className="p-1.5 bg-blue-50 text-blue-600 rounded-lg">
                             <Package className="w-3.5 h-3.5" />
                           </div>
-                          <span><strong>{(cat as any)._count?.subCategories || 0}</strong> series</span>
+                          <span><strong>{(cat as any)._count?.categories || 0}</strong> series</span>
                         </div>
                         <div className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
                           <div className="p-1.5 bg-green-50 text-green-600 rounded-lg">
@@ -362,6 +364,13 @@ export default function CategoriesPage() {
                 </div>
               </div>
             </div>
+
+            {/* Exam Interface Theme */}
+            <ExamInterfacePicker
+              value={form.interfaceThemeId}
+              onChange={(themeId) => setForm(p => ({ ...p, interfaceThemeId: themeId }))}
+              label="Default Exam Interface"
+            />
 
             {/* Featured toggle */}
             <div className="flex items-center justify-between p-3 border rounded-lg">

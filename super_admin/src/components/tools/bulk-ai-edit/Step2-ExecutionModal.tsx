@@ -28,10 +28,10 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
     const [model, setModel] = React.useState(getDefaultModel('gemini'));
     const [showCloseConfirm, setShowCloseConfirm] = React.useState(false);
     const [isMinimized, setIsMinimized] = React.useState(false);
-    const [widgetPos, setWidgetPos] = React.useState({ x: 0, y: 0 });
-    const [hasDragged, setHasDragged] = React.useState(false);
     const [isDragging, setIsDragging] = React.useState(false);
-    const dragOffset = useRef({ x: 0, y: 0 });
+    const translate = useRef({ x: 0, y: 0 });
+    const startMouse = useRef({ x: 0, y: 0 });
+    const startTranslate = useRef({ x: 0, y: 0 });
     const logsEndRef = useRef<HTMLDivElement>(null);
     const widgetRef = useRef<HTMLDivElement>(null);
 
@@ -93,41 +93,43 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
 
     // Draggable widget handlers
     const handleDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        e.preventDefault();
         setIsDragging(true);
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
         const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
-        const rect = widgetRef.current?.getBoundingClientRect();
-        if (rect) {
-            dragOffset.current = {
-                x: clientX - rect.left,
-                y: clientY - rect.top
-            };
-        }
+        startMouse.current = { x: clientX, y: clientY };
+        startTranslate.current = { x: translate.current.x, y: translate.current.y };
     };
 
     React.useEffect(() => {
         if (!isDragging) return;
         const handleMove = (e: MouseEvent | TouchEvent) => {
+            e.preventDefault();
             const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
             const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
             const rect = widgetRef.current?.getBoundingClientRect();
             const w = rect?.width ?? 288;
             const h = rect?.height ?? 200;
-            const maxX = window.innerWidth - w;
-            const maxY = window.innerHeight - h;
-            let newX = clientX - dragOffset.current.x;
-            let newY = clientY - dragOffset.current.y;
-            if (newX < 0) newX = 0;
-            if (newX > maxX) newX = maxX;
-            if (newY < 0) newY = 0;
-            if (newY > maxY) newY = maxY;
-            setHasDragged(true);
-            setWidgetPos({ x: newX, y: newY });
+            const maxX = Math.max(0, window.innerWidth - w);
+            const maxY = Math.max(0, window.innerHeight - h);
+            const dx = clientX - startMouse.current.x;
+            const dy = clientY - startMouse.current.y;
+            let tx = startTranslate.current.x + dx;
+            let ty = startTranslate.current.y + dy;
+            // Clamp translation so widget stays inside viewport
+            if (tx > 0) tx = 0;
+            if (tx < -maxX) tx = -maxX;
+            if (ty > 0) ty = 0;
+            if (ty < -maxY) ty = -maxY;
+            translate.current = { x: tx, y: ty };
+            if (widgetRef.current) {
+                widgetRef.current.style.transform = `translate(${tx}px, ${ty}px)`;
+            }
         };
         const handleEnd = () => setIsDragging(false);
-        window.addEventListener('mousemove', handleMove);
+        window.addEventListener('mousemove', handleMove, { passive: false });
         window.addEventListener('mouseup', handleEnd);
-        window.addEventListener('touchmove', handleMove);
+        window.addEventListener('touchmove', handleMove, { passive: false });
         window.addEventListener('touchend', handleEnd);
         return () => {
             window.removeEventListener('mousemove', handleMove);
@@ -436,11 +438,10 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
                     ref={widgetRef}
                     className="fixed z-50 w-72 bg-white rounded-lg border border-gray-200 shadow-lg overflow-hidden select-none"
                     style={{
-                        left: hasDragged ? widgetPos.x : undefined,
-                        top: hasDragged ? widgetPos.y : undefined,
-                        right: hasDragged ? undefined : 16,
-                        bottom: hasDragged ? undefined : 16,
-                        cursor: isDragging ? 'grabbing' : 'default'
+                        right: 16,
+                        bottom: 16,
+                        cursor: isDragging ? 'grabbing' : 'default',
+                        transform: `translate(${translate.current.x}px, ${translate.current.y}px)`
                     }}
                 >
                     <div
@@ -454,14 +455,20 @@ export function Step2ExecutionModal({ isOpen, selectedCount, questionIds, config
                         </div>
                         <div className="flex items-center gap-1 pointer-events-auto">
                             <button
-                                onClick={handleMinimizeToggle}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleMinimizeToggle();
+                                }}
                                 className="p-1 hover:bg-white/20 rounded"
                                 title="Expand"
                             >
                                 <span className="text-lg leading-none">□</span>
                             </button>
                             <button
-                                onClick={handleForceClose}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleForceClose();
+                                }}
                                 className="p-1 hover:bg-white/20 rounded"
                                 title="Stop and close"
                             >

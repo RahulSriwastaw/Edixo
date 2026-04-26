@@ -33,6 +33,7 @@ import { Switch } from "@/components/ui/switch";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
 import { mockbookService, MockTest, ExamSeries, ExamSubCategory } from "@/services/mockbookService";
+import { ExamInterfacePicker } from "@/components/examInterface/ExamInterfacePicker";
 import { toast } from "sonner";
 
 function StatusBadge({ status }: { status: string }) {
@@ -68,6 +69,7 @@ function MockTestsContent() {
         seriesId: "", // Added seriesId for easier selection
         subCategoryId: "", isPublic: false, shuffleQuestions: false,
         scheduledAt: "", endsAt: "", maxAttempts: 1,
+        interfaceThemeId: null as string | null,
     });
 
     // Check URL params on mount
@@ -102,13 +104,13 @@ function MockTestsContent() {
         }
     };
 
-    const selectedOrgId = null; 
+    const selectedOrgId = null;
     useEffect(() => { loadData(); }, [selectedOrgId]);
 
     // When series filter changes, load subcategories
     useEffect(() => {
         if (seriesFilter !== "all") {
-            mockbookService.getSubCategories(seriesFilter).then(setSubCategories).catch(() => {});
+            mockbookService.getSubCategories(seriesFilter).then(setSubCategories).catch(() => { });
         } else {
             setSubCategories([]);
         }
@@ -118,7 +120,7 @@ function MockTestsContent() {
         const matchSearch = t.name.toLowerCase().includes(search.toLowerCase()) ||
             t.testId.toLowerCase().includes(search.toLowerCase());
         const matchStatus = statusFilter === "all" || t.status === statusFilter;
-        
+
         let matchSeries = false;
         if (seriesFilter === "all") {
             matchSeries = true;
@@ -127,7 +129,7 @@ function MockTestsContent() {
         } else {
             matchSeries = t.subCategory?.category?.id === seriesFilter;
         }
-        
+
         return matchSearch && matchStatus && matchSeries;
     });
 
@@ -140,7 +142,7 @@ function MockTestsContent() {
             }
             const subs = await mockbookService.getSubCategories(categoryId);
             setSubCategories(subs);
-        } catch {}
+        } catch { }
     };
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -166,9 +168,11 @@ function MockTestsContent() {
             });
             toast.success("Mock test created successfully");
             setShowCreate(false);
-            setForm({ name: "", description: "", durationMins: 60, totalMarks: 100,
+            setForm({
+                name: "", description: "", durationMins: 60, totalMarks: 100,
                 seriesId: "", subCategoryId: "", isPublic: false, shuffleQuestions: false,
-                scheduledAt: "", endsAt: "", maxAttempts: 1 });
+                scheduledAt: "", endsAt: "", maxAttempts: 1, interfaceThemeId: null
+            });
             setSubCategories([]);
             loadData();
         } catch (err: any) {
@@ -428,21 +432,21 @@ function MockTestsContent() {
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-1.5">
                                 <Label>Duration (minutes) *</Label>
-                                <Input 
-                                    type="number" 
-                                    min={1} 
-                                    value={form.durationMins || ""} 
-                                    onChange={e => setForm(f => ({ ...f, durationMins: e.target.value === "" ? 0 : Number(e.target.value) }))} 
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    value={form.durationMins || ""}
+                                    onChange={e => setForm(f => ({ ...f, durationMins: e.target.value === "" ? 0 : Number(e.target.value) }))}
                                     onFocus={e => e.target.value === "0" && (e.target.value = "")}
                                 />
                             </div>
                             <div className="space-y-1.5">
                                 <Label>Total Marks</Label>
-                                <Input 
-                                    type="number" 
-                                    min={0} 
-                                    value={form.totalMarks || ""} 
-                                    onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value === "" ? 0 : Number(e.target.value) }))} 
+                                <Input
+                                    type="number"
+                                    min={0}
+                                    value={form.totalMarks || ""}
+                                    onChange={e => setForm(f => ({ ...f, totalMarks: e.target.value === "" ? 0 : Number(e.target.value) }))}
                                     onFocus={e => e.target.value === "0" && (e.target.value = "")}
                                 />
                             </div>
@@ -494,6 +498,10 @@ function MockTestsContent() {
                                 <Input type="datetime-local" value={form.endsAt} onChange={e => setForm(f => ({ ...f, endsAt: e.target.value }))} />
                             </div>
                         </div>
+                        <ExamInterfacePicker
+                            value={form.interfaceThemeId}
+                            onChange={(themeId) => setForm(f => ({ ...f, interfaceThemeId: themeId }))}
+                        />
                         <div className="flex items-center gap-6">
                             <label className="flex items-center gap-2 text-sm cursor-pointer">
                                 <Switch checked={form.isPublic} onCheckedChange={v => setForm(f => ({ ...f, isPublic: v }))} />

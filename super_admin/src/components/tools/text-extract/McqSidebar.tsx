@@ -40,7 +40,7 @@ const McqSidebar: React.FC<McqSidebarProps> = ({ isOpen, onClose, pages, mcqMode
   const autoMcqs = useMemo(() => {
     if (!mcqMode) return [];
     const extracted: McqItem[] = [];
-    let currentQuestion: Partial<McqItem> | null = null;
+    let currentQuestion: any = null;
 
     pages.forEach(page => {
       if (page.status !== 'done' || !page.elements) return;

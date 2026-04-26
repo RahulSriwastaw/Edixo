@@ -36,6 +36,7 @@ import {
   Target,
   MousePointer2,
   Database,
+  Layout,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -105,6 +106,7 @@ const navigation: NavGroup[] = [
           { label: "Exam Folders", href: "/mockbook/categories", icon: <Layers className="w-4 h-4" /> },
           { label: "Test Series", href: "/mockbook/test-series", icon: <BookOpen className="w-4 h-4" /> },
           { label: "Mock Tests", href: "/mockbook/mock-tests", icon: <FileText className="w-4 h-4" /> },
+          { label: "Interface Themes", href: "/exam-interface-themes", icon: <Layout className="w-4 h-4" /> },
           { label: "Live Monitor", href: "/mockbook/live", icon: <TrendingUp className="w-4 h-4" /> },
           { label: "Students", href: "/mockbook/students", icon: <Users className="w-4 h-4" /> },
           { label: "Plans & Packs", href: "/mockbook/plans", icon: <Target className="w-4 h-4" /> },
