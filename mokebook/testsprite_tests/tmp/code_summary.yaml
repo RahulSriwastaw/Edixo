@@ -1,0 +1,91 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 14 (App Router)
+  - React
+  - Tailwind CSS
+  - shadcn/ui
+routes:
+  - path: /
+    file: src/app/page.tsx
+    auth_required: false
+    description: Landing/home page
+  - path: /login
+    file: src/app/login/page.tsx
+    auth_required: false
+    description: User login page
+  - path: /[slug]
+    file: src/app/[slug]/page.tsx
+    auth_required: false
+    description: Exam series/category page
+  - path: /[slug]/tests/[id]
+    file: src/app/[slug]/tests/[id]/page.tsx
+    auth_required: true
+    description: Live exam interface with timer, question palette, bilingual support
+  - path: /[slug]/tests/[id]/solutions
+    file: src/app/[slug]/tests/[id]/solutions/page.tsx
+    auth_required: true
+    description: Exam solutions review page with bilingual support
+  - path: /[slug]/tests/[id]/analysis
+    file: src/app/[slug]/tests/[id]/analysis/page.tsx
+    auth_required: true
+    description: Post-exam analysis page
+features:
+  - name: Language Switcher
+    description: Toggle question and option text between English and Hindi in the exam interface via the VIEW IN dropdown
+    files:
+      - src/components/TestInterface/TestInterface.tsx
+      - src/components/TestInterface/layouts/DefaultLayout.tsx
+      - src/components/TestInterface/shared/QuestionDisplay.tsx
+      - src/components/TestInterface/shared/OptionButton.tsx
+    entry_route: /ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions
+    user_interactions:
+      - Login with email rahulsriwastaw7643@gmail.com and password 8863999370
+      - Navigate directly to http://localhost:3004/ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions?attemptNo=1
+      - Find the VIEW IN dropdown in the top-right header area
+      - Change it from English to Hindi
+      - Observe whether the question text changes
+      - Change it back to English
+      - Observe whether the question text changes back
+    api_calls:
+      - method: GET
+        endpoint: /api/mockbook/attempts/:id/review
+    auth_required: true
+  - name: View Solution
+    description: Reveal correct answer and explanation in review mode
+    files:
+      - src/components/TestInterface/layouts/DefaultLayout.tsx
+      - src/components/TestInterface/shared/OptionButton.tsx
+    entry_route: /[slug]/tests/[id]/solutions
+    user_interactions:
+      - Navigate to solutions page
+      - Click "View Solution" button
+      - See correct options highlighted
+      - See explanation text below options
+    api_calls:
+      - method: GET
+        endpoint: /api/mockbook/attempts/:id/review
+    auth_required: true
+  - name: Exam Interface
+    description: Take a timed exam with MCQ and integer type questions
+    files:
+      - src/app/[slug]/tests/[id]/page.tsx
+      - src/components/TestInterface/TestInterface.tsx
+    entry_route: /[slug]/tests/[id]
+    user_interactions:
+      - Load exam page
+      - Read question text
+      - Click an option to answer
+      - Click Save & Next to proceed
+      - Submit exam via Exit Review button
+    api_calls:
+      - method: GET
+        endpoint: /api/mockbook/tests/:testId/questions
+      - method: POST
+        endpoint: /api/mockbook/tests/:testId/attempts
+    auth_required: true
+known_limitations:
+  - issue: Both text_en and text_hi fields in DB have identical Hindi/Hinglish content, so language switching does not visually change question text
+    location: Database questions table
+    impact: Language switcher code works correctly but shows same text in both modes because data is identical

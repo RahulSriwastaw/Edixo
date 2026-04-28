@@ -458,6 +458,7 @@ export default function IntegratedTestPage() {
       <TestInterface
         test={{ id: testId, name: testName, durationMins, questions }}
         onSubmit={handleTestSubmit}
+        language={lang === "hindi" ? "hi" : "en"}
       />
     </ExamThemeProvider>
   );

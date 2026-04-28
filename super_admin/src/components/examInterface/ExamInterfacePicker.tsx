@@ -39,6 +39,7 @@ const layoutLabels: Record<string, string> = {
     jee: "JEE",
     testbook: "Testbook",
     testrankking: "TestRankKING",
+    eduquity: "Eduquity",
     default: "Default",
 };
 
@@ -98,6 +99,7 @@ export function ExamInterfacePicker({
                                         theme.layoutVariant === "jee" && "bg-purple-100 text-purple-700",
                                         theme.layoutVariant === "testbook" && "bg-cyan-100 text-cyan-700",
                                         theme.layoutVariant === "testrankking" && "bg-indigo-100 text-indigo-700",
+                                        theme.layoutVariant === "eduquity" && "bg-rose-100 text-rose-700",
                                         theme.layoutVariant === "default" && "bg-gray-100 text-gray-700"
                                     )}
                                 >

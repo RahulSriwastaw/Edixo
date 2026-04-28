@@ -7,6 +7,7 @@ import { useExamTheme } from "@/contexts/ExamThemeContext";
 interface Option {
     id: string;
     text: string;
+    textEn?: string;
     textHi?: string;
 }
 
@@ -17,6 +18,14 @@ interface OptionButtonProps {
     onChange: (selected: string[]) => void;
     integerValue?: string;
     onIntegerChange?: (value: string) => void;
+    isReviewMode?: boolean;
+    correctOptionIds?: string[];
+    explanation?: string;
+    explanationEn?: string;
+    explanationHi?: string;
+    forceShowSolution?: boolean;
+    isReattemptMode?: boolean;
+    language?: 'en' | 'hi';
 }
 
 export function OptionButton({
@@ -26,11 +35,40 @@ export function OptionButton({
     onChange,
     integerValue,
     onIntegerChange,
+    isReviewMode,
+    correctOptionIds = [],
+    explanation,
+    explanationEn,
+    explanationHi,
+    forceShowSolution = false,
+    isReattemptMode = false,
+    language = 'en',
 }: OptionButtonProps) {
     const { theme } = useExamTheme();
     const optionStyle = theme?.config?.optionStyle || "radio-cards";
 
+    const renderMarkdown = (text: string) => {
+        if (!text) return "";
+        let html = text
+            .replace(/^### (.*$)/gim, '<h3 class="text-[15px] font-bold mt-4 mb-2 text-blue-700">$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2 class="text-[17px] font-bold mt-5 mb-3 text-blue-800">$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1 class="text-[19px] font-black mt-6 mb-4 text-blue-900">$1</h1>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/^\* (.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
+            .replace(/\n/g, '<br/>');
+        return html;
+    };
+
+    const getOptionText = (opt: Option) => {
+        const raw = language === 'hi' 
+            ? (opt.textHi && opt.textHi.trim() !== "" ? opt.textHi : (opt.textEn || opt.text)) 
+            : (opt.textEn && opt.textEn.trim() !== "" ? opt.textEn : (opt.text || opt.textHi || ""));
+        return renderMarkdown(raw);
+    };
+
     const toggleOption = (id: string) => {
+        if (isReviewMode && !isReattemptMode) return;
         if (type === "mcq_multiple") {
             onChange(selected.includes(id) ? selected.filter((s) => s !== id) : [...selected, id]);
         } else {
@@ -47,11 +85,29 @@ export function OptionButton({
                 <input
                     type="number"
                     value={integerValue || ""}
-                    onChange={(e) => onIntegerChange?.(e.target.value)}
+                    onChange={(e) => {
+                        if (!isReviewMode) onIntegerChange?.(e.target.value);
+                    }}
+                    readOnly={isReviewMode}
                     className="w-full h-12 px-4 rounded-lg border border-[var(--border-input)] text-[16px] font-mono"
                     style={{ background: "var(--exam-bg)" }}
-                    placeholder="Type integer value..."
+                    placeholder={isReviewMode ? "" : "Type integer value..."}
                 />
+                {isReviewMode && forceShowSolution && (explanationEn || explanationHi || explanation) && (
+                    <div className="mt-4 p-4 rounded-lg bg-[var(--bg-main)] border border-[var(--border-input)]">
+                        <h4 className="text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Solution</h4>
+                        <div 
+                            className="text-[14px] text-[var(--text-primary)]" 
+                            dangerouslySetInnerHTML={{ 
+                                __html: renderMarkdown(
+                                    language === 'hi' 
+                                        ? (explanationHi || explanationEn || explanation || "") 
+                                        : (explanationEn || explanation || explanationHi || "")
+                                ) 
+                            }} 
+                        />
+                    </div>
+                )}
             </div>
         );
     }
@@ -62,6 +118,9 @@ export function OptionButton({
         <div className="space-y-2">
             {options.map((opt, idx) => {
                 const isSelected = selected.includes(opt.id);
+                const isCorrect = correctOptionIds.includes(opt.id);
+                const isWrong = isSelected && !isCorrect;
+                
                 const label = labelMap[idx] || String(idx + 1);
 
                 return (
@@ -70,23 +129,30 @@ export function OptionButton({
                         onClick={() => toggleOption(opt.id)}
                         className={cn(
                             "w-full text-left px-4 py-3 rounded-lg transition-all flex items-center gap-3",
-                            optionStyle === "radio-cards" && [
+                             optionStyle === "radio-cards" && [
                                 "border-2",
-                                isSelected
-                                    ? "border-[var(--exam-primary)] bg-[var(--exam-primary)]/5"
-                                    : "border-[var(--border-input)] hover:border-[var(--exam-primary)]/50",
+                                isReviewMode
+                                    ? (forceShowSolution ? (isCorrect ? "border-green-500 bg-green-50" : isWrong ? "border-red-500 bg-red-50" : "border-[var(--border-input)] opacity-60") : (isSelected ? "border-[var(--exam-primary)] bg-[var(--exam-primary)]/5" : "border-[var(--border-input)]"))
+                                    : isSelected
+                                        ? "border-[var(--exam-primary)] bg-[var(--exam-primary)]/5"
+                                        : "border-[var(--border-input)] hover:border-[var(--exam-primary)]/50",
                             ],
                             optionStyle === "boxed" && [
                                 "border",
-                                isSelected
-                                    ? "border-[var(--exam-primary)] bg-[var(--exam-primary)]/10"
-                                    : "border-[var(--border-input)] hover:bg-[var(--bg-main)]",
+                                isReviewMode
+                                    ? (forceShowSolution ? (isCorrect ? "border-green-500 bg-green-50" : isWrong ? "border-red-500 bg-red-50" : "border-[var(--border-input)] opacity-60") : (isSelected ? "border-[var(--exam-primary)] bg-[var(--exam-primary)]/10" : "border-[var(--border-input)]"))
+                                    : isSelected
+                                        ? "border-[var(--exam-primary)] bg-[var(--exam-primary)]/10"
+                                        : "border-[var(--border-input)] hover:bg-[var(--bg-main)]",
                             ],
                             optionStyle === "minimal" && [
                                 "border-b border-[var(--divider)] rounded-none",
-                                isSelected && "bg-[var(--exam-primary)]/5",
+                                isReviewMode
+                                    ? (forceShowSolution ? (isCorrect ? "bg-green-50" : isWrong ? "bg-red-50" : "opacity-60") : (isSelected && "bg-[var(--exam-primary)]/5"))
+                                    : isSelected && "bg-[var(--exam-primary)]/5",
                             ]
                         )}
+                        disabled={isReviewMode && !isReattemptMode && forceShowSolution}
                     >
                         {/* Radio / Checkbox indicator */}
                         <div
@@ -96,14 +162,17 @@ export function OptionButton({
                                     ? "w-5 h-5 rounded border-2"
                                     : "w-6 h-6 rounded-full border-2"
                             )}
-                            style={{
+                            style={isReviewMode ? {
+                                borderColor: forceShowSolution ? (isCorrect ? "#22C55E" : isWrong ? "#EF4444" : "var(--border-input)") : (isSelected ? "var(--exam-primary)" : "var(--border-input)"),
+                                backgroundColor: forceShowSolution ? (isCorrect ? "#22C55E" : isWrong ? "#EF4444" : "transparent") : (isSelected ? "var(--exam-primary)" : "transparent"),
+                            } : {
                                 borderColor: isSelected ? "var(--exam-primary)" : "var(--border-input)",
                                 backgroundColor: isSelected ? "var(--exam-primary)" : "transparent",
                             }}
                         >
-                            {isSelected && (
+                            {(isSelected || (isReviewMode && forceShowSolution && isCorrect)) && (
                                 <span className="text-white text-[10px] font-bold">
-                                    {type === "mcq_multiple" ? "✓" : "●"}
+                                    {isReviewMode ? (forceShowSolution ? (isCorrect ? "✓" : "✗") : "●") : (type === "mcq_multiple" ? "✓" : "●")}
                                 </span>
                             )}
                         </div>
@@ -121,13 +190,29 @@ export function OptionButton({
 
                         {/* Text */}
                         <span
-                            className="text-[14px] leading-snug"
+                            className="text-[14px] leading-snug flex-1"
                             style={{ color: "var(--text-primary)" }}
-                            dangerouslySetInnerHTML={{ __html: opt.text }}
+                            dangerouslySetInnerHTML={{ __html: getOptionText(opt) }}
                         />
                     </button>
                 );
             })}
+            
+            {isReviewMode && forceShowSolution && (explanationEn || explanationHi || explanation) && (
+                <div className="mt-6 p-4 rounded-lg bg-[var(--bg-main)] border border-[var(--border-input)]">
+                    <h4 className="text-[12px] font-bold text-[var(--text-secondary)] uppercase tracking-wider mb-2">Solution</h4>
+                    <div 
+                        className="text-[14px] text-[var(--text-primary)]" 
+                        dangerouslySetInnerHTML={{ 
+                            __html: renderMarkdown(
+                                language === 'hi' 
+                                    ? (explanationHi || explanationEn || explanation || "") 
+                                    : (explanationEn || explanation || explanationHi || "")
+                            ) 
+                        }} 
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -142,7 +142,14 @@ export default function TestAnalysisPage() {
                   </div>
                </div>
 
-               <div className="flex items-center gap-4">
+               <div className="flex items-center gap-3">
+                  <button
+                     onClick={() => router.push(`/${seriesSlug}/tests/${testId}/solutions?attemptNo=${attemptNo || allAttempts.length}`)}
+                     className="h-9 px-5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm border border-gray-200 flex items-center gap-2"
+                     style={{ background: "var(--bg-card)", color: "var(--text-primary)" }}
+                  >
+                     View Solutions
+                  </button>
                   <button
                      onClick={() => router.push(`/${seriesSlug}/tests/${testId}`)}
                      className="h-9 px-5 text-[11px] font-black uppercase tracking-widest rounded-xl transition-all shadow-sm flex items-center gap-2 text-white"
@@ -212,16 +219,47 @@ export default function TestAnalysisPage() {
                         )}
                      </h2>
                   </div>
-                  <div className="p-5 rounded-xl flex-1 max-w-sm" style={{ background: "var(--bg-main)", border: "var(--border-card)" }}>
-                     <div className="flex items-center gap-3 mb-2">
-                        <AlertCircle className="h-4 w-4" style={{ color: "#FF6B2B" }} />
-                        <p className="text-xs font-black uppercase tracking-widest" style={{ color: "var(--text-primary)" }}>Expert Tip</p>
+                  <div className="flex items-center gap-3 px-6 py-4 rounded-xl border border-dashed border-gray-300">
+                     <div className="text-center px-4 border-r border-gray-100">
+                        <div className="text-2xl font-black" style={{ color: "#FF6B2B" }}>{attemptData.score || 0}</div>
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Score</div>
                      </div>
-                     <p className="text-xs font-bold leading-relaxed" style={{ color: "var(--text-muted)" }}>
-                        Focus on {attemptData.sectionStats?.sort((a: any, b: any) => a.correct - b.correct)[0]?.name || "your weakest section"} to boost your score by 15-20% in the next attempt.
-                     </p>
+                     <div className="text-center px-4">
+                        <div className="text-2xl font-black" style={{ color: "var(--text-primary)" }}>{attemptData.percentile || 0}</div>
+                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Percentile</div>
+                     </div>
                   </div>
                </div>
+
+               {/* Progress Tracker Section */}
+               <section className="rounded-xl shadow-sm p-6" style={{ background: "var(--bg-card)", border: "var(--border-card)" }}>
+                  <div className="flex items-center justify-between mb-6">
+                     <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3" style={{ color: "var(--text-primary)" }}>
+                        <BarChart3 className="h-5 w-5" style={{ color: "#FF6B2B" }} /> Progress Tracker
+                     </h3>
+                     <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-blue-500"></div><span className="text-[10px] font-bold text-gray-500">Visited</span></div>
+                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-green-500"></div><span className="text-[10px] font-bold text-gray-500">Correct</span></div>
+                        <div className="flex items-center gap-1.5"><div className="w-2.5 h-2.5 rounded-sm bg-red-500"></div><span className="text-[10px] font-bold text-gray-500">Wrong</span></div>
+                     </div>
+                  </div>
+                  <div className="h-[250px]">
+                     <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={attemptData.sectionStats || []}>
+                           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--scrollbar-track)" />
+                           <XAxis dataKey="name" tick={{ fontSize: 10, fontStyle: 'bold', fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                           <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'var(--text-muted)' }} />
+                           <Tooltip cursor={{ fill: 'var(--bg-main)' }} contentStyle={{ borderRadius: '12px', border: 'none', background: 'var(--bg-card)', boxShadow: 'var(--card-hover-shadow)' }} />
+                           <Bar dataKey="total" name="Visited" fill="#3B82F6" radius={[4, 4, 0, 0]} barSize={24} />
+                           <Bar dataKey="correct" name="Correct" fill="#22C55E" radius={[4, 4, 0, 0]} barSize={24} />
+                           <Bar dataKey="incorrect" name="Wrong" fill="#EF4444" radius={[4, 4, 0, 0]} barSize={24} />
+                        </BarChart>
+                     </ResponsiveContainer>
+                  </div>
+                  <div className="mt-4 pt-4 border-t border-gray-100 text-center">
+                     <p className="text-[11px] font-bold text-gray-500">Overall Accuracy: <span className="text-green-600 font-black">{attemptData.accuracy || 0}%</span></p>
+                  </div>
+               </section>
 
                {/* Sectional Analysis Table */}
                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
@@ -232,32 +270,39 @@ export default function TestAnalysisPage() {
                               <BarChart3 className="h-5 w-5" style={{ color: "#FF6B2B" }} /> Sectional Analytics
                            </h3>
                         </div>
-                        <div className="p-4">
+                        <div className="p-0 overflow-x-auto">
                            <Table>
                               <TableHeader>
-                                 <TableRow className="border-none hover:bg-transparent">
-                                    <TableHead className="text-[10px] font-black uppercase" style={{ color: "var(--text-muted)" }}>Section</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase" style={{ color: "var(--text-muted)" }}>Correct</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase" style={{ color: "var(--text-muted)" }}>Wrong</TableHead>
-                                    <TableHead className="text-[10px] font-black uppercase" style={{ color: "var(--text-muted)" }}>Accuracy</TableHead>
+                                 <TableRow className="border-none hover:bg-transparent" style={{ background: "#3B82F6" }}>
+                                    <TableHead className="text-[10px] font-black uppercase py-3 text-white">Section</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase py-3 text-white">Total Time</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase py-3 text-white">Time on Correct</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase py-3 text-white">Time on Unans.</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase py-3 text-white">Time on Wrong</TableHead>
+                                    <TableHead className="text-[10px] font-black uppercase py-3 text-white">Accuracy</TableHead>
                                  </TableRow>
                               </TableHeader>
                               <TableBody>
                                  {attemptData.sectionStats?.map((sec: any, i: number) => (
                                     <TableRow key={i} style={{ borderColor: "var(--divider)" }}>
-                                       <TableCell className="font-black" style={{ color: "var(--text-primary)" }}>{sec.name}</TableCell>
-                                       <TableCell className="font-bold" style={{ color: "var(--badge-success-text)" }}>+{sec.correct}</TableCell>
-                                       <TableCell className="font-bold" style={{ color: "var(--badge-error-text)" }}>-{sec.incorrect}</TableCell>
+                                       <TableCell className="font-black text-[12px]" style={{ color: "var(--text-primary)" }}>{sec.name}</TableCell>
+                                       <TableCell className="font-bold text-[12px]">{sec.timeSpent || "00s"}</TableCell>
+                                       <TableCell className="font-bold text-[12px] text-green-600">{sec.timeSpentCorrect || "00s"}</TableCell>
+                                       <TableCell className="font-bold text-[12px] text-gray-500">{sec.timeSpentUnanswered || "00s"}</TableCell>
+                                       <TableCell className="font-bold text-[12px] text-red-500">{sec.timeSpentWrong || "00s"}</TableCell>
                                        <TableCell>
-                                          <div className="flex items-center gap-2">
-                                             <div className="flex-1 h-1.5 rounded-full max-w-[60px]" style={{ background: "var(--bg-main)" }}>
-                                                <div className="h-full rounded-full" style={{ width: `${Math.round((sec.correct / (sec.correct + sec.incorrect + sec.unattempted)) * 100)}%`, background: "#FF6B2B" }} />
-                                             </div>
-                                             <span className="text-[11px] font-black" style={{ color: "var(--text-primary)" }}>{Math.round((sec.correct / (sec.correct + sec.incorrect + sec.unattempted || 1)) * 100)}%</span>
-                                          </div>
+                                          <span className="text-[11px] font-black" style={{ color: "var(--text-primary)" }}>{Math.round((sec.correct / (sec.correct + sec.incorrect + sec.unattempted || 1)) * 100)}%</span>
                                        </TableCell>
                                     </TableRow>
                                  ))}
+                                 <TableRow className="bg-gray-50 font-black">
+                                    <TableCell>Total</TableCell>
+                                    <TableCell>{attemptData.totalTimeSpent || "00s"}</TableCell>
+                                    <TableCell className="text-green-600">--</TableCell>
+                                    <TableCell className="text-gray-500">--</TableCell>
+                                    <TableCell className="text-red-500">--</TableCell>
+                                    <TableCell>{attemptData.accuracy || 0}%</TableCell>
+                                 </TableRow>
                               </TableBody>
                            </Table>
                         </div>

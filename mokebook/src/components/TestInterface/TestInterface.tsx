@@ -2,13 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useExamTheme } from "@/contexts/ExamThemeContext";
-import { SSCLayout } from "./layouts/SSCLayout";
-import { RailwayLayout } from "./layouts/RailwayLayout";
-import { UPSCLayout } from "./layouts/UPSCLayout";
-import { JEELayout } from "./layouts/JEELayout";
 import { DefaultLayout } from "./layouts/DefaultLayout";
-import { TestbookLayout } from "./layouts/TestbookLayout";
-import { TestRankKINGLayout } from "./layouts/TestRankKINGLayout";
 import { EduquityLayout } from "./layouts/EduquityLayout";
 
 interface TestInterfaceProps {
@@ -18,15 +12,62 @@ interface TestInterfaceProps {
         durationMins: number;
         questions: any[];
     };
-    onSubmit: (answers: Record<string, string[]>, integerAnswers: Record<string, string>) => void;
+    onSubmit?: (answers: Record<string, string[]>, integerAnswers: Record<string, string>) => void;
+    isReviewMode?: boolean;
+    language?: 'en' | 'hi';
 }
 
-export function TestInterface({ test, onSubmit }: TestInterfaceProps) {
+export function TestInterface({ test, onSubmit, isReviewMode, language: initialLanguage }: TestInterfaceProps) {
     const { theme } = useExamTheme();
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [answers, setAnswers] = useState<Record<string, string[]>>({});
+    const [answers, setAnswers] = useState<Record<string, string[]>>(() => {
+        if (!isReviewMode) return {};
+        const initAns: Record<string, string[]> = {};
+        test.questions.forEach(q => {
+            if (q.selectedOptionIds && q.selectedOptionIds.length > 0) {
+                initAns[q.id] = q.selectedOptionIds;
+            }
+        });
+        return initAns;
+    });
     const [marked, setMarked] = useState<Set<string>>(new Set());
-    const [integerAnswers, setIntegerAnswers] = useState<Record<string, string>>({});
+    const [integerAnswers, setIntegerAnswers] = useState<Record<string, string>>(() => {
+        if (!isReviewMode) return {};
+        const initAns: Record<string, string> = {};
+        test.questions.forEach(q => {
+            if (q.type === 'integer' && q.selectedOptionIds && q.selectedOptionIds.length > 0) {
+                initAns[q.id] = q.selectedOptionIds[0];
+            }
+        });
+        return initAns;
+    });
+
+    const [isMobile, setIsMobile] = useState(false);
+    const [isReattemptMode, setIsReattemptMode] = useState(false);
+    const [language, setLanguage] = useState<'en' | 'hi'>(initialLanguage || 'en');
+
+    useEffect(() => {
+        if (initialLanguage) {
+            setLanguage(initialLanguage);
+        }
+    }, [initialLanguage]);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    const toggleReattemptMode = useCallback(() => {
+        setIsReattemptMode(prev => !prev);
+    }, []);
+
+    const handleLanguageChange = useCallback((lang: 'en' | 'hi') => {
+        setLanguage(lang);
+    }, []);
 
     const layoutVariant = theme?.config?.layoutVariant || "default";
 
@@ -71,7 +112,7 @@ export function TestInterface({ test, onSubmit }: TestInterfaceProps) {
     }, [test.questions.length]);
 
     const handleSubmit = useCallback(() => {
-        onSubmit(answers, integerAnswers);
+        onSubmit?.(answers, integerAnswers);
     }, [answers, integerAnswers, onSubmit]);
 
     const handleIntegerChange = useCallback((questionId: string, value: string) => {
@@ -95,21 +136,19 @@ export function TestInterface({ test, onSubmit }: TestInterfaceProps) {
         onSubmit: handleSubmit,
         integerAnswers,
         onIntegerChange: handleIntegerChange,
+        isReviewMode,
+        isReattemptMode,
+        onToggleReattempt: toggleReattemptMode,
+        language,
+        onLanguageChange: handleLanguageChange,
     };
 
+    // Use DefaultLayout (MockVeda) for review mode or mobile view
+    if (isReviewMode || isMobile) {
+        return <DefaultLayout {...commonProps} />;
+    }
+
     switch (layoutVariant) {
-        case "ssc":
-            return <SSCLayout {...commonProps} />;
-        case "railway":
-            return <RailwayLayout {...commonProps} />;
-        case "upsc":
-            return <UPSCLayout {...commonProps} />;
-        case "jee":
-            return <JEELayout {...commonProps} />;
-        case "testbook":
-            return <TestbookLayout {...commonProps} />;
-        case "testrankking":
-            return <TestRankKINGLayout {...commonProps} />;
         case "eduquity":
             return <EduquityLayout {...commonProps} />;
         default:

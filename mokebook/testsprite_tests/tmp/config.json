@@ -1,0 +1,23 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3004",
+  "executionArgs": {
+    "projectName": "mokebook",
+    "projectPath": "d:\\\\RahulProjects\\\\New EduHub\\\\mokebook",
+    "testIds": [
+      "TC001",
+      "TC002",
+      "TC003",
+      "TC004"
+    ],
+    "additionalInstruction": "Login credentials: email=rahulsriwastaw7643@gmail.com, password=8863999370. The solutions review URL to test is: http://localhost:3004/ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions?attemptNo=1. Focus on testing whether the VIEW IN language dropdown in the header actually changes the question display text when switched.",
+    "serverMode": "development",
+    "envs": {
+      "API_KEY": "sk-user-X1PBY5vKh7yZTiNyr44R7F67vTgAIOjrMcgGDPQmPhGKf1TMDVPi0etkW8oLeJ0U9oTLfJIpIV0vUC9kzyfJoSJnnoy2_DXoAsR6stbJRMYpVu4H4VTTjN81gUlkMCLBKAk"
+    }
+  },
+  "serverPort": 61158,
+  "proxy": "http://e08282f4-6920-487a-b191-7e594b7073fd:PgOTW3aPZ2qhiSws3aa2Si5JWgTv5aFG@tun.testsprite.com:8080"
+}

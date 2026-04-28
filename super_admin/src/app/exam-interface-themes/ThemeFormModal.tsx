@@ -128,6 +128,54 @@ const layoutPresets: Record<string, Partial<any>> = {
         showQuestionMarks: true,
         showNegativeMarks: false,
     },
+    eduquity: {
+        paletteColorScheme: {
+            notAnswered: "#EF4444",
+            answered: "#22C55E",
+            markedForReview: "#A855F7",
+            markedAndAnswered: "#F97316",
+            notVisited: "#E5E7EB",
+        },
+        showSectionTabs: true,
+        showQuestionTypeBadge: false,
+        optionStyle: "radio-cards",
+        showLegend: true,
+        timerPosition: "header-center",
+        showQuestionMarks: true,
+        showNegativeMarks: true,
+    },
+    testbook: {
+        paletteColorScheme: {
+            notAnswered: "#EF4444",
+            answered: "#22C55E",
+            markedForReview: "#A855F7",
+            markedAndAnswered: "#F97316",
+            notVisited: "#E5E7EB",
+        },
+        showSectionTabs: true,
+        showQuestionTypeBadge: true,
+        optionStyle: "radio-cards",
+        showLegend: true,
+        timerPosition: "header-right",
+        showQuestionMarks: true,
+        showNegativeMarks: true,
+    },
+    testrankking: {
+        paletteColorScheme: {
+            notAnswered: "#EF4444",
+            answered: "#22C55E",
+            markedForReview: "#A855F7",
+            markedAndAnswered: "#F97316",
+            notVisited: "#E5E7EB",
+        },
+        showSectionTabs: true,
+        showQuestionTypeBadge: true,
+        optionStyle: "radio-cards",
+        showLegend: true,
+        timerPosition: "header-right",
+        showQuestionMarks: true,
+        showNegativeMarks: true,
+    },
 };
 
 export function ThemeFormModal({ theme, onSave, onCancel }: ThemeFormModalProps) {
@@ -270,6 +318,9 @@ export function ThemeFormModal({ theme, onSave, onCancel }: ThemeFormModalProps)
                                 <SelectItem value="railway">Railway RRB</SelectItem>
                                 <SelectItem value="upsc">UPSC / State PCS</SelectItem>
                                 <SelectItem value="jee">JEE / NEET</SelectItem>
+                                <SelectItem value="eduquity">Eduquity</SelectItem>
+                                <SelectItem value="testbook">Testbook</SelectItem>
+                                <SelectItem value="testrankking">TestRankKING</SelectItem>
                                 <SelectItem value="default">Default (MockBook)</SelectItem>
                             </SelectContent>
                         </Select>

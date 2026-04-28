@@ -1,0 +1,178 @@
+[
+  {
+    "id": "TC001",
+    "title": "Verify solution review page loads correctly",
+    "description": "Verifies the solution review page loads for an authenticated user and shows questions with View Solution button hidden by default.",
+    "category": "View Solution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/login"
+      },
+      {
+        "type": "action",
+        "description": "Fill email field with rahulsriwastaw7643@gmail.com"
+      },
+      {
+        "type": "action",
+        "description": "Fill password field with 8863999370"
+      },
+      {
+        "type": "action",
+        "description": "Click the Sign In / Login button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions?attemptNo=1"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the page loaded and shows a question with a 'View Solution' button visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the correct answer options are NOT highlighted before clicking View Solution"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Language switcher changes question display text",
+    "description": "Verifies clicking the VIEW IN dropdown and switching between English and Hindi changes what is displayed in the question area.",
+    "category": "Language Switching",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/login"
+      },
+      {
+        "type": "action",
+        "description": "Fill email field with rahulsriwastaw7643@gmail.com"
+      },
+      {
+        "type": "action",
+        "description": "Fill password field with 8863999370"
+      },
+      {
+        "type": "action",
+        "description": "Click the Sign In / Login button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions?attemptNo=1"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the page to load and locate the VIEW IN dropdown in the top-right header"
+      },
+      {
+        "type": "action",
+        "description": "Record the current question text displayed on screen"
+      },
+      {
+        "type": "action",
+        "description": "Change the VIEW IN dropdown to 'Hindi' if it's on English, or to 'English' if it's on Hindi"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the VIEW IN dropdown now shows the newly selected language"
+      },
+      {
+        "type": "assertion",
+        "description": "Check if the question text on screen has changed after switching language - take screenshot for comparison"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "View Solution reveals correct answer and explanation",
+    "description": "Verifies clicking View Solution button reveals the correct option highlighted and shows the explanation text below.",
+    "category": "View Solution",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/login"
+      },
+      {
+        "type": "action",
+        "description": "Fill email field with rahulsriwastaw7643@gmail.com"
+      },
+      {
+        "type": "action",
+        "description": "Fill password field with 8863999370"
+      },
+      {
+        "type": "action",
+        "description": "Click the Sign In / Login button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions?attemptNo=1"
+      },
+      {
+        "type": "action",
+        "description": "Click the 'View Solution' button visible for question 1"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify at least one option is now highlighted in green (correct answer)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a solution/explanation section appears below the options"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Language switch in Hindi mode renders question in Hindi script",
+    "description": "Verifies the VIEW IN dropdown works and when set to Hindi, the question body renders using the textHi field from the API.",
+    "category": "Language Switching",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/login"
+      },
+      {
+        "type": "action",
+        "description": "Fill email field with rahulsriwastaw7643@gmail.com"
+      },
+      {
+        "type": "action",
+        "description": "Fill password field with 8863999370"
+      },
+      {
+        "type": "action",
+        "description": "Click the Sign In / Login button"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to http://localhost:3004/ssc-cgl-test-series-demo/tests/730254712620cec16b456f6c/solutions?attemptNo=1"
+      },
+      {
+        "type": "action",
+        "description": "Locate the VIEW IN dropdown in the top-right area of the header bar"
+      },
+      {
+        "type": "action",
+        "description": "Set VIEW IN dropdown to 'Hindi'"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the VIEW IN dropdown value shows Hindi"
+      },
+      {
+        "type": "action",
+        "description": "Set VIEW IN dropdown back to 'English'"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the VIEW IN dropdown value shows English and the page is still functional"
+      }
+    ],
+    "priority": "High"
+  }
+]
