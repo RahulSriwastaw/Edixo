@@ -32,6 +32,7 @@ import {
   Loader2,
   Sparkles,
   Plus,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,8 +46,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -244,6 +253,7 @@ function MetaItem({
   );
 }
 
+
 function RichContent({
   html,
   className,
@@ -266,9 +276,11 @@ function RichContent({
 function RichTextToolbar({
   onInsertTag,
   onInsertLatex,
+  onInsertImage,
 }: {
   onInsertTag: (tag: string) => void;
   onInsertLatex: (type: "inline" | "display" | "chem") => void;
+  onInsertImage: () => void;
 }) {
   return (
     <div className="flex items-center gap-1 p-1.5 bg-[var(--bg-main)] border-b rounded-t-md">
@@ -334,10 +346,20 @@ function RichTextToolbar({
             Display: \[ \]
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onInsertLatex("chem")}>
-            Chemical: \[\ce{"{ }"}\\]
+            Chemical: \[\ce{"{ }"}\]
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-7 px-2 gap-1 text-xs"
+        onClick={onInsertImage}
+        title="Insert Image"
+      >
+        <ImageIcon className="w-3.5 h-3.5" /> Image
+      </Button>
     </div>
   );
 }
@@ -371,6 +393,11 @@ export function QuestionFullDetailView({
   const [lang, setLang] = useState<"eng" | "hin">("eng");
   const [aiEditType, setAiEditType] = useState<string>("");
   const [aiLoading, setAiLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [showImageDialog, setShowImageDialog] = useState(false);
+  const [imageUrl, setImageUrl] = useState("");
+  const [activeImageTarget, setActiveImageTarget] = useState<"text" | "main">("text");
+  const [activeField, setActiveField] = useState<keyof EditFormData>("question_eng");
 
   // Edit form state
   const [formData, setFormData] = useState<EditFormData>({
@@ -595,33 +622,79 @@ export function QuestionFullDetailView({
     }
   };
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
     const toastId = toast.loading("Uploading image...");
     try {
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
 
-      const res = await fetch(`${API_URL}/upload`, {
+      const authHeaders = getAuthHeaders();
+      const { "Content-Type": _, ...headers } = authHeaders as any;
+
+      const res = await fetch(`${API_URL}/upload/image`, {
         method: "POST",
-        headers: getAuthHeaders(),
+        headers,
         body: formDataUpload,
       });
 
       if (!res.ok) throw new Error("Upload failed");
       const data = await res.json();
 
-      if (data.url) {
-        setFormData((f) => ({ ...f, image: data.url }));
-        toast.success("Image uploaded!", { id: toastId });
+      if (data.success && data.data.url) {
+        const url = data.data.url;
+        if (activeImageTarget === "main") {
+          setFormData((f) => ({ ...f, image: url }));
+          toast.success("Main image updated!", { id: toastId });
+        } else {
+          const imgHtml = `<p><img src="${url}" alt="" width="400"></p>`;
+          const current = (formData[activeField] as string) || "";
+          setFormData((f) => ({ ...f, [activeField]: current + imgHtml }));
+          toast.success("Image inserted into text!", { id: toastId });
+        }
+        setShowImageDialog(false);
+        setImageUrl("");
       } else {
-        throw new Error("No URL returned");
+        throw new Error(data.message || "No URL returned");
       }
-    } catch (err) {
-      toast.error("Failed to upload image", { id: toastId });
+    } catch (err: any) {
+      toast.error(err.message || "Failed to upload image", { id: toastId });
+    } finally {
+      setUploading(false);
     }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          await handleImageUpload(blob);
+        }
+      }
+    }
+  };
+
+  const insertImage = () => {
+    if (!imageUrl.trim()) return;
+    if (activeImageTarget === "main") {
+      setFormData((f) => ({ ...f, image: imageUrl }));
+      toast.success("Main image updated!");
+    } else {
+      const imgHtml = `<p><img src="${imageUrl}" alt="" width="400"></p>`;
+      const current = (formData[activeField] as string) || "";
+      setFormData((f) => ({ ...f, [activeField]: current + imgHtml }));
+      toast.success("Image inserted into text!");
+    }
+    setImageUrl("");
+    setShowImageDialog(false);
+  };
+
+  const openImageDialog = (target: "text" | "main", field?: keyof EditFormData) => {
+    setActiveImageTarget(target);
+    if (field) setActiveField(field);
+    setShowImageDialog(true);
   };
 
   const insertHtmlTag = (tag: string, field: keyof EditFormData) => {
@@ -894,6 +967,7 @@ export function QuestionFullDetailView({
                   <RichTextToolbar
                     onInsertTag={(tag) => insertHtmlTag(tag, "question_eng")}
                     onInsertLatex={(type) => insertLatex(type, "question_eng")}
+                    onInsertImage={() => openImageDialog("text", "question_eng")}
                   />
                 </div>
                 <AutoResizeTextarea
@@ -919,6 +993,7 @@ export function QuestionFullDetailView({
                   <RichTextToolbar
                     onInsertTag={(tag) => insertHtmlTag(tag, "question_hin")}
                     onInsertLatex={(type) => insertLatex(type, "question_hin")}
+                    onInsertImage={() => openImageDialog("text", "question_hin")}
                   />
                 </div>
                 <AutoResizeTextarea
@@ -950,16 +1025,17 @@ export function QuestionFullDetailView({
                   type="file"
                   id="image-upload"
                   className="hidden"
-                  onChange={handleImageUpload}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                  }}
                   accept="image/*"
                 />
                 <Button
                   variant="ghost"
                   size="sm"
                   className="h-6 text-[10px] font-bold text-[var(--text-secondary)] hover:text-[var(--text-primary)] bg-slate-100 px-2"
-                  onClick={() =>
-                    document.getElementById("image-upload")?.click()
-                  }
+                  onClick={() => openImageDialog("main")}
                 >
                   <Pencil className="w-3 h-3 mr-1" /> Change
                 </Button>
@@ -1099,6 +1175,7 @@ export function QuestionFullDetailView({
                   <RichTextToolbar
                     onInsertTag={(tag) => insertHtmlTag(tag, "solution_eng")}
                     onInsertLatex={(type) => insertLatex(type, "solution_eng")}
+                    onInsertImage={() => openImageDialog("text", "solution_eng")}
                   />
                 </div>
                 <AutoResizeTextarea
@@ -1124,6 +1201,7 @@ export function QuestionFullDetailView({
                   <RichTextToolbar
                     onInsertTag={(tag) => insertHtmlTag(tag, "solution_hin")}
                     onInsertLatex={(type) => insertLatex(type, "solution_hin")}
+                    onInsertImage={() => openImageDialog("text", "solution_hin")}
                   />
                 </div>
                 <AutoResizeTextarea
@@ -1176,6 +1254,78 @@ export function QuestionFullDetailView({
           Next <ChevronRight className="w-4 h-4 ml-2" />
         </Button>
       </div>
+
+      {/* Image Dialog */}
+      <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Insert Image</DialogTitle>
+            <DialogDescription className="sr-only">
+              Upload an image, paste from clipboard, or enter a URL to insert an image into the question.
+            </DialogDescription>
+          </DialogHeader>
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsTrigger value="paste">Paste</TabsTrigger>
+              <TabsTrigger value="url">URL</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="space-y-4 py-4">
+              <div 
+                className="border-2 border-dashed border-[var(--border-input)] rounded-lg p-8 text-center hover:border-indigo-500 transition-colors cursor-pointer"
+                onClick={() => document.getElementById('image-upload-input')?.click()}
+              >
+                <input 
+                  id="image-upload-input"
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                  }}
+                />
+                <ImageIcon className="w-10 h-10 mx-auto text-[var(--text-muted)] mb-2" />
+                <p className="text-sm text-[var(--text-secondary)]">Click to upload or drag and drop</p>
+                {uploading && <p className="text-xs text-indigo-500 mt-2 animate-pulse">Uploading...</p>}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="paste" className="space-y-4 py-4">
+              <div 
+                className="border-2 border-dashed border-[var(--border-input)] rounded-lg p-8 text-center focus-within:border-indigo-500 transition-colors outline-none"
+                onPaste={handlePaste}
+                tabIndex={0}
+              >
+                <p className="text-sm text-[var(--text-secondary)]">Click here and press <b>Ctrl+V</b> to paste an image from clipboard</p>
+                {uploading && <p className="text-xs text-indigo-500 mt-2 animate-pulse">Uploading...</p>}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="url" className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Image URL</Label>
+                <Input 
+                  placeholder="https://example.com/image.png" 
+                  value={imageUrl} 
+                  onChange={(e) => setImageUrl(e.target.value)} 
+                />
+              </div>
+              <Button 
+                className="w-full bg-indigo-500 hover:bg-indigo-600 text-white font-bold" 
+                onClick={insertImage}
+                disabled={!imageUrl.trim() || uploading}
+              >
+                {activeImageTarget === "main" ? "Update Main Image" : "Insert into Text"}
+              </Button>
+            </TabsContent>
+          </Tabs>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowImageDialog(false)}>Cancel</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

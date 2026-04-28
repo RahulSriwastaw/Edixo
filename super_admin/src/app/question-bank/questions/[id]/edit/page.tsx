@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useSidebarStore } from "@/store/sidebarStore";
 import { cn } from "@/lib/utils";
 
@@ -52,6 +52,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 
@@ -194,6 +195,7 @@ export default function EditQuestionPage({
   const [activeLangTab, setActiveLangTab] = useState<"hin" | "eng">("hin");
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [imageUrl, setImageUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const [activeField, setActiveField] = useState<string>("question_hin");
   const initializedRef = useRef(false);
 
@@ -350,9 +352,59 @@ export default function EditQuestionPage({
     setShowImageDialog(true);
   };
 
+  const handleImageUpload = async (file: File) => {
+    setUploading(true);
+    try {
+      const token = getToken();
+      const formDataToSend = new FormData();
+      formDataToSend.append('file', file);
+
+      const response = await fetch(`${API_URL}/upload/image`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        body: formDataToSend
+      });
+
+      const res = await response.json();
+      if (res.success) {
+        const url = res.data.url;
+        const imgHtml = `<p><img src="${url}" alt="" width="400"></p>`;
+        const currentContent = formData[activeField as keyof QuestionForm] as string;
+        setFormData({ 
+          ...formData, 
+          [activeField]: currentContent + imgHtml 
+        });
+        toast.success("Image uploaded and inserted!");
+        setShowImageDialog(false);
+        setImageUrl("");
+      } else {
+        toast.error("Upload failed: " + (res.message || "Unknown error"));
+      }
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast.error("Error uploading image");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handlePaste = async (e: React.ClipboardEvent) => {
+    const items = e.clipboardData.items;
+    for (let i = 0; i < items.length; i++) {
+      if (items[i].type.indexOf("image") !== -1) {
+        const blob = items[i].getAsFile();
+        if (blob) {
+          await handleImageUpload(blob);
+        }
+      }
+    }
+  };
+
   const insertImage = () => {
     if (!imageUrl.trim()) return;
-    const imgHtml = `<p><img src="${imageUrl}" alt="" width="300"></p>`;
+    const imgHtml = `<p><img src="${imageUrl}" alt="" width="400"></p>`;
     setFormData({ ...formData, [activeField]: (formData[activeField as keyof QuestionForm] as string) + imgHtml });
     setImageUrl("");
     setShowImageDialog(false);
@@ -945,21 +997,72 @@ export default function EditQuestionPage({
 
       {/* Image Dialog */}
       <Dialog open={showImageDialog} onOpenChange={setShowImageDialog}>
-        <DialogContent>
-          <DialogHeader><DialogTitle>Insert Image</DialogTitle></DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Image URL</Label>
-              <Input placeholder="https://cdn.eduhub.in/questions/..." value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} />
-            </div>
-            <div className="flex items-center gap-2 p-3 bg-[var(--bg-main)] rounded-lg">
-              <Upload className="w-5 h-5 text-[var(--text-muted)]" />
-              <span className="text-sm text-[var(--text-secondary)]">Or upload image to CDN (coming soon)</span>
-            </div>
-          </div>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Insert Image</DialogTitle>
+            <DialogDescription>
+              Upload an image, paste from clipboard, or enter a URL.
+            </DialogDescription>
+          </DialogHeader>
+          <Tabs defaultValue="upload" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="upload">Upload</TabsTrigger>
+              <TabsTrigger value="paste">Paste</TabsTrigger>
+              <TabsTrigger value="url">URL</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="upload" className="space-y-4 py-4">
+              <div 
+                className="border-2 border-dashed border-[var(--border-input)] rounded-lg p-8 text-center hover:border-[#F4511E] transition-colors cursor-pointer"
+                onClick={() => document.getElementById('image-upload-input')?.click()}
+              >
+                <input 
+                  id="image-upload-input"
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) handleImageUpload(file);
+                  }}
+                />
+                <Upload className="w-10 h-10 mx-auto text-[var(--text-muted)] mb-2" />
+                <p className="text-sm text-[var(--text-secondary)]">Click to upload or drag and drop</p>
+                {uploading && <p className="text-xs text-[#F4511E] mt-2 animate-pulse">Uploading...</p>}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="paste" className="space-y-4 py-4">
+              <div 
+                className="border-2 border-dashed border-[var(--border-input)] rounded-lg p-8 text-center focus-within:border-[#F4511E] transition-colors outline-none"
+                onPaste={handlePaste}
+                tabIndex={0}
+              >
+                <p className="text-sm text-[var(--text-secondary)]">Click here and press <b>Ctrl+V</b> to paste an image from clipboard</p>
+                {uploading && <p className="text-xs text-[#F4511E] mt-2 animate-pulse">Uploading...</p>}
+              </div>
+            </TabsContent>
+
+            <TabsContent value="url" className="space-y-4 py-4">
+              <div className="space-y-2">
+                <Label>Image URL</Label>
+                <Input 
+                  placeholder="https://example.com/image.png" 
+                  value={imageUrl} 
+                  onChange={(e) => setImageUrl(e.target.value)} 
+                />
+              </div>
+              <Button 
+                className="w-full bg-[#F4511E] hover:bg-[#E64A19] text-white" 
+                onClick={insertImage}
+                disabled={!imageUrl.trim() || uploading}
+              >
+                Insert from URL
+              </Button>
+            </TabsContent>
+          </Tabs>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowImageDialog(false)}>Cancel</Button>
-            <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white" onClick={insertImage}>Insert</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
