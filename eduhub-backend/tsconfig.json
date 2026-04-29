@@ -29,6 +29,10 @@
     ],
     "exclude": [
         "node_modules",
-        "dist"
+        "dist",
+        "src/check_db.ts",
+        "src/check_filters.ts",
+        "src/test_login_flow.ts",
+        "src/modules/blog/**/*"
     ]
 }
