@@ -1,66 +1,50 @@
 import Link from "next/link";
-import { Twitter, Linkedin, Github, Facebook } from "lucide-react";
+import { BookOpen } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="bg-gray-900 text-white pt-16 pb-8">
+    <footer style={{ background: 'var(--bg-sidebar)', borderTop: '1px solid var(--divider)', padding: '40px 0 24px' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 mb-10">
           <div className="col-span-1 md:col-span-1">
-            <Link href="/" className="text-2xl font-bold text-white mb-4 block">
-              Q-Bank
+            <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 18, fontWeight: 700, color: 'var(--accent)', marginBottom: 16, textDecoration: 'none' }}>
+              <BookOpen size={20} /> Q-Bank Pro
             </Link>
-            <p className="text-gray-400 mb-6">
-              Empowering education with technology. The all-in-one platform for modern institutions.
+            <p style={{ color: 'var(--text-muted)', fontSize: 13, lineHeight: 1.6 }}>
+              Empowering educators with a professional question bank platform.
             </p>
-            <div className="flex space-x-4">
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Github className="w-5 h-5" />
-              </a>
-              <a href="#" className="text-gray-400 hover:text-white transition-colors">
-                <Facebook className="w-5 h-5" />
-              </a>
-            </div>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Product</h4>
-            <ul className="space-y-2">
-              <li><Link href="/tools/creator" className="text-gray-400 hover:text-white transition-colors">Question Bank</Link></li>
-              <li><Link href="/tools/pdf-studio" className="text-gray-400 hover:text-white transition-colors">PDF Studio</Link></li>
-              <li><Link href="/tools/ppt-studio" className="text-gray-400 hover:text-white transition-colors">PPT Generator</Link></li>
-              <li><Link href="/#pricing" className="text-gray-400 hover:text-white transition-colors">Pricing</Link></li>
+            <h4 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Product</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <li><Link href="/dashboard/global-question-bank" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>Global Q-Bank</Link></li>
+              <li><Link href="/dashboard/marketplace" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>Marketplace</Link></li>
+              <li><Link href="/tools/creator" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>AI Creator</Link></li>
+              <li><Link href="/tools/pdf-studio" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>PDF Studio</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Company</h4>
-            <ul className="space-y-2">
-              <li><Link href="/about" className="text-gray-400 hover:text-white transition-colors">About Us</Link></li>
-              <li><Link href="/blog" className="text-gray-400 hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/contact" className="text-gray-400 hover:text-white transition-colors">Contact</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Careers</Link></li>
+            <h4 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Company</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <li><Link href="/about" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>About Us</Link></li>
+              <li><Link href="/blog" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>Blog</Link></li>
+              <li><Link href="/contact" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>Contact</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="text-lg font-semibold mb-4">Legal</h4>
-            <ul className="space-y-2">
-              <li><Link href="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/terms" className="text-gray-400 hover:text-white transition-colors">Terms of Service</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Cookie Policy</Link></li>
+            <h4 style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 16, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Legal</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <li><Link href="/privacy" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>Privacy Policy</Link></li>
+              <li><Link href="/terms" style={{ color: 'var(--text-muted)', fontSize: 13, textDecoration: 'none' }}>Terms of Service</Link></li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-gray-800 pt-8 text-center text-gray-500 text-sm">
-          <p>&copy; {new Date().getFullYear()} Q-Bank Inc. All rights reserved.</p>
+        <div style={{ borderTop: '1px solid var(--divider)', paddingTop: 20, textAlign: 'center', color: 'var(--text-muted)', fontSize: 12 }}>
+          <p>&copy; {new Date().getFullYear()} Q-Bank Pro. All rights reserved.</p>
         </div>
       </div>
     </footer>

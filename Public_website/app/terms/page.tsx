@@ -1,41 +1,40 @@
 import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
+import Link from 'next/link';
 
 export default function TermsPage() {
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div style={{ minHeight: '100vh', background: 'var(--bg-body)', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
-
-            <main className="flex-1 pt-32 pb-20">
-                <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <h1 className="text-4xl font-bold text-slate-900 mb-8">Terms of Service</h1>
-                    <div className="prose prose-slate max-w-none">
-                        <p className="text-slate-600 mb-6">Last Updated: February 12, 2026</p>
-
-                        <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-4">1. Acceptance of Terms</h2>
-                        <p className="text-slate-600 mb-6">
-                            By accessing and using our website and services, you agree to be bound by these Terms of Service and all applicable laws and regulations.
-                        </p>
-
-                        <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-4">2. Use License</h2>
-                        <p className="text-slate-600 mb-6">
-                            Permission is granted to temporarily download one copy of the materials (information or software) on Q-Bank's website for personal, non-commercial transitory viewing only.
-                        </p>
-
-                        <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-4">3. Disclaimer</h2>
-                        <p className="text-slate-600 mb-6">
-                            The materials on Q-Bank's website are provided on an 'as is' basis. Q-Bank makes no warranties, expressed or implied, and hereby disclaims and negates all other warranties including, without limitation, implied warranties or conditions of merchantability, fitness for a particular purpose, or non-infringement of intellectual property or other violation of rights.
-                        </p>
-
-                        <h2 className="text-2xl font-bold text-slate-900 mt-10 mb-4">4. Limitations</h2>
-                        <p className="text-slate-600 mb-6">
-                            In no event shall Q-Bank or its suppliers be liable for any damages (including, without limitation, damages for loss of data or profit, or due to business interruption) arising out of the use or inability to use the materials on Q-Bank's website.
-                        </p>
+            <main style={{ flex: 1, padding: '120px 0 60px', marginTop: '54px' }}>
+                <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div style={{ textAlign: 'center', marginBottom: 32 }}>
+                        <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>Terms of Service</h1>
+                        <p style={{ fontSize: 14, color: 'var(--text-secondary)' }}>Last updated: May 2024</p>
+                    </div>
+                    
+                    <div className="db-card" style={{ padding: 24 }}>
+                        <div style={{ fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.7 }}>
+                            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>1. Acceptance of Terms</h2>
+                            <p style={{ marginBottom: 12 }}>By accessing Q-Bank Pro, you agree to these terms of service.</p>
+                            
+                            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>2. User Accounts</h2>
+                            <p style={{ marginBottom: 12 }}>You are responsible for maintaining the confidentiality of your account credentials.</p>
+                            
+                            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>3. Content Usage</h2>
+                            <p style={{ marginBottom: 12 }}>Question packs purchased from the marketplace are for personal educational use only.</p>
+                            
+                            <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>4. Limitation of Liability</h2>
+                            <p>Q-Bank Pro is not liable for any damages arising from the use of our platform.</p>
+                        </div>
+                    </div>
+                    
+                    <div style={{ textAlign: 'center', marginTop: 24 }}>
+                        <Link href="/" style={{ fontSize: 13, color: 'var(--text-muted)', textDecoration: 'none' }}>← Back to Home</Link>
                     </div>
                 </div>
             </main>
-
             <Footer />
         </div>
     );

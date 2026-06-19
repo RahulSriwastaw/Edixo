@@ -1,57 +1,57 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight, CheckCircle, BookOpen } from "lucide-react";
 
 export function Hero() {
   return (
-    <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden">
+    <div className="relative pt-32 pb-20 lg:pt-40 lg:pb-28 overflow-hidden" style={{ background: 'var(--bg-body)', marginTop: '54px' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-extrabold text-gray-900 tracking-tight mb-8">
-            Professional <span className="text-primary">Teaching Tools</span> &amp; Question Bank
+          <h1 className="text-5xl md:text-6xl font-extrabold tracking-tight mb-8" style={{ color: 'var(--text-primary)' }}>
+            Global <span style={{ color: 'var(--accent)' }}>Question Bank Pro</span>
           </h1>
-          <p className="text-xl text-gray-600 mb-10 leading-relaxed">
-            Teachers ke liye powerful Q-Bank, PDF Studio, PPT Generator aur
-            Smart Board tools – sab kuch ek hi platform par.
+          <p className="text-xl mb-10 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+            Professional question library for teachers and educators. Access thousands of curated questions, 
+            create custom test papers, and manage your entire question repository from one platform.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <a
-              href="http://localhost:3003"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-xl text-white bg-primary hover:bg-primary-hover transition-all hover:scale-105 shadow-lg shadow-primary/20"
+            <Link
+              href="/dashboard/global-question-bank"
+              className="btn btn-primary"
+              style={{ padding: '14px 32px', fontSize: 15, fontWeight: 600, textDecoration: 'none' }}
             >
-              Start Practicing (Mokebook)
+              Explore Global Q-Bank
               <ArrowRight className="ml-2 w-5 h-5" />
-            </a>
-            <a
-              href="http://localhost:3002"
-              className="inline-flex items-center justify-center px-8 py-4 text-lg font-semibold rounded-xl text-slate-900 bg-slate-100 hover:bg-slate-200 transition-all hover:scale-105"
+            </Link>
+            <Link
+              href="/dashboard/marketplace"
+              className="btn btn-secondary"
+              style={{ padding: '14px 32px', fontSize: 15, fontWeight: 600, textDecoration: 'none' }}
             >
-              Institute Login
-            </a>
+              Browse Marketplace
+            </Link>
           </div>
-          <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500">
+          <div className="flex flex-wrap justify-center gap-6 text-sm" style={{ color: 'var(--text-secondary)' }}>
             <div className="flex items-center">
-              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-              Advanced Question Bank
+              <CheckCircle className="w-4 h-4 mr-2" style={{ color: 'var(--badge-success-text)' }} />
+              10,000+ Questions
             </div>
             <div className="flex items-center">
-              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-              Smart Board &amp; Whiteboard
+              <CheckCircle className="w-4 h-4 mr-2" style={{ color: 'var(--badge-success-text)' }} />
+              Multiple Subjects
             </div>
             <div className="flex items-center">
-              <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-              Automated PDF/PPT Generation
+              <CheckCircle className="w-4 h-4 mr-2" style={{ color: 'var(--badge-success-text)' }} />
+              Instant PDF/PPT Export
             </div>
           </div>
         </div>
       </div>
 
-      {/* Background Gradient Blob */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none opacity-40 z-0">
-        <div className="absolute top-20 left-20 w-96 h-96 bg-primary-light rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute top-20 right-20 w-96 h-96 bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-8 left-1/2 w-96 h-96 bg-pink-200 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+      {/* Background gradient - subtle, no white */}
+      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full max-w-7xl pointer-events-none opacity-10 z-0">
+        <div className="absolute top-20 left-20 w-96 h-96 rounded-full filter blur-3xl" style={{ background: 'var(--accent)' }}></div>
+        <div className="absolute top-20 right-20 w-96 h-96 rounded-full filter blur-3xl" style={{ background: '#2196F3' }}></div>
       </div>
     </div>
   );
 }
-

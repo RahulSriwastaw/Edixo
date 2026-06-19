@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Monitor,
   Globe,
+  Newspaper,
   GraduationCap,
   Users,
   UserCog,
@@ -37,6 +38,7 @@ import {
   MousePointer2,
   Database,
   Layout,
+  PenLine,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -114,6 +116,15 @@ const navigation: NavGroup[] = [
         ],
       },
 
+      { label: "Sarkari Result", href: "/sarkari-result", icon: <Newspaper className="w-5 h-5" />,
+        children: [
+          { label: "Dashboard", href: "/sarkari-result", icon: <LayoutGrid className="w-4 h-4" /> },
+          { label: "All Posts", href: "/sarkari-result/posts", icon: <FileText className="w-4 h-4" /> },
+          { label: "Create Post", href: "/sarkari-result/new", icon: <PlusCircle className="w-4 h-4" /> },
+          { label: "Categories", href: "/sarkari-result/categories", icon: <Layers className="w-4 h-4" /> },
+          { label: "Tags", href: "/sarkari-result/tags", icon: <Tags className="w-4 h-4" /> },
+        ],
+      },
       { label: "Digital Board", href: "/digital-board", icon: <Monitor className="w-5 h-5" /> },
       {
         label: "Public Website CMS",
@@ -146,6 +157,22 @@ const navigation: NavGroup[] = [
       { label: "Audit Log", href: "/audit-log", icon: <FileText className="w-5 h-5" /> },
       { label: "AI Settings", href: "/settings/ai", icon: <Sparkles className="w-5 h-5 text-[#FF6B2B]" /> },
       { label: "Settings", href: "/settings", icon: <Settings className="w-5 h-5" /> },
+    ],
+  },
+  {
+    title: "BLOG MANAGEMENT",
+    items: [
+      {
+        label: "Blog Posts",
+        href: "/blog",
+        icon: <PenLine className="w-5 h-5" />,
+        children: [
+          { label: "All Posts", href: "/blog", icon: <FileText className="w-4 h-4" /> },
+          { label: "New Post", href: "/blog/new", icon: <PlusCircle className="w-4 h-4" /> },
+          { label: "Categories", href: "/blog/categories", icon: <Tags className="w-4 h-4" /> },
+          { label: "Authors", href: "/blog/authors", icon: <Users className="w-4 h-4" /> },
+        ],
+      },
     ],
   },
 ];

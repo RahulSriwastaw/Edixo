@@ -3,21 +3,30 @@ import { prisma } from '../../config/database';
 import { authenticate } from '../../middleware/auth';
 
 const router = Router();
-// Blog routes are accessible to authenticated users only
-router.use(authenticate);
 
-// ─── POSTS ────────────────────────────────────────────────────
+// ─── PUBLIC ROUTES (No auth required) ─────────────────────────
 
-// GET /api/blog/posts
+// GET /api/blog/posts - public listing (only published)
 router.get('/posts', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { status, contentType, authorId, categoryId, search, page = '1', limit = '20' } = req.query as Record<string, string>;
+        const { status, contentType, authorId, categoryId, search, platform, page = '1', limit = '20' } = req.query as Record<string, string>;
         const skip = (parseInt(page) - 1) * parseInt(limit);
 
         const where: any = {};
-        if (status && status !== 'all') where.status = status;
+
+        // If no auth token provided or from public, only show published posts
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            where.status = 'published';
+        } else {
+            if (status && status !== 'all') where.status = status;
+        }
+
         if (contentType && contentType !== 'all') where.contentType = contentType;
         if (authorId && authorId !== 'all') where.authorId = authorId;
+        if (platform && platform !== 'all') {
+            where.platform = platform === 'both' ? 'both' : platform;
+        }
         if (search) {
             where.OR = [
                 { title: { contains: search, mode: 'insensitive' } },
@@ -48,6 +57,50 @@ router.get('/posts', async (req: Request, res: Response, next: NextFunction) => 
     } catch (err) { next(err); }
 });
 
+// GET /api/blog/posts/:id - public single post
+router.get('/posts/:id', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const post = await prisma.blogPost.findFirst({
+            where: { OR: [{ id: req.params.id as string }, { slug: req.params.id as string }] },
+            include: {
+                author: { select: { id: true, name: true, slug: true, photoUrl: true, bio: true } },
+                categories: { include: { category: true } },
+                tags: { include: { tag: true } },
+                revisions: { orderBy: { createdAt: 'desc' }, take: 10 },
+            },
+        });
+        if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
+
+        // If from public (no auth), only show published posts
+        const authHeader = req.headers.authorization;
+        if (!authHeader && post.status !== 'published') {
+            return res.status(404).json({ success: false, error: 'Post not found' });
+        }
+
+        res.json({ success: true, post });
+    } catch (err) { next(err); }
+});
+
+// ─── PUBLIC STATS ─────────────────────────────────────────────
+router.get('/stats', async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+        const [totalPosts, publishedPosts, draftPosts, totalAuthors, totalCategories, totalTags] = await Promise.all([
+            prisma.blogPost.count(),
+            prisma.blogPost.count({ where: { status: 'published' } }),
+            prisma.blogPost.count({ where: { status: 'draft' } }),
+            prisma.blogAuthor.count({ where: { isActive: true } }),
+            prisma.blogCategory.count(),
+            prisma.blogTag.count(),
+        ]);
+        res.json({ success: true, stats: { totalPosts, publishedPosts, draftPosts, totalAuthors, totalCategories, totalTags } });
+    } catch (err) { next(err); }
+});
+
+// ─── AUTHENTICATED ROUTES ─────────────────────────────────────
+router.use(authenticate);
+
+// ─── POSTS (Admin CRUD) ──────────────────────────────────────
+
 // POST /api/blog/posts
 router.post('/posts', async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -55,6 +108,7 @@ router.post('/posts', async (req: Request, res: Response, next: NextFunction) =>
             title, slug, content, contentHtml, contentText, excerpt,
             featuredImageUrl, featuredImageAlt, contentType = 'blog',
             status = 'draft', visibility = 'public', password, authorId,
+            platform = 'both',
             categoryIds = [], tagIds = [],
             seoTitle, seoDescription, focusKeyword, secondaryKeywords, canonicalUrl,
             robotsIndex = true, robotsFollow = true, schemaType = 'BlogPosting',
@@ -75,7 +129,7 @@ router.post('/posts', async (req: Request, res: Response, next: NextFunction) =>
         const post = await prisma.blogPost.create({
             data: {
                 title, slug, content, contentHtml, contentText, excerpt,
-                featuredImageUrl, featuredImageAlt, contentType, status, visibility, password,
+                featuredImageUrl, featuredImageAlt, contentType, status, visibility, password, platform,
                 authorId, seoTitle, seoDescription, focusKeyword,
                 secondaryKeywords: secondaryKeywords ? JSON.stringify(secondaryKeywords) : null,
                 canonicalUrl, robotsIndex, robotsFollow, schemaType,
@@ -97,23 +151,6 @@ router.post('/posts', async (req: Request, res: Response, next: NextFunction) =>
         await prisma.blogAuthor.update({ where: { id: authorId }, data: { postCount: { increment: 1 } } });
 
         res.status(201).json({ success: true, post });
-    } catch (err) { next(err); }
-});
-
-// GET /api/blog/posts/:id
-router.get('/posts/:id', async (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const post = await prisma.blogPost.findFirst({
-            where: { OR: [{ id: req.params.id as string }, { slug: req.params.id as string }] },
-            include: {
-                author: { select: { id: true, name: true, slug: true, photoUrl: true, bio: true } },
-                categories: { include: { category: true } },
-                tags: { include: { tag: true } },
-                revisions: { orderBy: { createdAt: 'desc' }, take: 10 },
-            },
-        });
-        if (!post) return res.status(404).json({ success: false, error: 'Post not found' });
-        res.json({ success: true, post });
     } catch (err) { next(err); }
 });
 
@@ -269,22 +306,6 @@ router.delete('/tags/:id', async (req: Request, res: Response, next: NextFunctio
     try {
         await prisma.blogTag.delete({ where: { id: req.params.id as string } });
         res.json({ success: true, message: 'Tag deleted' });
-    } catch (err) { next(err); }
-});
-
-// ─── STATS ────────────────────────────────────────────────────
-
-router.get('/stats', async (_req: Request, res: Response, next: NextFunction) => {
-    try {
-        const [totalPosts, publishedPosts, draftPosts, totalAuthors, totalCategories, totalTags] = await Promise.all([
-            prisma.blogPost.count(),
-            prisma.blogPost.count({ where: { status: 'published' } }),
-            prisma.blogPost.count({ where: { status: 'draft' } }),
-            prisma.blogAuthor.count({ where: { isActive: true } }),
-            prisma.blogCategory.count(),
-            prisma.blogTag.count(),
-        ]);
-        res.json({ success: true, stats: { totalPosts, publishedPosts, draftPosts, totalAuthors, totalCategories, totalTags } });
     } catch (err) { next(err); }
 });
 

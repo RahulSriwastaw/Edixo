@@ -31,6 +31,147 @@ model WhiteboardSession {
   updatedAt DateTime @updatedAt
 }
 
+model BlogAuthor {
+  id        String    @id @default(uuid())
+  name      String
+  slug      String    @unique
+  bio       String?
+  photoUrl  String?
+  email     String?
+  isActive  Boolean   @default(true)
+  postCount Int       @default(0)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  posts     BlogPost[]
+
+  @@map("blog_authors")
+}
+
+model BlogCategory {
+  id        String     @id @default(uuid())
+  name      String
+  slug      String     @unique
+  description String?
+  color     String?
+  icon      String?
+  sortOrder Int        @default(0)
+  isActive  Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  posts     BlogPostCategory[]
+
+  @@map("blog_categories")
+}
+
+model BlogTag {
+  id        String  @id @default(uuid())
+  name      String
+  slug      String  @unique
+  createdAt DateTime @default(now())
+
+  posts     BlogPostTag[]
+
+  @@map("blog_tags")
+}
+
+model BlogPost {
+  id                 String          @id @default(uuid())
+  title              String
+  slug               String          @unique
+  content            String?
+  contentHtml        String?
+  contentText        String?
+  excerpt            String?
+  featuredImageUrl   String?
+  featuredImageAlt   String?
+
+  contentType        String          @default("blog")
+  status             String          @default("draft")
+  visibility         String          @default("public")
+  password           String?
+
+  platform           String          @default("both")  // "public_website", "mokebook", "both"
+
+  authorId           String
+  author             BlogAuthor      @relation(fields: [authorId], references: [id])
+
+  categories         BlogPostCategory[]
+  tags               BlogPostTag[]
+  revisions          BlogRevision[]
+
+  seoTitle           String?
+  seoDescription     String?
+  focusKeyword       String?
+  secondaryKeywords  String?
+  canonicalUrl       String?
+  robotsIndex        Boolean         @default(true)
+  robotsFollow       Boolean         @default(true)
+  schemaType         String          @default("BlogPosting")
+
+  ogTitle            String?
+  ogDescription      String?
+  ogImageUrl         String?
+  twitterCard        String          @default("summary_large_image")
+
+  allowComments      Boolean         @default(true)
+  isFeatured         Boolean         @default(false)
+  isPinned           Boolean         @default(false)
+
+  wordCount          Int             @default(0)
+  readingTimeMin     Int             @default(1)
+  viewCount          Int             @default(0)
+  likeCount          Int             @default(0)
+  shareCount         Int             @default(0)
+
+  publishedAt        DateTime?
+  scheduledAt        DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  @@index([status, platform])
+  @@index([slug])
+  @@index([authorId])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+model BlogPostCategory {
+  postId     String
+  categoryId String
+
+  post       BlogPost     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([postId, categoryId])
+  @@map("blog_post_categories")
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+
+  post BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  BlogTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("blog_post_tags")
+}
+
+model BlogRevision {
+  id        String   @id @default(uuid())
+  postId    String
+  title     String?
+  content   String?
+  revisedBy String
+  createdAt DateTime @default(now())
+
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@map("blog_revisions")
+}
+
 model PlatformAuditLog {
   id        String   @id @default(uuid())
   actorId   String
@@ -410,4 +551,125 @@ model StudentSeriesEnrollment {
 
   @@unique([studentId, seriesId])
   @@map("student_series_enrollments")
+}
+
+// ─── SARKARI RESULT MODELS ─────────────────────────────────────
+
+model SarkariCategory {
+  id          String    @id @default(uuid())
+  name        String
+  slug        String    @unique
+  description String?
+  type        String    @default("job") // "job", "result", "admit_card", "answer_key", "admission", "syllabus", "previous_paper", "current_affairs", "scholarship", "document"
+  icon        String?
+  color       String?
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  posts SarkariPost[]
+
+  @@map("sarkari_categories")
+}
+
+model SarkariTag {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  createdAt DateTime @default(now())
+
+  posts SarkariPostTag[]
+
+  @@map("sarkari_tags")
+}
+
+model SarkariPost {
+  id              String          @id @default(uuid())
+  title           String
+  slug            String          @unique
+  content         String?
+  excerpt         String?
+
+  // Post Type
+  postType        String          @default("job") // "job", "result", "admit_card", "answer_key", "admission", "syllabus", "previous_paper", "current_affairs", "scholarship", "document"
+  status          String          @default("draft") // "draft", "published", "scheduled"
+  isFeatured      Boolean         @default(false)
+  isPinned        Boolean         @default(false)
+  viewCount       Int             @default(0)
+
+  // Media
+  featuredImageUrl  String?
+  featuredImageAlt  String?
+
+  // Dates
+  lastUpdatedDate DateTime?
+  applicationStartDate DateTime?
+  applicationEndDate   DateTime?
+  examDate         DateTime?
+  resultDate       DateTime?
+  admitCardDate    DateTime?
+  objectionLastDate DateTime?
+  releaseDate      DateTime?
+
+  // Organization / University
+  organization    String?
+  university      String?
+  courseName      String?
+
+  // Important Fields
+  totalPosts      Int?
+  applicationFee  Json?           // JSON string of fee structure
+  ageLimit        Json?           // JSON string of age limit details
+  vacancyDetails  Json?           // JSON string of vacancy table
+  eligibility     Json?           // JSON string of eligibility criteria
+  selectionProcess Json?          // JSON string of selection process
+  howToApply      String?
+  importantLinks  Json?           // JSON array of {title, url} objects
+  faqData         Json?           // JSON array of {question, answer} objects
+  importantDates  Json?           // JSON array of {event, date} objects
+
+  // State / Central
+  jobType         String?         // "central", "state", "public_sector"
+  stateName       String?         // For state-level jobs
+
+  // Qualifications
+  qualification   String?         // "10th", "12th", "graduate", "diploma", "iti", "engineering", "any"
+
+  // SEO
+  seoTitle        String?
+  seoDescription  String?
+  focusKeyword    String?
+  canonicalUrl    String?
+  robotsIndex     Boolean         @default(true)
+  robotsFollow    Boolean         @default(true)
+  schemaType      String          @default("NewsArticle")
+
+  // Category & Tags
+  categoryId      String?
+  category        SarkariCategory? @relation(fields: [categoryId], references: [id])
+  tags            SarkariPostTag[]
+
+  // Timestamps
+  publishedAt     DateTime?
+  scheduledAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([postType, status])
+  @@index([slug])
+  @@index([categoryId])
+  @@index([publishedAt])
+  @@map("sarkari_posts")
+}
+
+model SarkariPostTag {
+  postId String
+  tagId  String
+
+  post SarkariPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag  SarkariTag  @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([postId, tagId])
+  @@map("sarkari_post_tags")
 }

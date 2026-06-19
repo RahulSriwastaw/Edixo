@@ -1,0 +1,1486 @@
+"use client";
+
+import { cn } from "@/lib/utils";
+
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import Papa from "papaparse";
+import {
+  Search,
+  Plus,
+  Sparkles,
+  Upload,
+  Download,
+  Filter,
+  X,
+  MoreHorizontal,
+  Eye,
+  Pencil,
+  Copy,
+  Trash2,
+  Lock,
+  Globe,
+  Coins,
+  ChevronLeft,
+  ChevronRight,
+  Languages,
+  CheckCircle,
+  Layers,
+  Check,
+  ListFilter,
+  Network,
+  FolderInput,
+  FolderSymlink,
+  Folder,
+  ChevronDown,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Sheet,
+  SheetContent,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { QuestionFullDetailView } from "@/components/qbank/QuestionFullDetailView";
+import { SuperPagination } from "@/components/ui/super-pagination";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "sonner";
+
+
+
+import { API_URL, getAuthHeaders } from '@/lib/api-config'
+import { Step2ExecutionModal } from "@/components/tools/bulk-ai-edit";
+import { UnifiedBulkEditModal } from "@/components/tools/bulk-edit/UnifiedBulkEditModal";
+
+const FILTER_FIELDS = [
+  { value: "subjectName", label: "Subject" },
+  { value: "chapterName", label: "Chapter" },
+  { value: "exam", label: "Exam" },
+  { value: "year", label: "Year" },
+  { value: "collection", label: "Collection" },
+  { value: "type", label: "Question Type" },
+  { value: "difficulty", label: "Difficulty" },
+  { value: "pointCost", label: "Points" },
+  { value: "usageCount", label: "Usage Count" },
+  { value: "questionUniqueId", label: "Unique ID" },
+  { value: "isApproved", label: "Is Approved" },
+];
+
+const FILTER_OPERATORS = [
+  { value: "equals", label: "Equals" },
+  { value: "not_equals", label: "Does not equal" },
+  { value: "contains", label: "Contains" },
+  { value: "doesNotContain", label: "Does not contain" },
+  { value: "startsWith", label: "Starts with" },
+  { value: "endsWith", label: "Ends with" },
+  { value: "isEmpty", label: "Is empty" },
+  { value: "isNotEmpty", label: "Is not empty" },
+];
+
+// getToken removed
+
+
+
+// Type Badge Component
+function TypeBadge({ type }: { type: string }) {
+  const styles: Record<string, string> = {
+    mcq: "bg-blue-50 text-blue-700",
+    integer: "bg-green-50 text-green-700",
+    multi_select: "bg-purple-50 text-purple-700",
+    true_false: "bg-amber-50 text-amber-700",
+  };
+  const labels: Record<string, string> = {
+    mcq: "MCQ",
+    integer: "Integer",
+    multi_select: "Multi-select",
+    true_false: "True/False",
+  };
+  return <Badge className={styles[type] || ""}>{labels[type] || type}</Badge>;
+}
+
+// Difficulty Badge Component
+function DifficultyBadge({ difficulty }: { difficulty: string }) {
+  const styles: Record<string, string> = {
+    easy: "bg-green-50 text-green-700",
+    medium: "bg-amber-50 text-amber-700",
+    hard: "bg-red-50 text-red-700",
+  };
+  return <Badge className={styles[difficulty] || ""}>{difficulty}</Badge>;
+}
+
+// Visibility Toggle Component
+function VisibilityToggle({ visibility }: { visibility: string }) {
+  const isPublic = visibility === "public";
+  return (
+    <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full ${isPublic ? 'bg-orange-50' : 'bg-gray-100'}`}>
+      {isPublic ? (
+        <Globe className="w-3.5 h-3.5 text-orange-600" />
+      ) : (
+        <Lock className="w-3.5 h-3.5 text-gray-500" />
+      )}
+      <span className={`text-xs font-medium ${isPublic ? 'text-orange-600' : 'text-gray-600'}`}>
+        {isPublic ? 'Public' : 'Private'}
+      </span>
+    </div>
+  );
+}
+
+// Strip HTML tags for preview
+function stripHtml(html?: string, truncate = false): string {
+  if (!html) return "";
+  let text = html.replace(/<[^>]*>?/gm, '').replace(/\\[()\\[\]]/g, '').trim();
+  if (truncate) {
+    text = text.slice(0, 150) + (text.length > 150 ? '...' : '');
+  }
+  return text;
+}
+
+
+
+export function QuestionsList({ defaultFilters = [], selectedFolderId = null }: { defaultFilters?: any[], selectedFolderId?: string | null }) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const folderId = selectedFolderId || searchParams.get("folderId");
+  const [currentFolderName, setCurrentFolderName] = useState<string | null>(null);
+  const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [showCopyDialog, setShowCopyDialog] = useState(false);
+  const [allFolders, setAllFolders] = useState<any[]>([]);
+  const [movingToFolderId, setMovingToFolderId] = useState<string>("");
+  const isImportMode = searchParams.get("import") === "true";
+
+  useEffect(() => {
+    if (isImportMode) {
+      setShowImportDialog(true);
+    }
+  }, [isImportMode]);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [questionSets, setQuestionSets] = useState<any[]>([]);
+  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [subjectFilter, setSubjectFilter] = useState("all");
+  const [difficultyFilter, setDifficultyFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [scopeFilter, setScopeFilter] = useState("all");
+
+  // Advanced Filters & Grouping state
+  const [filters, setFilters] = useState<Array<{ id: string, field: string, operator: string, value: string }>>(defaultFilters);
+  const [groupBy, setGroupBy] = useState<string>("none");
+  const [showFilterDialog, setShowFilterDialog] = useState(false);
+
+  const addFilter = () => {
+    setFilters([...filters, { id: Math.random().toString(36).substr(2, 9), field: "subjectName", operator: "equals", value: "" }]);
+  };
+
+  const updateFilter = (id: string, key: string, value: string) => {
+    setFilters(filters.map(f => f.id === id ? { ...f, [key]: value } : f));
+  };
+
+  const removeFilter = (id: string) => {
+    setFilters(filters.filter(f => f.id !== id));
+  };
+
+  const [previewQuestion, setPreviewQuestion] = useState<any | null>(null);
+  const [previewQuestionId, setPreviewQuestionId] = useState<string | null>(null);
+  const [previewLang, setPreviewLang] = useState<"hin" | "eng">("eng");
+  const [tableLang, setTableLang] = useState<"eng" | "hin">("eng");
+  const [showAddToSetDialog, setShowAddToSetDialog] = useState(false);
+  const [selectedSetId, setSelectedSetId] = useState<string>("");
+  const [questionSetSearchQuery, setQuestionSetSearchQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalQuestions, setTotalQuestions] = useState(0);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [questionToDelete, setQuestionToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Bulk Edit Modals State
+  const [showUnifiedBulkEdit, setShowUnifiedBulkEdit] = useState(false);
+  const [unifiedBulkEditTab, setUnifiedBulkEditTab] = useState<"metadata" | "ai">("metadata");
+  const [showBulkAIEdit2, setShowBulkAIEdit2] = useState(false);
+  const [bulkConfig, setBulkConfig] = useState<any>(null);
+
+  // Fetch folders for move/copy dialog + current folder name
+  useEffect(() => {
+    const fetchFolders = async () => {
+      try {
+        const res = await fetch(`${API_URL}/qbank/folders?tree=false`, { headers: getAuthHeaders() });
+        if (res.ok) {
+          const data = await res.json();
+          const flat: any[] = data.data || [];
+          setAllFolders(flat);
+          if (folderId) {
+            const found = flat.find((f: any) => f.id === folderId);
+            setCurrentFolderName(found?.name || null);
+          } else {
+            setCurrentFolderName(null);
+          }
+        }
+      } catch {}
+    };
+    fetchFolders();
+  }, [folderId]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const headers = getAuthHeaders();
+        setIsLoading(true);
+        const url = new URL(`${API_URL}/qbank/questions`);
+        if (scopeFilter !== "all") url.searchParams.append("scope", scopeFilter);
+        if (searchQuery) url.searchParams.append("search", searchQuery);
+        if (difficultyFilter !== "all") url.searchParams.append("difficulty", difficultyFilter);
+        if (typeFilter !== "all") url.searchParams.append("type", typeFilter);
+        if (folderId) url.searchParams.append("folderId", folderId);
+
+        // Add advanced filters and grouping
+        if (filters.length > 0) {
+          url.searchParams.append("filters", JSON.stringify(filters));
+        }
+        if (groupBy !== "none") url.searchParams.append("groupBy", groupBy);
+
+        url.searchParams.append("page", page.toString());
+        url.searchParams.append("limit", pageSize.toString());
+
+        const [qRes, sRes] = await Promise.all([
+          fetch(url.toString(), { headers }),
+          fetch(`${API_URL}/qbank/sets`, { headers })
+        ]);
+
+        if (qRes.ok) {
+          const qData = await qRes.json();
+          setQuestions(qData.data?.questions || []);
+          setTotalQuestions(qData.data?.total || 0);
+        }
+        if (sRes.ok) {
+          const sData = await sRes.json();
+          setQuestionSets(sData.data?.sets || []);
+        }
+      } catch (error) {
+        console.error("Fetch error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchData();
+  }, [searchQuery, scopeFilter, difficultyFilter, typeFilter, page, pageSize, filters, groupBy, folderId]);
+  const [showImportDialog, setShowImportDialog] = useState(false);
+  const [importRows, setImportRows] = useState<any[]>([]);
+  const [importPreview, setImportPreview] = useState<any[] | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [createSetFromImport, setCreateSetFromImport] = useState(true);
+
+  const allSelected = selectedQuestions.length === questions.length;
+  const someSelected = selectedQuestions.length > 0 && !allSelected;
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedQuestions([]);
+    } else {
+      setSelectedQuestions(questions.map((q) => q.id));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    if (selectedQuestions.includes(id)) {
+      setSelectedQuestions(selectedQuestions.filter((qId) => qId !== id));
+    } else {
+      setSelectedQuestions([...selectedQuestions, id]);
+    }
+  };
+
+  const clearFilters = () => {
+    setSearchQuery("");
+    setSubjectFilter("all");
+    setDifficultyFilter("all");
+    setTypeFilter("all");
+    setScopeFilter("all");
+    setFilters([]);
+    setGroupBy("none");
+    setPage(1);
+  };
+
+  const hasActiveFilters = searchQuery || subjectFilter !== "all" || difficultyFilter !== "all" || typeFilter !== "all" || scopeFilter !== "all" || filters.length > 0 || groupBy !== "none";
+
+  // Filter questions
+  const filteredQuestions = questions; // Fetching is already filtered by backend
+
+  // Map backend questions to subjects list
+  const subjects = [...new Set(questions.map(q => q.folder?.name || "Uncategorized"))];
+
+  // Grouping logic for Render
+  let renderGroups: { group: string, items: any[] }[] = [];
+  if (groupBy !== "none") {
+    const grouped = filteredQuestions.reduce((acc, q) => {
+      let val = q[groupBy];
+      if (val === null || val === undefined) val = "Uncategorized";
+      if (typeof val === 'boolean') val = val ? "True" : "False";
+      val = String(val);
+
+      if (!acc[val]) acc[val] = [];
+      acc[val].push(q);
+      return acc;
+    }, {} as Record<string, any[]>);
+    renderGroups = Object.keys(grouped).sort().map((k) => ({ group: k, items: grouped[k] }));
+  } else {
+    renderGroups = [{ group: "all", items: filteredQuestions }];
+  }
+
+  // Filter question sets
+  const filteredSets = questionSets.filter(set =>
+    set.name.toLowerCase().includes(questionSetSearchQuery.toLowerCase()) ||
+    set.code.toLowerCase().includes(questionSetSearchQuery.toLowerCase())
+  );
+
+  // Handle add to set
+  const handleAddToSet = () => {
+    if (!selectedSetId) {
+      toast.error("Please select a question set");
+      return;
+    }
+    const selectedSet = questionSets.find(s => s.id === selectedSetId);
+    toast.success(`Added ${selectedQuestions.length} questions to "${selectedSet?.name}"`);
+    setShowAddToSetDialog(false);
+    setSelectedSetId("");
+    setQuestionSetSearchQuery("");
+    setSelectedQuestions([]);
+  };
+
+  // Handle CSV file selection
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.endsWith('.csv')) {
+      toast.error('Please select a CSV file');
+      return;
+    }
+
+    setImportFile(file);
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: (results) => {
+        setImportRows(results.data);
+        setImportPreview(results.data.slice(0, 5));
+      },
+      error: (error) => {
+        toast.error(`Error parsing CSV: ${error.message}`);
+      }
+    });
+  };
+
+  // Handle CSV import
+  const handleImport = async () => {
+    if (!importFile || importRows.length === 0) return;
+
+    setImportLoading(true);
+    try {
+      const response = await fetch(`${API_URL}/qbank/bulk-upload`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify({
+          fileName: importFile.name,
+          rows: importRows,
+          folderId: folderId,
+          createSet: createSetFromImport
+        })
+      });
+
+      const resData = await response.json();
+      if (response.ok && resData.success) {
+        toast.success(`Successfully imported ${resData.data.savedCount} questions`);
+        if (resData.data.failedCount > 0) {
+          toast.warning(`${resData.data.failedCount} rows failed to import`);
+        }
+        setShowImportDialog(false);
+        setImportFile(null);
+        setImportPreview(null);
+        setImportRows([]);
+        // Refresh
+        window.location.reload();
+      } else {
+        toast.error(resData.message || "Failed to import questions");
+      }
+    } catch (error) {
+      console.error("Import error:", error);
+      toast.error("An error occurred during import");
+    } finally {
+      setImportLoading(false);
+    }
+  };
+
+  // Download CSV template
+  const downloadTemplate = () => {
+    const template = `question_eng,question_hin,type,subject,chapter,difficulty,option1_eng,option1_hin,option2_eng,option2_hin,option3_eng,option3_hin,option4_eng,option4_hin,answer,solution_eng,solution_hin
+"Which law states F = ma?","न्यूटन का कौन सा नियम F = ma बताता है?",mcq,Physics,Laws of Motion,easy,"First Law","प्रथम नियम","Second Law","द्वितीय नियम","Third Law","तृतीय नियम","Law of Gravitation","गुरुत्वाकर्षण नियम",B,"Newton's second law states F = ma","न्यूटन का द्वितीय नियम F = ma है"`;
+
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'questions_template.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Template downloaded');
+  };
+
+  // Move/Copy to folder
+  const handleMoveToFolder = async () => {
+    if (!movingToFolderId || selectedQuestions.length === 0) return;
+    try {
+      const res = await fetch(`${API_URL}/qbank/questions/move-to-folder`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionIds: selectedQuestions, folderId: movingToFolderId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${selectedQuestions.length} question(s) moved`);
+        setShowMoveDialog(false);
+        setSelectedQuestions([]);
+        setMovingToFolderId("");
+        window.location.reload();
+      } else {
+        toast.error(data.message || "Failed to move questions");
+      }
+    } catch { toast.error("Failed to move questions"); }
+  };
+
+  const handleCopyToFolder = async () => {
+    if (!movingToFolderId || selectedQuestions.length === 0) return;
+    try {
+      const res = await fetch(`${API_URL}/qbank/questions/copy-to-folder`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ questionIds: selectedQuestions, folderId: movingToFolderId })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${selectedQuestions.length} question(s) copied`);
+        setShowCopyDialog(false);
+        setSelectedQuestions([]);
+        setMovingToFolderId("");
+        window.location.reload();
+      } else {
+        toast.error(data.message || "Failed to copy questions");
+      }
+    } catch { toast.error("Failed to copy questions"); }
+  };
+
+  const handleDeleteQuestion = async (id: string) => {
+    try {
+      setIsDeleting(true);
+      const res = await fetch(`${API_URL}/qbank/questions/${id}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success("Question deleted");
+        setQuestions(questions.filter(q => q.id !== id));
+        setTotalQuestions(prev => prev - 1);
+        setShowDeleteDialog(false);
+        setQuestionToDelete(null);
+      } else {
+        toast.error(data.message || "Failed to delete question");
+      }
+    } catch { toast.error("An error occurred during deletion"); }
+    finally { setIsDeleting(false); }
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedQuestions.length === 0) return;
+    try {
+      setIsDeleting(true);
+      const res = await fetch(`${API_URL}/qbank/questions`, {
+        method: 'DELETE',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids: selectedQuestions })
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        toast.success(`${selectedQuestions.length} question(s) deleted`);
+        setQuestions(questions.filter(q => !selectedQuestions.includes(q.id)));
+        setTotalQuestions(prev => prev - selectedQuestions.length);
+        setSelectedQuestions([]);
+        setShowDeleteDialog(false);
+      } else {
+        toast.error(data.message || "Failed to delete questions");
+      }
+    } catch { toast.error("An error occurred during bulk deletion"); }
+    finally { setIsDeleting(false); }
+  };
+
+  return (
+    <div className="flex-1 w-full relative">
+
+      <div className="max-w-[1400px] mx-auto space-y-6 animate-fade-in">
+        {/* Folder Breadcrumb / Header */}
+        {folderId && (
+          <div className="flex items-center gap-2 text-sm text-[var(--text-secondary)] mb-2">
+            <Folder className="w-4 h-4 text-primary/60" />
+            <span className="font-medium text-[var(--text-primary)]">{currentFolderName || "Loading folder..."}</span>
+            <span className="text-[var(--text-muted)]">/</span>
+            <span className="text-xs text-[var(--text-muted)]">Viewing {totalQuestions} questions</span>
+          </div>
+        )}
+
+        {/* Page Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Questions</h1>
+            <p className="text-gray-500 text-sm mt-1">
+              {questions.length.toLocaleString()} questions — Bilingual content (Hindi & English)
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 md:gap-3">
+            <Link href="/question-bank/ai-generate" className="w-full">
+              <Button variant="outline" className="btn-secondary w-full">
+                <Sparkles className="w-4 h-4 mr-2 shrink-0" />
+                <span className="whitespace-nowrap">AI Generate</span>
+              </Button>
+            </Link>
+            <Button variant="outline" className="btn-secondary w-full" onClick={() => setShowImportDialog(true)}>
+              <Upload className="w-4 h-4 mr-2 shrink-0" />
+              <span className="whitespace-nowrap">Import CSV</span>
+            </Button>
+            <Link href="/question-bank/create" className="w-full">
+              <Button className="bg-[#F4511E] hover:bg-[#E64A19] text-white w-full">
+                <Plus className="w-4 h-4 mr-2 shrink-0" />
+                <span className="whitespace-nowrap">Create Question</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* Filter Bar */}
+        <Card className="overflow-hidden">
+          <CardContent className="p-4">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="relative w-full lg:flex-1 lg:max-w-[400px]">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  placeholder="Search questions..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 w-full"
+                />
+              </div>
+              
+              <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+                <Select value={subjectFilter} onValueChange={setSubjectFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] h-9">
+                    <SelectValue placeholder="Subject" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Subjects</SelectItem>
+                    {subjects.map(s => (
+                      <SelectItem key={String(s)} value={String(s)}>{String(s)}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={difficultyFilter} onValueChange={setDifficultyFilter}>
+                  <SelectTrigger className="w-full sm:w-[120px] h-9">
+                    <SelectValue placeholder="Difficulty" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Levels</SelectItem>
+                    <SelectItem value="easy">Easy</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="hard">Hard</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[130px] h-9">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="mcq">MCQ</SelectItem>
+                    <SelectItem value="integer">Integer</SelectItem>
+                    <SelectItem value="multi_select">Multi-select</SelectItem>
+                    <SelectItem value="true_false">True/False</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={scopeFilter} onValueChange={setScopeFilter}>
+                  <SelectTrigger className="w-full sm:w-[140px] h-9">
+                    <SelectValue placeholder="Scope" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Questions</SelectItem>
+                    <SelectItem value="global">Global Bank</SelectItem>
+                    <SelectItem value="mine">Super Admin</SelectItem>
+                    <SelectItem value="public">Other Public</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={tableLang} onValueChange={(v: "eng" | "hin") => setTableLang(v)}>
+                  <SelectTrigger className="w-full sm:w-[130px] h-9 bg-purple-50/50 border-purple-200 text-purple-700 font-medium">
+                    <Languages className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="eng">English</SelectItem>
+                    <SelectItem value="hin">Hindi (हिन्दी)</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Select value={groupBy} onValueChange={setGroupBy}>
+                  <SelectTrigger className="w-full sm:w-[150px] h-9 bg-brand-primary/5 border-brand-primary/20 text-brand-primary font-medium">
+                    <Network className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Group By" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No Grouping</SelectItem>
+                    <SelectItem value="subjectName">Subject</SelectItem>
+                    <SelectItem value="chapterName">Chapter</SelectItem>
+                    <SelectItem value="exam">Exam</SelectItem>
+                    <SelectItem value="year">Year</SelectItem>
+                    <SelectItem value="collection">Collection</SelectItem>
+                    <SelectItem value="type">Question Type</SelectItem>
+                    <SelectItem value="difficulty">Difficulty</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowFilterDialog(true)}
+                  className={`h-9 gap-2 w-full sm:w-auto ${filters.length > 0 ? 'bg-orange-50 border-orange-200 text-orange-700' : ''}`}
+                >
+                  <ListFilter className="w-4 h-4" />
+                  Filters {filters.length > 0 && <Badge className="ml-1 h-5 w-5 p-0 flex items-center justify-center bg-orange-600 rounded-full text-[10px]">{filters.length}</Badge>}
+                </Button>
+
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-gray-500 hover:text-gray-700">
+                    <X className="w-4 h-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Bulk Action Bar */}
+        {selectedQuestions.length > 0 && (
+          <div className="bg-brand-primary-tint border border-brand-primary/20 rounded-lg px-4 py-3 sticky top-[72px] z-30 shadow-sm animate-in slide-in-from-top-4 duration-300">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 shrink-0">
+                <span className="bg-brand-primary text-white px-2 py-0.5 rounded text-xs font-bold">
+                  {selectedQuestions.length}
+                </span>
+                <span className="text-sm font-semibold text-brand-primary">
+                   Questions Selected
+                </span>
+              </div>
+              
+              <div className="w-full overflow-x-auto scrollbar-hide">
+                <div className="flex items-center gap-2 pb-1">
+                  <Button variant="outline" size="sm" className="bg-white border-orange-200 text-orange-600 hover:bg-orange-50 whitespace-nowrap shadow-sm">
+                    <Globe className="w-4 h-4 mr-1" />
+                    Make Public
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-white border-[var(--border-input)] text-[var(--text-secondary)] hover:bg-[var(--bg-sidebar)] whitespace-nowrap shadow-sm">
+                    <Lock className="w-4 h-4 mr-1" />
+                    Make Private
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-white shadow-sm whitespace-nowrap" onClick={() => setShowAddToSetDialog(true)}>
+                    <Layers className="w-4 h-4 mr-1" />
+                    Add to Set
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-indigo-50/50 border-indigo-200 text-indigo-600 hover:bg-indigo-100/50 whitespace-nowrap shadow-sm" onClick={() => setShowMoveDialog(true)}>
+                    <FolderInput className="w-4 h-4 mr-1" />
+                    Move to Folder
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-blue-50/50 border-blue-200 text-blue-600 hover:bg-blue-100/50 whitespace-nowrap shadow-sm" onClick={() => setShowCopyDialog(true)}>
+                    <FolderSymlink className="w-4 h-4 mr-1" />
+                    Copy to Folder
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-purple-50/50 border-purple-200 text-purple-700 hover:bg-purple-100/50 whitespace-nowrap shadow-sm"
+                    onClick={() => {
+                        setUnifiedBulkEditTab("ai");
+                        setShowUnifiedBulkEdit(true);
+                    }}
+                  >
+                    <Sparkles className="w-4 h-4 mr-1" />
+                    Bulk AI Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="bg-white shadow-sm whitespace-nowrap">
+                    <Coins className="w-4 h-4 mr-1" />
+                    Set Point Cost
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="bg-brand-primary-tint border-brand-primary/20 text-brand-primary hover:bg-brand-primary/10 whitespace-nowrap shadow-sm"
+                    onClick={() => {
+                        setUnifiedBulkEditTab("metadata");
+                        setShowUnifiedBulkEdit(true);
+                    }}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" />
+                    Bulk Edit
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="text-red-600 border-red-200 hover:bg-red-50 whitespace-nowrap shadow-sm"
+                    onClick={() => {
+                      setQuestionToDelete(null); 
+                      setShowDeleteDialog(true);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                  <div className="w-px h-6 bg-slate-200 mx-1 hidden sm:block" />
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedQuestions([])} className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] whitespace-nowrap">
+                    <X className="w-4 h-4 mr-1" />
+                    Clear Selection
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Questions Table */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto w-full">
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50 hover:bg-gray-50">
+                    <TableHead className="w-12 shrink-0">
+                      <Checkbox
+                        checked={allSelected}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Select all"
+                      />
+                    </TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[300px]">Question</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[100px]">Type</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[150px]">Subject → Chapter</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[100px]">Difficulty</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase whitespace-nowrap min-w-[100px]">Visibility</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center whitespace-nowrap min-w-[80px]">Points</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase text-center whitespace-nowrap min-w-[80px]">Usage</TableHead>
+                    <TableHead className="text-xs font-semibold text-gray-500 uppercase text-right whitespace-nowrap min-w-[100px]">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {renderGroups.map((groupObj) => (
+                    <React.Fragment key={groupObj.group}>
+                      {groupBy !== "none" && (
+                        <TableRow className="bg-gray-100/80 hover:bg-gray-100/80">
+                          <TableCell colSpan={9} className="py-2.5 whitespace-nowrap">
+                            <div className="flex items-center gap-2 font-semibold text-gray-800">
+                              <span className="bg-white border rounded px-2 py-0.5 text-xs shadow-sm uppercase tracking-wide">
+                                {groupBy}
+                              </span>
+                              {groupObj.group}
+                              <span className="text-gray-400 text-xs font-normal">({groupObj.items.length})</span>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                      {groupObj.items.map((question) => (
+                        <TableRow
+                          key={question.id}
+                          className={`hover:bg-brand-primary-tint cursor-pointer ${selectedQuestions.includes(question.id) ? 'bg-brand-primary-tint' : ''}`}
+                          onClick={() => { setPreviewQuestion(question); setPreviewQuestionId(question.id); setPreviewLang("eng"); }}
+                        >
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Checkbox
+                              checked={selectedQuestions.includes(question.id)}
+                              onCheckedChange={() => toggleSelect(question.id)}
+                              aria-label={`Select question ${question.id}`}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Badge className="bg-purple-50 text-purple-600 text-[10px] shrink-0">
+                                <Languages className="w-3 h-3 mr-1" /> {tableLang === "eng" ? "A" : "अ"}
+                              </Badge>
+                              <span className="text-sm text-gray-700 line-clamp-2 min-w-[250px] max-w-[400px]">
+                                {stripHtml(tableLang === "eng" ? (question.textEn || question.textHi || "") : (question.textHi || question.textEn || ""), true)}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <TypeBadge type={question.type.toLowerCase()} />
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <div className="text-sm">
+                              <span className="text-gray-900">{question.folder?.name || question.subjectName || "Uncategorized"}</span>
+                              {(question.chapterName) && <span className="text-gray-500 block text-xs">↳ {question.chapterName}</span>}
+                            </div>
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <DifficultyBadge difficulty={question.difficulty.toLowerCase()} />
+                          </TableCell>
+                          <TableCell className="whitespace-nowrap">
+                            <VisibilityToggle visibility={question.isGlobal ? "global" : (question.isApproved ? "public" : "private")} />
+                          </TableCell>
+                          <TableCell className="text-center whitespace-nowrap">
+                            <span className="inline-flex items-center gap-1 text-sm font-semibold text-orange-600">
+                              <Coins className="w-3 h-3" />
+                              {question.pointCost}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center text-sm text-gray-600 whitespace-nowrap">
+                            {question.usageCount}
+                          </TableCell>
+                          <TableCell className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => { setPreviewQuestion(question); setPreviewQuestionId(question.id); setPreviewLang("eng"); }}>
+                                  <Eye className="w-4 h-4 mr-2" /> Preview
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => router.push(`/question-bank/questions/${question.id}/edit`)}>
+                                  <Pencil className="w-4 h-4 mr-2" /> Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => { setSelectedQuestions([question.id]); setShowMoveDialog(true); }}>
+                                  <FolderInput className="w-4 h-4 mr-2" /> Move to Folder
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Copy className="w-4 h-4 mr-2" /> Duplicate
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setQuestionToDelete(question.id);
+                                    setShowDeleteDialog(true);
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 mr-2" /> Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </React.Fragment>
+                  ))}
+                  {filteredQuestions.length === 0 && !isLoading && (
+                    <TableRow>
+                      <TableCell colSpan={9} className="text-center py-12 text-gray-500">
+                        <div className="flex flex-col items-center gap-2">
+                          <Search className="w-8 h-8 text-gray-300 mb-2" />
+                          <p>No questions found matching your filters.</p>
+                          <Button variant="link" onClick={clearFilters}>Clear all filters</Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between border-t border-gray-100 pt-4 pb-2">
+          <SuperPagination
+            currentPage={page}
+            totalPages={Math.ceil(totalQuestions / pageSize)}
+            pageSize={pageSize}
+            totalItems={totalQuestions}
+            onPageChange={setPage}
+            onPageSizeChange={setPageSize}
+          />
+        </div>
+      </div>
+
+
+      {/* Question Full-Detail Sheet */}
+      <Sheet
+        open={!!previewQuestionId}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPreviewQuestion(null);
+            setPreviewQuestionId(null);
+          }
+        }}
+      >
+        <SheetContent side="right" size="full" className="p-0 gap-0">
+          {/* Hidden title required by Radix UI for screen-reader accessibility */}
+          <SheetTitle className="sr-only">Question Detail Preview</SheetTitle>
+          {previewQuestionId && (
+            <QuestionFullDetailView
+              questionId={previewQuestionId}
+              questionIds={filteredQuestions.map((q) => q.id)}
+              currentIndex={filteredQuestions.findIndex((q) => q.id === previewQuestionId)}
+              onNavigate={(id) => setPreviewQuestionId(id)}
+              onClose={() => {
+                setPreviewQuestion(null);
+                setPreviewQuestionId(null);
+              }}
+              onUpdate={() => {
+                router.refresh();
+              }}
+            />
+          )}
+        </SheetContent>
+      </Sheet>
+
+      {/* Add to Set Dialog */}
+      <Dialog open={showAddToSetDialog} onOpenChange={setShowAddToSetDialog}>
+        <DialogContent className="max-w-md" aria-describedby="add-to-set-description">
+          <DialogHeader>
+            <DialogTitle>Add to Question Set</DialogTitle>
+            <DialogDescription id="add-to-set-description">
+              Add {selectedQuestions.length} selected questions to an existing question set.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search question sets..."
+                value={questionSetSearchQuery}
+                onChange={(e) => setQuestionSetSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            {/* Set List */}
+            <div className="max-h-64 overflow-y-auto space-y-2">
+              {filteredSets.map((set) => (
+                <button
+                  key={set.id}
+                  onClick={() => setSelectedSetId(set.id)}
+                  className={`w-full text-left p-3 rounded-lg border transition-all ${selectedSetId === set.id
+                    ? "border-[#F4511E] bg-orange-50 ring-1 ring-[#F4511E]"
+                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedSetId === set.id
+                        ? "border-[#F4511E] bg-[#F4511E]"
+                        : "border-gray-300"
+                        }`}>
+                        {selectedSetId === set.id && <Check className="w-3 h-3 text-white" />}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">{set.name}</p>
+                        <p className="text-xs text-gray-500">{set.code} • {set.questions} questions</p>
+                      </div>
+                    </div>
+                  </div>
+                </button>
+              ))}
+              {filteredSets.length === 0 && (
+                <div className="text-center py-6 text-gray-500 text-sm">
+                  No question sets found
+                </div>
+              )}
+            </div>
+
+            {/* Selected count */}
+            <div className="flex items-center justify-between text-sm bg-gray-50 rounded-lg px-3 py-2">
+              <span className="text-gray-600">Questions to add:</span>
+              <Badge className="bg-[#F4511E]">{selectedQuestions.length}</Badge>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setShowAddToSetDialog(false);
+              setSelectedSetId("");
+              setQuestionSetSearchQuery("");
+            }}>
+              Cancel
+            </Button>
+            <Button
+              className="bg-[#F4511E] hover:bg-[#E64A19] text-white"
+              onClick={handleAddToSet}
+              disabled={!selectedSetId}
+            >
+              <Layers className="w-4 h-4 mr-2" />
+              Add to Set
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Import CSV Dialog */}
+      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
+        <DialogContent className="sm:max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto" aria-describedby="import-dialog-description">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <Upload className="w-5 h-5 text-[#F4511E]" />
+              Import Questions from CSV
+            </DialogTitle>
+            <DialogDescription id="import-dialog-description" className="text-gray-500">
+              Select or drop a CSV file following our bilingual template.
+              {folderId && (
+                <span className="block mt-1 font-semibold text-[#F4511E] bg-orange-50 px-2 py-1 rounded inline-block">
+                  Target Folder: {folderId.substring(0, 8)}...
+                </span>
+              )}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-2 sm:py-4">
+            {/* Download Template */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 sm:p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div>
+                <p className="font-medium text-blue-900 text-sm sm:text-base">Need a template?</p>
+                <p className="text-xs sm:text-sm text-blue-700">Download the sample CSV format to get started</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={downloadTemplate} className="w-full sm:w-auto">
+                <Download className="w-4 h-4 mr-2 sm:hidden" />
+                Download Template
+              </Button>
+            </div>
+
+            {/* File Upload Area */}
+            {!importFile ? (
+              <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 sm:p-8 text-center hover:border-[#F4511E] transition-colors">
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  id="csv-upload"
+                />
+                <label htmlFor="csv-upload" className="cursor-pointer">
+                  <Upload className="w-10 h-10 sm:w-12 sm:h-12 mx-auto text-gray-400 mb-3 sm:mb-4" />
+                  <p className="font-medium text-gray-900 mb-1 text-sm sm:text-base">Click to upload CSV file</p>
+                  <p className="text-xs sm:text-sm text-gray-500">or drag and drop</p>
+                  <p className="text-xs text-gray-400 mt-2">.CSV files only</p>
+                </label>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Selected File */}
+                <div className="flex items-start sm:items-center justify-between gap-3 p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200">
+                  <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-green-100 rounded-lg flex items-center justify-center shrink-0">
+                      <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="font-medium text-green-900 text-sm sm:text-base truncate">{importFile.name}</p>
+                      <p className="text-xs sm:text-sm text-green-700">{(importFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={() => {
+                      setImportFile(null);
+                      setImportPreview(null);
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+
+                {/* Preview Table */}
+                {importPreview && importPreview.length > 0 && (
+                  <div>
+                    <p className="text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Preview (first {importPreview.length} rows)
+                    </p>
+                    <div className="overflow-x-auto border rounded-lg -mx-4 sm:mx-0">
+                      <div className="inline-block min-w-full align-middle">
+                        <table className="w-full text-xs sm:text-sm min-w-[500px]">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              {Object.keys(importPreview[0]).slice(0, 6).map((key) => (
+                                <th key={key} className="p-2 sm:p-3 text-left font-medium text-gray-500 border-b whitespace-nowrap">
+                                  {key.replace(/_/g, ' ')}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {importPreview.map((row, i) => (
+                              <tr key={i} className="border-b hover:bg-gray-50">
+                                {Object.values(row).slice(0, 6).map((val, j) => (
+                                  <td key={j} className="p-2 sm:p-3 text-gray-700">
+                                    <span className="block max-w-[120px] sm:max-w-[180px] truncate">
+                                      {String(val).slice(0, 25)}{String(val).length > 25 ? '...' : ''}
+                                    </span>
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2 text-center sm:text-left">
+                      ← Scroll horizontally to see more columns →
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Required Columns Info */}
+            <div className="text-xs text-gray-500 bg-gray-50 rounded-lg p-3 sm:p-4">
+              <p className="font-medium text-gray-700 mb-2">Required columns:</p>
+              <div className="flex flex-wrap gap-1.5">
+                {['question_eng', 'question_hin', 'type', 'subject', 'chapter', 'difficulty', 'answer'].map((col) => (
+                  <Badge key={col} variant="outline" className="text-xs bg-white">
+                    {col}
+                  </Badge>
+                ))}
+              </div>
+              <p className="mt-2 text-gray-400">
+                MCQ ke liye: option1_eng, option1_hin, option2_eng, option2_hin, etc.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowImportDialog(false);
+                setImportFile(null);
+                setImportPreview(null);
+              }}
+              className="w-full sm:w-auto"
+            >
+              Cancel
+            </Button>
+            <Button
+              className="bg-[#F4511E] hover:bg-[#E64A19] text-white w-full sm:w-auto"
+              onClick={handleImport}
+              disabled={!importFile || importLoading}
+            >
+              {importLoading ? (
+                <>
+                  <svg className="animate-spin w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Importing...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Import Questions
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Advanced Filter Dialog */}
+      <Dialog open={showFilterDialog} onOpenChange={setShowFilterDialog}>
+        <DialogContent className="sm:max-w-3xl border-0 shadow-2xl overflow-hidden p-0 rounded-2xl" aria-describedby="filter-dialog-description">
+          <div className="bg-gradient-to-r from-orange-50 to-orange-100/50 px-6 py-5 border-b border-orange-100">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2.5 text-xl text-gray-900">
+                <div className="p-2 bg-white rounded-lg shadow-sm border border-orange-200">
+                  <ListFilter className="w-5 h-5 text-[#F4511E]" />
+                </div>
+                Advanced Filters
+              </DialogTitle>
+              <DialogDescription id="filter-dialog-description" className="text-gray-600 font-medium">
+                Build precise queries to find exactly what you need.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+
+          <div className="p-6 bg-gray-50/50 min-h-[300px] max-h-[60vh] overflow-y-auto custom-scrollbar">
+            {filters.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 bg-white border-2 border-dashed border-gray-200 rounded-xl">
+                <div className="w-16 h-16 bg-orange-50 text-orange-400 rounded-full flex items-center justify-center mb-4 ring-8 ring-orange-50/50">
+                  <Filter className="w-8 h-8" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 mb-1">No filters applied</h3>
+                <p className="text-gray-500 text-center text-sm max-w-[280px] mb-6">
+                  Start building your query by adding your first filter rule below.
+                </p>
+                <Button onClick={addFilter} className="bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-md shadow-orange-500/20 rounded-full px-6">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add First Rule
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filters.map((filter, index) => (
+                  <div key={filter.id} className="group flex flex-col sm:flex-row items-start sm:items-center gap-3 bg-white p-4 rounded-xl border border-gray-200 shadow-sm hover:border-orange-200 hover:shadow-md transition-all">
+                    
+                    {/* Operator Logic Badge */}
+                    <div className="flex items-center pt-1 sm:pt-0 sm:w-20 shrink-0">
+                      <Badge 
+                        variant="outline" 
+                        className={`text-xs font-bold uppercase tracking-wider px-2.5 py-1 ${index === 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}
+                      >
+                        {index === 0 ? "WHERE" : "AND"}
+                      </Badge>
+                    </div>
+
+                    <div className="flex flex-1 flex-col sm:flex-row gap-3 w-full">
+                      {/* Field Selection */}
+                      <Select value={filter.field} onValueChange={(val) => updateFilter(filter.id, "field", val)}>
+                        <SelectTrigger className="w-full sm:w-[180px] bg-gray-50/50 border-gray-200 hover:bg-white focus:ring-[#F4511E]">
+                          <SelectValue placeholder="Select Field" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FILTER_FIELDS.map(f => (
+                            <SelectItem key={f.value} value={f.value} className="cursor-pointer">{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Operator Selection */}
+                      <Select value={filter.operator} onValueChange={(val) => updateFilter(filter.id, "operator", val)}>
+                        <SelectTrigger className="w-full sm:w-[160px] bg-gray-50/50 border-gray-200 hover:bg-white focus:ring-[#F4511E]">
+                          <SelectValue placeholder="Condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {FILTER_OPERATORS.map(f => (
+                            <SelectItem key={f.value} value={f.value} className="cursor-pointer font-medium">{f.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+
+                      {/* Value Input */}
+                      {!["isEmpty", "isNotEmpty"].includes(filter.operator) ? (
+                        <div className="relative flex-1 w-full">
+                          <Input
+                            placeholder="Type value..."
+                            value={filter.value}
+                            onChange={(e) => updateFilter(filter.id, "value", e.target.value)}
+                            className="w-full bg-white border-gray-200 focus-visible:ring-[#F4511E]"
+                          />
+                        </div>
+                      ) : (
+                        <div className="flex-1 hidden sm:block"></div>
+                      )}
+                    </div>
+
+                    {/* Delete Button */}
+                    <div className="w-full sm:w-auto flex justify-end">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeFilter(filter.id)} 
+                        className="text-gray-400 hover:text-red-500 hover:bg-red-50 sm:opacity-0 sm:group-hover:opacity-100 focus:opacity-100 transition-opacity rounded-lg h-10 w-10 sm:h-9 sm:w-9 shrink-0"
+                        title="Remove condition"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+
+                <button 
+                  onClick={addFilter} 
+                  className="w-full mt-2 flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-gray-200 hover:border-orange-300 hover:bg-orange-50/50 text-gray-500 hover:text-[#F4511E] rounded-xl font-medium transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add another condition
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="px-6 py-4 bg-white border-t border-gray-100 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <Button 
+              variant="ghost" 
+              onClick={() => setFilters([])}
+              className="w-full sm:w-auto text-gray-500 hover:text-gray-900"
+              disabled={filters.length === 0}
+            >
+              Clear All
+            </Button>
+            <div className="flex gap-2 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowFilterDialog(false)}
+                className="flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button 
+                className="flex-1 sm:flex-none bg-[#F4511E] hover:bg-[#E64A19] text-white shadow-md shadow-orange-500/20" 
+                onClick={() => setShowFilterDialog(false)}
+              >
+                <Check className="w-4 h-4 mr-2" />
+                Apply Filters
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Move to Folder Dialog */}
+      <Dialog open={showMoveDialog} onOpenChange={setShowMoveDialog}>
+        <DialogContent className="max-w-md" aria-describedby="move-dialog-description">
+          <DialogHeader>
+            <DialogTitle>Move {selectedQuestions.length} Questions</DialogTitle>
+            <DialogDescription id="move-dialog-description">Select the target folder to move the selected questions.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={movingToFolderId} onValueChange={setMovingToFolderId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select target folder..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allFolders.map(f => (
+                  <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowMoveDialog(false)}>Cancel</Button>
+            <Button className="bg-primary text-white" onClick={handleMoveToFolder} disabled={!movingToFolderId}>
+              Move Questions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Copy to Folder Dialog */}
+      <Dialog open={showCopyDialog} onOpenChange={setShowCopyDialog}>
+        <DialogContent className="max-w-md" aria-describedby="copy-dialog-description">
+          <DialogHeader>
+            <DialogTitle>Copy {selectedQuestions.length} Questions</DialogTitle>
+            <DialogDescription id="copy-dialog-description">Select the target folder to copy the selected questions.</DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Select value={movingToFolderId} onValueChange={setMovingToFolderId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select target folder..." />
+              </SelectTrigger>
+              <SelectContent>
+                {allFolders.map(f => (
+                  <SelectItem key={f.id} value={f.id}>{f.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCopyDialog(false)}>Cancel</Button>
+            <Button className="bg-primary text-white" onClick={handleCopyToFolder} disabled={!movingToFolderId}>
+              Copy Questions
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <UnifiedBulkEditModal
+        isOpen={showUnifiedBulkEdit}
+        onClose={() => setShowUnifiedBulkEdit(false)}
+        selectedCount={selectedQuestions.length}
+        questionIds={selectedQuestions}
+        allFolders={allFolders}
+        defaultTab={unifiedBulkEditTab}
+        onSuccess={() => {
+          setSelectedQuestions([]);
+          router.refresh();
+        }}
+        onNextAI={(config) => {
+          setBulkConfig(config);
+          setShowUnifiedBulkEdit(false);
+          setShowBulkAIEdit2(true);
+        }}
+      />
+
+      {/* Bulk AI Edit Execution Modal */}
+      <Step2ExecutionModal
+        isOpen={showBulkAIEdit2}
+        selectedCount={selectedQuestions.length}
+        questionIds={selectedQuestions}
+        config={bulkConfig}
+        onClose={() => {
+            setShowBulkAIEdit2(false);
+        }}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent className="max-w-md" aria-describedby="delete-dialog-description">
+          <DialogHeader>
+            <DialogTitle className="text-red-600 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Confirm Deletion
+            </DialogTitle>
+            <DialogDescription id="delete-dialog-description">
+              {questionToDelete 
+                ? "Are you sure you want to permanently delete this question? This action cannot be undone."
+                : `Are you sure you want to permanently delete ${selectedQuestions.length} selected questions? This action cannot be undone.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => questionToDelete ? handleDeleteQuestion(questionToDelete) : handleBulkDelete()}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Deleting..." : "Permanently Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

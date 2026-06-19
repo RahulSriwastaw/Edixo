@@ -4,7 +4,7 @@ import { prisma } from '../../config/database';
 import { authenticate } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { randomBytes } from 'crypto';
-import { 
+import {
     syncAirtableQuestions,
     getAirtableTables,
     getAirtableSyncFolders,
@@ -142,11 +142,11 @@ async function getOrCreateExamFolder(examName: string, year: number | null): Pro
     });
     if (!examFolder) {
         examFolder = await (prisma as any).qBankFolder.create({
-            data: { 
-                name: examName, 
-                parent: { connect: { id: examsFolder.id } }, 
-                path: `/${examsFolder.id}`, 
-                depth: 1, 
+            data: {
+                name: examName,
+                parent: { connect: { id: examsFolder.id } },
+                path: `/${examsFolder.id}`,
+                depth: 1,
                 scope: 'GLOBAL',
                 slug: examName.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
             }
@@ -161,13 +161,13 @@ async function getOrCreateExamFolder(examName: string, year: number | null): Pro
     });
     if (!yearFolder) {
         yearFolder = await prisma.qBankFolder.create({
-            data: { 
-                name: String(year), 
-                parent: { connect: { id: examFolder.id } }, 
-                path: `${examFolder.path}/${examFolder.id}`, 
-                depth: 2, 
+            data: {
+                name: String(year),
+                parent: { connect: { id: examFolder.id } },
+                path: `${examFolder.path}/${examFolder.id}`,
+                depth: 2,
                 scope: 'GLOBAL',
-                slug: String(year) 
+                slug: String(year)
             }
         });
     }
@@ -592,9 +592,9 @@ router.delete('/folders/:id', async (req, res, next) => {
 router.get('/dashboard', async (req, res, next) => {
     try {
         // 1. Basic Stats
-        const totalQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: number}>>('SELECT COUNT(*)::INT AS cnt FROM questions');
-        const publicQuestionsRow = await prisma.$queryRawUnsafe<Array<{cnt: number}>>('SELECT COUNT(*)::INT AS cnt FROM questions WHERE is_global = true');
-        const setCountRow = await prisma.$queryRawUnsafe<Array<{cnt: number}>>('SELECT COUNT(*)::INT AS cnt FROM question_sets');
+        const totalQuestionsRow = await prisma.$queryRawUnsafe<Array<{ cnt: number }>>('SELECT COUNT(*)::INT AS cnt FROM questions');
+        const publicQuestionsRow = await prisma.$queryRawUnsafe<Array<{ cnt: number }>>('SELECT COUNT(*)::INT AS cnt FROM questions WHERE is_global = true');
+        const setCountRow = await prisma.$queryRawUnsafe<Array<{ cnt: number }>>('SELECT COUNT(*)::INT AS cnt FROM question_sets');
         const totalQuestions = totalQuestionsRow[0]?.cnt ?? 0;
         const publicQuestions = publicQuestionsRow[0]?.cnt ?? 0;
         const setMapCount = setCountRow[0]?.cnt ?? 0;
@@ -829,9 +829,12 @@ router.post('/sets', async (req, res, next) => {
             }),
             folderId: z.any().optional(),
             durationMins: z.any().optional(),
+            isGlobal: z.boolean().optional().default(false),
+            subject: z.string().optional().nullable(),
+            chapter: z.string().optional().nullable(),
         });
         const body = schema.parse(req.body);
-        
+
         if (!body.questionIds || body.questionIds.length === 0) {
             throw new AppError('At least one question must be selected', 400);
         }
@@ -841,19 +844,18 @@ router.post('/sets', async (req, res, next) => {
         let isUnique = false;
         while (!isUnique) {
             setId = String(Math.floor(100000 + Math.random() * 900000));
-            const existing = await prisma.$queryRawUnsafe<Array<{id: string}>>(`SELECT id FROM question_sets WHERE set_id = '${setId}' LIMIT 1`);
+            const existing = await prisma.$queryRawUnsafe<Array<{ id: string }>>(`SELECT id FROM question_sets WHERE set_id = '${setId}' LIMIT 1`);
             if (existing.length === 0) isUnique = true;
         }
 
         const pin = String(Math.floor(100000 + Math.random() * 900000));
         const newId = `set-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        const subject = body.questionIds.length > 0 ? null : null; // Can be extended later
 
         // Insert into question_sets table
         await prisma.$executeRawUnsafe(`
-            INSERT INTO question_sets (id, set_id, name, description, pin, total_questions, subject, is_global, created_at, updated_at)
-            VALUES ('${newId}', '${setId}', $1, $2, '${pin}', ${body.questionIds.length}, NULL, false, NOW(), NOW())
-        `, body.name, body.description || null);
+            INSERT INTO question_sets (id, set_id, name, description, pin, total_questions, subject, chapter, is_global, created_at, updated_at)
+            VALUES ('${newId}', '${setId}', $1, $2, '${pin}', ${body.questionIds.length}, $3, $4, ${body.isGlobal}, NOW(), NOW())
+        `, body.name, body.description || null, body.subject || null, body.chapter || null);
 
         // Insert question_set_items
         for (let i = 0; i < body.questionIds.length; i++) {
@@ -872,11 +874,38 @@ router.post('/sets', async (req, res, next) => {
             name: body.name,
             description: body.description || null,
             totalQuestions: body.questionIds.length,
-            isGlobal: false,
+            isGlobal: body.isGlobal,
+            subject: body.subject || null,
+            chapter: body.chapter || null,
             _count: { items: body.questionIds.length }
         };
 
         res.status(201).json({ success: true, data: questionSet });
+    } catch (err) { next(err); }
+});
+
+// ─── PATCH /api/qbank/sets/:id/marketplace ───────────────────
+router.patch('/sets/:id/marketplace', async (req, res, next) => {
+    try {
+        const { id } = req.params;
+        const schema = z.object({
+            isGlobal: z.boolean(),
+        });
+        const body = schema.parse(req.body);
+
+        const existing = await prisma.question_sets.findFirst({
+            where: {
+                OR: [{ id: id }, { set_id: id }]
+            }
+        });
+        if (!existing) throw new AppError('Set not found', 404);
+
+        await prisma.question_sets.update({
+            where: { id: existing.id },
+            data: { is_global: body.isGlobal }
+        });
+
+        res.json({ success: true, message: body.isGlobal ? 'Set published to marketplace' : 'Set removed from marketplace' });
     } catch (err) { next(err); }
 });
 
@@ -885,7 +914,7 @@ router.delete('/sets', async (req, res, next) => {
     try {
         const { ids } = z.object({ ids: z.array(z.string()) }).parse(req.body);
         if (ids.length === 0) return res.json({ success: true, message: '0 sets deleted' });
-        
+
         // Check if any set is used in a MockTest
         const usedSets = await prisma.mockTestSection.findMany({
             where: { setId: { in: ids } },
@@ -900,11 +929,11 @@ router.delete('/sets', async (req, res, next) => {
         const deleteResult = await prisma.question_sets.deleteMany({
             where: { id: { in: ids } }
         });
-        
-        res.json({ 
-            success: true, 
+
+        res.json({
+            success: true,
             message: `${deleteResult.count} sets deleted successfully`,
-            deletedCount: deleteResult.count 
+            deletedCount: deleteResult.count
         });
     } catch (err) { next(err); }
 });
@@ -913,7 +942,7 @@ router.delete('/sets', async (req, res, next) => {
 router.delete('/sets/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        
+
         // Check if exists by either UUID id or 6-digit set_id
         const existing = await prisma.question_sets.findFirst({
             where: {
@@ -925,7 +954,7 @@ router.delete('/sets/:id', async (req, res, next) => {
         });
 
         if (!existing) throw new AppError('Question set not found', 404);
-        
+
         // Check if used in MockTest
         const usedSet = await prisma.mockTestSection.findFirst({
             where: { setId: existing.id },
@@ -984,7 +1013,7 @@ router.get('/questions', async (req, res, next) => {
         if (chapter && chapter !== 'all') where.chapterName = chapter;
         if (year && year !== 'all') where.year = Number(year);
         if (shift && shift !== 'all') where.section = shift;
-        
+
         // Difficulty Mapping
         if (difficulty && difficulty !== 'all') {
             const diffMap: any = { 'easy': 'EASY', 'medium': 'MEDIUM', 'hard': 'HARD' };
@@ -993,11 +1022,11 @@ router.get('/questions', async (req, res, next) => {
 
         // Type Mapping
         if (type && type !== 'all') {
-            const typeMap: any = { 
-                'mcq': 'MCQ_SINGLE', 
-                'multi_select': 'MCQ_MULTIPLE', 
-                'true_false': 'TRUE_FALSE', 
-                'integer': 'FILL_IN_BLANK' 
+            const typeMap: any = {
+                'mcq': 'MCQ_SINGLE',
+                'multi_select': 'MCQ_MULTIPLE',
+                'true_false': 'TRUE_FALSE',
+                'integer': 'FILL_IN_BLANK'
             };
             where.type = typeMap[type as string] || type;
         }
@@ -1019,7 +1048,7 @@ router.get('/questions', async (req, res, next) => {
                     parsedFilters.forEach((f: any) => {
                         if (!f.field) return;
                         const numFields = ['year', 'syncCode', 'pointCost', 'usageCount', 'questionUniqueId'];
-                        
+
                         // Handle field alias
                         let field = f.field;
                         if (field === 'shift') field = 'section';
@@ -1031,17 +1060,17 @@ router.get('/questions', async (req, res, next) => {
                         } else if (f.value !== undefined && f.value !== '') {
                             let val = f.value;
                             if (numFields.includes(field)) val = Number(val);
-                            
+
                             // Map Difficulty and Type for dynamic filters
                             if (field === 'difficulty') {
                                 const diffMap: any = { 'easy': 'EASY', 'medium': 'MEDIUM', 'hard': 'HARD' };
                                 val = diffMap[val as string] || val;
                             } else if (field === 'type') {
-                                const typeMap: any = { 
-                                    'mcq': 'MCQ_SINGLE', 
-                                    'multi_select': 'MCQ_MULTIPLE', 
-                                    'true_false': 'TRUE_FALSE', 
-                                    'integer': 'FILL_IN_BLANK' 
+                                const typeMap: any = {
+                                    'mcq': 'MCQ_SINGLE',
+                                    'multi_select': 'MCQ_MULTIPLE',
+                                    'true_false': 'TRUE_FALSE',
+                                    'integer': 'FILL_IN_BLANK'
                                 };
                                 val = typeMap[val as string] || val;
                             }
@@ -1067,19 +1096,19 @@ router.get('/questions', async (req, res, next) => {
         // Use standard Prisma findMany to support all filters instead of raw SQL
         const total = await (prisma as any).questions.count({ where });
         const questionsRaw = await (prisma as any).questions.findMany({
-             where,
-             orderBy: { created_at: 'desc' },
-             skip: Number(skip),
-             take: Number(limit),
-             include: {
-                 question_options: {
-                     orderBy: { sort_order: 'asc' },
-                     select: {
-                         id: true, question_id: true, text_en: true, text_hi: true,
-                         is_correct: true, sort_order: true
-                     }
-                 },
-             }
+            where,
+            orderBy: { created_at: 'desc' },
+            skip: Number(skip),
+            take: Number(limit),
+            include: {
+                question_options: {
+                    orderBy: { sort_order: 'asc' },
+                    select: {
+                        id: true, question_id: true, text_en: true, text_hi: true,
+                        is_correct: true, sort_order: true
+                    }
+                },
+            }
         });
 
         const formattedQuestions = questionsRaw.map((q: any) => ({
@@ -1113,7 +1142,7 @@ router.get('/questions', async (req, res, next) => {
 router.get('/questions/:id', async (req, res, next) => {
     try {
         const { id } = req.params;
-        
+
         const question = await (prisma as any).questions.findUnique({
             where: { id },
             include: {
@@ -1185,15 +1214,15 @@ router.patch('/questions/bulk-update', async (req, res, next) => {
         const schema = z.object({
             question_ids: z.array(z.string()).min(1, 'At least one question ID is required'),
             updates: z.object({
-                subject:       z.string().optional(),
-                chapter:       z.string().optional(),
+                subject: z.string().optional(),
+                chapter: z.string().optional(),
                 question_type: z.string().optional(),
-                difficulty:    z.string().optional(),
-                status:        z.string().optional(),
-                exam:          z.string().optional(),
-                year:          z.string().optional(),
-                date:          z.string().optional(),
-                shift:         z.string().optional(),
+                difficulty: z.string().optional(),
+                status: z.string().optional(),
+                exam: z.string().optional(),
+                year: z.string().optional(),
+                date: z.string().optional(),
+                shift: z.string().optional(),
             }).refine(data => Object.keys(data).length > 0, {
                 message: 'At least one field must be provided for update'
             })
@@ -1209,27 +1238,27 @@ router.patch('/questions/bulk-update', async (req, res, next) => {
 
         const prismaData: Record<string, any> = {};
 
-        if (updates.subject       !== undefined) prismaData.subject_name  = updates.subject;
-        if (updates.chapter       !== undefined) prismaData.chapter_name  = updates.chapter;
-        if (updates.question_type !== undefined) prismaData.type          = updates.question_type;
-        if (updates.difficulty    !== undefined) prismaData.difficulty    = difficultyMap[updates.difficulty] ?? updates.difficulty.toUpperCase();
-        if (updates.exam          !== undefined) prismaData.exam          = updates.exam;
-        if (updates.year          !== undefined) prismaData.year          = parseInt(updates.year, 10) || null;
-        if (updates.shift         !== undefined) prismaData.section       = updates.shift;
-        if (updates.date          !== undefined) prismaData.date          = updates.date;
+        if (updates.subject !== undefined) prismaData.subject_name = updates.subject;
+        if (updates.chapter !== undefined) prismaData.chapter_name = updates.chapter;
+        if (updates.question_type !== undefined) prismaData.type = updates.question_type;
+        if (updates.difficulty !== undefined) prismaData.difficulty = difficultyMap[updates.difficulty] ?? updates.difficulty.toUpperCase();
+        if (updates.exam !== undefined) prismaData.exam = updates.exam;
+        if (updates.year !== undefined) prismaData.year = parseInt(updates.year, 10) || null;
+        if (updates.shift !== undefined) prismaData.section = updates.shift;
+        if (updates.date !== undefined) prismaData.date = updates.date;
 
         // Handle status → is_approved / is_global flags
         if (updates.status !== undefined) {
             const s = updates.status.toLowerCase();
             if (s === 'published') {
                 prismaData.is_approved = true;
-                prismaData.is_global   = false;
+                prismaData.is_global = false;
             } else if (s === 'archived') {
                 prismaData.is_approved = false;
-                prismaData.is_global   = false;
+                prismaData.is_global = false;
             } else if (s === 'draft' || s === 'under review') {
                 prismaData.is_approved = false;
-                prismaData.is_global   = false;
+                prismaData.is_global = false;
             }
         }
 
@@ -1266,7 +1295,7 @@ router.delete('/questions', async (req, res, next) => {
         if (ids.length === 0) return res.json({ success: true, message: '0 questions deleted' });
 
         await prisma.$executeRawUnsafe(`DELETE FROM questions WHERE id = ANY($1::text[])`, ids);
-        
+
         res.json({ success: true, message: `${ids.length} questions deleted successfully` });
     } catch (err) { next(err); }
 });
@@ -1376,8 +1405,8 @@ router.get('/debug/sets-pdf-notes', async (req, res, next) => {
             },
             data: setsWithParsed,
         });
-    } catch (err) { 
-        next(err); 
+    } catch (err) {
+        next(err);
     }
 });
 

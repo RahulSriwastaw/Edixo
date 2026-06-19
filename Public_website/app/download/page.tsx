@@ -3,92 +3,70 @@
 import React from 'react';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Monitor, Smartphone, Laptop, CheckCircle, ArrowRight } from 'lucide-react';
+import { Monitor, Smartphone, CheckCircle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 export default function DownloadPage() {
     return (
-        <div className="min-h-screen bg-[#F9FAFB] flex flex-col">
+        <div style={{ minHeight: '100vh', background: 'var(--bg-body)', display: 'flex', flexDirection: 'column' }}>
             <Navbar />
-
-            <main className="flex-1 pt-32 pb-20">
+            <main style={{ flex: 1, padding: '120px 0 60px', marginTop: '54px' }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    {/* Header */}
-                    <div className="text-center mb-16">
-                        <h1 className="text-5xl font-bold text-slate-900 mb-6">Download Teaching Tools</h1>
-                        <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-                            Get the powerful Whiteboard app for your desktop or tablet and start teaching like a pro.
+                    <div style={{ textAlign: 'center', marginBottom: 48 }}>
+                        <Link href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: 'var(--text-secondary)', fontSize: 13, textDecoration: 'none', marginBottom: 16 }}>
+                            <ArrowLeft size={14} /> Back to Home
+                        </Link>
+                        <h1 style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>Download Teaching Tools</h1>
+                        <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 500, margin: '0 auto' }}>
+                            Get the Whiteboard app for your device.
                         </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-4xl mx-auto">
-                        {/* Whiteboard Desktop */}
-                        <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-200 flex flex-col items-center text-center">
-                            <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center text-primary mb-8">
-                                <Monitor className="w-10 h-10" />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                        <div className="db-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: 32 }}>
+                            <div style={{ width: 60, height: 60, borderRadius: 16, background: 'rgba(255,107,43,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                                <Monitor size={28} color="var(--accent)" />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-900 mb-4">Whiteboard for Windows</h2>
-                            <p className="text-slate-600 mb-8 text-sm leading-relaxed">
+                            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>Whiteboard for Windows</h2>
+                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
                                 Optimized for high-performance live teaching with low latency and infinite canvas.
                             </p>
-                            <div className="space-y-3 mb-10 w-full text-left">
-                                <div className="flex items-center text-sm text-slate-700">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                                    Infinite Canvas & Recording
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, width: '100%', textAlign: 'left' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                                    <CheckCircle size={14} color="var(--badge-success-text)" /> Infinite Canvas & Recording
                                 </div>
-                                <div className="flex items-center text-sm text-slate-700">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                                    Q-Bank Asset Integration
-                                </div>
-                                <div className="flex items-center text-sm text-slate-700">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                                    Offline Mode Support
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                                    <CheckCircle size={14} color="var(--badge-success-text)" /> Q-Bank Asset Integration
                                 </div>
                             </div>
-                            <button
-                                onClick={() => alert('Download starting... (v1.0.0)')}
-                                className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 flex items-center justify-center gap-2"
-                            >
-                                Download .exe
-                                <ArrowRight className="w-4 h-4" />
+                            <button className="btn btn-primary" style={{ width: '100%', padding: '10px 14px' }} onClick={() => alert('Download starting...')}>
+                                Download for Windows
                             </button>
                         </div>
 
-                        {/* Whiteboard Tablet */}
-                        <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-200 flex flex-col items-center text-center">
-                            <div className="w-20 h-20 bg-indigo-50 rounded-3xl flex items-center justify-center text-indigo-600 mb-8">
-                                <Smartphone className="w-10 h-10" />
+                        <div className="db-card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: 32 }}>
+                            <div style={{ width: 60, height: 60, borderRadius: 16, background: 'rgba(33,150,243,0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20 }}>
+                                <Smartphone size={28} color="#2196F3" />
                             </div>
-                            <h2 className="text-2xl font-bold text-slate-900 mb-4">Whiteboard for Android</h2>
-                            <p className="text-slate-600 mb-8 text-sm leading-relaxed">
+                            <h2 style={{ fontSize: 18, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 8 }}>Whiteboard for Android</h2>
+                            <p style={{ fontSize: 13, color: 'var(--text-secondary)', marginBottom: 16, lineHeight: 1.5 }}>
                                 Perfect for teaching using tablets or smart boards with stylus support.
                             </p>
-                            <div className="space-y-3 mb-10 w-full text-left">
-                                <div className="flex items-center text-sm text-slate-700">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                                    Smooth Stylus Input
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24, width: '100%', textAlign: 'left' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                                    <CheckCircle size={14} color="var(--badge-success-text)" /> Smooth Stylus Input
                                 </div>
-                                <div className="flex items-center text-sm text-slate-700">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                                    Palm Rejection Ready
-                                </div>
-                                <div className="flex items-center text-sm text-slate-700">
-                                    <CheckCircle className="w-4 h-4 text-green-500 mr-3" />
-                                    Cloud Sync enabled
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: 'var(--text-secondary)' }}>
+                                    <CheckCircle size={14} color="var(--badge-success-text)" /> Cloud Sync Enabled
                                 </div>
                             </div>
-                            <button
-                                onClick={() => alert('Download starting for Android...')}
-                                className="w-full py-4 rounded-2xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 flex items-center justify-center gap-2"
-                            >
-                                Download .apk
-                                <ArrowRight className="w-4 h-4" />
+                            <button className="btn btn-primary" style={{ width: '100%', padding: '10px 14px', background: '#2196F3' }} onClick={() => alert('Download starting...')}>
+                                Download for Android
                             </button>
                         </div>
                     </div>
                 </div>
             </main>
-
             <Footer />
         </div>
     );

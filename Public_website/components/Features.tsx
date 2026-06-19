@@ -9,69 +9,71 @@ import {
 
 const features = [
   {
-    title: "Organization Admin",
-    description: "Complete control over your institute. Manage teachers, content, and branding from a single dashboard.",
-    icon: LayoutDashboard,
-    color: "bg-primary-light text-primary",
-  },
-  {
-    title: "Question Bank (Q-Bank)",
-    description: "Advanced system to store, organize, and filter thousands of questions for mock tests and practice.",
+    title: "Global Question Bank",
+    description: "Advanced system to store, organize, and filter thousands of questions for mock tests and practice papers.",
     icon: GraduationCap,
-    color: "bg-green-100 text-green-600",
-  },
-  {
-    title: "Interactive Whiteboard",
-    description: "Low-latency digital whiteboard for live teaching with recording capabilities and infinite canvas.",
-    icon: Presentation,
-    color: "bg-purple-100 text-purple-600",
+    color: "#FF6B2B",
   },
   {
     title: "AI Paper Generator",
-    description: "Generate high-quality question papers and PPTs in seconds using advanced AI models.",
+    description: "Generate high-quality question papers and presentations in seconds using advanced AI models.",
     icon: FileText,
-    color: "bg-orange-100 text-orange-600",
+    color: "#2196F3",
+  },
+  {
+    title: "Interactive PDF Studio",
+    description: "Create professional PDF question papers with custom formatting, layouts, and answer keys.",
+    icon: Presentation,
+    color: "#9C27B0",
+  },
+  {
+    title: "Question Bank Management",
+    description: "Complete control over your question library. Manage packs, sets, and content from one dashboard.",
+    icon: LayoutDashboard,
+    color: "#4CAF50",
   },
   {
     title: "Lightning Fast",
-    description: "Built on a modern monorepo architecture ensuring high performance and scalability.",
+    description: "Built on modern architecture ensuring high performance, quick search, and instant exports.",
     icon: Zap,
-    color: "bg-yellow-100 text-yellow-600",
+    color: "#FF9800",
   },
   {
     title: "Enterprise Security",
-    description: "Role-based access control (RBAC), data isolation, and secure authentication for total peace of mind.",
+    description: "Role-based access control, data isolation, and secure authentication for total peace of mind.",
     icon: ShieldCheck,
-    color: "bg-red-100 text-red-600",
+    color: "#F44336",
   },
 ];
 
 export function Features() {
   return (
-    <section id="features" className="py-20 bg-gray-50">
+    <section id="features" style={{ padding: '60px 0', background: 'var(--bg-body)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Everything you need to run your institute
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', marginBottom: 8 }}>
+            Everything you need for your question bank
           </h2>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            A comprehensive suite of tools designed to modernize education delivery and management.
+          <p style={{ fontSize: 14, color: 'var(--text-secondary)', maxWidth: 560, margin: '0 auto' }}>
+            A comprehensive suite of tools designed to help teachers create, manage, and share question banks.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div key={index} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-              <div className={`w-14 h-14 rounded-xl flex items-center justify-center mb-6 ${feature.color}`}>
-                <feature.icon className="w-7 h-7" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {features.map((feature, index) => {
+            const Icon = feature.icon;
+            return (
+              <div key={index} className="db-card">
+                <div style={{ width: 44, height: 44, borderRadius: 10, background: `${feature.color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 14 }}>
+                  <Icon size={20} style={{ color: feature.color }} />
+                </div>
+                <h3 style={{ fontSize: 14, fontWeight: 700, color: 'var(--text-primary)', marginBottom: 6 }}>{feature.title}</h3>
+                <p style={{ fontSize: 13, color: 'var(--text-secondary)', lineHeight: 1.5 }}>{feature.description}</p>
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-              <p className="text-gray-600 leading-relaxed">{feature.description}</p>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>
   );
 }
-

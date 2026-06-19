@@ -21,8 +21,11 @@ import aiRoutes from './modules/ai/ai.routes';
 import mockbookRoutes from './modules/mockbook/mockbook.routes';
 import studentsRoutes from './modules/students/students.routes';
 import qbankRoutes from './modules/qbank/qbank.routes';
+import userQbankRoutes from './modules/qbank/user-qbank.routes';
 import questionsRoutes from './modules/questions/bulk-ai-edit.routes';
 import examInterfaceThemeRoutes from './modules/examInterfaceTheme/examInterfaceTheme.routes';
+import blogRoutes from './modules/blog/blog.routes';
+import sarkariRoutes from './modules/sarkariResult/sarkariResult.routes';
 
 // Error handler
 import { errorHandler } from './middleware/errorHandler';
@@ -368,8 +371,11 @@ app.use('/api/ai', aiRoutes);
 app.use('/api/mockbook', mockbookRoutes);
 app.use('/api/students', studentsRoutes);
 app.use('/api/qbank', qbankRoutes);
+app.use('/api/user-qbank', userQbankRoutes);
 app.use('/api/questions', questionsRoutes);
 app.use('/api/exam-interface-themes', examInterfaceThemeRoutes);
+app.use('/api/blog', blogRoutes);
+app.use('/api/sarkari', sarkariRoutes);
 
 // Error Handling
 app.use(notFound);

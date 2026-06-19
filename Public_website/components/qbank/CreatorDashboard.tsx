@@ -29,7 +29,7 @@ import { aiOrchestrator, availableModels, AIModelConfig } from '../services/aiOr
 import { Question, QuestionSet, Difficulty, QuestionType, GenerateParams } from '../types';
 import { BulkUploadModal } from './BulkUploadModal';
 import { Button } from './Button';
-// Super-admin: no AuthContext - use hardcoded admin
+import { useAuth } from '../../contexts/AuthContext';
 import { generateQuestionSetPDF } from '../utils/pdfGenerator';
 import { generateQuestionSetPPT } from '../utils/pptGenerator';
 
@@ -264,10 +264,25 @@ const CascadingSelector: React.FC<CascadingSelectorProps> = ({ library, onSelect
 };
 
 export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPresentation, onLaunchPDF, onLaunchRefine, initialTab }) => {
-  // Super-admin: hardcoded admin user (no AuthContext)
-  const user = { email: 'admin@edixo.com', user_metadata: { full_name: 'Super Admin' } };
-  const signOut = () => { window.location.href = '/'; };
+  const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<'extract' | 'library' | 'sets' | 'answer' | 'book' | 'export'>(initialTab || 'library');
+  
+  // Pack Management
+  const [packs, setPacks] = useState<any[]>([]);
+  const [selectedPackId, setSelectedPackId] = useState<string>('');
+  const [isPackLoading, setIsPackLoading] = useState(false);
+
+  useEffect(() => {
+    const fetchPacks = async () => {
+      setIsPackLoading(true);
+      const data = await storageService.getPacks();
+      setPacks(data);
+      if (data.length > 0) setSelectedPackId(data[0].id);
+      setIsPackLoading(false);
+    };
+    fetchPacks();
+  }, []);
+
   const [viewLanguage, setViewLanguage] = useState<'English' | 'Hindi' | 'Bilingual'>('Bilingual');
   const [launchSetId, setLaunchSetId] = useState<string | null>(null);
   const [exportDropdownSetId, setExportDropdownSetId] = useState<string | null>(null);
@@ -475,9 +490,12 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   };
 
   useEffect(() => {
-    refreshLibrary();
+    if (selectedPackId) {
+      refreshLibrary();
+    }
     refreshSets();
-  }, []);
+  }, [selectedPackId]);
+
 
   useEffect(() => {
     fetchTopicSuggestions();
@@ -485,9 +503,10 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
 
 
   const refreshLibrary = async () => {
+    if (!selectedPackId) return;
     setIsDataLoading(true);
     try {
-      const data = await storageService.getQuestions();
+      const data = await storageService.getQuestions(selectedPackId);
       setLibrary(data);
     } catch (err) {
       console.warn('refreshLibrary failed:', err);
@@ -514,10 +533,10 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   };
 
   const handleSaveEdit = async () => {
-    if (!editingQuestion) return;
+    if (!editingQuestion || !selectedPackId) return;
     setIsDataLoading(true);
     try {
-      await storageService.saveQuestion(editingQuestion);
+      await storageService.saveQuestion(editingQuestion, selectedPackId);
       setEditingQuestion(null);
       setIsEditingGenerated(false);
       await refreshLibrary();
@@ -530,9 +549,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
 
   const handleToggleFlag = async (id: string) => {
     const q = library.find(item => item.id === id);
-    if (!q) return;
+    if (!q || !selectedPackId) return;
     const updated = { ...q, flagged: !q.flagged };
-    await storageService.saveQuestion(updated);
+    await storageService.saveQuestion(updated, selectedPackId);
     await refreshLibrary();
   };
 
@@ -614,9 +633,10 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   };
 
   const handleBulkImport = async (questions: Question[]) => {
+    if (!selectedPackId) return alert('Please select a question pack first');
     setIsDataLoading(true);
     try {
-      await storageService.saveQuestionsBulk(questions);
+      await storageService.saveQuestionsBulk(questions, selectedPackId);
       await refreshLibrary();
       setShowBulkModal(false);
     } catch (error) {
@@ -627,10 +647,10 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   };
 
   const handleBulkAction = async (updates: Partial<Question>) => {
-    if (selectedIds.length === 0) return;
+    if (selectedIds.length === 0 || !selectedPackId) return;
     setIsDataLoading(true);
     try {
-      await storageService.updateQuestionsBulk(selectedIds, updates);
+      await storageService.updateQuestionsBulk(selectedIds, updates, selectedPackId);
       await refreshLibrary();
       setShowBulkEdit(false);
     } catch (e) {
@@ -648,7 +668,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
     try {
       setLibrary(prev => prev.filter(item => !idsToDelete.includes(item.id)));
       setSelectedIds([]);
-      await storageService.deleteQuestionsBulk(idsToDelete);
+      await storageService.deleteQuestionsBulk(idsToDelete, selectedPackId);
       await refreshLibrary();
     } catch (e) {
       console.error("Delete failed:", e);
@@ -724,7 +744,7 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
             type: q.type || 'MCQ',
             language: q.language || 'Bilingual'
           }));
-          await storageService.saveQuestionsBulk(newQs as Question[]);
+          await storageService.saveQuestionsBulk(newQs as Question[], selectedPackId);
           await refreshLibrary();
           alert(`Successfully imported ${newQs.length} questions.`);
         } else {
@@ -753,8 +773,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
       } else {
         if (autoSaveEnabled) {
           // Auto-saving logic
+          if (!selectedPackId) return alert('Select a pack to auto-save');
           setIsDataLoading(true);
-          await storageService.saveQuestionsBulk(qs);
+          await storageService.saveQuestionsBulk(qs, selectedPackId);
           await refreshLibrary();
           setIsDataLoading(false);
           alert(`✨ Success! ${qs.length} questions generated and saved automatically.`);
@@ -772,8 +793,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
   };
 
   const handleSaveGenerated = async () => {
+    if (!selectedPackId) return alert('Please select a question pack first');
     setIsDataLoading(true);
-    await storageService.saveQuestionsBulk(generatedQuestions);
+    await storageService.saveQuestionsBulk(generatedQuestions, selectedPackId);
     setGeneratedQuestions([]);
     setActiveTab('library');
     await refreshLibrary();
@@ -782,8 +804,9 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
 
   // Handler for saving extracted questions from ExtractPanel
   const handleSaveExtractedQuestions = async (questions: Question[]) => {
+    if (!selectedPackId) return alert('Please select a question pack first');
     setIsDataLoading(true);
-    await storageService.saveQuestionsBulk(questions);
+    await storageService.saveQuestionsBulk(questions, selectedPackId);
     setActiveTab('library');
     await refreshLibrary();
     setIsDataLoading(false);
@@ -1163,6 +1186,22 @@ export const CreatorDashboard: React.FC<CreatorDashboardProps> = ({ onLaunchPres
               <Database size={13} className="text-primary" />
               <span className="text-xs font-semibold text-slate-600">{library.length} Questions</span>
               <div className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+            </div>
+
+            {/* Pack Selector */}
+            <div className="ml-4 flex items-center gap-2">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Pack:</span>
+              <select 
+                className="h-8 bg-white border border-[#E5E7EB] rounded-[8px] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-primary/50 min-w-[150px]"
+                value={selectedPackId}
+                onChange={(e) => setSelectedPackId(e.target.value)}
+              >
+                {isPackLoading ? <option>Loading packs...</option> : 
+                 packs.length === 0 ? <option>No packs found</option> :
+                 packs.map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
