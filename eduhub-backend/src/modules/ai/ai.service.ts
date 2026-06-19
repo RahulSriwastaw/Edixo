@@ -1,37 +1,40 @@
-import axios from 'axios';
-import { logger } from '../../config/logger';
-import { AI_MODELS, AI_ENDPOINTS } from './ai.config';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import { prisma } from '../../config/database';
-import { AppError } from '../../middleware/errorHandler';
+import axios from "axios";
+import * as cheerio from "cheerio";
+import { logger } from "../../config/logger";
+import { AI_MODELS, AI_ENDPOINTS } from "./ai.config";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { prisma } from "../../config/database";
+import { AppError } from "../../middleware/errorHandler";
 
 export class AIService {
-    private static CLAUDE_API_URL = 'https://api.anthropic.com/v1/messages';
-    private static MODEL = 'claude-sonnet-4-5';
+  private static CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
+  private static MODEL = "claude-sonnet-4-5";
 
-    // Existing Canvas method - Now Using Gemini
-    static async getCanvasQueryResponse(params: {
-        query: string;
-        context?: string;
-        imageBase64?: string;
-        language?: string;
-        gradeLevel?: number;
-    }) {
-        const settings = await this.getSettings();
-        const apiKey = settings.apiKeyGemini || process.env.GEMINI_API_KEY;
+  // Existing Canvas method - Now Using Gemini
+  static async getCanvasQueryResponse(params: {
+    query: string;
+    context?: string;
+    imageBase64?: string;
+    language?: string;
+    gradeLevel?: number;
+  }) {
+    const settings = await this.getSettings();
+    const apiKey = settings.apiKeyGemini || process.env.GEMINI_API_KEY;
 
-        if (!apiKey) {
-            logger.warn('AI Service: GEMINI_API_KEY missing — returning mock response.');
-            return this.getMockResponse(params.query);
-        }
+    if (!apiKey) {
+      logger.warn(
+        "AI Service: GEMINI_API_KEY missing — returning mock response.",
+      );
+      return this.getMockResponse(params.query);
+    }
 
-        try {
-            const systemPrompt = `You are EduHub AI — an expert teaching assistant powered by Google Gemini.
+    try {
+      const systemPrompt = `You are EduHub AI — an expert teaching assistant powered by Google Gemini.
 Your audience: teachers and students preparing for JEE, NEET, UPSC, SSC, and GATE.
 
-CANVAS CONTEXT: ${params.context || 'No text context available.'}
+CANVAS CONTEXT: ${params.context || "No text context available."}
 STUDENT LEVEL: Grade ${params.gradeLevel || 10}
-PREFERRED LANGUAGE: ${params.language || 'English'}
+PREFERRED LANGUAGE: ${params.language || "English"}
 
 RESPONSE RULES:
 1. Be precise, structured, and educational.
@@ -41,200 +44,411 @@ RESPONSE RULES:
 5. Hindi mode: use Hinglish (simple Hindi + English terms).
 6. Keep responses focused — no fluff.`;
 
-            // Use the unified logic for consistency
-            return await this.processToolRequest({
-                modelId: settings.defaultImageModel || 'GEMINI_2_0_FLASH',
-                systemPrompt,
-                userPrompt: params.query,
-                imageBase64: params.imageBase64,
-                mimeType: 'image/png'
-            });
-        } catch (error: any) {
-            logger.error('Canvas Gemini Error:', error.message);
-            throw new Error('AI Assistant is temporarily unavailable. Please try again later.');
-        }
+      // Use the unified logic for consistency
+      return await this.processToolRequest({
+        modelId: settings.defaultImageModel || "GEMINI_2_0_FLASH",
+        systemPrompt,
+        userPrompt: params.query,
+        imageBase64: params.imageBase64,
+        mimeType: "image/png",
+      });
+    } catch (error: any) {
+      logger.error("Canvas Gemini Error:", error.message);
+      throw new Error(
+        "AI Assistant is temporarily unavailable. Please try again later.",
+      );
+    }
+  }
+
+  private static getMockResponse(query: string): string {
+    const q = query.toLowerCase();
+    if (q.includes("newton")) {
+      return "**Newton's Second Law:**\n\nForce is the rate of change of momentum:\n$$F = ma$$\n\nWhere:\n- $F$ = Net force (Newtons)\n- $m$ = Mass (kg)\n- $a$ = Acceleration (m/s²)\n\n*Mock response — add CLAUDE_API_KEY to .env*";
+    }
+    return "**EduHub AI Teaching Assistant**\n\n*Mock mode — add CLAUDE_API_KEY to .env to enable full AI.*";
+  }
+
+  // --- AI Settings & Smart Selection ---
+  private static settingsCache: { data: any; timestamp: number } | null = null;
+  private static CACHE_TTL = 30000; // 30 seconds
+
+  private static async getSettings() {
+    if (
+      this.settingsCache &&
+      Date.now() - this.settingsCache.timestamp < this.CACHE_TTL
+    ) {
+      return this.settingsCache.data;
     }
 
-    private static getMockResponse(query: string): string {
-        const q = query.toLowerCase();
-        if (q.includes('newton')) {
-            return "**Newton's Second Law:**\n\nForce is the rate of change of momentum:\n$$F = ma$$\n\nWhere:\n- $F$ = Net force (Newtons)\n- $m$ = Mass (kg)\n- $a$ = Acceleration (m/s²)\n\n*Mock response — add CLAUDE_API_KEY to .env*";
+    const settings = await prisma.ai_settings.findUnique({
+      where: { id: "singleton" },
+    });
+    const data = settings || {
+      defaultTextModel: "OPENROUTER_GEMMA_4_26B",
+      defaultImageModel: "GEMINI_2_0_FLASH",
+      apiKeyGemini: process.env.GEMINI_API_KEY,
+      apiKeyOpenRouter: process.env.OPENROUTER_API_KEY,
+      apiKeyModal: process.env.MODAL_API_KEY,
+      apiKeyClaude: process.env.CLAUDE_API_KEY,
+    };
+
+    this.settingsCache = { data, timestamp: Date.now() };
+    return data;
+  }
+
+  // --- New Tooling Logic (PDF to Word / MCQ Extractor) ---
+  static async processToolRequest(params: {
+    modelId?: string; // 'smart', 'openrouter', 'modal', or specific model key
+    systemPrompt: string;
+    userPrompt: string;
+    imageBase64?: string;
+    mimeType?: string; // e.g. 'image/png'
+  }) {
+    const settings = await this.getSettings();
+    let modelConfig: { provider: string; id: string } =
+      (AI_MODELS as any)[settings.defaultImageModel] ||
+      AI_MODELS.GEMINI_2_0_FLASH;
+
+    // Evaluate manual override or smart selection
+    if (params.modelId && params.modelId !== "smart") {
+      // 1. Check if modelId is a KEY in AI_MODELS (e.g. GEMINI_3_1_PRO_PREVIEW)
+      if ((AI_MODELS as any)[params.modelId]) {
+        modelConfig = (AI_MODELS as any)[params.modelId];
+      }
+      // 2. Check if modelId matches the 'id' field of any model in AI_MODELS (fallback)
+      else {
+        const directModel = Object.values(AI_MODELS).find(
+          (m) => m.id === params.modelId,
+        );
+        if (directModel) {
+          modelConfig = directModel;
+        } else if (params.modelId === "openrouter") {
+          modelConfig =
+            (AI_MODELS as any)[settings.defaultTextModel] ||
+            AI_MODELS.OPENROUTER_GEMMA_4_26B;
+        } else if (params.modelId === "modal") {
+          modelConfig = AI_MODELS.MODAL_GLM_5_1;
+        } else if (params.modelId === "gemini-1.5-pro") {
+          modelConfig = AI_MODELS.GEMINI_1_5_PRO;
         }
-        return "**EduHub AI Teaching Assistant**\n\n*Mock mode — add CLAUDE_API_KEY to .env to enable full AI.*";
+      }
+    } else {
+      // Smart Selection from Global Settings
+      if (params.imageBase64) {
+        modelConfig =
+          (AI_MODELS as any)[settings.defaultImageModel] ||
+          AI_MODELS.GEMINI_2_0_FLASH;
+      } else {
+        modelConfig =
+          (AI_MODELS as any)[settings.defaultTextModel] ||
+          AI_MODELS.OPENROUTER_GEMMA_4_26B;
+      }
     }
 
-    // --- AI Settings & Smart Selection ---
-    private static settingsCache: { data: any; timestamp: number } | null = null;
-    private static CACHE_TTL = 30000; // 30 seconds
+    try {
+      switch (modelConfig.provider) {
+        case "gemini":
+          return await this.callGemini(
+            modelConfig.id,
+            params.systemPrompt,
+            params.userPrompt,
+            settings,
+            params.imageBase64,
+            params.mimeType,
+          );
+        case "openrouter":
+          return await this.callOpenRouter(
+            modelConfig.id,
+            params.systemPrompt,
+            params.userPrompt,
+            settings,
+            params.imageBase64,
+          );
+        case "modal":
+          return await this.callModal(
+            modelConfig.id,
+            params.systemPrompt,
+            params.userPrompt,
+            settings,
+            params.imageBase64,
+          );
+        default:
+          throw new Error(`Unsupported AI Provider: ${modelConfig.provider}`);
+      }
+    } catch (error: any) {
+      const errorDetails =
+        error?.response?.data || error.message || String(error);
+      logger.error(`AI Tool Error [${modelConfig.provider}]:`, errorDetails);
 
-    private static async getSettings() {
-        if (this.settingsCache && (Date.now() - this.settingsCache.timestamp) < this.CACHE_TTL) {
-            return this.settingsCache.data;
-        }
+      // Map 429 Quota errors to 429 AppError instead of 500
+      if (
+        String(errorDetails).includes("429") ||
+        String(errorDetails).includes("Quota") ||
+        String(errorDetails).includes("Too Many Requests")
+      ) {
+        throw new AppError(
+          `AI Engine Rate Limit: Your current Gemini API quota is exceeded. Please check your Google AI Studio plan or try again later.`,
+          429,
+        );
+      }
 
-        const settings = await prisma.ai_settings.findUnique({ where: { id: 'singleton' } });
-        const data = settings || {
-            defaultTextModel: 'OPENROUTER_GEMMA_4_26B',
-            defaultImageModel: 'GEMINI_2_0_FLASH',
-            apiKeyGemini: process.env.GEMINI_API_KEY,
-            apiKeyOpenRouter: process.env.OPENROUTER_API_KEY,
-            apiKeyModal: process.env.MODAL_API_KEY,
-            apiKeyClaude: process.env.CLAUDE_API_KEY
-        };
+      throw new AppError(
+        `Failed to process document using AI Engine (${modelConfig.provider}). Details: ${typeof errorDetails === "string" ? errorDetails : JSON.stringify(errorDetails)}`,
+        500,
+      );
+    }
+  }
 
-        this.settingsCache = { data, timestamp: Date.now() };
-        return data;
+  private static async callGemini(
+    modelId: string,
+    systemPrompt: string,
+    userPrompt: string,
+    settings: any,
+    imageBase64?: string,
+    mimeType?: string,
+  ) {
+    const apiKey = settings.apiKeyGemini || process.env.GEMINI_API_KEY;
+    if (!apiKey) throw new Error("GEMINI_API_KEY missing");
+
+    const genAI = new GoogleGenerativeAI(apiKey);
+    const model = genAI.getGenerativeModel({ model: modelId });
+
+    const contentParts: any[] = [{ text: systemPrompt + "\n\n" + userPrompt }];
+
+    if (imageBase64) {
+      const cleanBase64 = imageBase64.replace(
+        /^data:image\/(png|jpeg|jpg|webp);base64,/,
+        "",
+      );
+      contentParts.push({
+        inlineData: { mimeType: mimeType || "image/png", data: cleanBase64 },
+      });
     }
 
-    // --- New Tooling Logic (PDF to Word / MCQ Extractor) ---
-    static async processToolRequest(params: {
-        modelId?: string; // 'smart', 'openrouter', 'modal', or specific model key
-        systemPrompt: string;
-        userPrompt: string;
-        imageBase64?: string;
-        mimeType?: string; // e.g. 'image/png'
-    }) {
-        const settings = await this.getSettings();
-        let modelConfig: { provider: string; id: string } = (AI_MODELS as any)[settings.defaultImageModel] || AI_MODELS.GEMINI_2_0_FLASH;
+    const result = await model.generateContent(contentParts);
+    return result.response.text();
+  }
 
-        // Evaluate manual override or smart selection
-        if (params.modelId && params.modelId !== 'smart') {
-            // 1. Check if modelId is a KEY in AI_MODELS (e.g. GEMINI_3_1_PRO_PREVIEW)
-            if ((AI_MODELS as any)[params.modelId]) {
-                modelConfig = (AI_MODELS as any)[params.modelId];
-            } 
-            // 2. Check if modelId matches the 'id' field of any model in AI_MODELS (fallback)
-            else {
-                const directModel = Object.values(AI_MODELS).find(m => m.id === params.modelId);
-                if (directModel) {
-                    modelConfig = directModel;
-                } else if (params.modelId === 'openrouter') {
-                    modelConfig = (AI_MODELS as any)[settings.defaultTextModel] || AI_MODELS.OPENROUTER_GEMMA_4_26B;
-                } else if (params.modelId === 'modal') {
-                    modelConfig = AI_MODELS.MODAL_GLM_5_1;
-                } else if (params.modelId === 'gemini-1.5-pro') {
-                    modelConfig = AI_MODELS.GEMINI_1_5_PRO;
-                }
-            }
-        } else {
-             // Smart Selection from Global Settings
-             if (params.imageBase64) {
-                  modelConfig = (AI_MODELS as any)[settings.defaultImageModel] || AI_MODELS.GEMINI_2_0_FLASH;
-             } else {
-                  modelConfig = (AI_MODELS as any)[settings.defaultTextModel] || AI_MODELS.OPENROUTER_GEMMA_4_26B;
-             }
-        }
+  private static async callOpenRouter(
+    modelId: string,
+    systemPrompt: string,
+    userPrompt: string,
+    settings: any,
+    imageBase64?: string,
+  ) {
+    const apiKey = settings.apiKeyOpenRouter || process.env.OPENROUTER_API_KEY;
+    if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
 
-        try {
-            switch (modelConfig.provider) {
-                case 'gemini':
-                    return await this.callGemini(modelConfig.id, params.systemPrompt, params.userPrompt, settings, params.imageBase64, params.mimeType);
-                case 'openrouter':
-                    return await this.callOpenRouter(modelConfig.id, params.systemPrompt, params.userPrompt, settings, params.imageBase64);
-                case 'modal':
-                    return await this.callModal(modelConfig.id, params.systemPrompt, params.userPrompt, settings, params.imageBase64);
-                default:
-                    throw new Error(`Unsupported AI Provider: ${modelConfig.provider}`);
-            }
-        } catch (error: any) {
-            const errorDetails = error?.response?.data || error.message || String(error);
-            logger.error(`AI Tool Error [${modelConfig.provider}]:`, errorDetails);
-            
-            // Map 429 Quota errors to 429 AppError instead of 500
-            if (String(errorDetails).includes('429') || String(errorDetails).includes('Quota') || String(errorDetails).includes('Too Many Requests')) {
-                throw new AppError(`AI Engine Rate Limit: Your current Gemini API quota is exceeded. Please check your Google AI Studio plan or try again later.`, 429);
-            }
-            
-            throw new AppError(`Failed to process document using AI Engine (${modelConfig.provider}). Details: ${typeof errorDetails === 'string' ? errorDetails : JSON.stringify(errorDetails)}`, 500);
-        }
+    const messages: any[] = [{ role: "system", content: systemPrompt }];
+
+    if (imageBase64) {
+      // Check if model supports vision. Openrouter models handle image URLs in content array
+      messages.push({
+        role: "user",
+        content: [
+          { type: "text", text: userPrompt },
+          {
+            type: "image_url",
+            image_url: {
+              url: imageBase64.startsWith("data:")
+                ? imageBase64
+                : `data:image/png;base64,${imageBase64}`,
+            },
+          },
+        ],
+      });
+    } else {
+      messages.push({ role: "user", content: userPrompt });
     }
 
-    private static async callGemini(modelId: string, systemPrompt: string, userPrompt: string, settings: any, imageBase64?: string, mimeType?: string) {
-        const apiKey = settings.apiKeyGemini || process.env.GEMINI_API_KEY;
-        if (!apiKey) throw new Error("GEMINI_API_KEY missing");
-        
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: modelId });
-        
-        const contentParts: any[] = [{ text: systemPrompt + "\n\n" + userPrompt }];
+    const response = await axios.post(
+      AI_ENDPOINTS.openrouter,
+      {
+        model: modelId,
+        messages: messages,
+        max_tokens: 8000,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "HTTP-Referer": "http://localhost:4000",
+        },
+        timeout: 60000,
+      },
+    );
 
-        if (imageBase64) {
-            const cleanBase64 = imageBase64.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
-            contentParts.push({
-                inlineData: { mimeType: mimeType || 'image/png', data: cleanBase64 }
-            });
-        }
+    return response.data.choices[0].message.content;
+  }
 
-        const result = await model.generateContent(contentParts);
-        return result.response.text();
+  private static async callModal(
+    modelId: string,
+    systemPrompt: string,
+    userPrompt: string,
+    settings: any,
+    imageBase64?: string,
+  ) {
+    const apiKey = settings.apiKeyModal || process.env.MODAL_API_KEY;
+    if (!apiKey) throw new Error("MODAL_API_KEY missing");
+
+    const messages: any[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt },
+      // Note: Modal's specific GLM-5.1 might need direct vision handling,
+      // but if unsupported, we fallback text only or let it fail gracefully if image supplied but model text-only
+    ];
+
+    const response = await axios.post(
+      AI_ENDPOINTS.modal,
+      {
+        model: modelId,
+        messages: messages,
+        max_tokens: 4000,
+      },
+      {
+        headers: { Authorization: `Bearer ${apiKey}` },
+      },
+    );
+
+    return response.data.choices[0].message.content;
+  }
+  static async generateBlogDraftFromUrl(params: {
+    sourceUrl: string;
+    targetPlatform?: "mokebook" | "public_website" | "both";
+    tone?: string;
+    extraInstructions?: string;
+  }) {
+    const response = await axios.get(params.sourceUrl, {
+      timeout: 20000,
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (compatible; EduHubBot/1.0; +http://localhost:4000)",
+      },
+    });
+
+    const html = String(response.data || "");
+    const $ = cheerio.load(html);
+
+    $("script, style, noscript, iframe, svg").remove();
+
+    const title =
+      $('meta[property="og:title"]').attr("content") ||
+      $('meta[name="twitter:title"]').attr("content") ||
+      $("title").text().trim() ||
+      $("h1").first().text().trim();
+
+    const description =
+      $('meta[name="description"]').attr("content") ||
+      $('meta[property="og:description"]').attr("content") ||
+      $('meta[name="twitter:description"]').attr("content") ||
+      "";
+
+    const featuredImageUrl =
+      $('meta[property="og:image"]').attr("content") ||
+      $('meta[name="twitter:image"]').attr("content") ||
+      $("img").first().attr("src") ||
+      null;
+
+    const contentCandidates = [
+      $("article").text(),
+      $("main").text(),
+      $('[role="main"]').text(),
+      $(".content, .post-content, .entry-content, .article-content").text(),
+      $("body").text(),
+    ]
+      .map((text) => text.replace(/\s+/g, " ").trim())
+      .filter(Boolean);
+
+    const extractedText =
+      contentCandidates.sort((a, b) => b.length - a.length)[0] || "";
+    const normalizedText = extractedText.slice(0, 12000);
+
+    if (!normalizedText && !title) {
+      throw new AppError(
+        "Could not extract enough content from the provided URL.",
+        400,
+      );
     }
 
-    private static async callOpenRouter(modelId: string, systemPrompt: string, userPrompt: string, settings: any, imageBase64?: string) {
-        const apiKey = settings.apiKeyOpenRouter || process.env.OPENROUTER_API_KEY;
-        if (!apiKey) throw new Error("OPENROUTER_API_KEY missing");
+    const systemPrompt = `You are an expert educational blog writer for an Indian exam-preparation platform.
+Your task is to rewrite a source web page into a clean, original blog draft.
 
-        const messages: any[] = [{ role: 'system', content: systemPrompt }];
-        
-        if (imageBase64) {
-            // Check if model supports vision. Openrouter models handle image URLs in content array
-            messages.push({
-                role: 'user', 
-                content: [
-                    { type: 'text', text: userPrompt },
-                    { type: 'image_url', image_url: { url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/png;base64,${imageBase64}` } }
-                ]
-            });
-        } else {
-             messages.push({ role: 'user', content: userPrompt });
-        }
+RULES:
+1. Do not copy verbatim; rewrite in fresh language.
+2. Keep facts grounded in the source content only.
+3. Produce SEO-friendly but human-readable content.
+4. If the source is a job notification, structure it for readers preparing for exams/jobs.
+5. Return ONLY valid JSON.
 
-        const response = await axios.post(AI_ENDPOINTS.openrouter, {
-            model: modelId,
-            messages: messages,
-            max_tokens: 8000
-        }, {
-            headers: { 'Authorization': `Bearer ${apiKey}`, 'HTTP-Referer': 'http://localhost:4000' },
-            timeout: 60000
-        });
+JSON format:
+{
+  "title": "...",
+  "slug": "...",
+  "excerpt": "...",
+  "contentHtml": "...",
+  "contentText": "...",
+  "seoTitle": "...",
+  "seoDescription": "...",
+  "focusKeyword": "...",
+  "featuredImageUrl": "...",
+  "featuredImageAlt": "...",
+  "suggestedTags": ["..."],
+  "suggestedCategorySlugs": ["..."]
+}`;
 
-        return response.data.choices[0].message.content;
+    const userPrompt = `Create a blog draft for platform: ${params.targetPlatform || "mokebook"}.
+Tone: ${params.tone || "clear, helpful, informative"}.
+Additional instructions: ${params.extraInstructions || "Focus on readability for students and job aspirants."}
+
+Source URL: ${params.sourceUrl}
+Extracted title: ${title || "N/A"}
+Extracted description: ${description || "N/A"}
+Featured image candidate: ${featuredImageUrl || "N/A"}
+
+Extracted content:
+${normalizedText}`;
+
+    const aiResponse = await this.processToolRequest({
+      systemPrompt,
+      userPrompt,
+      modelId: "smart",
+    });
+
+    try {
+      const cleaned = aiResponse
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+      const parsed = JSON.parse(cleaned);
+      return {
+        ...parsed,
+        sourceUrl: params.sourceUrl,
+        extractedTitle: title || null,
+        extractedDescription: description || null,
+        extractedFeaturedImageUrl: featuredImageUrl,
+      };
+    } catch (err) {
+      logger.error("AI Blog Draft JSON Parse Error:", aiResponse);
+      throw new AppError(
+        "AI failed to return a valid blog draft payload.",
+        500,
+      );
     }
+  }
 
-    private static async callModal(modelId: string, systemPrompt: string, userPrompt: string, settings: any, imageBase64?: string) {
-        const apiKey = settings.apiKeyModal || process.env.MODAL_API_KEY;
-        if (!apiKey) throw new Error("MODAL_API_KEY missing");
+  static async editQuestion(params: {
+    editType: string;
+    currentData: any;
+    targetLanguage?: string;
+  }) {
+    const { editType, currentData } = params;
 
-        const messages: any[] = [
-             { role: 'system', content: systemPrompt },
-             { role: 'user', content: userPrompt }
-             // Note: Modal's specific GLM-5.1 might need direct vision handling, 
-             // but if unsupported, we fallback text only or let it fail gracefully if image supplied but model text-only
-        ];
-
-        const response = await axios.post(AI_ENDPOINTS.modal, {
-            model: modelId,
-            messages: messages,
-            max_tokens: 4000
-        }, {
-            headers: { 'Authorization': `Bearer ${apiKey}` }
-        });
-
-        return response.data.choices[0].message.content;
-    }
-    static async editQuestion(params: {
-        editType: string;
-        currentData: any;
-        targetLanguage?: string;
-    }) {
-        const { editType, currentData } = params;
-        
-        let systemPrompt = `You are an expert academic editor and subject matter expert. 
-Your goal is to modify a question based on a specific instruction. 
+    let systemPrompt = `You are an expert academic editor and subject matter expert.
+Your goal is to modify a question based on a specific instruction.
 CRITICAL: You MUST return ONLY a valid JSON object containing the updated fields. No markdown formatting, no explanations, just raw JSON.
 
 Current Question Context:
-- Subject: ${currentData.subject || 'General'}
-- Type: ${currentData.questionType || 'MCQ'}
+- Subject: ${currentData.subject || "General"}
+- Type: ${currentData.questionType || "MCQ"}
 
 JSON Output Structure:
 {
@@ -249,53 +463,59 @@ JSON Output Structure:
 
 ONLY include the fields that you have modified. For options, provide the full array if you generate them.`;
 
-        let userPrompt = "";
+    let userPrompt = "";
 
-        switch (editType) {
-            case 'fix_grammar':
-                userPrompt = `Please fix the grammar, flow, and professional tone of the following question and explanation. Preserve all LaTeX math formatting accurately.
+    switch (editType) {
+      case "fix_grammar":
+        userPrompt = `Please fix the grammar, flow, and professional tone of the following question and explanation. Preserve all LaTeX math formatting accurately.
 Current Question (EN): ${currentData.question_eng}
 Current Explanation (EN): ${currentData.solution_eng}`;
-                break;
-            case 'translate':
-                const target = params.targetLanguage || 'hin';
-                userPrompt = `Please translate the following question and explanation into ${target === 'hin' ? 'Hindi' : 'English'}.
-Question to Translate: ${target === 'hin' ? currentData.question_eng : currentData.question_hin}
-Explanation to Translate: ${target === 'hin' ? currentData.solution_eng : currentData.solution_hin}
+        break;
+      case "translate":
+        const target = params.targetLanguage || "hin";
+        userPrompt = `Please translate the following question and explanation into ${target === "hin" ? "Hindi" : "English"}.
+Question to Translate: ${target === "hin" ? currentData.question_eng : currentData.question_hin}
+Explanation to Translate: ${target === "hin" ? currentData.solution_eng : currentData.solution_hin}
 Ensure technical terms are kept in standard Hinglish if translating to Hindi. Preserve LaTeX math notation.`;
-                break;
-            case 'simplify':
-                userPrompt = `Please simplify the language of this question to make it easier for students to understand. Do not change the academic rigor or the correct answer.
+        break;
+      case "simplify":
+        userPrompt = `Please simplify the language of this question to make it easier for students to understand. Do not change the academic rigor or the correct answer.
 Question: ${currentData.question_eng || currentData.question_hin}`;
-                break;
-            case 'generate_explanation':
-                userPrompt = `Please generate a detailed, step-by-step educational explanation for this question.
+        break;
+      case "generate_explanation":
+        userPrompt = `Please generate a detailed, step-by-step educational explanation for this question.
 Question: ${currentData.question_eng || currentData.question_hin}
 Correct Answer: ${currentData.answer}
-Use LaTeX for all math. Provide explanation in ${currentData.question_eng ? 'English' : 'Hindi'}.`;
-                break;
-            case 'generate_options':
-                userPrompt = `Given this question, please generate 4 high-quality MCQ options (A, B, C, D) including 3 common misconceptions as distractors and 1 correct answer.
+Use LaTeX for all math. Provide explanation in ${currentData.question_eng ? "English" : "Hindi"}.`;
+        break;
+      case "generate_options":
+        userPrompt = `Given this question, please generate 4 high-quality MCQ options (A, B, C, D) including 3 common misconceptions as distractors and 1 correct answer.
 Question: ${currentData.question_eng || currentData.question_hin}
 Identify which is correct.`;
-                break;
-            default:
-                throw new Error("Invalid edit type");
-        }
-
-        const aiResponse = await this.processToolRequest({
-            systemPrompt,
-            userPrompt,
-            modelId: 'smart'
-        });
-
-        try {
-            // Clean AI response in case it wraps it in markdown code blocks
-            const cleaned = aiResponse.replace(/```json/g, '').replace(/```/g, '').trim();
-            return JSON.parse(cleaned);
-        } catch (err) {
-            logger.error("AI JSON Parse Error:", aiResponse);
-            throw new Error("AI failed to return valid JSON format. Raw: " + aiResponse.substring(0, 100));
-        }
+        break;
+      default:
+        throw new Error("Invalid edit type");
     }
+
+    const aiResponse = await this.processToolRequest({
+      systemPrompt,
+      userPrompt,
+      modelId: "smart",
+    });
+
+    try {
+      // Clean AI response in case it wraps it in markdown code blocks
+      const cleaned = aiResponse
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+      return JSON.parse(cleaned);
+    } catch (err) {
+      logger.error("AI JSON Parse Error:", aiResponse);
+      throw new Error(
+        "AI failed to return valid JSON format. Raw: " +
+          aiResponse.substring(0, 100),
+      );
+    }
+  }
 }

@@ -1,21 +1,33 @@
-import { Router } from 'express';
-import { queryCanvas, processTool, saveDraftQuestions, getAISettings, updateAISettings, editQuestion } from './ai.controller';
-import { authenticate } from '../../middleware/auth';
+import { Router } from "express";
+import {
+  queryCanvas,
+  processTool,
+  saveDraftQuestions,
+  getAISettings,
+  updateAISettings,
+  editQuestion,
+  generateBlogDraftFromUrl,
+} from "./ai.controller";
+import { authenticate } from "../../middleware/auth";
 
 const router = Router();
 
 // EduHub Whiteboard Canvas Query (Context-aware AI Assistant)
-router.post('/canvas-query', authenticate, queryCanvas);
+router.post("/canvas-query", authenticate, queryCanvas);
 
 // AI Settings Management
-router.get('/settings', getAISettings);
-router.post('/settings', updateAISettings);
+router.get("/settings", getAISettings);
+router.post("/settings", updateAISettings);
 
-// AI Tools Endpoints (PDF to Word / Extractors) 
-router.post('/tool-process', processTool);
-router.post('/save-draft', saveDraftQuestions);
+// AI Tools Endpoints (PDF to Word / Extractors)
+router.post("/tool-process", processTool);
+router.post("/save-draft", saveDraftQuestions);
+
+// Blog draft generation from source URL
+router.post("/blog-draft-from-url", authenticate, generateBlogDraftFromUrl);
+router.post("/blog_draft_from_url", authenticate, generateBlogDraftFromUrl);
 
 // Question Editing AI
-router.post('/edit-question', authenticate, editQuestion);
+router.post("/edit-question", authenticate, editQuestion);
 
 export default router;
